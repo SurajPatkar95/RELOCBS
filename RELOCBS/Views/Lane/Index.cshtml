@@ -1,0 +1,123 @@
+﻿@using System.Security.Policy
+@using GridMvc.Html
+@using PagedList.Mvc;
+@using PagedList;
+
+<div class="col-md-12 no-padding m-t-sm">
+    <div class="pnl-gridtop clearfix">
+        <div class="clearfix pnl-filter">
+            @Html.Partial("_SearchForm")
+        </div>
+        <div id="mgrid">
+            @Html.Partial("_AjaxPartial")
+        </div>
+    </div>
+
+    <div id="mdlAddEdit" class="modal fade" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+
+    <script>
+        function PagedOnCompleteBinds() {
+            $(document).ready(function () {
+                $('select').select2();
+                $('#DivLastMoveDate').datetimepicker({
+                    format: 'DD/MM/YYYY'
+                });
+                $('#LastDate').on('focus', function () {
+                    $(this).siblings('.input-group-addon').click();
+                });
+
+                $('.grid-header-title a').on('click', function (e) {
+                    e.preventDefault();
+                    var sturl = "@Url.Action("Index", "Lane")" + $(this).attr('href');
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('form.frmRWDelete').on('submit', function (e) {
+                    e.preventDefault();
+                    $frmRWDelete = this;
+                    swal({
+                        title: "Are you sure?",
+                        //text: "Your will not be able to recover this imaginary file!",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Delete",
+                        cancelButtonText: "No",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $('#mgrid').mask("Loading...");
+                            $($frmRWDelete).ajaxSubmit({
+                                success: function (data) {
+                                    if (data.Success) {
+                                        toastr.success("Lane deleted successfully.");
+                                        $('#mgrid .pagination li.active a').trigger('click');
+                                    } else if (!data.Success) {
+                                        swal({
+                                            text: "Lane delete failed. Please try again.",
+                                            type: "error"
+                                        });
+                                    }
+                                    $('#mgrid').unmask();
+                                },
+                                complete: function () {
+                                    $('#mgrid').unmask();
+                                }
+                            });
+                        } else {
+                            swal("", "Lane delete cancelled.", "error");
+                        }
+                    });
+                });
+                $('.lnkPortExportToExcel').on('click', function () {
+                    var url = '@Url.Action("ExportToExcel", "Lane", new { })';
+                    window.location.href = url;
+                });
+                $('#mgrid .pagination li a').on('click', function (e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    var sturl = $('#mgrid .sorted.grid-header-title a').attr('href');
+                    if (typeof sturl != 'undefined') {
+                        var gdir = url("?grid-dir", sturl);
+                        sturl = sturl.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0 ? 1 : 0));
+                        sturl = sturl.replace('?', '&');
+                    }
+
+                    var sturl2 = $(this).attr('href');
+                    if (sturl2 == undefined) {
+                        sturl2 = "@Url.Action("Index", "Lane")?page=" + parseInt($(this).html());
+                    }
+                    sturl = sturl2 + sturl.replace(/page=\d+/i, "");
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+            });
+        }
+        $(document).ready(function () {
+            PagedOnCompleteBinds();
+        });
+        $('form#CustomFilter').on('submit', function (e) {
+            e.preventDefault();
+            $(this).ajaxSubmit({
+                target: '#mgrid',
+                success: function () {
+                    PagedOnCompleteBinds();
+                }
+            });
+        });
+    </script>
+}
+

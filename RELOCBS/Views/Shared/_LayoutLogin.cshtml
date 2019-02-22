@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[@ViewBag.SiteTitleShort] @ViewBag.Title</title>
+    <link href='https://fonts.googleapis.com/css?family=Lato:400,300,700,900' rel='stylesheet' type='text/css'>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+
+</head>
+<body class="pg-login bg-white">
+    <div id="wrapper">
+        <div id="page-wrapper-login" class="">
+
+            <div class="col-md-6 pnl-login-left">
+                @RenderBody()
+
+                <footer class="login-foot">
+                    <div class="row">
+                        <div class="col-sm-12 text-center">
+                            <a href="#">Terms of Use</a> | <a href="#">Policy</a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 text-center m-t-sm">
+                            <p>&copy; @ViewBag.Copyright</p>
+                        </div>
+                    </div>
+
+
+                </footer>
+
+            </div>
+            <div class="col-md-6 pad-none">
+                <div class="pnl-login-right"></div>
+                @*<img src="~/Content/images/banner_login.jpg" class="img-responsive" />*@
+            </div>
+        </div>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/custom")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

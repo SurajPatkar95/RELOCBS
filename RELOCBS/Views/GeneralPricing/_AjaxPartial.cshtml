@@ -1,0 +1,93 @@
+﻿@model IEnumerable<RELOCBS.Entities.GeneralPrice>
+@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+@{
+
+    string _PageID = "7";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+
+columns.Add(o => o.WeightUnitFrom)
+    .Titled("Weight From")
+    .Css("col-md-3")
+    .SetWidth(2);
+
+columns.Add(o => o.WeightUnitTo)
+.Titled("Weight To").Css("col-md-3").SetWidth(2);
+
+columns.Add(o => o.RateCurrencyName)
+    .Css("col-md-3")
+    .Titled("Rate Currency")
+    .SetWidth(2);
+
+columns.Add(o => o.RateReceived)
+    .Titled("RateReceived")
+    .Css("col-md-1").SetWidth(2);
+
+columns.Add(o => o.BaseCurrencyRateName)
+.Titled("BaseCurrencyRate")
+.Css("col-md-1").SetWidth(2);
+
+columns.Add(o => o.ConversionRate)
+.Titled("Conversion Rate")
+.Css("col-md-1").SetWidth(2);
+
+columns.Add(o => o.RMCName)
+.Titled("RMC")
+.Css("col-md-3").SetWidth(3);
+
+columns.Add(o => o.FromLocationName)
+.Titled("From Loc")
+.Css("col-md-3").SetWidth(3);
+
+columns.Add(o => o.ToLocationName)
+.Titled("To Loc")
+.Css("col-md-3").SetWidth(3);
+
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(false)
+.Css("col-md-2").Titled("Actions")
+.RenderValueAs(d =>
+    @<span>
+        @if (hasEditAccess)
+        {
+            <a href="@Url.Action("Edit" , "GeneralPricing",new { RateCompRateWtBatchID=d.RateCompRateWtBatchID, RateCompRateWtID=d.RateCompRateWtID })" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" data-cache="false" title="Edit Rate"></a>
+        }
+
+        @if (hasAddAccess)
+        {
+            <a href="@Url.Action("CopyRate", "GeneralPricing", new { RateCompRateWtBatchID = d.RateCompRateWtBatchID, RateCompRateWtID = d.RateCompRateWtID })" class="add-btn btn btn-xs btn-default pull-left" data-cache="false" title="Copy Rate">Copy Rate</a>
+        }
+
+        @*@if (d.Isactive == true && hasDeleteAccess)
+        {
+            <div class="pull-left">
+                <form method="post" action="@Url.Action("Delete/" + d.WeightUnitID, "GeneralPricing")" class="frmRWDelete" title="Delete Rate">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="CityID" value="@d.CityID" />
+                    <button type="submit" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5"></button>
+                </form>
+            </div>
+        }*@
+    </span>
+    );
+}).WithPaging(10).Sortable(false)
+
+@*<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>*@

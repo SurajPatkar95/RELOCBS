@@ -1,0 +1,77 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model IPagedList<RELOCBS.Entities.Continent>
+
+@{
+
+    string _PageID = "6";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+
+columns.Add(o => o.ContinentName)
+    .Titled("ContinentName")
+    .Css("col-md-3")
+    .SetWidth(2)
+    .SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+
+columns.Add(o => o.ShortContinentName)
+.Titled("City Name").Css("col-md-3")
+.SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+
+
+columns.Add(o => o.Isactive)
+    .Titled("Active").Css("col-md-1")
+    .Encoded(false)
+    .Sanitized(false)
+    .RenderValueAs(d =>
+    @<span>
+        @if (d.Isactive == true)
+        {
+            <i class="fa fa-check text-navy"></i>
+        }
+    </span>
+    );
+
+columns.Add()
+    .Encoded(false)
+    .Sanitized(false)
+    .Sortable(true)
+    .Css("col-md-2").Titled("Actions")
+    .RenderValueAs(d =>
+    @<span>
+        @if (hasEditAccess)
+        {
+            <a href="@Url.Action("Edit/" + d.ContinentID, "Continent")" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" data-toggle="modal" data-target="#mdlAddEdit" data-cache="false" title="Edit City"></a>
+        }
+        @if (d.Isactive == true && hasDeleteAccess)
+        {
+            <div class="pull-left">
+                <form method="post" action="@Url.Action("Delete/" + d.ContinentID, "Continent")" class="frmRWDelete" title="Delete City">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="CityID" value="@d.ContinentID" />
+                    <button type="submit" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5"></button>
+                </form>
+            </div>
+        }
+    </span>
+    );
+}).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager(Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>

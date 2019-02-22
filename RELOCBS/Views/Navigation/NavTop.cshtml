@@ -1,0 +1,71 @@
+﻿@using RELOCBS.Utility
+
+<div class="row border-bottom">
+    <nav class="navbar navbar-static-top white-bg border-bottom" role="navigation" style="margin-bottom: 0">
+        @if (@UserSession.GetUserSession() == null)    
+        {
+            <div class="navbar-header">
+                <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#"><i class="fa fa-bars"></i> </a>
+                <h3>&nbsp;</h3>
+            </div>
+            <ul class="nav navbar-top-links navbar-right">
+                <li>
+                    <span class="m-r-sm text-muted welcome-message">Welcome to @ViewBag.SiteTitle</span>
+                </li>
+                <li>
+                    <a href="@Url.Action("Login", "Account", new { area="" })">
+                        <i class="fa fa-sign-in"></i> <small>Log In</small>
+                    </a>
+                </li>
+            </ul>
+        }
+        else
+        {
+            <div class="navbar-header col-sm-4">
+                <a class="navbar-minimalize minimalize-styl-2 btn btn-warning pull-left" href="#"><i class="fa fa-bars"></i> </a>
+                @*<form role="search" class="navbar-form-custom" action="search_results.html">
+                        <div class="form-group">
+                            <input type="text" placeholder="Search for something..." class="form-control" name="top-search" id="top-search">
+                        </div>
+                    </form>*@
+                <div class="user-info">
+                    @*below commneted due to userdetail not available*@
+                    @if (@UserSession.GetUserSession() != null)
+                    {
+                        <strong class="font-bold">@UserSession.GetUserSession().UserName</strong>
+                    }
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="fa fa-caret-down"></i></a>
+                    <ul class="dropdown-menu animated fadeInDown m-t-xs">
+                        <li><a href="@Url.Action("Profile", "Account", new { area="" })">Profile</a></li>
+                        <li class="divider"></li>
+                        <li><a href="@Url.Action("LogOut", "Account", new { area="" })">Log Out</a></li>
+                    </ul>
+                </div>
+            </div>
+            <h2 class="col-sm-4 text-center">@ViewBag.PageTitle</h2>
+            <div class="col-sm-4">
+                <ul class="nav navbar-top-links navbar-right">
+                    <li>
+                        <span class="m-r-sm text-muted welcome-message">@ViewBag.SiteTitle</span>
+                    </li>
+                    <li>|</li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#" id="pnl-notificationCount">
+                            @*<i class="fa fa-envelope"></i>  <span class="label label-warning" id="btnNotify">16</span>*@
+                            <i class="fa fa-bell"></i>
+                            <span id="btnNotify" class="label label-primary"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-messages" id="pnl-notification"></ul>
+                    </li>
+
+                    <li>|</li>
+                    <li>
+                        <a href="@Url.Action("LogOut", "Account", new { area="" })">
+                            <i class="fa fa-power-off"></i> <small>Log Out</small>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        }
+    </nav>
+</div>

@@ -1,0 +1,54 @@
+﻿@using RELOCBS.Utility;
+
+@{
+    string _PageID = "7";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+{
+    
+
+    @Html.AntiForgeryToken()
+    @*<div class="form-group col-md-2">
+            <label class="control-label label-sm">@I18N("Show Orgin Country")</label>
+            <div class="clearfix">
+                @Html.DropDownList("OriginCountryID", new SelectList((System.Collections.IEnumerable)ViewData["OriginCountryList"], "Value", "Text"), "Select Origin Country", new { @class = "form_control input-sm" })
+            </div>
+        </div>*@
+    @*<div class="form-group col-md-2">
+            <label class="control-label label-sm" for="order_id">@I18N("Show Destination Country")</label>
+            <div class="clearfix">
+                @Html.DropDownList("DestinationCountryID", new SelectList((System.Collections.IEnumerable)ViewData["DestinationCountryList"], "Value", "Text"), "Select Destination Country", new { @class = "form_control" })
+            </div>
+        </div>*@
+    <div class="form-group col-md-2">
+        <label class="marr-5">Show Records</label>
+        <div class="clearfix">
+            @Html.TextBox("SearchKey", null, new { @class = "form-control input-sm" })
+        </div>
+    </div>
+    <div class="col-md-1">
+        <input type="submit" class="btn btn-default btn-sm" value="Search" />
+    </div>
+    <a class="btn btn-default btn-sm lnkPortExportToExcel m-r-sm pull-right"><i class="fa fa-file-excel-o m-r-sm"></i>Export to Excel</a>
+    if (hasAddAccess)
+    {
+        <div class="col-md-2 pull-right">
+            @Html.ActionLink("New Lane", "Create", null,
+        new Dictionary<string, object>
+        {
+            { "class", "btn btn-primary btn-sm pull-right" },
+            { "data-toggle" , "modal"},
+            { "data-target", "#mdlAddEdit"},
+            { "title", "New Lane"}
+        })
+        </div>
+    }
+}
+
+
+
+

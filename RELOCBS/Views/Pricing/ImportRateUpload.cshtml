@@ -1,0 +1,2148 @@
+﻿@model RELOCBS.Entities.RateUpload
+
+@{
+    ViewBag.Title = "ImportRateUpload";
+    string ShortDateFormatDatePickerJs = "DD/MM/YYYY";
+}
+
+@using (Html.BeginForm("ImportRateUpload", "Pricing", FormMethod.Post, new { enctype = "multipart/form-data", id = "frmimportLaneRate" }))
+{
+    <input type="hidden" name="RateTypeFlagValue" id="RateTypeFlagValue" value="@ViewBag.RateTypeFlagValue" />
+
+    <input type="hidden" name="ShippmentMode" id="ShippmentMode" value="@ViewBag.ShippmentMode" />
+    <div class="row m-t-sm">
+
+        <div class="col-sm-3 form-group">
+            <label>Agent</label>
+            @Html.HiddenFor(model => model.RateUploadall.uploadType, new { id = "uploadType" })
+            @Html.TextBoxFor(a => a.RateUploadall.VendorName, new { @class = "form-control input-sm", placeholder = "Agent", title = "Agent", @id = "DropVendorName" })
+            @Html.HiddenFor(model => model.RateUploadall.VendorId, new { @id = "VendorID" })
+            @if (Model.RateUploadall.uploadType != 9 & Model.RateUploadall.uploadType != 10)
+            {
+                @Html.ValidationMessageFor(model => model.RateUploadall.VendorId, "", new { @class = "text-danger" })
+                @Html.ValidationMessageFor(model => model.RateUploadall.VendorName, "", new { @class = "text-danger" })}
+        </div>
+
+        <div class="col-sm-3 form-group">
+            <label>RMC</label>
+            @Html.TextBoxFor(a => a.RateUploadall.RMCName, new { @class = "form-control input-sm", placeholder = "RMC", title = "RMC", @id = "DropRMCName" })
+            @Html.HiddenFor(model => model.RateUploadall.RMCID, new { @id = "RMCID" })
+            @Html.ValidationMessageFor(model => model.RateUploadall.RMCID, "", new { @class = "text-danger" })
+            @Html.ValidationMessageFor(model => model.RateUploadall.RMCName, "", new { @class = "text-danger" })
+        </div>
+        <div class="col-sm-2 col-sm-offset-4">
+        </div>
+
+    </div>
+    @Html.ValidationSummary(true)
+    <div class="ibox m-t-sm">
+        <div class="ibox-content">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="tabs-container" id="tabRateUpload">
+                        <!-- Nav tabs -->
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#origin" aria-controls="origin" role="tab" data-toggle="tab" aria-expanded="true">Origin</a></li>
+                            <li role="presentation"><a href="#freight" aria-controls="freight" role="tab" data-toggle="tab" aria-expanded="false">Freight</a></li>
+                            <li role="presentation"><a href="#destination" aria-controls="destination" role="tab" data-toggle="tab" aria-expanded="false">Destination</a></li>
+                            <li role="presentation"><a href="#blanketrate" aria-controls="blanketrate" role="tab" data-toggle="tab" aria-expanded="false">Blanket / Road</a></li>
+                            <li role="presentation"><a href="#accsrv" aria-controls="accsrv" role="tab" data-toggle="tab" aria-expanded="false">Accessorial Services</a></li>
+                        </ul>
+                        <!-- Tab panes -->
+                        <div class="tab-content">
+                            <div role="tabpanel" class="tab-pane active" id="origin">
+                                <div class="row">
+                                    <div class="col-sm-8">
+                                        <a href="/uploads/Rate/RateFormat/Origin.xlsx" target="_blank">Rate Sample Format</a>
+                                    </div>
+                                    <div class="col-sm-4 form-group">
+                                        <input type="button" id="btnClearOriginFields" class="btn btn-default btn-sm pull-right" value="Clear Data" />
+                                    </div>
+                                </div>
+                                <div class="m-t-sm">
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <label>City</label>
+                                                @Html.TextBoxFor(a => a.OriginRate.CityName, new { @class = "form-control input-sm", placeholder = "City", title = "City", @id = "OCityName" })
+                                                @Html.HiddenFor(model => model.OriginRate.CityID, new { id = "OCityID", name = "OCityID" })
+                                                @Html.ValidationMessageFor(model => model.OriginRate.CityName, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <label>Sea Port</label>
+                                                @Html.TextBoxFor(a => a.OriginRate.SeaPortName, new { @class = "form-control input-sm", placeholder = "SeaPort", title = "SeaPort", @id = "OSeaPortName" })
+                                                @Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <label>Air Port</label>
+                                                @Html.TextBoxFor(a => a.OriginRate.AirPortName, new { @class = "form-control input-sm", placeholder = "AirPort", title = "AirPort", @id = "OAirPortName" })
+                                                @Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })
+                                                @Html.ValidationMessageFor(model => model.OriginRate.AirPortName, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <label>Rate Applicable From</label>
+                                                <div class="input-group input-group-sm date" id="dtp_OFromDate">
+                                                    @Html.Editor("OriginRate.FromDate", new { htmlAttributes = new { @placeholder = "Rate Applicable From", @tooltip = "Rate Applicable From", @class = "form-control input-sm", title = "Rate Applicable From", id = "OFromDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label>Transit Time Sea</label>
+                                                        @Html.TextBoxFor(a => a.OriginRate.DTPSea, new { @class = "form-control text-box single-line", placeholder = "Transit time in days", title = "Transit time Sea", id = "ODTPSea" })
+                                                        @Html.ValidationMessageFor(model => model.OriginRate.DTPSea, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label>&nbsp;</label>
+                                                    @Html.TextBoxFor(a => a.OriginRate.DTPSeaMax, new { @class = "form-control text-box single-line", placeholder = "Transit time in days", title = "Transit time Sea", id = "ODTPSeaMax" })
+                                                    @Html.ValidationMessageFor(model => model.OriginRate.DTPSeaMax, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <label>Transit Time Air</label>
+                                                    @Html.TextBoxFor(a => a.OriginRate.DTPAir, new { @class = "form-control text-box single-line", placeholder = "Transit time in days", title = "Transit time Air", id = "ODTPAir" })
+                                                    @Html.ValidationMessageFor(model => model.OriginRate.DTPAir, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label>&nbsp;</label>
+                                                    @Html.TextBoxFor(a => a.OriginRate.DTPAirMax, new { @class = "form-control text-box single-line", placeholder = "Transit time in days", title = "Transit time Air", id = "ODTPAirMax" })
+                                                    @Html.ValidationMessageFor(model => model.OriginRate.DTPAirMax, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-2 form-group">
+                                            <label>Agent Currency</label>
+                                            @Html.DropDownListFor(model => model.OriginRate.CurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["CurrencyList"], "Value", "Text", ViewData["CurrencyId"]), new { @class = "form-control", id = "Currency", title = "Origin Agent Currency" })
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <label>Conversion Rate to USD</label>
+                                            @Html.TextBoxFor(a => a.OriginRate.ConversionRateToUSD, new { @class = "form-control", @type = "number", placeholder = "USD Rate", @id = "txtConversionRateToUSD", @Value = ViewData["OConversionRateToUSD"] })
+                                        </div>
+                                        <div class="col-sm-7 form-group">
+                                            <input type="file" id="FileUpload" name="file" class="inputfile inputfile-4 center-block m-t-md form-control" required data-val="true" data-val-required="please select a file" accept=".xls,.xlsx">
+                                        </div>
+                                        <div class="col-sm-1 form-group">
+                                            <input type="submit" id="UploadDestinationRate" class="btn btn-default btn-sm m-t-md pull-right" value="Upload File" title="Click to upload file" formnovalidate="formnovalidate" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        @if (Model != null)
+                                        {
+                                            <a class="btn btn-info m-t-sm m-b-sm btn-sm" id="OriginRatesHistory" href="" target="_blank"><strong>History Rates</strong></a>
+                                        }
+                                    </div>
+                                    <div class="col-sm-3 col-sm-offset-7">
+                                        @if (Model != null)
+                                        {
+                                            <button class="btn btn-sm m-t-sm m-b-sm pull-right" id="UpdateVendorRate" type="button" formnovalidate="formnovalidate" onclick="UpdateVendorRates();">Apply Rates Immediately</button>
+                                            <input type="button" id="save1" name="SubmitOriginRate" class="btn btn-primary m-t-sm m-b-sm pull-right m-r-sm btn-sm" value="Save Rates" formnovalidate="formnovalidate" onclick="SaveData();" />
+                                        }
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="row m-t-md">
+                                    @try
+                                    {
+                                        if (Model.OriginRate.dtTable.Rows.Count > 0)
+                                        {
+                                            <div class="row">
+                                                <div class="col-sm-12 m-b-lg">
+                                                    <div class="ibox float-e-margins">
+                                                        <div class="table-responsive" id="pnl-rates" style="overflow: auto;height: 340px">
+                                                            <table class="table table-striped" id="RateListOrigin">
+                                                                <thead class="ibox-title">
+                                                                    <tr>
+                                                                        @foreach (System.Data.DataColumn col in Model.OriginRate.dtTable.Columns)
+                                                                        {
+                                                                            if (col.Caption == "WeightSlab" ||
+                                                                                col.Caption == "OriginRate" ||
+                                                                                col.Caption == "OriginTHC" ||
+                                                                                col.Caption == "LiftVanOriginRate" ||
+                                                                                col.Caption == "LiftVanOriginTHC" ||
+                                                                                col.Caption == "MiscRate")
+                                                                            {
+                                                                                <th> @col.Caption </th>
+                                                                            }
+                                                                        }
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach (System.Data.DataRow row in Model.OriginRate.dtTable.Rows)
+                                                                    {
+                                                                        <tr>
+                                                                            @foreach (System.Data.DataColumn col in Model.OriginRate.dtTable.Columns)
+                                                                            {
+                                                                                if (col.ColumnName == "OriginRate" ||
+                                                                                    col.ColumnName == "OriginTHC" ||
+                                                                                    col.ColumnName == "LiftVanOriginRate" ||
+                                                                                    col.ColumnName == "LiftVanOriginTHC" ||
+                                                                                    col.ColumnName == "MiscRate")
+                                                                                {
+                                                                                    <td class="@col.Caption">
+                                                                                        <input type="text" class="form-control input-sm" value="@row[col.ColumnName].ToString()" />
+                                                                                    </td>
+                                                                                }
+                                                                                else if (col.ColumnName == "WeightSlab")
+                                                                                {
+                                                                                    <td>
+                                                                                        @row[col.ColumnName]
+                                                                                    </td>
+                                                                                }
+                                                                            }
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    catch { }
+                                </div>
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane" id="freight">
+                                <div class="row">
+                                    <div class="col-sm-8">
+                                        <a href="/uploads/Rate/RateFormat/Freight.xlsx" target="_blank">Rate Sample Format</a>
+                                    </div>
+                                    <div class="col-sm-4 form-group">
+                                        <input type="button" id="btnClearFreightFields" class="btn btn-default btn-sm pull-right" value="Clear Data" />
+                                    </div>
+                                </div>
+                                <div class="m-t-sm">
+                                    <div class="row">
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label>Origin Sea Port</label>
+                                                @Html.TextBoxFor(a => a.FreightRate.OSeaPortName, new { @class = "form-control input-sm mart-5", placeholder = "Origin SeaPort", title = "Origin SeaPort", @id = "FOrgPortNameSea" })
+                                                @Html.HiddenFor(model => model.FreightRate.OriginSeaPortId, new { id = "FOrgPortIDSea", name = "FOrgPortIDSea" })
+                                                @Html.ValidationMessageFor(model => model.FreightRate.OSeaPortName, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label>Destination Sea Port</label>
+                                                @Html.TextBoxFor(a => a.FreightRate.DSeaPortName, new { @class = "form-control input-sm mart-5", placeholder = "Destination SeaPort", title = "Destination SeaPort", @id = "FDestPortNameSea" })
+                                                @Html.HiddenFor(model => model.FreightRate.DestSeaPortId, new { id = "FDestPortIDSea", name = "FDestPortIDSea" })
+                                                @Html.ValidationMessageFor(model => model.FreightRate.DSeaPortName, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label>Origin Air Port</label>
+                                                @Html.TextBoxFor(a => a.FreightRate.OAirPortName, new { @class = "form-control input-sm mart-5", placeholder = "Origin AirPort", title = "AirPort", @id = "FOrgPortNameAir" })
+                                                @Html.HiddenFor(model => model.FreightRate.OriginAirPortId, new { id = "FOrgPortIDAir", name = "FOrgPortIDAir" })
+                                                @Html.ValidationMessageFor(model => model.FreightRate.OAirPortName, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label>Destination Air Port</label>
+                                                @Html.TextBoxFor(a => a.FreightRate.DAirPortName, new { @class = "form-control input-sm mart-5", placeholder = "Destination AirPort", title = "AirPort", @id = "FDestPortNameAir" })
+                                                @Html.HiddenFor(model => model.FreightRate.DestAirPortId, new { id = "FDestPortIDAir", name = "FDestPortIDAir" })
+                                                @Html.ValidationMessageFor(model => model.FreightRate.DAirPortName, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label>Sea Transit Time (PTP)</label>
+                                                @Html.TextBoxFor(a => a.FreightRate.PTPSea, new { @class = "form-control text-box single-line", placeholder = "Transit time From (days)", title = "Sea Transit Time", id = "FPTPSea" })
+                                                @Html.ValidationMessageFor(model => model.FreightRate.PTPSea, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label>&nbsp;</label>
+                                                @Html.TextBoxFor(a => a.FreightRate.PTPSeaMax, new { @class = "form-control text-box single-line", placeholder = "Transit time To (days)", title = "Sea Transit Time", id = "FPTPSeaMax" })
+                                                @Html.ValidationMessageFor(model => model.FreightRate.PTPSeaMax, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label>Air Transit Time (PTP)</label>
+                                                @Html.TextBoxFor(a => a.FreightRate.PTPAir, new { @class = "form-control text-box single-line", placeholder = "Transit time From (days)", title = "Air Transit Time", id = "FPTPAir" })
+                                                @Html.ValidationMessageFor(model => model.FreightRate.PTPAir, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label>&nbsp;</label>
+                                                @Html.TextBoxFor(a => a.FreightRate.PTPAirMax, new { @class = "form-control text-box single-line", placeholder = "Transit time To (days)", title = "Air Transit Time", id = "FPTPAirMax" })
+                                                @Html.ValidationMessageFor(model => model.FreightRate.PTPAirMax, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label>Rate Applicable From</label>
+                                                <div class="input-group input-group-sm date" id="dtp_FFromDate">
+                                                    @Html.Editor("FreightRate.FromDate", new { htmlAttributes = new { @placeholder = "Rate Applicable From", @tooltip = "Rate Applicable From", @class = "form-control input-sm", title = "Rate Applicable From", id = "FFromDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label>Agent Currency</label>
+                                                @Html.DropDownListFor(model => model.FreightRate.CurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["CurrencyList"], "Value", "Text", ViewData["CurrencyId"]), new { @class = "form-control", id = "FreightCurrency", title = "Agent Currency" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label>Conversion Rate to USD</label>
+                                                @Html.TextBoxFor(model => model.FreightRate.ConversionRateToUSD, new { @class = "form-control", @type = "number", placeholder = "USD Rate", @id = "txtFreightConversionRateToUSD", @Value = ViewData["FConversionRateToUSD"] })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-5">
+                                            <div class="form-group">
+                                                <label>&nbsp;</label>
+                                                <input type="file" id="FileUpload" name="file" class="inputfile inputfile-4 center-block form-control" required data-val="true" data-val-required="please select a file" accept=".xls,.xlsx">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-1 form-group">
+                                            <label>&nbsp;</label>
+                                            <input type="submit" id="UploadFreightRate" class="btn btn-default btn-sm" value="Upload File" title="Click to upload file" formnovalidate="formnovalidate" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="row m-t-sm m-b-sm">
+                                    <div class="col-sm-2">
+                                        @if (Model != null)
+                                        {
+                                            @*<input type="button" id="btnFreightRateHistory" name="FreightRateHistory" class="btn btn-info m-t-sm m-b-sm btn-sm" value="History Rates" formnovalidate="formnovalidate" />*@
+                                            <a class="btn btn-info m-t-sm m-b-sm btn-sm" id="FreightRatesHistory" href="" target="_blank"><strong>History Rates</strong></a>
+                                        }
+                                    </div>
+                                    <div class="col-sm-3 col-sm-offset-7">
+                                        @if (Model != null)
+                                        {
+                                            <button class="btn btn-sm m-t-sm m-b-sm pull-right" id="UpdateFreightRate" type="button" formnovalidate="formnovalidate" onclick="UpdateFreightRates();">Apply Rates Imediately</button>
+                                            <input type="button" id="save1" name="save1" class="btn btn-primary m-t-sm m-b-sm pull-right m-r-sm btn-sm" value="Save Rates" formnovalidate="formnovalidate" onclick="SaveFreightData();" />
+                                        }
+                                    </div>
+
+                                </div>
+                                <hr />
+                                <div class="row m-t-md">
+                                    @try
+                                    {
+                                        if (Model.FreightRate.dtTable.Rows.Count > 0)
+                                        {
+                                            <div class="row">
+                                                <div class="col-sm-12 m-b-lg">
+                                                    <div class="ibox float-e-margins">
+                                                        <div class="table-responsive" id="pnl-rates" style="overflow: auto;height: 340px">
+                                                            <table class="table table-striped" id="RateListFreight">
+                                                                <thead class="ibox-title">
+                                                                    <tr>
+                                                                        @foreach (System.Data.DataColumn col in Model.FreightRate.dtTable.Columns)
+                                                                        {
+                                                                            if (col.Caption == "WeightSlab" ||
+                                                                            col.Caption == "FreightAmount" ||
+                                                                            col.Caption == "FreightRate" ||
+                                                                            col.Caption == "MiscRate")
+                                                                            {
+                                                                                <th>@col.Caption</th>
+                                                                            }
+                                                                        }
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach (System.Data.DataRow row in Model.FreightRate.dtTable.Rows)
+                                                                    {
+                                                                        <tr>
+                                                                            @foreach (System.Data.DataColumn col in Model.FreightRate.dtTable.Columns)
+                                                                            {
+                                                                                if (col.ColumnName == "FreightRate" ||
+                                                                                    col.ColumnName == "FreightAmount" ||
+                                                                                    col.ColumnName == "MiscRate")
+                                                                                {
+                                                                                    <td class="@col.Caption">
+                                                                                        <input type="text" class="form-control input-sm" value="@row[col.ColumnName].ToString()" />
+                                                                                    </td>
+                                                                                }
+                                                                                else if (col.ColumnName == "WeightSlab")
+                                                                                {
+                                                                                    <td>
+                                                                                        @row[col.ColumnName]
+                                                                                    </td>
+                                                                                }
+                                                                            }
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    catch { }
+                                </div>
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane" id="destination">
+                                <div class="row">
+                                    <div class="col-sm-8">
+                                        <a href="/uploads/Rate/RateFormat/Destination.xlsx" target="_blank">Rate Sample Format</a>
+                                    </div>
+
+                                    <div class="col-sm-4 form-group">
+                                        <input type="button" id="btnClearDestinationFields" class="btn btn-default btn-sm pull-right" value="Clear Data" />
+                                    </div>
+                                </div>
+                                <div class="m-t-sm">
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <label>City</label>
+                                                @Html.TextBoxFor(a => a.DestinationRate.CityName, new { @class = "form-control input-sm mart-5", placeholder = "City", title = "City", @id = "DCityName" })
+                                                @Html.HiddenFor(model => model.DestinationRate.CityID, new { id = "DCityID", name = "DCityID" })
+                                                @Html.ValidationMessageFor(model => model.DestinationRate.CityName, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <label>Sea Port</label>
+                                                @Html.TextBoxFor(a => a.DestinationRate.SeaPortName, new { @class = "form-control input-sm mart-5", placeholder = "SeaPort", title = "SeaPort", @id = "DSeaPortName" })
+                                                @Html.HiddenFor(model => model.DestinationRate.SeaPortId, new { id = "DSeaPortID", name = "DSeaPortID" })
+                                                @Html.ValidationMessageFor(model => model.DestinationRate.SeaPortName, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <label>Air Port</label>
+                                                @Html.TextBoxFor(a => a.DestinationRate.AirPortName, new { @class = "form-control input-sm mart-5", placeholder = "AirPort", title = "AirPort", @id = "DAirPortName" })
+                                                @Html.HiddenFor(model => model.DestinationRate.AirPortId, new { id = "DAirPortID", name = "DAirPortID" })
+                                                @Html.ValidationMessageFor(model => model.DestinationRate.AirPortName, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <label>Rate Applicable From</label>
+                                                <div class="input-group input-group-sm date" id="dtp_DFromDate">
+                                                    @Html.Editor("DestinationRate.FromDate", new { htmlAttributes = new { @placeholder = "Rate Applicable From", @tooltip = "Rate Applicable From", @class = "form-control input-sm", title = "Rate Applicable From", id = "DFromDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label>Transit Time Sea</label>
+                                                        @Html.TextBoxFor(a => a.DestinationRate.PTDSea, new { @class = "form-control text-box single-line", placeholder = "Transit time in days", title = "Transit time in days", id = "DPTDSea" })
+                                                        @Html.ValidationMessageFor(model => model.DestinationRate.PTDSea, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label>&nbsp;</label>
+                                                    @Html.TextBoxFor(a => a.DestinationRate.PTDSeaMax, new { @class = "form-control text-box single-line", placeholder = "Transit time in days", title = "Transit time in days", id = "DPTDSeaMax" })
+                                                    @Html.ValidationMessageFor(model => model.DestinationRate.PTDSea, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <label>Transit Time Air</label>
+                                                    @Html.TextBoxFor(a => a.DestinationRate.PTDAir, new { @class = "form-control text-box single-line", placeholder = "Transit time in days", title = "Transit time in days", id = "DPTDAir" })
+                                                    @Html.ValidationMessageFor(model => model.DestinationRate.PTDAir, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label>&nbsp;</label>
+                                                    @Html.TextBoxFor(a => a.DestinationRate.PTDAirMax, new { @class = "form-control text-box single-line", placeholder = "Transit time in days", title = "Transit time in days", id = "DPTDAirMax" })
+                                                    @Html.ValidationMessageFor(model => model.DestinationRate.PTDAirMax, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-2 form-group">
+                                            <label>Agent Currency</label>
+                                            @Html.DropDownListFor(model => model.DestinationRate.CurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["CurrencyList"], "Value", "Text", ViewData["CurrencyId"]), new { @class = "form-control", id = "DestCurrency", title = "Destination Agent Currency" })
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <label>Conversion Rate to USD</label>
+                                            @Html.TextBoxFor(a => a.DestinationRate.ConversionRateToUSD, new { @class = "form-control", @type = "number", placeholder = "USD Rate", @id = "txtDestConversionRateToUSD", @Value = ViewData["DConversionRateToUSD"] })
+                                        </div>
+                                        <div class="col-sm-7 form-group">
+                                            <input type="file" id="DFileUpload" name="file" class="inputfile inputfile-4 center-block m-t-md form-control" required data-val="true" data-val-required="please select a file" accept=".xls,.xlsx">
+                                        </div>
+                                        <div class="col-sm-1 form-group">
+                                            <input type="submit" id="UploadDestinationRate" class="btn btn-default m-t-md btn-sm" value="Upload File" title="Click to upload file" formnovalidate="formnovalidate" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        @if (Model != null)
+                                        {
+                                            <a class="btn btn-info m-t-sm m-b-sm btn-sm" id="DestinationRatesHistory" href="" target="_blank"><strong>History Rates</strong></a>
+                                        }
+                                    </div>
+                                    <div class="col-sm-3 col-sm-offset-7">
+                                        @if (Model != null)
+                                        {
+                                            <button class="btn btn-sm m-t-sm m-b-sm pull-right" id="UpdateVendorRateDest" type="button" formnovalidate="formnovalidate" onclick="UpdateVendorRates();">Apply Rates Immediatly</button>
+                                            <input type="button" id="SaveDestinationRate" name="SaveDestinationRate" class="btn btn-primary m-t-sm m-b-sm pull-right m-r-sm btn-sm" value="Save Rates" formnovalidate="formnovalidate" onclick="SaveDestinationData();" />
+                                        }
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="row m-t-md">
+                                    @try
+                                    {
+                                        if (Model.DestinationRate.dtTable.Rows.Count > 0)
+                                        {
+                                            <div class="row">
+                                                <div class="col-sm-12 m-b-lg">
+                                                    <div class="ibox float-e-margins">
+                                                        <div class="table-responsive" id="pnl-rates" style="overflow: auto;height: 340px">
+                                                            <table class="table table-striped" id="RateListDestination">
+                                                                <thead class="ibox-title">
+                                                                    <tr>
+                                                                        @foreach (System.Data.DataColumn col in Model.DestinationRate.dtTable.Columns)
+                                                                        {
+                                                                            if (col.Caption == "WeightSlab" ||
+                                                                                col.Caption == "DestinationRate" ||
+                                                                                col.Caption == "DestinationTHC" ||
+                                                                                col.Caption == "DestinationAQIS" ||
+                                                                                col.Caption == "LiftVanDestinationRate" ||
+                                                                                col.Caption == "LiftVanDestinationTHC" ||
+                                                                                col.Caption == "LiftVanDestinationAQIS" ||
+                                                                                col.Caption == "MiscRate")
+                                                                            {
+                                                                                <th>@col.Caption</th>
+                                                                            }
+                                                                        }
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach (System.Data.DataRow row in Model.DestinationRate.dtTable.Rows)
+                                                                    {
+                                                                        <tr>
+                                                                            @foreach (System.Data.DataColumn col in Model.DestinationRate.dtTable.Columns)
+                                                                            {
+                                                                                if (col.ColumnName == "DestinationRate" ||
+                                                                                    col.ColumnName == "DestinationTHC" ||
+                                                                                    col.ColumnName == "DestinationAQIS" ||
+                                                                                    col.ColumnName == "LiftVanDestinationRate" ||
+                                                                                    col.ColumnName == "LiftVanDestinationTHC" ||
+                                                                                    col.ColumnName == "LiftVanDestinationAQIS" ||
+                                                                                    col.ColumnName == "MiscRate")
+                                                                                {
+                                                                                    <td class="@col.Caption">
+                                                                                        <input type="text" class="form-control input-sm" value="@row[col.ColumnName].ToString()" />
+                                                                                    </td>
+                                                                                }
+                                                                                else if (col.ColumnName == "WeightSlab")
+                                                                                {
+                                                                                    <td>
+                                                                                        @row[col.ColumnName]
+                                                                                    </td>
+                                                                                }
+                                                                            }
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    catch { }
+                                </div>
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane" id="blanketrate">
+                                <div class="row">
+                                    <div class="col-sm-8">
+                                        <a href="/uploads/Rate/RateFormat/BlanketRates.xlsx" target="_blank">Rate Sample Format</a>
+                                    </div>
+                                    <div class="col-sm-4 form-group">
+                                        <input type="button" id="btnClearBlanketRateFields" class="btn btn-default btn-sm pull-right" value="Clear Data" />
+                                    </div>
+                                </div>
+                                <div class="m-t-sm">
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <label>From City</label>
+                                                @Html.TextBoxFor(a => a.BlanketRate.FromCityName, new { @class = "form-control input-sm mart-5", placeholder = "City", title = "City", @id = "FromCityName" })
+                                                @Html.HiddenFor(model => model.BlanketRate.FromCityID, new { id = "FromCityID", name = "FromCityID" })
+                                                @Html.ValidationMessageFor(model => model.BlanketRate.FromCityName, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <label>To City</label>
+                                                @Html.TextBoxFor(a => a.BlanketRate.ToCityName, new { @class = "form-control input-sm mart-5", placeholder = "City", title = "City", @id = "ToCityName" })
+                                                @Html.HiddenFor(model => model.BlanketRate.ToCityID, new { id = "ToCityID", name = "ToCityID" })
+                                                @Html.ValidationMessageFor(model => model.BlanketRate.ToCityName, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label>Transit Time</label>
+                                                        @Html.TextBoxFor(a => a.BlanketRate.DTDMin, new { @class = "form-control text-box single-line", placeholder = "Transit time in days", title = "Transit time in days", id = "DTPMin" })
+                                                        @Html.ValidationMessageFor(model => model.BlanketRate.DTDMin, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label>&nbsp;</label>
+                                                    @Html.TextBoxFor(a => a.BlanketRate.DTDMax, new { @class = "form-control text-box single-line", placeholder = "Transit time in days", title = "Transit time in days", id = "DTPMax" })
+                                                    @Html.ValidationMessageFor(model => model.BlanketRate.DTDMax, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <label>Rate Applicable From</label>
+                                                <div class="input-group input-group-sm date" id="dtp_BRFromDate">
+                                                    @Html.Editor("BlanketRate.FromDate", new { htmlAttributes = new { @placeholder = "Rate Applicable From", @tooltip = "Rate Applicable From", @class = "form-control input-sm", title = "Rate Applicable From", id = "BRFromDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-7 form-group">
+                                            <input type="file" id="BRFileUpload" name="file" class="inputfile inputfile-4 center-block m-t-md form-control" required data-val="true" data-val-required="please select a file" accept=".xls,.xlsx">
+                                        </div>
+                                        <div class="col-sm-1 form-group">
+                                            <input type="submit" id="UploadBlanketRate" class="btn btn-default m-t-md btn-sm" value="Upload File" title="Click to upload file" formnovalidate="formnovalidate" />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-2 form-group">
+                                            <label>Agent Currency</label>
+                                            @Html.DropDownListFor(model => model.BlanketRate.CurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["CurrencyList"], "Value", "Text", ViewData["CurrencyId"]), new { @class = "form-control", id = "BlanketRateCurrency", title = "Agent Currency" })
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <label>Conversion Rate to USD</label>
+                                            @Html.TextBoxFor(a => a.BlanketRate.ConversionRateToUSD, new { @class = "form-control", @type = "number", placeholder = "USD Rate", @id = "txtBRConversionRateToUSD", @Value = ViewData["BConversionRateToUSD"] })
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        @if (Model != null)
+                                        {
+                                            <a class="btn btn-info m-t-sm m-b-sm btn-sm" id="BlanketRatesHistory" href="" target="_blank"><strong>History Rates</strong></a>
+                                        }
+                                    </div>
+                                    <div class="col-sm-3 col-sm-offset-7">
+                                        @if (Model != null)
+                                        {
+                                            <button class="btn btn-sm m-t-sm m-b-sm pull-right" id="UpdateBlanketRate" type="button" formnovalidate="formnovalidate" onclick="UpdateBlanketRates();">Apply Rates Immediately</button>
+                                            <input type="button" id="SaveBlanketRates" name="saveblanketrates" class="btn btn-primary m-t-sm m-b-sm pull-right m-r-sm btn-sm" value="Save Rates" formnovalidate="formnovalidate" onclick="SaveBlanketRateData();" />
+                                        }
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="row m-t-md">
+                                    @try
+                                    {
+                                        if (Model.BlanketRate.dtTable.Rows.Count > 0)
+                                        {
+                                            <div class="row">
+                                                <div class="col-sm-12 m-b-lg">
+                                                    <div class="ibox float-e-margins">
+                                                        <div class="table-responsive" id="pnl-blanketrates" style="overflow: auto;height: 340px">
+                                                            <table class="table table-striped" id="RateListBlanket">
+                                                                <thead class="ibox-title">
+                                                                    <tr>
+                                                                        @foreach (System.Data.DataColumn col in Model.BlanketRate.dtTable.Columns)
+                                                                        {
+                                                                            if (col.Caption == "WeightSlab" ||
+                                                                                col.Caption == "Rate" ||
+                                                                                col.Caption == "Amount" ||
+                                                                                col.Caption == "MiscRate")
+                                                                            {
+                                                                                <th class="text-center">@col.Caption</th>
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <th class="text-center hidden">@col.Caption</th>
+                                                                            }
+
+                                                                        }
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach (System.Data.DataRow row in Model.BlanketRate.dtTable.Rows)
+                                                                    {
+                                                                        <tr>
+                                                                            @foreach (System.Data.DataColumn col in Model.BlanketRate.dtTable.Columns)
+                                                                            {
+                                                                                if (col.ColumnName == "Rate" || col.ColumnName == "Amount" ||
+                                                                                    col.ColumnName == "MiscRate")
+                                                                                {
+                                                                                    <td class="@col.Caption">
+                                                                                        <input type="text" class="form-control input-sm text-center" value="@row[col.ColumnName].ToString()" />
+                                                                                    </td>
+                                                                                }
+                                                                                else if (col.ColumnName == "WeightSlab")
+                                                                                {
+                                                                                    <td>
+                                                                                        @row[col.ColumnName]
+                                                                                    </td>
+                                                                                }
+                                                                                else if (col.ColumnName == "WeightSlabID")
+                                                                                {
+                                                                                    <td class="hidden">
+                                                                                        @row[col.ColumnName]
+                                                                                    </td>
+                                                                                }
+                                                                            }
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    catch { }
+                                </div>
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane" id="accsrv">
+                                <div class="row">
+                                    <div class="col-sm-8">
+                                        <a href="/uploads/Rate/RateFormat/AdditionalServices.xlsx" target="_blank">Rate Sample Format</a>
+                                    </div>
+                                    <div class="col-sm-4 form-group">
+                                        <input type="button" id="btnClearAddSrvcsFields" class="btn btn-default btn-sm pull-right" value="Clear Data" />
+
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-3 form-group">
+                                        <label>City</label>
+                                        @Html.TextBoxFor(a => a.AccesRate.CityName, new { @class = "form-control input-sm", placeholder = "City", title = "City", @id = "ASCityName" })
+                                        @Html.HiddenFor(model => model.AccesRate.CityID, new { id = "ASCityID", name = "ASCityID" })
+                                        @Html.ValidationMessageFor(model => model.AccesRate.CityName, "", new { @class = "text-danger" })
+                                    </div>
+                                    <div class="col-sm-3 form-group">
+                                        <label>Rate Applicable From</label>
+                                        <div class="input-group input-group-sm date" id="dtp_ASFromDate">
+                                            @Html.Editor("AccesRate.FromDate", new { htmlAttributes = new { @placeholder = "Rate Applicable From", @tooltip = "Rate Applicable From", @class = "form-control input-sm", title = "Rate Applicable From", id = "ASFromDate" } })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <label>Agent Currency</label>
+                                            @Html.DropDownListFor(model => model.AccesRate.CurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["CurrencyList"], "Value", "Text", ViewData["CurrencyId"]), new { @class = "form-control", id = "AccesCurrency", title = "Agent Currency" })
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <label>Conversion Rate to USD</label>
+                                            @Html.TextBoxFor(a => a.AccesRate.ConversionRateToUSD, new { @class = "form-control", @type = "number", placeholder = "USD Rate", @id = "txtAccesConversionRateToUSD", @Value = ViewData["AConversionRateToUSD"] })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-5 form-group">
+                                        <input type="file" id="FileUpload" name="file" class="inputfile inputfile-4 m-t-md center-block form-control" required data-val="true" data-val-required="please select a file" accept=".xls,.xlsx">
+                                    </div>
+                                    <div class="col-sm-1 form-group">
+                                        <input type="submit" id="UploadAccesService" class="btn btn-default m-t-md btn-sm" value="Upload File" title="Click to upload file" formnovalidate="formnovalidate" />
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        @*<input type="button" id="btnOriginHistory" name="OriginRateHistory" class="btn btn-info m-t-sm m-b-sm btn-sm" value="History Rates" formnovalidate="formnovalidate" onclick="SaveData();" />*@
+                                    </div>
+                                    <div class="col-sm-3 col-sm-offset-7">
+                                        @if (Model != null)
+                                        {
+                                            <button class="btn btn-sm m-t-sm m-b-sm pull-right" id="UpdateVendorRate" type="button" formnovalidate="formnovalidate" onclick="UpdateAddServicesRates();">Apply Rates Immediately</button>
+                                            <input type="button" id="SaveAccesService" name="save1" class="btn btn-primary m-t-sm m-b-sm pull-right m-r-sm btn-sm" value="Save Rates" formnovalidate="formnovalidate" onclick="SaveAccesServiceData();" />
+                                        }
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="row m-t-sm">
+                                    @try
+                                    {
+                                        if (Model.AccesRate.dtTable.Rows.Count > 0)
+                                        {
+                                            <div class="row">
+                                                <div class="col-sm-12 m-b-lg">
+                                                    <div class="ibox float-e-margins">
+                                                        <div class="table-responsive" id="pnl-rates" style="overflow: auto;height: 340px">
+                                                            <table class="table table-striped" id="RateListAccess">
+                                                                <thead class="ibox-title">
+                                                                    <tr>
+                                                                        @foreach (System.Data.DataColumn col in Model.AccesRate.dtTable.Columns)
+                                                                        {
+                                                                            if (col.Caption == "ServiceID" || col.Caption == "ServiceName" || col.Caption == "MinRange" || col.Caption == "MaxRange" || col.Caption == "Unit" || col.Caption == "SupportingDocumentRequired" || col.Caption == "ServiceApplicable" || col.Caption == "ServiceIncluded")
+                                                                            {
+                                                                                <th>@col.Caption</th>
+                                                                            }
+                                                                            else if (col.Caption == "Amount")
+                                                                            {
+                                                                                <th>Rate Per Unit</th>
+                                                                            }
+
+                                                                        }
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach (System.Data.DataRow row in Model.AccesRate.dtTable.Rows)
+                                                                    {
+                                                                        <tr>
+                                                                            @foreach (System.Data.DataColumn col in Model.AccesRate.dtTable.Columns)
+                                                                            {
+                                                                                // if (col.ColumnName == "Amount" || col.ColumnName == "ServiceIncluded")
+                                                                                if (col.ColumnName == "Amount")
+                                                                                {
+                                                                                    <td class="@col.Caption">
+                                                                                        <input type="text" class="form-control input-sm" value="@row[col.ColumnName].ToString()" />
+                                                                                    </td>
+                                                                                }
+
+                                                                                if (col.ColumnName == "ServiceIncluded")
+                                                                                {
+                                                                                    if (@row[col.ColumnName].ToString() == "Y")
+                                                                                    {
+                                                                                        <td class="@col.Caption">
+                                                                                            @*<input type="text" class="form-control input-sm" value="@row[col.ColumnName].ToString()" />*@
+
+                                                                                            <select id="SelectedServiceIncluded" name="SelectedServiceIncluded" class="form-control input-sm">
+                                                                                                <option value="Yes" selected="selected">Yes</option>
+                                                                                                <option value="No">No</option>
+
+                                                                                            </select>
+                                                                                        </td>
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        <td class="@col.Caption">
+                                                                                            <select id="SelectedServiceIncluded" name="SelectedServiceIncluded" class="form-control input-sm">
+                                                                                                <option value="Yes">Yes</option>
+                                                                                                <option value="No" selected="selected">No</option>
+
+                                                                                            </select>
+                                                                                        </td>
+                                                                                    }
+
+
+
+
+                                                                                }
+
+                                                                                else if (col.ColumnName == "Unit")
+                                                                                {
+                                                                                    <td class="@col.Caption">
+                                                                                        <input type="text" disabled class="form-control input-sm" value="@row[col.ColumnName].ToString()" />
+                                                                                    </td>
+                                                                                }
+                                                                                else if (col.ColumnName == "ServiceID" || col.ColumnName == "ServiceName")
+                                                                                {
+                                                                                    <td>
+                                                                                        @row[col.ColumnName]
+                                                                                    </td>
+                                                                                }
+                                                                            }
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    catch { }
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="mdlHistoryRate" class="modal fade modal-pagefit-60" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+            </div>
+        </div>
+    </div>
+}
+@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+
+            if($('#RateTypeFlagValue').val()=='O')
+            {$('#RateTypeFlagValue').val('O')
+            }
+            else if($('#RateTypeFlagValue').val()=='D')
+            {
+                $('#RateTypeFlagValue').val('D')
+            }
+            else
+            {
+                $('#RateTypeFlagValue').val('F')
+            }
+            //  SANKET BROOKFILED CR 6JUNE2018
+
+            if ($('#ShippmentMode').val()=='A')
+            {
+                $('#DivTransitSea').hide();
+                $('#DivTransitAir').show();
+                $('#DivseaPort').hide();
+                $('#DivAirPort').show();
+
+
+                $('#DivSea1').hide();
+                $('#DivSea2').hide();
+                $('#DivAir1').show();
+                $('#DivAir2').show();
+
+                $('#DivTransitSea1').hide();
+                $('#DivTransitSea2').hide();
+                $('#DivTransitAir1').show();
+                $('#DivTransitAir2').show();
+
+
+                $('#ShippmentMode').val('A')
+
+                $('#RDivTransitSea').hide();
+                $('#RDivTransitAir').show();
+                $('#RDivseaPort').hide();
+                $('#RDivAirPort').show();
+
+
+
+                $('#RDivSea1').hide();
+                $('#RDivSea2').hide();
+                $('#RDivAir1').show();
+                $('#RDivAir2').show();
+
+                $('#RDivTransitSea1').hide();
+                $('#RDivTransitSea2').hide();
+                $('#RDivTransitAir1').show();
+                $('#RDivTransitAir2').show();
+            }
+            else
+            {
+
+                $('#RDivseaPort').show();
+                $('#RDivAirPort').hide();
+
+                $('#RDivTransitSea').show();
+                $('#RDivTransitAir').hide();
+
+
+                $('#DivseaPort').show();
+                $('#DivAirPort').hide();
+
+                $('#DivTransitSea').show();
+                $('#DivTransitAir').hide();
+
+
+                $('#DivSea1').show();
+                $('#DivSea2').show();
+                $('#DivAir1').hide();
+                $('#DivAir2').hide();
+
+                $('#DivTransitSea1').show();
+                $('#DivTransitSea2').show();
+                $('#DivTransitAir1').hide();
+                $('#DivTransitAir2').hide();
+
+
+                $('#RDivSea1').show();
+                $('#RDivSea2').show();
+                $('#RDivAir1').hide();
+                $('#RDivAir2').hide();
+
+                $('#RDivTransitSea1').show();
+                $('#RDivTransitSea2').show();
+                $('#RDivTransitAir1').hide();
+                $('#RDivTransitAir2').hide();
+                $('#ShippmentMode').val('S');
+            }
+
+            if($('#RateTypeFlagValue').val()=='C')
+            {
+                $('#PermStorageRatesHistory').show();
+                $("#UpdatePermStorageRate").html('Apply Cartage Rates');
+            }else
+            {
+                $('#PermStorageRatesHistory').hide();
+                $("#UpdatePermStorageRate").html('Apply Permanent Storage Rates');
+            }
+
+            fnClearSearchFilterHiddenFieldsValue();
+
+            if ($('#txtConversionRateToUSD').val() == "") { $('#txtConversionRateToUSD').val('1'); }
+            if ($('#txtFreightConversionRateToUSD').val() == "") { $('#txtFreightConversionRateToUSD').val('1'); }
+            if ($('#txtPermanentStorageConversionRateToUSD').val() == "") { $('#txtPermanentStorageConversionRateToUSD').val('1'); }
+            if ($('#txtDestConversionRateToUSD').val() == "") { $('#txtDestConversionRateToUSD').val('1'); }
+            if ($('#txtBRConversionRateToUSD').val() == "") { $('#txtBRConversionRateToUSD').val('1'); }
+            if ($('#txtAccesConversionRateToUSD').val() == "") { $('#txtAccesConversionRateToUSD').val('1'); }
+
+            $('#tabRateUpload').tabs();
+            $('#tabRateUpload a[data-toggle="tab"]').on('show.bs.tab', function (e) {
+                e.target; // newly activated tab
+                e.relatedTarget; // previous active tab
+                var index = $(e.target).attr('id');
+                index = index.replace("ui-id-", "");
+                $("#uploadType").val(index);
+            });
+
+
+            GetOriginCityList();
+            RmcDropFill();
+            VendorDropFill();
+            GetFreightSeaList();
+            GetFreightAirList();
+            DStartEndPortFill();
+
+            if(@Model.RateUploadall.uploadType > 0)
+            {
+                $("#tabRateUpload .nav-tabs a#ui-id-@Model.RateUploadall.uploadType").click();
+            }
+
+
+            /* Datepicker - Origin - Start */
+            $('#dtp_OFromDate').datetimepicker({
+                minDate: moment(),
+                format: "@ShortDateFormatDatePickerJs",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('#OFromDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+            /* Datepicker - Origin - End */
+
+            /* Datepicker - Freight - Start */
+            $('#dtp_FFromDate').datetimepicker({
+                minDate: moment(),
+                format: "@ShortDateFormatDatePickerJs",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+            /* Datepicker - Freight - End */
+
+            /* Datepicker - Destination - Start */
+            $('#dtp_DFromDate').datetimepicker({
+                minDate: moment(),
+                format: "@ShortDateFormatDatePickerJs",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('#DFromDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+            /* Datepicker - Destination - End */
+
+
+            /* Datepicker - Blanket Rate - Start */
+            $('#dtp_BRFromDate').datetimepicker({
+                minDate: moment(),
+                format: "@ShortDateFormatDatePickerJs",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('#BRFromDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+            /* Datepicker - Blanket Rate - End */
+
+            /* Datepicker - Accesserial Rate - Start */
+            $('#dtp_ASFromDate').datetimepicker({
+                minDate: moment(),
+                format: "@ShortDateFormatDatePickerJs",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('#ASFromDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+            /* Datepicker - Accesserial Rate - End */
+
+
+            /* Currency Dropdown Change Events From All Tabs - Start */
+            $("#Currency").on("change", function () {
+                if ($('#Currency option:selected').text() == 'USD') {
+                    $('#txtConversionRateToUSD').val('1');
+                }
+                else {
+                    $('#txtConversionRateToUSD').val('');
+                }
+            });
+
+            $("#FreightCurrency").on("change", function () {
+                if ($('#FreightCurrency option:selected').text() == 'USD') {
+                    $('#txtFreightConversionRateToUSD').val('1');
+                }
+                else {
+                    $('#txtFreightConversionRateToUSD').val('');
+                }
+            });
+
+
+            $("#DestCurrency").on("change", function () {
+                if ($('#DestCurrency option:selected').text() == 'USD') {
+                    $('#txtDestConversionRateToUSD').val('1');
+                }
+                else {
+                    $('#txtDestConversionRateToUSD').val('');
+                }
+            });
+
+            $("#BlanketRateCurrency").on("change", function () {
+                if ($('#BlanketRateCurrency option:selected').text() == 'USD') {
+                    $('#txtBRConversionRateToUSD').val('1');
+                }
+                else {
+                    $('#txtBRConversionRateToUSD').val('');
+                }
+            });
+
+            $("#AccesCurrency").on("change", function () {
+                if ($('#AccesCurrency option:selected').text() == 'USD') {
+                    $('#txtAccesConversionRateToUSD').val('1');
+                }
+                else {
+                    $('#txtAccesConversionRateToUSD').val('');
+                }
+            });
+
+            /* Currency Dropdown Change Events From All Tabs - End */
+
+
+            $("#OriginRatesHistory").on("click", function (e) {
+                e.preventDefault();
+                var vid = $("#VendorID").val() == undefined || $("#VendorID").val() == '' ? 0 : $("#VendorID").val();
+                var cid = $("#OCityID").val() == undefined || $("#OCityID").val() == '' ? 0 : $("#OCityID").val();
+                var spid = $("#OSeaPortId").val() == undefined || $("#OSeaPortId").val() == '' ? 0 : $("#OSeaPortId").val();
+                var apid = $("#OAirPortId").val() == undefined || $("#OAirPortId").val() == '' ? 0 : $("#OAirPortId").val();
+                var rmcid = $("#RMCID").val() == undefined || $("#RMCID").val() == '' ? 0 : $("#RMCID").val();
+                var url = "/Pricing/HistoryOriginRate/" + vid + "/" + cid + "/" + spid + "/" + apid + "/" + rmcid + "/" + 1;
+                window.open(url);
+            });
+
+
+            $("#FreightRatesHistory").on("click", function (e) {
+                e.preventDefault();
+                var vid = $("#VendorID").val() == undefined || $("#VendorID").val() == '' ? 0 : $("#VendorID").val();
+                var fospid = $("#FOrgPortIDSea").val() == undefined || $("#FOrgPortIDSea").val() == '' ? 0 : $("#FOrgPortIDSea").val();
+                var fdspid = $("#FDestPortIDSea").val() == undefined || $("#FDestPortIDSea").val() == '' ? 0 : $("#FDestPortIDSea").val();
+                var foapid = $("#FOrgPortIDAir").val() == undefined || $("#FOrgPortIDAir").val() == '' ? 0 : $("#FOrgPortIDAir").val();
+                var fdapid = $("#FDestPortIDAir").val() == undefined || $("#FDestPortIDAir").val() == '' ? 0 : $("#FDestPortIDAir").val();
+                var rmcid = $("#RMCID").val() == undefined || $("#RMCID").val() == '' ? 0 : $("#RMCID").val();
+                var url = "/Pricing/HistoryFreightRate/" + vid + "/" + rmcid + "/" + fospid + "/" + fdspid + "/" + foapid + "/" + fdapid;
+                window.open(url);
+            });
+
+            $("#DestinationRatesHistory").on("click", function (e) {
+                e.preventDefault();
+                var vid = $("#VendorID").val() == undefined || $("#VendorID").val() == '' ? 0 : $("#VendorID").val();
+                var cid = $("#DCityID").val() == undefined || $("#DCityID").val() == '' ? 0 : $("#DCityID").val();
+                var spid = $("#DSeaPortID").val() == undefined || $("#DSeaPortID").val() == '' ? 0 : $("#DSeaPortID").val();
+                var apid = $("#DAirPortID").val() == undefined || $("#DAirPortID").val() == '' ? 0 : $("#DAirPortID").val();
+                var rmcid = $("#RMCID").val() == undefined || $("#RMCID").val() == '' ? 0 : $("#RMCID").val();
+                var url = "/Pricing/HistoryOriginRate/" + vid + "/" + cid + "/" + spid + "/" + apid + "/" + rmcid + "/" + 2;
+                window.open(url);
+            });
+
+            $("#BlanketRatesHistory").on("click", function (e) {
+                e.preventDefault();
+                var vid = $("#VendorID").val() == undefined || $("#VendorID").val() == '' ? 0 : $("#VendorID").val();
+                var rmcid = $("#RMCID").val() == undefined || $("#RMCID").val() == '' ? 0 : $("#RMCID").val();
+                var fcityid = $("#FromCityID").val() == undefined || $("#FromCityID").val() == '' ? 0 : $("#FromCityID").val();
+                var tcityid = $("#ToCityID").val() == undefined || $("#ToCityID").val() == '' ? 0 : $("#ToCityID").val();
+                var url = "/Pricing/HistoryBlanketRate/" + vid + "/" + rmcid + "/" + fcityid + "/" + tcityid;
+                window.open(url);
+            });
+
+            //////Clear fields on button click
+            $("#btnClearOriginFields").on("click", function () {
+                $('#DropVendorName').val('');
+                $('#VendorID').val('0');
+                $('#DropRMCName').val('');
+                $('#RMCID').val('0');
+                $('#OCityName').val('');
+                $('#OCityID').val('');
+                $('#OSeaPortName').val('');
+                $('#OSeaPortId').val('');
+                $('#OAirPortName').val('');
+                $('#OAirPortId').val('');
+                $('#OFromDate').val('');
+                $('#ODTPSea').val('');
+                $('#ODTPSeaMax').val('');
+                $('#ODTPAir').val('');
+                $('#ODTPAirMax').val('');
+            });
+
+            $("#btnClearFreightFields").on("click", function () {
+                $('#DropVendorName').val('');
+                $('#VendorID').val('0');
+                $('#DropRMCName').val('');
+                $('#RMCID').val('0');
+                $('#FOrgPortNameSea').val('');
+                $('#FOrgPortIDSea').val('');
+                $('#FDestPortNameSea').val('');
+                $('#FDestPortIDSea').val('');
+                $('#FOrgPortNameAir').val('');
+                $('#FOrgPortIDAir').val('');
+                $('#FDestPortNameAir').val('');
+                $('#FDestPortIDAir').val('');
+                $('#FPTPSea').val('');
+                $('#FPTPSeaMax').val('');
+                $('#FPTPAir').val('');
+                $('#FPTPAirMax').val('');
+                $('#FFromDate').val('');
+            });
+
+            $("#btnClearDestinationFields").on("click", function () {
+                $('#DropVendorName').val('');
+                $('#VendorID').val('0');
+                $('#DropRMCName').val('');
+                $('#RMCID').val('0');
+                $('#DCityName').val('');
+                $('#DCityID').val('');
+                $('#DSeaPortName').val('');
+                $('#DSeaPortID').val('');
+                $('#DAirPortName').val('');
+                $('#DAirPortID').val('');
+                $('#DFromDate').val('');
+                $('#DPTDSea').val('');
+                $('#DPTDSeaMax').val('');
+                $('#DPTDAir').val('');
+                $('#DPTDAirMax').val('');
+            });
+
+            $("#btnClearBlanketRateFields").on("click", function (e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                $('#DropVendorName').val('');
+                $('#VendorID').val('0');
+                $('#DropRMCName').val('');
+                $('#RMCID').val('0');
+                $("#FromCityName").val('');
+                $("#FromCityID").val('');
+                $("#ToCityName").val('');
+                $("#ToCityID").val('');
+                $("#DTPMin").val('');
+                $("#DTPMax").val('');
+                $('#BlanketRateCurrency').val('1');
+                $('#txtBRConversionRateToUSD').val('1');
+                $("#RateListBlanket").empty();
+            });
+
+            $("#btnClearAddSrvcsFields").on("click", function () {
+                $('#DropVendorName').val('');
+                $('#VendorID').val('0');
+                $('#DropRMCName').val('');
+                $('#RMCID').val('0');
+                $('#ASCityName').val('');
+                $('#ASCityID').val('');
+                $('#ASFromDate').val('');
+            });
+
+            /////Clear on button click
+
+
+
+        });
+
+
+
+        //////Start Save data
+        function SaveData() {
+
+            $('#RateListOrigin').mask("Loading...");
+            var idArr = [];
+
+            $('tbody tr').each(function (k, v) {
+                var trElement = $(this);
+                var tdVals = trElement.find('td:eq(0)').text().trim() + '~' +
+                             trElement.find("td.OriginRate > .input-sm").val().trim() + '~' +
+                             trElement.find("td.OriginTHC > .input-sm").val().trim() + '~' +
+                             trElement.find("td.LiftVanOriginRate > .input-sm").val().trim() + '~' +
+                             trElement.find("td.LiftVanOriginTHC > .input-sm").val().trim() + '~' +
+                             trElement.find("td.MiscRate > .input-sm").val().trim()
+                idArr.push(tdVals);
+            });
+
+            var SaveOriginRate = [];
+            for (var i = 0; i < idArr.length; i++) {
+                var arrElement = idArr[i].split("~");
+
+                var item = {}
+                item["WeightSlab"] = arrElement[0];
+                item["OriginRate"] = arrElement[1];
+                item["OriginTHC"] = arrElement[2];
+                item["LiftVanOriginRate"] = arrElement[3];
+                item["LiftVanOriginTHC"] = arrElement[4];
+                item["MiscRate"] = arrElement[5];
+                SaveOriginRate.push(item);
+            }
+            $("#RateListOrigin").show();
+
+            // Insert rate Details
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("SaveOriginRate", "Pricing")",
+                method: 'POST',
+                async: 'false',
+                dataType: 'json',
+                data: JSON.stringify({
+                    SaveOriginRate: SaveOriginRate,
+                    RMCID: $("#RMCID").val(),
+                    VendorID: $("#VendorID").val(),
+                    CityID: $("#OCityID").val(),
+                    SeaPortID: $("#OSeaPortId").val(),
+                    AirPortID: $("#OAirPortId").val(),
+                    FromDate: $("#OFromDate").val(),
+                    DTPSea: $("#ODTPSea").val(),
+                    DTPAir: $("#ODTPAir").val(),
+                    DTPSeaMax: $("#ODTPSeaMax").val(),
+                    DTPAirMax: $("#ODTPAirMax").val(),
+                    AgentCurrencyId: parseInt($('#Currency :selected').val()),
+                    ConversionRateToUSD: parseFloat($("#txtConversionRateToUSD").val())
+                }),
+                success: function (result) {
+                    if (result.Success) {
+                        $("#RateListOrigin").hide();
+                        //swal({ title: "Success!",  text: "Pricing data saved successfully.", type: "success" });
+                        toastr.success("Origin, Pricing data saved successfully.");
+                    }
+                    else {
+                        //swal({ title: "Error!", text: "Pricing data save failed.", type: "error" });
+                        toastr.error("Origin, Pricing data save failed.");
+                    }
+                    $('#RateListOrigin').unmask();
+                },
+                error: function () {
+                    toastr.error("Origin, Pricing data save failed.");
+                    $('#RateListOrigin').unmask();
+                }
+            });
+        }
+
+
+        function SaveFreightData() {
+            $('#RateListFreight').mask("Loading...");
+            var idArrFreight = [];
+
+            $('tbody tr').each(function (k, v) {
+                var trElement = $(this);
+                var tdVals = trElement.find('td:eq(0)').text().trim() + '~' +
+                trElement.find("td.FreightRate > .input-sm").val().trim() + '~' +
+                trElement.find("td.FreightAmount > .input-sm").val().trim() + '~' +
+                trElement.find("td.MiscRate > .input-sm").val().trim()
+                idArrFreight.push(tdVals);
+            });
+
+            var SaveFreightRate = [];
+            for (var i = 0; i < idArrFreight.length; i++) {
+                var arrElement = idArrFreight[i].split("~");
+
+                var item = {}
+                item["WeightSlab"] = arrElement[0];
+                item["FreightRate"] = arrElement[1];
+                item["FreightAmount"] = arrElement[2];
+                item["MiscRate"] = arrElement[3];
+                SaveFreightRate.push(item);
+            }
+
+            $("#RateListFreight").show();
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("SaveFreightRate", "Pricing")",
+                method: 'POST',
+                async: 'false',
+                dataType: 'json',
+                data: JSON.stringify({
+                    SaveFreightRate: SaveFreightRate,
+                    RMCID: $("#RMCID").val(),
+                    VendorID: $("#VendorID").val(),
+                    OrgPortIDSea: $("#FOrgPortIDSea").val(),
+                    OrgPortIDAir: $("#FOrgPortIDAir").val(),
+                    DestPortIDSea: $("#FDestPortIDSea").val(),
+                    DestPortIDAir: $("#FDestPortIDAir").val(),
+                    FromDate: $("#FFromDate").val(),
+                    PTPSea: $("#FPTPSea").val(),
+                    PTPAir: $("#FPTPAir").val(),
+                    PTPSeaMax: $("#FPTPSeaMax").val(),
+                    PTPAirMax: $("#FPTPAirMax").val(),
+                    AgentCurrencyId: parseInt($('#FreightCurrency :selected').val()),
+                    ConversionRateToUSD: parseFloat($("#txtFreightConversionRateToUSD").val())
+                }),
+                success: function (result) {
+                    if (result.Success) {
+                        $("#RateListFreight").hide();
+                        toastr.success("Freight, Pricing data saved successfully.");
+                    }
+                    else {
+                        toastr.error("Freight, Pricing data save failed.");
+                    }
+                    $('#RateListFreight').unmask();
+                },
+                error: function () {
+                    toastr.error("Freight, Pricing data save failed.");
+                    $('#RateListFreight').unmask();
+                }
+            });
+        }
+
+
+        function SaveDestinationData() {
+            $('#RateListDestination').mask("Loading...");
+            var idArrDest = [];
+
+            $('tbody tr').each(function (k, v) {
+                var trElement = $(this);
+
+                var tdVals = trElement.find('td:eq(0)').text().trim() + '~' +
+                             trElement.find("td.DestinationRate > .input-sm").val().trim() + '~' +
+                             trElement.find("td.DestinationTHC > .input-sm").val().trim() + '~' +
+                             trElement.find("td.DestinationAQIS > .input-sm").val().trim() + '~' +
+                             trElement.find("td.LiftVanDestinationRate > .input-sm").val().trim() + '~' +
+                             trElement.find("td.LiftVanDestinationTHC > .input-sm").val().trim() + '~' +
+                             trElement.find("td.LiftVanDestinationAQIS > .input-sm").val().trim() + '~' +
+                             trElement.find("td.MiscRate > .input-sm").val().trim()
+                idArrDest.push(tdVals);
+            });
+
+            var SaveDestinationRate = [];
+            for (var i = 0; i < idArrDest.length; i++) {
+                var arrElement = idArrDest[i].split("~");
+
+                var item = {}
+                item["WeightSlab"] = arrElement[0];
+                item["DestinationRate"] = arrElement[1];
+                item["DestinationTHC"] = arrElement[2];
+                item["DestinationAQIS"] = arrElement[3];
+                item["LiftVanDestinationRate"] = arrElement[4];
+                item["LiftVanDestinationTHC"] = arrElement[5];
+                item["LiftVanDestinationAQIS"] = arrElement[6];
+                item["MiscRate"] = arrElement[7];
+
+                SaveDestinationRate.push(item);
+            }
+            $("#RateListDestination").show();
+
+            // Insert rate Details
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("SaveDestinationRate", "Pricing")",
+                method: 'POST',
+                async: 'false',
+                dataType: 'json',
+                data: JSON.stringify({
+                    SaveDestinationRate: SaveDestinationRate,
+                    RMCID: $("#RMCID").val(),
+                    VendorID: $("#VendorID").val(),
+                    CityID: $("#DCityID").val(),
+                    SeaPortID: $("#DSeaPortID").val(),
+                    AirPortID: $("#DAirPortID").val(),
+                    FromDate: $("#DFromDate").val(),
+                    PTDSea: $("#DPTDSea").val(),
+                    PTDAir: $("#DPTDAir").val(),
+                    PTDSeaMax: $("#DPTDSeaMax").val(),
+                    PTDAirMax: $("#DPTDAirMax").val(),
+                    AgentCurrencyId: parseInt($('#DestCurrency :selected').val()),
+                    ConversionRateToUSD: parseFloat($("#txtDestConversionRateToUSD").val())
+                }),
+                success: function (result) {
+                    if (result.Success) {
+                        $("#RateListDestination").hide();
+                        toastr.success("Destination, Pricing data saved successfully.");
+                    }
+                    else {
+                        toastr.error("Destination, Pricing data save failed.");
+                    }
+                    $('#RateListDestination').unmask();
+                },
+                error: function () {
+                    toastr.error("Destination, Pricing data save failed.");
+                    $('#RateListDestination').unmask();
+                }
+            });
+        }
+
+
+                function SaveBlanketRateData() {
+
+            $('#RateListBlanket').mask("Loading...");
+            var idArrBlanketRate = [];
+
+            $('tbody tr').each(function (k, v) {
+                var trElement = $(this);
+
+                var tdVals = trElement.find('td:eq(0)').text().trim() + '~' +
+                             trElement.find('td:eq(1)').text().trim() + '~' +
+                             trElement.find("td.Rate > .input-sm").val().trim() + '~' +
+                             trElement.find("td.Amount > .input-sm").val().trim() + '~' +
+                             trElement.find("td.MiscRate > .input-sm").val().trim();
+                idArrBlanketRate.push(tdVals);
+            });
+
+            var SaveBlanketRate = [];
+            for (var i = 0; i < idArrBlanketRate.length; i++) {
+                var arrElement = idArrBlanketRate[i].split("~");
+                var item = {}
+                item["WeightSlabID"] = arrElement[0];
+                item["WeightSlab"] = arrElement[1];
+                item["Rates"] = parseFloat(arrElement[2]);
+                item["Amount"] = parseFloat(arrElement[3]);
+                item["MiscAmount"] = parseFloat(arrElement[4]);
+                SaveBlanketRate.push(item);
+            }
+            $('#RateListBlanket').show();
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("SaveBlanketRate", "Pricing")",
+                method: 'POST',
+                async: 'false',
+                dataType: 'json',
+                data: JSON.stringify({ SaveBlanketRate: SaveBlanketRate,
+                    VendorID: parseInt($("#VendorID").val()),
+                    RMCID: parseInt($("#RMCID").val()),
+                    FromCityID: parseInt($("#FromCityID").val()),
+                    ToCityID: parseInt($("#ToCityID").val()),
+                    FromDate: $("#BRFromDate").val(),
+                    DTPMin: parseInt($("#DTPMin").val()),
+                    DTPMax: parseInt($("#DTPMax").val()),
+                    CurrencyID: parseInt($('#BlanketRateCurrency :selected').val()),
+                    ConversionRateToUSD: parseFloat($("#txtBRConversionRateToUSD").val()) }),
+                success: function (result) {
+                    if (result.Success) {
+                        $("#RateListBlanket").hide();
+                        toastr.success("Blanket / Road, Pricing data saved successfully.");
+                    }
+                    else {
+                        toastr.error("Blanket / Road, Pricing data save failed.");
+                    }
+                    $('#RateListBlanket').unmask();
+                },
+                error: function () {
+                    toastr.error("Blanket / Road, Pricing data save failed.");
+                    $('#RateListBlanket').unmask();
+                }
+            });
+
+        }
+
+
+        function SaveAccesServiceData() {
+            debugger;
+            $('#RateListAccess').mask("Loading...");
+            var idArrAccess = [];
+
+            $('tbody tr').each(function (k, v) {
+                var trElement = $(this);
+                var tdVals = trElement.find('td:eq(0)').text().trim() + '~' +
+                             trElement.find('td:eq(1)').text().trim() + '~' +
+                             trElement.find("td.Unit > .input-sm").val().trim() + '~' +
+                             trElement.find("td.Amount > .input-sm").val().trim() + '~' +
+                             trElement.find("td.ServiceIncluded > .input-sm").val().trim()
+                idArrAccess.push(tdVals);
+            });
+
+            var SaveAccessServiceRate = [];
+            for (var i = 0; i < idArrAccess.length; i++) {
+                var arrElement = idArrAccess[i].split("~");
+                var item = {}
+                item["ServiceID"] = arrElement[0];
+                item["ServiceName"] = arrElement[1];
+                item["Unit"] = arrElement[2];
+                item["Amount"] = arrElement[3];
+                item["ServiceIncluded"] = arrElement[4];
+                SaveAccessServiceRate.push(item);
+            }
+            $("#RateListAccess").show();
+            // Insert rate Details
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("SaveAccessServiceRate", "Pricing")",
+                method: 'POST',
+                async: 'false',
+                dataType: 'json',
+                data: JSON.stringify({
+                    SaveAccessServiceRate: SaveAccessServiceRate,
+                    RMCID: $("#RMCID").val(),
+                    VendorID: $("#VendorID").val(),
+                    CityID: $("#ASCityID").val(),
+                    FromDate: $("#ASFromDate").val(),
+                    AgentCurrencyId: parseInt($('#AccesCurrency :selected').val()),
+                    ConversionRateToUSD: parseFloat($("#txtAccesConversionRateToUSD").val())
+                }),
+                success: function (result) {
+                    if (result.Success) {
+                        $("#RateListAccess").hide();
+                        toastr.success("Accessorial Services, Pricing data saved successfully.");
+                    }
+                    else {
+                        toastr.error("Accessorial Services, Pricing data save failed.");
+                    }
+                    $('#RateListAccess').unmask();
+                },
+                error: function () {
+                    toastr.error("Accessorial Services, Pricing data save failed.");
+                    $('#RateListAccess').unmask();
+                }
+            });
+        }
+
+
+
+        ////end Save data
+
+        function fnClearSearchFilterHiddenFieldsValue() {
+
+            ///Vendor and RMC
+            $('#DropVendorName').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#VendorID').val('0');
+                }
+            });
+
+            $('#DropRMCName').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#RMCID').val('0');
+                }
+            });
+
+
+            ///Origin
+
+            $('#OCityName').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#OCityID').val('');
+                }
+            });
+
+            $('#OSeaPortName').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#OSeaPortId').val('');
+                }
+            });
+
+            $('#OAirPortName').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#OAirPortId').val('');
+                }
+            });
+
+
+            $('#BOSeaPortName').on('change', function () {
+
+                if ($(this).val() == '') {
+                    $('#BOSeaPortId').val('');
+                }
+            });
+
+            $('#BOAirPortName').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#BOAirPortId').val('');
+                }
+            });
+
+
+
+            ///freignt
+
+            $('#FOrgPortNameSea').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#FOrgPortIDSea').val('');
+                }
+            });
+
+            $('#FDestPortNameSea').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#FDestPortIDSea').val('');
+                }
+            });
+
+            $('#FOrgPortNameAir').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#FOrgPortIDAir').val('');
+                }
+            });
+
+            $('#FDestPortNameAir').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#FDestPortIDAir').val('');
+                }
+            });
+
+            //Destination
+
+            $('#DCityName').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#DCityID').val('');
+                }
+            });
+
+            $('#DSeaPortName').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#DSeaPortID').val('');
+                }
+            });
+
+            $('#DAirPortName').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#DAirPortID').val('');
+                }
+            });
+
+            // Blanket Rate
+
+            $('#FromCityName').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#FromCityID').val('');
+                }
+            });
+
+            $('#ToCityName').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#ToCityID').val('');
+                }
+            });
+
+
+            //Aditional Services
+
+            $('#ASCityName').on('change', function () {
+                if ($(this).val() == '') {
+                    $('#ASCityID').val('');
+                }
+            });
+        }
+
+        function GetOriginCityList() {
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetAllCity", "Combo")",
+                method: 'GET',
+                async: 'false',
+                dataType: 'json',
+                success: function (result) {
+                    var returnResult = [];
+                    var dataResult = $.map(result, function (obj) {
+                        obj.value = obj.Text; // desired field
+                        obj.data = obj.Value; // desired field
+                        returnResult.push(obj);
+                    });
+
+                    /* Ocity -start */
+                    $("#OCityName").autocomplete({
+
+                        lookup: returnResult,
+                        onSelect: function (suggestion) {
+                            $("#OCityID").val(suggestion.data);
+                            $.ajax({
+                                url: "@Url.Action("PortsByCityShipmentMode", "Combo")?CityID=" + $("#OCityID").val() + "&shipmentModeID=1",
+                                success: function (data) {
+                                    var returnResultPort = [];
+                                    var dataPort = $.map(data, function (obj) {
+                                        obj.value = obj.Text; // desired field
+                                        obj.data = obj.Value; // desired field
+                                        returnResultPort.push(obj);
+                                    });
+                                    $("#OSeaPortName").empty()
+                                    debugger;
+                                    $("#OSeaPortName").autocomplete({
+
+                                        lookup: returnResultPort,
+                                        onSelect: function (suggestion) {
+                                            $("#OSeaPortId").val(suggestion.data)
+                                        }
+                                    });
+                                }
+                            });
+                            $.ajax({
+                                url: "@Url.Action("PortsByCityShipmentMode", "Combo")?CityID=" + $("#OCityID").val() + "&shipmentModeID=2",
+                                success: function (data) {
+                                    var returnResultPort = [];
+                                    var dataPort = $.map(data, function (obj) {
+                                        obj.value = obj.Text; // desired field
+                                        obj.data = obj.Value; // desired field
+                                        returnResultPort.push(obj);
+                                    });
+                                    $("#OAirPortName").empty()
+                                    $("#OAirPortName").autocomplete({
+                                        lookup: returnResultPort,
+                                        onSelect: function (suggestion) {
+                                            $("#OAirPortId").val(suggestion.data)
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                    /* Ocity -end */
+                }
+
+            });
+
+        }
+
+        /////Destination Start and end ports dropdown list
+        function DStartEndPortFill() {
+
+                    var returnResult = [];
+                        /* Dcity -start */
+                    $("#DCityName").autocomplete({
+                        lookup: returnResult,
+                        onSelect: function (suggestion) {
+                            $("#DCityID").val(suggestion.data);
+                            $.ajax({
+                                url: "@Url.Action("PortsByCityShipmentMode", "Combo")?CityID=" + $("#DCityID").val()+"&shipmentModeID=1",
+                                success: function (data) {
+                                    var returnResultPort = [];
+                                    var dataPort = $.map(data, function (obj) {
+                                        obj.value = obj.Text; // desired field
+                                        obj.data = obj.Value; // desired field
+                                        returnResultPort.push(obj);
+                                    });
+
+                                    $("#DSeaPortName").empty()
+                                    $("#DSeaPortName").autocomplete({
+                                        lookup: returnResultPort,
+                                        onSelect: function (suggestion) {
+                                            $("#DSeaPortID").val(suggestion.data)
+                                            //alert( $("#DSeaPortID").val());
+                                        }
+                                    });
+                                }
+                            });
+                            $.ajax({
+                                url: "@Url.Action("PortsByCityShipmentMode", "Combo")?CityID=" + $("#DCityID").val()+"&shipmentModeID=2",
+                                success: function (data) {
+                                    var returnResultPort = [];
+                                    var dataPort = $.map(data, function (obj) {
+                                        obj.value = obj.Text; // desired field
+                                        obj.data = obj.Value; // desired field
+                                        returnResultPort.push(obj);
+                                    });
+
+                                    $("#DAirPortName").empty()
+                                    $("#DAirPortName").autocomplete({
+                                        lookup: returnResultPort,
+                                        onSelect: function (suggestion) {
+                                            $("#DAirPortID").val(suggestion.data)
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                    /* Dcity -end */
+
+
+        }
+
+
+
+        /////RMC Dropdown list
+        function RmcDropFill() {
+            var returnResult = [];
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetRMCList", "Combo")",
+                method: 'GET',
+                async: 'false',
+                dataType: 'json',
+                success: function (result) {
+                    var data = $.map(result, function (obj) {
+                        obj.value = obj.Text; // desired field
+                        obj.data = obj.Value; // desired field
+                        returnResult.push(obj);
+                        $("#DropRMCName").autocomplete({
+                            lookup: returnResult,
+                            onSelect: function (suggestion) {
+                                $("#RMCID").val(suggestion.data);
+                            }
+                        });
+
+                    });
+                },
+                error: function () { }
+            });
+        }
+
+
+
+        /////Vendor dropdown list
+        function VendorDropFill() {
+            var returnResult = [];
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetAgentList", "Combo")",
+                method: 'GET',
+                async: 'false',
+                dataType: 'json',
+                success: function (result) {
+                    var data = $.map(result, function (obj) {
+                        obj.value = obj.Text; // desired field
+                        obj.data = obj.Value; // desired field
+                        returnResult.push(obj);
+                        $("#DropVendorName").autocomplete({
+                            lookup: returnResult,
+                            onSelect: function (suggestion) {
+                                $("#VendorID").val(suggestion.data);
+                            }
+                        });
+
+                    });
+                },
+                error: function () { }
+            });
+        }
+
+
+        ////Fright -SEA rates
+        function GetFreightSeaList() {
+            var returnResultSea = [];
+            var returnResultAir = [];
+            $.ajax({
+                url: "@Url.Action("PortsByCityShipmentMode", "Combo")?CityID=0&shipmentModeID=1",
+                success: function (data) {
+                    var data = $.map(data, function (obj) {
+                        obj.value = obj.Text; // desired field
+                        obj.data = obj.Value; // desired field
+                        returnResultAir.push(obj);
+                        $("#FOrgPortNameSea").empty()
+                        $("#FOrgPortNameSea").autocomplete({
+                            lookup: returnResultAir,
+                            onSelect: function (suggestion) {
+                                $("#FOrgPortIDSea").val(suggestion.data)
+                            }
+                        });
+                        $("#FDestPortNameSea").empty()
+                        $("#FDestPortNameSea").autocomplete({
+                            lookup: returnResultAir,
+                            onSelect: function (suggestion) {
+                                $("#FDestPortIDSea").val(suggestion.data)
+                            }
+                        });
+                    });
+                }
+            });
+        }
+
+
+
+        ////Fright -AIR rates
+        function GetFreightAirList() {
+            var returnResultSea = [];
+            var returnResultAir = [];
+            $.ajax({
+                url: "@Url.Action("PortsByCityShipmentMode", "Combo")?CityID=0&shipmentModeID=2",
+                success: function (data) {
+                    var data = $.map(data, function (obj) {
+                        obj.value = obj.Text; // desired field
+                        obj.data = obj.Value; // desired field
+                        returnResultAir.push(obj);
+                        $("#FOrgPortNameAir").empty()
+                        $("#FOrgPortNameAir").autocomplete({
+                            lookup: returnResultAir,
+                            onSelect: function (suggestion) {
+                                $("#FOrgPortIDAir").val(suggestion.data)
+                            }
+                        });
+                        $("#FDestPortNameAir").empty()
+                        $("#FDestPortNameAir").autocomplete({
+                            lookup: returnResultAir,
+                            onSelect: function (suggestion) {
+                                $("#FDestPortIDAir").val(suggestion.data)
+                            }
+                        });
+                    });
+                }
+            });
+        }
+
+
+
+        ////Update vendor rates
+        function UpdateVendorRates()
+        {
+            // activate rate Details
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("updateVendorrates", "Pricing")",
+                method: 'POST',
+                async: 'false',
+                dataType: 'json',
+                success: function (result) {
+                    if (result.Success) {
+                        toastr.success("Vendor rate updated successfully.");
+                    }
+                    else {
+                        toastr.success("Vendor rate updated successfully.");
+                    }
+                },
+                error: function () {
+
+                }
+            });
+        }
+
+
+        ////Update Blanket Rate
+        function UpdateBlanketRates() {
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("UpdateBlanketRates", "Pricing")",
+                method: 'POST',
+                async: 'false',
+                dataType: 'json',
+                success: function (result) {
+                    if (result.Success) {
+                        toastr.success("Blanket rates updated successfully.");
+                    }
+                    else {
+                        toastr.success("Blanket rates updated successfully.");
+                    }
+                },
+                error: function () {
+
+                }
+            });
+
+        }
+
+        ////update Frieght rate
+        function UpdateFreightRates()
+        {
+            // activate rate Details
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("updatefreightrates", "Pricing")",
+                method: 'POST',
+                async: 'false',
+                dataType: 'json',
+                success: function (result) {
+                    if (result.Success) {
+                        toastr.success("Vendor rate updated successfully.");
+                    }
+                    else {
+                        toastr.success("Vendor rate updated successfully.");
+                    }
+                },
+                error: function () {
+
+                }
+            });
+        }
+
+
+        /////Update addtional service rate
+        function UpdateAddServicesRates()
+        {
+            var tempVendorID = isNaN($("#VendorID").val())==true || $("#VendorID").val()=='' ? 0 : $("#VendorID").val();
+            var tempCityID = isNaN($("#ASCityID").val())==true || $("#ASCityID").val()=='' ? 0 : $("#ASCityID").val();
+            var tempRMCID = isNaN($("#RMCID").val())==true || $("#RMCID").val()=='' ? 0 : $("#RMCID").val();
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("updateAddServicesrates_new", "Pricing")?VendorID="+tempVendorID+"&CityID=" + tempCityID+"&RMCID=" + tempRMCID,
+                method: 'POST',
+                async: 'false',
+                dataType: 'json',
+                success: function (result) {
+                    if (result.Success) {
+                        toastr.success("Additional services rate updated successfully.");
+                    }
+                    else {
+                        toastr.error("Additional services rate update failed.");
+                    }
+                },
+                error: function () {
+                }
+            });
+        }
+
+    </script>
+
+    @Scripts.Render("~/bundles/jqueryval")
+}
+

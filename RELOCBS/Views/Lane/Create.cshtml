@@ -1,0 +1,179 @@
+﻿@model RELOCBS.Entities.LaneViewModel
+
+@{
+    ViewBag.Title = "New Lane";
+}
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+
+
+@using (Html.BeginForm("Create", "Lane", FormMethod.Post, new { enctype = "multipart/form-data" })) 
+{
+    @Html.AntiForgeryToken()
+    
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-sm-12">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                
+
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.OriginCountry, htmlAttributes: new { @class = "control-label col-md-4 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-10">
+                        @Html.DropDownListFor(model => model.OriginCountryID, new SelectList((System.Collections.IEnumerable)ViewData["OriginCountryList"], "Value", "Text"), "Origin Country", new { @class = "form-control input-sm clearfix" })
+                        @Html.ValidationMessageFor(model => model.OriginCountryID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.OriginCity, htmlAttributes: new { @class = "control-label col-md-4 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-4">
+                        @Html.DropDownListFor(model => model.OriginCityID, new SelectList((System.Collections.IEnumerable)ViewData["ORGINCITYList"], "Value", "Text"), "Origin City", new { @class = "form-control input-sm clearfix" })
+                        @Html.ValidationMessageFor(model => model.OriginCityID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.DestinationCountry, htmlAttributes: new { @class = "control-label col-md-4 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-4">
+                        @Html.DropDownListFor(model => model.DestinationCountryID, new SelectList((System.Collections.IEnumerable)ViewData["DestinationCountryList"], "Value", "Text"), "Destination Country", new { @class = "form-control input-sm clearfix" })
+                        @Html.ValidationMessageFor(model => model.DestinationCountryID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.DestinationCity, htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-4">
+                        @Html.DropDownListFor(model => model.DestinationCityID, new SelectList((System.Collections.IEnumerable)ViewData["ORGINCITYList"], "Value", "Text"), "Destination City", new { @class = "form-control input-sm clearfix" })
+                        @Html.ValidationMessageFor(model => model.DestinationCityID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.LaneName, htmlAttributes: new { @class = "control-label col-md-4 col-md-offset-2" })
+                    <div class="col-md-4">
+                        @Html.EditorFor(model => model.LaneName, new { htmlAttributes = new { @class = "form-control input-sm", @readonly = "readonly" } })
+                        @Html.ValidationMessageFor(model => model.LaneName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-md-offset-2">
+                        <div class="col-md-5">
+                            @Html.CheckBoxFor(model => model.isActive, new { htmlAttributes = new { @class = "form-control input-sm" } }) Active
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+            
+      </div>
+        
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+}
+
+<script>
+    $(document).ready(function () {
+        $("[data-val-required]").each(function () {
+            $("label[for=" + this.id + "]").addClass("requiredlabel")
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        var form = $("#mdlAddEdit form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+        $('#mdlAddEdit').on('shown.bs.modal', function () {
+            $('#OriginCountryID').focus();
+        });
+        $('#DivCreateLastMoveDate').datetimepicker({
+            @*//format: '@ShortDateFormat',*@
+            format: 'MM/DD/YYYY'
+        });
+        $('#LastMoveDateEditor').on('focus', function () {
+            $(this).siblings('.input-group-addon').click();
+        });
+        $('select').select2();
+        $('#mdlAddEdit form').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+            $(this).ajaxSubmit({
+                target: '#mdlAddEdit .modal-content',
+                success: function (data) {
+                    $('#mdlAddEdit .modal-content').html(data.Result);
+
+                    if (data.Success) {
+                        $('#mgrid .pagination li.active a').trigger('click');
+                        toastr.success("Lane saved successfully.");
+                        $('#mdlAddEdit').modal('hide');
+                    }
+                }
+            });
+        });
+
+        $('#OriginCityID').on('change', function () {
+            if ($('#DestinationCityID').find("option:selected").text() == "Destination City") {
+                //$("#Lane1").val($('#OriginCityID').find("option:selected").text())
+            }
+            else {
+                $("#Lane1").val($('#OriginCityID').find("option:selected").text() + ' - ' + $('#DestinationCityID').find("option:selected").text())
+            }
+        });
+        $("#DestinationCityID").on('change', function () {
+            var Lane = $('#OriginCityID').val() + ' - ' + $('#DestinationCityID').val()
+            $("#Lane1").val($('#OriginCityID').find("option:selected").text() + ' - ' + $('#DestinationCityID').find("option:selected").text())
+        });
+
+        //FirstDropdown for City
+        $('body').on('change', '#OriginCountryID', function (e) {
+            var CountryID = $(this).val();
+            $("select#OriginCityID").empty();
+            $('#OriginCityID').append($('<option>', {
+                value: 1,
+                text: 'Select Origin City'
+            }));
+            $.ajax({
+                url: "@Url.Action("GetCity", "Combo")?CountryID=" + CountryID,
+                success: function (data) {
+                    var data = $.map(data, function (obj) {
+                        obj.text = obj.text || obj.Text; // desired field
+                        obj.id = obj.id || obj.Value; // desired field
+                        return obj;
+                    });
+                    $('select#OriginCityID').select2({ data: data });
+                }
+            });
+        });
+        
+        //SecondDropdown for City
+        $('body').on('change', '#DestinationCountryID', function (e) {
+            var CountryID = $(this).val();
+            $("select#DestinationCityID").empty();
+            $('#DestinationCityID').append($('<option>', {
+                value: 1,
+                text: 'Select Destination City'
+            }));
+            $.ajax({
+                url: "@Url.Action("GetCity", "Combo")?CountryID=" + CountryID,
+                success: function (data) {
+                    var data = $.map(data, function (obj) {
+                        obj.text = obj.text || obj.Text; // desired field
+                        obj.id = obj.id || obj.Value; // desired field
+                        return obj;
+                    });
+                    $('select#DestinationCityID').select2({ data: data });
+                }
+            });
+        });
+    });
+</script>
+

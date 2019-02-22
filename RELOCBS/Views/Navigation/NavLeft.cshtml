@@ -1,0 +1,134 @@
+﻿@model IEnumerable<RELOCBS.Models.MenuViewModel>
+@{
+
+    var controllerName = this.ViewContext.RouteData.Values["controller"].ToString();
+    List<RELOCBS.Models.MenuViewModel> menuList = ViewBag.UserMenu;
+
+}
+
+<div class="navbar-default navbar-static-side" role="navigation">
+    <div class="sidebar-collapse">
+        <ul class="nav metismenu" id="side-menu">
+            <li class="nav-header">
+                <div id="logo">
+                    <a class="logo" href="#"></a>
+                </div>
+            </li>
+
+@{
+/*
+@foreach (RELOCBS.Models.MenuViewModel menu in Model)
+{
+    if (menu.SubMenu != null)
+    {
+        <li class="has_sub">
+
+            @if (menu.IsAction)
+            {
+                <a href="@Url.Action(menu.Action, menu.Controller)" class="@menu.Class"> @Html.Raw(menu.Title)</a>
+            }
+            else
+            {
+                <a href="@Html.Raw(menu.Link)" class="@menu.Class"> @Html.Raw(menu.Title)</a>
+            }
+
+            <ul class="list-unstyled">
+                @foreach (RELOCBS.Models.MenuViewModel subMenu in menu.SubMenu)
+                {
+                    if (subMenu.IsAction)
+                    {
+                        <li><a href="@Url.Action(subMenu.Action, subMenu.Controller)">@subMenu.Title</a></li>
+                    }
+                    else
+                    {
+                        <li><a href="@Html.Raw(subMenu.Link)"> @Html.Raw(subMenu.Title)</a></li>
+                    }
+                }
+            </ul>
+        </li>
+    }
+    else
+    {
+        if (menu.IsAction)
+        {
+            @*<li><a href="@Url.Action(menu.Action, menu.Controller)" class="@menu.Class"> @Html.Raw(menu.Title)</a></li>*@
+
+            <li class="@(@controllerName == menu.Controller ? "active" : "")">
+                <a href="@Url.Action("", menu.Link, new { area = "" }, this.Request.Url.Scheme)" class="@menu.Class"><i class="@menu.IMGPath"></i> <span class="nav-label">@menu.Title</span></a>
+            </li>
+        }
+        else
+        {
+            <li><a href="@Html.Raw(menu.Link)" class="@menu.Class"> @Html.Raw(menu.Title)</a></li>
+        }
+    }
+}
+*/
+}
+
+
+            @* added new dynamic menu *@
+
+            @if (Model != null)
+            {
+                foreach (RELOCBS.Models.MenuViewModel menu in Model)
+                {
+                    <li class="@(@controllerName == menu.Controller ? "active" : "")">
+                        <a href="@Url.Action("", menu.Link, new { area = "" }, this.Request.Url.Scheme)" class="@controllerName" title="@menu.Title">
+                            <i class="@menu.IMGPath"></i> <span class="nav-label">@menu.Title</span>
+                            @if (menu.SubMenu != null && menu.SubMenu.Count(p => p.ParentMenuID == menu.MenuID) > 0)
+                            {<span class="fa arrow"></span>}
+                        </a>
+                        @if (menu.SubMenu!=null && menu.SubMenu.Count(p => p.ParentMenuID == menu.MenuID) > 0)
+                        {
+                            @:<ul class="nav nav-second-level collapse">
+                        }
+
+                        @if (menu.SubMenu!=null && menu.SubMenu.Count>0)
+                        {
+                            @RenderMenuItem(menu.SubMenu.ToList(), menu, controllerName)
+                        }
+
+                        @if (menu.SubMenu != null && menu.SubMenu.Count(p => p.ParentMenuID == menu.MenuID) > 0)
+                        {
+                            @:</ul>
+                        }
+                    </li>
+                }
+            }
+        </ul>
+    </div>
+</div>
+
+@helper RenderMenuItem(List<RELOCBS.Models.MenuViewModel> SubmenuList, RELOCBS.Models.MenuViewModel mi, string controllerName)
+{
+    foreach (var cp in SubmenuList.Where(p => p.ParentMenuID == mi.MenuID))
+    {
+            @:<li class="@(@controllerName == mi.Controller ? "active" : "")">
+                <a href="@Url.Action("", cp.Link, new { area = "" }, this.Request.Url.Scheme)" class="@controllerName" title="@cp.Title">
+                    <i class="@cp.IMGPath"></i> @cp.Title
+       @if (cp.SubMenu!=null && cp.SubMenu.Count(p => p.ParentMenuID == mi.MenuID) > 0)
+       {<span class="fa arrow"></span>}
+                </a>
+
+        if (cp.SubMenu != null && cp.SubMenu.Count(p => p.ParentMenuID == mi.MenuID) > 0)
+        {
+                @:<ul class="nav nav-third-level collapse">
+        }
+
+        if (cp.SubMenu != null && cp.SubMenu.Count > 0)
+        {
+            @RenderMenuItem(cp.SubMenu, cp, controllerName)
+        }
+
+        if (cp.SubMenu != null && cp.SubMenu.Count(p => p.ParentMenuID == mi.MenuID) > 0)
+        {
+                @:</ul>
+        }  
+        else
+        {
+                @:</li>
+        }
+
+    }
+}    

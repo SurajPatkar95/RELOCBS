@@ -1,0 +1,48 @@
+﻿@model RELOCBS.Models.LoginViewModel
+@{
+    Layout = "~/Views/Shared/_LayoutLogin.cshtml";
+    ViewBag.Title = "Log In";
+}
+
+<div class="logo m-t-lg"></div>
+<h2 class="txt-sitename m-t-lg">Global Move Management System</h2>
+
+<div class="row">
+    <div class="col-md-8 col-md-push-2">
+        <section id="loginForm" class="text-center">
+            @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                <h1 class="login-title m-t-lg">@ViewBag.Title</h1>
+                <div class="form-group m-t-md">
+                    <div>
+                        @Html.EditorFor(model => model.Username, new { @class = "form-control", @placeholder = "Username" })
+                        @Html.ValidationMessageFor(model => model.Username, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group m-t-md">
+                    <div>
+                        @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "Password" })
+                        @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <p class="pull-right m-t-sm">
+                    @*@Html.ActionLink("Register as a new user", "Register") |*@
+                    @Html.ActionLink("Forgot Password", "ForgotPassword")
+                </p>
+                <div class="form-group">
+                    <div class="">
+                        <input type="submit" value="Log in" class="btn btn-primary" />
+                    </div>
+                </div>
+
+            }
+        </section>
+    </div>
+
+</div>
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

@@ -1,0 +1,620 @@
+﻿@model RELOCBS.Entities.GeneralPriceViewModel
+
+@{
+    ViewBag.Title = "Pricing";
+    
+}
+
+@Styles.Render("~/Content/bootstrap-selectcss")
+<style>
+    .tdNone {
+        display: none;
+    }
+</style>
+
+@using (Html.BeginForm("CopyRate", "GeneralPricing", FormMethod.Post, new { enctype = "multipart/form-data", id = "frmimportLaneRate" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="m-t-sm">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="row">
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RMCName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.RMCID, new SelectList((System.Collections.IEnumerable)ViewData["RMC"], "Value", "Text"), "--Select RMC--", new { id = "RMCDropdown", @class = "form-control input-sm clearfix", @onchange = "javascript:RMC_OnChange(this.value);" })
+                    @Html.ValidationMessageFor(model => model.RMCID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.BusinessLineName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.BusinessLineID, new SelectList((System.Collections.IEnumerable)ViewData["BusinessLine"], "Value", "Text"), "--Select Business Line--", new { id = "BusinessLineDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.BusinessLineID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.GoodsDescriptionName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.GoodsDescriptionID, new SelectList((System.Collections.IEnumerable)ViewData["GoodsDescription"], "Value", "Text"), "--Select Goods Description--", new { id = "GoodsDescriptionDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.GoodsDescriptionID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ModeName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.ModeName, new SelectList((System.Collections.IEnumerable)ViewData["Mode"], "Value", "Text"), "--Select Mode--", new { id = "ModeDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.ModeID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RateComponentName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.ModeName, new SelectList((System.Collections.IEnumerable)ViewData["RateComponent"], "Value", "Text"), "--Select Rate Component--", new { id = "RateComponentDropdown", @class = "form-control input-sm clearfix", @onchange = "javascript:RateComponent_OnChange(this.value);" })
+                    @Html.ValidationMessageFor(model => model.RateComponentID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.FromLocationName, htmlAttributes: new { id = "FromLocationName", @class = "control-label" })
+                    @Html.DropDownListFor(model => model.FromLocationID, new SelectList((System.Collections.IEnumerable)ViewData["FromLocation"], "Value", "Text"), "--Select From--", new { id = "FromLocationDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.FromLocationID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ToLocationName, htmlAttributes: new { id = "ToLocationName", @class = "control-label" })
+                    @Html.DropDownListFor(model => model.ToLocationID, new SelectList((System.Collections.IEnumerable)ViewData["ToLocation"], "Value", "Text"), "--Select To--", new { id = "ToLocationDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.ToLocationID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.AgentName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.AgentID, new SelectList((System.Collections.IEnumerable)ViewData["Agent"], "Value", "Text"), "--Select Agent--", new { id = "AgentDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.AgentID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RateCurrencyName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.RateCurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["RateCurrency"], "Value", "Text"), "--Select Rate Currency--", new { id = "RateCurrencyDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.RateCurrencyID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.BaseCurrencyRateName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.BaseCurrencyRateID, new SelectList((System.Collections.IEnumerable)ViewData["BaseCurrencyRate"], "Value", "Text"), "--Select BaseCurrency Rate--", new { id = "BaseCurrencyRateDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.BaseCurrencyRateID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ConversionRate, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.ConversionRate, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.ConversionRate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.WeightUnitName, htmlAttributes: new { @class = "control-label col-sm-4" })
+                    @Html.DropDownListFor(model => model.WeightUnitID, new SelectList((System.Collections.IEnumerable)ViewData["WeightUnit"], "Value", "Text"), "--Select Weight Unit--", new { id = "WeightUnitDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.WeightUnitID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.WeightUnitFrom, htmlAttributes: new { @class = "control-label col-sm-4" })
+                    @Html.EditorFor(model => model.WeightUnitFrom, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.WeightUnitFrom, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.WeightUnitTo, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.WeightUnitTo, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.WeightUnitTo, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Transit Time From</label>
+                    @Html.EditorFor(model => model.TransitTimeFrom, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.TransitTimeFrom, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Transit Time To</label>
+                    @Html.EditorFor(model => model.TransitTimeTo, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.TransitTimeTo, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Rate, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.Rate, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Rate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-offset-2">
+                    <div class="col-md-5 col-sm-5">
+                        @Html.CheckBoxFor(model => model.ShowConstHeads, new { htmlAttributes = new { @class = "form-control input-sm", id = "chkShowCostHead" } }) Apply Cost Heads
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="col-sm-10">
+                <input type="button" id="btnSave" name="SubmitRate" class="btn btn-primary m-t-sm m-b-sm pull-right m-r-sm btn-sm" value="Save Rates" formnovalidate="formnovalidate" onclick="SaveData();" /> @*formnovalidate="formnovalidate"*@
+            </div>
+            <div class="col-sm-2">
+                <input type="button" id="btnClearFields" class="btn btn-default m-t-sm m-b-sm  m-r-sm btn-sm  pull-left" value="Clear Data" />
+            </div>
+        </div>
+    </div>
+    <div>
+        <div class="row m-t-md" id="divCostHead">
+            @try
+            {
+                <div class="row">
+                    <div class="col-sm-12 m-b-lg">
+                        <div class="ibox float-e-margins">
+                            <div class="table-responsive" id="pnl-rates" style="overflow: auto;height: 340px">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <div class="col-sm-4">
+                                            <select id="CostHeadDropdown" class="form-control input-sm"></select>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <input type="number" class="form-control input-sm" id="txtAmount" placeholder="Enter Amount" />
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <input type="button" id="btnAdd" value="Add" class="btn btn-primary m-t-sm m-b-sm pull-left m-r-sm btn-sm" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <table class="table table-striped" id="CostHeadtable">
+                                    <thead class="ibox-title">
+                                        <tr>
+                                            <th class="tdNone"></th>
+                                            <th>CostHead</th>
+                                            <th>Amount</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (RELOCBS.Entities.CostHead row in Model.CostHeadList)
+                                        {
+                                            <tr>
+                                                <td class="tdNone">
+                                                    <input type="hidden" class="TblHFVCostHead" name="HFVCostHead" id="HFVCostHeadID" value="@row.CostHeadID" />
+                                                </td>
+                                                <td class="CostHead">
+                                                    @row.CostHeadName
+                                                </td>
+                                                <td class="Amount">
+                                                    <input type="text" class="form-control input-sm TbltxtAmount" value="@row.Amount.ToString()" />
+                                                </td>
+                                                <td><input type="button" value="Remove" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left " onclick="Remove(this)" /></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                //if (Model.CostHeadList.Count > 0)
+                //{
+                //}
+            }
+            catch { }
+        </div>
+    </div>
+
+
+}
+
+<div class="row m-t-md" id="ViewCostRateGridPlaceHolder">
+</div>
+@section Scripts{
+    <script type="text/javascript">
+    $(document).ready(function () {
+        // Enable Live Search.
+
+        $('.selectpicker').selectpicker({
+            liveSearch: true,
+            showSubtext: true
+        });
+
+        //$('[id*=CostHeadDropdown]').multiselect({
+        //    includeSelectAllOption: true, buttonWidth: '200px'
+        //});
+
+
+        if ($("#ShowConstHeads").is(':checked')) {
+
+            $("#CostHeadDropdown").prop("disabled", false);
+            $("#txtAmount").prop("disabled", false);
+            $("#btnAdd").prop("disabled", false);
+            $("#divCostHead").show();
+            $('#Rate').prop("disabled", true);
+            $('#Rate').val("");
+        }
+        else {
+            $('#CostHeadtable tbody').empty();
+            $("#CostHeadDropdown").prop("disabled", true);
+            $("#txtAmount").prop("disabled", true);
+            $("#btnAdd").prop("disabled", true);
+            $("#divCostHead").hide();
+            $('#Rate').prop("disabled", false);
+        }
+
+        $("#ShowConstHeads").change(function () {
+            if ($(this).is(':checked')) {
+
+                $("#CostHeadDropdown").prop("disabled", false);
+                $("#txtAmount").prop("disabled", false);
+                $("#btnAdd").prop("disabled", false);
+                $('#CostHeadtable tbody').empty();
+                $("#divCostHead").show();
+                $('#Rate').val("");
+                $('#Rate').prop("disabled", true);
+            }
+            else {
+
+                $("#CostHeadDropdown").prop("disabled", true);
+                $("#txtAmount").prop("disabled", true);
+                $("#btnAdd").prop("disabled", true);
+                $("#divCostHead").hide();
+                $('#Rate').prop("disabled", false);
+            }
+        });
+
+    });
+
+    /////On RMC Change
+    function RMC_OnChange(_RMC) {
+
+        $("#CostHeadDropdown").empty();
+
+        $("#CostHeadDropdown").append($('<option>').text("--Select CostHead--").attr('value', -1));
+
+        debugger;
+
+        if (_RMC != null && _RMC != "") {
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetCostHead", "Combo")?RMCID=" + _RMC,
+                async: 'false',
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    debugger;
+
+                    $.each(data, function (number, municipe) {
+
+                        $("#CostHeadDropdown").append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+
+                    });
+
+                    //$("#CostHeadDropdown").removeClass("selectpicker");
+                    //$("#CostHeadDropdown").addClass("selectpicker");
+                    //$("#CostHeadDropdown").selectpicker();
+
+                    //$("#CostHeadDropdown").selectpicker('refresh');
+                    //$("#CostHeadDropdown").selectpicker('render');
+
+                    //var markup = "<option data-tokens='0'></option>";
+                    //for (var x = 0; x < data.length; x++) {
+                    //    markup += "<option data-tokens=" + data[x].Value + ">" + data[x].Text + "</option>";
+                    //}
+                    //$("#CostHeadDropdown").html(markup).show();
+
+
+                },
+                error: function (reponse) {
+                    alert("error : " + reponse);
+                }
+            });
+        }
+
+    }
+
+    ////On change RateComponent
+    function RateComponent_OnChange(_RateComponent){
+
+
+        debugger;
+
+        if (_RateComponent != null && _RateComponent != "") {
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetRateComponetLabel", "GeneralPricing")?RateComponentID=" + _RateComponent,
+                async: 'false',
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    debugger;
+
+                    $('#FromLocationName').text(data.FromLocationLable);
+                    $('#ToLocationName').text(data.ToLocationLable);
+                    $("#FromLocationDropdown").empty();
+                    $("#ToLocationDropdown").empty();
+
+                    $("#FromLocationDropdown").append($('<option>').text("--Select " + data.FromLocationLable + "--").attr('value', 0));
+                    $("#ToLocationDropdown").append($('<option>').text("--Select " + data.ToLocationLable + "--").attr('value', 0));
+
+                    $.each(data.FromLocationDropDown, function (number, municipe) {
+
+                        $("#FromLocationDropdown").append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+
+                    });
+
+                    $.each(data.ToLocationDropDown, function (number, municipe) {
+
+                        $("#ToLocationDropdown").append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+
+                    });
+
+                },
+                error: function (reponse) {
+                    alert("error : " + reponse);
+                }
+            });
+
+            /////Calling the Grid Fill method for partial Div on change of Component
+            GetRateGridForRateComponent(_RateComponent);
+        }
+
+    }
+
+    /////Cost head table Add/Remove from list
+
+
+    function getAllData() {
+        var data = [];
+        $('#CostHeadtable tbody tr').each(function () {
+            var CostHeadID = $(this).find('.TblHFVCostHead').val();
+            var CostHeadName = $("TD", this).eq(1).html();
+            var Amount = $(this).find('.TbltxtAmount').val();
+            var alldata = {
+                'CostHeadID': parseInt(CostHeadID),
+                'CostHeadName': CostHeadName,
+                'Amount': parseFloat(Amount)
+            }
+            data.push(alldata);
+        });
+        console.log(data);
+        return data;
+    }
+
+
+
+    $("body").on("click", "#btnAdd", function () {
+
+        var CostHeadDropdown = $("#CostHeadDropdown :selected");
+
+        var CostHeadDropdownSelected = CostHeadDropdown.val();
+        var CostHeadDropdownText = CostHeadDropdown.text();
+        var txtAmount = $("#txtAmount");
+        var txtAmountValue = txtAmount.val();
+        var txtRate = $('#Rate');
+        txtRate.val("");
+        debugger;
+        if (CostHeadDropdownSelected > 0 && txtAmountValue != null && txtAmountValue != "") {
+
+
+            var tBody = $("#CostHeadtable > TBODY")[0];
+
+            var rowCount = $('#CostHeadtable > TBODY > tr').length;
+
+            var tdHFVCostHead = '<input type="hidden" class="TblHFVCostHead" name="HFVCostHead" id="HFVCostHeadID_' + (rowCount + 1) + '" value="' + CostHeadDropdownSelected + '" />';
+            var tdAmount = '<input type="text" class="form-control input-sm TbltxtAmount"  name="TbltxtAmount"  value="' + txtAmountValue + '" />';
+
+            //Add Row.
+            var row = tBody.insertRow(-1);
+
+            //Add CostHeadID cell.
+            var cell = $(row.insertCell(-1));
+            cell.html(tdHFVCostHead);
+            cell.addClass("tdNone");
+
+            //Add CostHeadText cell.
+            cell = $(row.insertCell(-1));
+            cell.html(CostHeadDropdownText);
+
+            //Add Amount cell.
+            cell = $(row.insertCell(-1));
+            cell.html(tdAmount);
+
+            //Add Button cell.
+            cell = $(row.insertCell(-1));
+            var btnRemove = $("<input />");
+            btnRemove.attr("type", "button");
+            btnRemove.attr("onclick", "Remove(this);");
+            btnRemove.attr("class", "btnDelete btn btn- xs btn- danger glyphicon glyphicon- trash marl- 5 pull- left");
+            btnRemove.val("Remove");
+
+            cell.append(btnRemove);
+
+            //Clear the TextBoxes.
+            CostHeadDropdown.prop("selected", "0");
+            txtAmount.val("");
+            var RateAmout = 0;
+
+
+
+            //loop through the tr's
+            $('#CostHeadtable > TBODY > tr').each(function () {
+
+                //look for the fields TbltxtAmount in the tr
+
+                RateAmout = RateAmout + parseFloat($('.TbltxtAmount', this).val());
+
+            });
+
+            txtRate.val(RateAmout);
+
+        }
+        else {
+            alert('Cost Head and Amount is required');
+            return false;
+        }
+    });
+
+
+    function Remove(button) {
+        //Determine the reference of the Row using the Button.
+        var row = $(button).closest("TR");
+        var name = $("TD", row).eq(1).html();
+        if (confirm("Do you want to delete: " + name)) {
+            //Get the reference of the Table.
+            var table = $("#CostHeadtable")[0];
+
+            //Delete the Table row using it's Index.
+            table.deleteRow(row[0].rowIndex);
+        }
+    };
+
+    ////On Amount text box enter key press call the Add button event
+    $('#txtAmount').on("keypress", function (e) {
+        if (e.keyCode == 13) {
+
+            $('#btnAdd').click();
+            return false; // prevent the button click from happening
+        }
+    });
+
+    $('#btnSave').on("onclick", function (e) {
+        SaveData();
+    });
+
+
+
+
+    //////Start Save data
+        function SaveData() {
+
+            $('#CostHeadtable').mask("Loading...");
+
+            $("#CostHeadtable").show();
+            debugger;
+            var CostHeadList = getAllData();
+
+            var RateObj = {
+                CompanyID: parseInt($('#RMCDropdown :selected').val()),
+                RMCID: parseInt($('#RMCDropdown :selected').val()),
+                BusinessLineID: parseInt($('#BusinessLineDropdown :selected').val()),
+                GoodsDescriptionID: parseInt($('#GoodsDescriptionDropdown :selected').val()),
+                ModeID: parseInt($('#ModeDropdown :selected').val()),
+                ModeName: $('#ModeDropdown :selected').text(),
+                RateComponentID: parseInt($('#RateComponentDropdown :selected').val()),
+                AgentID: parseInt($('#AgentDropdown :selected').val()),
+                FromLocationID: parseInt($('#FromLocationDropdown :selected').val()),
+                ToLocationID: parseInt($('#ToLocationDropdown :selected').val()),
+                RateCurrencyID: parseInt($('#RateCurrencyDropdown :selected').val()),
+                BaseCurrencyRateID: parseInt($('#BaseCurrencyRateDropdown :selected').val()),
+                ConversionRate: parseFloat($("#ConversionRate").val()),
+                WeightUnitID: parseInt($('#WeightUnitDropdown :selected').val()),
+                WeightUnitFrom: parseFloat($("#WeightUnitFrom").val()),
+                WeightUnitTo: parseFloat($("#WeightUnitTo").val()),
+                TransitTimeFrom: parseInt($('#TransitTimeFrom').val()),
+                TransitTimeTo: parseInt($('#TransitTimeTo').val()),
+                Rate: parseFloat($('#Rate').val()),
+                ShowConstHeads: $('#ShowConstHeads').prop('checked'),
+                CostHeadList: CostHeadList
+            };
+
+
+            // Insert rate Details
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("Create", "GeneralPricing")",
+                type: 'POST',
+                async: 'false',
+                dataType: 'json',
+                data: JSON.stringify({ PricingData: RateObj }),
+                success: function (result) {
+                    if (result.Success) {
+                        debugger;
+
+                        $("#CostHeadtable").hide();
+                        //swal({ title: "Success!",  text: "Pricing data saved successfully.", type: "success" });
+                        toastr.success("Origin, Pricing data saved successfully.");
+                    }
+                    else {
+                        //swal({ title: "Error!", text: "Pricing data save failed.", type: "error" });
+                        toastr.error("Origin, Pricing data save failed.");
+                    }
+                    $('#CostHeadtable').unmask();
+                },
+                error: function (reponse) {
+                    toastr.error(reponse);
+                    //toastr.error("Origin, Pricing data save failed.");
+                    $('#CostHeadtable').unmask();
+                    console.log(reponse);
+                }
+            });
+    }
+
+
+        ////////Get existing Rate for Grid
+        function GetRateGridForRateComponent(RateComponetID) {
+
+            $("#ViewCostRateGridPlaceHolder").load("@Url.Action("Index", "GeneralPricing")",
+                { RateComponetID: RateComponetID });
+        }
+
+
+        ///////Clear all selection data
+
+        $("#btnClearFields").on("click", function () {
+
+        $('#RMCDropdown :selected').val('').change();
+        $('#RMCDropdown :selected').val('').change();
+        $('#BusinessLineDropdown :selected').val('').change();
+        $('#GoodsDescriptionDropdown :selected').val('').change();
+        $('#ModeDropdown :selected').val('').change();
+        $('#RateComponentDropdown :selected').val('').change();
+        $('#AgentDropdown :selected').val('').change();
+        $('#FromLocationDropdown :selected').val('').change();
+        $('#ToLocationDropdown :selected').val('').change();
+        $('#RateCurrencyDropdown :selected').val('').change();
+        $('#BaseCurrencyRateDropdown :selected').val('').change();
+        $('#WeightUnitDropdown :selected').val('').change();
+
+        $("#ConversionRate").val('');
+        $("#WeightUnitFrom").val('');
+        $("#WeightUnitTo").val('');
+        $('#TransitTimeFrom').val('');
+        $('#TransitTimeTo').val('');
+        $('#Rate').val('');
+        $('#ShowConstHeads').prop('checked', false);
+
+        });
+
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+
+    <script type="text/javascript" src="http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
+}

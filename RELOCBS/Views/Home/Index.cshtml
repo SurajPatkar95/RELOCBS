@@ -1,0 +1,128 @@
+﻿@{
+    
+    ViewBag.Title = "Dashboard";
+}
+
+<div class="m-t-sm">
+    @{
+        bool hasMoveUser = true;
+        bool hasPricingUser = true;
+        bool BillingUser = true;//WorkContext.HasPermission((int)UtilityEnums.Page.Dashboard, (int)UtilityEnums.PageAction.BillingView);
+    }
+    @if (hasPricingUser)
+    {
+        <div class="row">
+            <div class="col-sm-6" id="pnl-panellead"></div>
+            <div id="pnl-panelpricing" class="col-sm-6"></div>
+        </div>
+    }
+    @if (hasMoveUser)
+    {
+        <div class="row">
+            <div id="pnl-panelSurvey" class="col-sm-6"></div>
+            <div id="pnl-panelMoveManagement" class="col-sm-6"></div>
+        </div>
+        <div class="row">
+            <div id="pnl-PanelMoveManagementRevenueLoad" class="col-sm-6"></div>
+            <div id="pnl-PanelMoveManagementProfitability" class="col-sm-6"></div>
+        </div>
+
+    }
+    @if (BillingUser)
+    {
+        <div class="row">
+            <div id="pnl-PanelBilling" class="col-sm-6"></div>
+        </div>
+    }
+</div>
+
+@section Scripts{
+    <script>
+        function fnPanelLead() {
+            $('#pnl-panellead').mask("Loading...");
+            $.ajax({
+                url: "@Url.Action("PanelLead", "Home")",
+                success: function (data) {
+                    $('#pnl-panellead').html(data);
+                    $('#pnl-panellead').unmask();
+                }
+            });
+        }
+
+        function fnPanelPricing() {
+            $('#pnl-panelpricing').mask("Loading...");
+            $.ajax({
+                url: "@Url.Action("PanelPricing", "Home")",
+                success: function (data) {
+                    $('#pnl-panelpricing').html(data);
+                    $('#pnl-panelpricing').unmask();
+                }
+            });
+        }
+
+        function fnPanelSurvey() {
+            $('#pnl-panelSurvey').mask("Loading...");
+            $.ajax({
+                url: "@Url.Action("PanelSurvey", "Home")",
+                success: function (data) {
+                    $('#pnl-panelSurvey').html(data);
+                    $('#pnl-panelSurvey').unmask();
+                }
+            });
+        }
+        function fnPanelMoveManagement() {
+            $('#pnl-panelMoveManagement').mask("Loading...");
+            $.ajax({
+                url: "@Url.Action("PanelMoveManagement", "Home")",
+                success: function (data) {
+                    $('#pnl-panelMoveManagement').html(data);
+                    $('#pnl-panelMoveManagement').unmask();
+                }
+            });
+        }
+
+        function fnPanelMoveManagementRevenueLoad() {
+            $('#pnl-PanelMoveManagementRevenueLoad').mask("Loading...");
+            $.ajax({
+                url: "@Url.Action("PanelMoveManagementRevenueLoad", "Home")",
+                success: function (data) {
+                    $('#pnl-PanelMoveManagementRevenueLoad').html(data);
+                    $('#pnl-PanelMoveManagementRevenueLoad').unmask();
+                }
+            });
+        }
+
+        function fnPanelMoveManagementProfitability() {
+            $('#pnl-PanelMoveManagementProfitability').mask("Loading...");
+            $.ajax({
+                url: "@Url.Action("PanelMoveManagementProfitability", "Home")",
+                success: function (data) {
+                    $('#pnl-PanelMoveManagementProfitability').html(data);
+                    $('#pnl-PanelMoveManagementProfitability').unmask();
+                }
+            });
+        }
+        function fnPanelBilling() {
+            $('#pnl-PanelBilling').mask("Loading...");
+            $.ajax({
+                url: "@Url.Action("PanelBilling", "Home")",
+                success: function (data) {
+                    $('#pnl-PanelBilling').html(data);
+                    $('#pnl-PanelBilling').unmask();
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            fnPanelLead();
+            fnPanelPricing();
+            fnPanelSurvey();
+            fnPanelMoveManagement();
+            fnPanelMoveManagementRevenueLoad();
+            fnPanelMoveManagementProfitability();
+            fnPanelBilling();
+        });
+
+    </script>
+}
+</div>

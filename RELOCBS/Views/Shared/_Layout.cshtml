@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[@ViewBag.SiteTitleShort] @ViewBag.Title</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,900" rel="stylesheet">
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+
+</head>
+<body class="mini-navbar">
+    <div id="wrapper">
+        @Html.Action("NavLeft", "Navigation")
+        <div id="page-wrapper" class="gray-bg">
+
+            @Html.Action("NavTop", "Navigation")
+
+            <div class="clearfix">
+                @*@Html.Partial("_Notifications")*@
+
+                @RenderBody()
+
+                <div class="footer">
+                    <footer>
+                        <p>&copy; @ViewBag.Copyright</p>
+                    </footer>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="mdlEmailSetting" class="modal fade modal-pagefit-80 in">
+        <div class="modal-dialog">
+            <div id="pnlEmailSetting" class="modal-content">
+
+            </div>
+        </div>
+    </div>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+
+    @*@Styles.Render("~/Content/icheckcss")
+        @Scripts.Render("~/bundles/icheck")*@
+
+    @Styles.Render("~/Content/summernote")
+    @Scripts.Render("~/bundles/jquery-ui")
+    @Scripts.Render("~/bundles/summernote")
+    @Scripts.Render("~/bundles/bgiframe")
+
+    @Scripts.Render("~/bundles/custom")
+    @RenderSection("scripts", required: false)
+    <script>
+        $(document).ready(function () {
+            $("input").attr("autocomplete", "off");
+        });
+
+    $(document).ready(function () {
+        $('#pnl-todolist .ibox-content').slimScroll({
+            height: '200px'
+        });
+        $('a#lnkUpdateTodoCall').webuiPopover({ cache: false, animation: 'fade', placement: 'bottom-left', delay: 500, html: true, dismissible: false});
+
+        $('form.frmUpdateTodo').on('submit', function (e) {
+            e.preventDefault();
+            var todoid = $(this).closest('.pnlUpdateTodoCall').attr('id');
+            todoid = todoid.replace('pnlUpdateTodoCall-', '');
+            $('.webui-popover.in .webui-popover-content .pnlUpdateTodoCall').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '.webui-popover.in .webui-popover-content',
+                success: function (data) {
+                    if (data.Success) {
+                        toastr.success("Task completed successfully.");
+                        $('#pnl-todolist .todoitm-' + todoid).remove();
+                    } else if (!data.Success) {
+                        toastr.error("Task completion failed. Please try again.");
+                    }
+                    $('.webui-popover.in .webui-popover-content .pnlUpdateTodoCall').unmask();
+                    $('.webui-popover.in').remove();
+                },
+                complete: function () {
+                    $('.webui-popover.in .webui-popover-content .pnlUpdateTodoCall').unmask();
+                }
+            });
+        });
+    });
+    </script>
+    <script src="~/Scripts/Plugins/dotdotdot/table2excel.js"></script>
+</body>
+</html>
