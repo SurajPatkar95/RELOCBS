@@ -1,0 +1,339 @@
+﻿@model RELOCBS.Entities.ActivityAllocationModel
+
+@using RELOCBS.Extensions;
+<div class="row">
+<div class="ibox-content">
+ <div class="row">
+     <div class="col-md-3 form-group">
+         <label>Start Datetime</label>
+         @Html.TextBox("CAStartDate", null, new { @class = "form-control input-sm clearfix CAStartDate datetimepicker", @onblur = "GetVacantCrews(this)" })
+     </div>
+     <div class="col-md-3 form-group">
+         <label>End Datetime</label>
+         @Html.TextBox("CAEndDate", null, new { @class = "form-control input-sm clearfix CAEndDate datetimepicker", @onblur = "GetVacantCrews(this)" })
+     </div>
+     <div class="col-md-3 form-group">
+         <label>Crew</label>
+         @Html.DropDownListFor(model => model.jobCrew.CrewID, new SelectList((System.Collections.IEnumerable)ViewData["CrewList"], "Value", "Text"), "--Select Crew Code--", new { @class = "form-control input-sm clearfix", id = "DrpCrewCode", @onchange = "DrpCrewCode_change(this)",@disabled= "@disabled" })
+         @Html.HiddenFor(model => model.jobCrew.CrewID,new {@class="SearchCrewID"})
+     </div>
+ </div>
+ 
+ <div id="tblCrewDetails">
+     @Html.Partial("_CrewAllocationCreate", Model)
+ </div>
+ <div id="tblVendorDetails table-responsive">
+     <table class="table table-striped table-bordered">
+         <thead>
+             <tr>
+                 <th>Vendor</th>
+                 <th>Total No. of Outside Labour</th>
+             </tr>
+         </thead>
+         <tbody>
+             @for (int i = 0; i < Model.outsideLabours.Count; i++)
+             {
+                 <tr>
+                     <td>
+                         @Html.DropDownListFor(model => Model.outsideLabours[i].CrewVendorID, new SelectList((System.Collections.IEnumerable)ViewData["VendorList"], "Value", "Text", Model.outsideLabours[i].CrewVendorID), "--Select Vendor--", Model.outsideLabours[i].PJR_Status == 0 ? (object)new { @class = "form-control input-sm clearfix enableselect" } : new { @class = "form-control input-sm clearfix", @disabled = "disabled" })
+                         @Html.HiddenFor(model => Model.outsideLabours[i].OLabourID)
+                         @if(Model.outsideLabours[i].PJR_Status==1)
+                         { 
+                            @Html.HiddenFor(model => Model.outsideLabours[i].CrewVendorID)
+                         }
+                     </td>
+                     <td>
+                         @Html.TextBoxFor(model => Model.outsideLabours[i].NoOfPerson, new { @class = "form-control input-sm clearfix", @onkeypress = "return OnlyInteger(this, event);" }).DisableIf(() => Model.outsideLabours[i].PJR_Status == 1)
+                     </td>
+                 </tr>
+             }
+
+         </tbody>
+     </table>
+
+ </div>
+</div>
+</div>
+
+@*<div id="divCrewAllocation2" class="modal pannel-table fade" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width:550px;">
+        <div class="modal-content">
+            <div class="panel popup-panel">
+                <div class="panel-heading">
+                    <h3>
+                        Crew Allocation - Packer/Carpenter || Crew Allocation - Handyman
+                        <a id="btnCreWAllocationClose12" class="close floatRight" data-dismiss="modal"><span class="fa fa-close"></span></a>
+                    </h3>
+                </div>
+                <div class="panel-body" style="padding-top:0;">
+                    <table class="tableData taW tbodyScroll">
+                        <thead>
+                            <tr>
+                                <th class="thRound thRoundFirst cw150">Name</th>
+                                <th class="thRound cw120">Designation</th>
+                                <th class="thRound cw120">From Date</th>
+                                <th class="thRound thRoundLast cw120">To Date</th>
+                            </tr>
+                        </thead>
+                        <tbody style="max-height:380px;">
+                            <tr data-ng-repeat="CrewAllocationsub in CrewAllocationSublstP">
+                                <td class="cw150">
+
+
+
+                                    <select class="flatbox taW" data-ng-disabled="!isShown4" data-ng-model="CrewAllocationsub.EmployeeId" data-ng-options="item.EmpId as item.EmployeeName for item in EmployeeLookupData">
+                                        <option>Select</option>
+                                    </select>
+                                </td>
+                                <td class="cw120"><label>{{CrewAllocationsub.Designation}}</label></td>
+                                <td class="cw120"><label>{{CrewAllocationsub.FromDateTime}}</label></td>
+                                <td class="cw120"><label>{{CrewAllocationsub.ToDateTime}}</label></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>*@
+
+
+<script type="text/javascript">
+    
+    var CAStartDate;
+    var CAEndDate;
+    function GetVacantCrews(sender) {
+        
+        if ($('#CAStartDate').val() != null && $('#CAStartDate').val() != "" && $('#CAEndDate').val() != null && $('#CAEndDate').val() != "" && (CAStartDate != $('#CAStartDate').val() || CAEndDate != $('#CAEndDate').val())) {
+
+            CAStartDate = $('#CAStartDate').val();
+            CAEndDate = $('#CAEndDate').val();
+
+            var AID=@Html.Raw(Json.Encode(Model.BatchID));
+            var Url =  '@Url.Action("GetVacantCrew", "JobAllocation")' + "?From=" + CAStartDate + "&To=" + $('#CAEndDate').val() + "&BatchID=" + AID;
+            //$('#DrpCrewCode').select2({disabled: true});//.prop('disabled', true);
+
+            var s2 = $('#DrpCrewCode').data('select2');
+            if (s2)
+                $('#DrpCrewCode').select2("destroy");
+
+            $('#DrpCrewCode').prop('disabled', true);
+            $.ajax({
+                url: Url,
+                dataType: 'json',
+                //data: { countryId: countryID },
+                success: function (data) {  
+                    var CrewID = $('#DrpCrewCode').val();
+                    $('#DrpCrewCode').val(null).trigger('change');
+                    $("#DrpCrewCode").empty();
+                    $("#DrpCrewCode").append("<option value='0'>--Select Crew--</option>");//.trigger('change');
+
+                    $.each(data, function (key, val) {
+                        $('#DrpCrewCode').append("<option value='" + key + "'>" + val + "</option>");//.trigger('change');
+                    });
+
+                    $('#DrpCrewCode').val(0);//.trigger('change');
+                    $('#DrpCrewCode').prop('disabled', false);
+                    $('#DrpCrewCode').select2();
+                    $('#DrpCrewCode').focus();
+                    //$("#jobCrew_SuperviserID").select2("close");
+                    $("#DrpCrewCode").select2("open");
+                    return false;
+                },
+                error: function () {
+                    $('#DrpCrewCode').prop('disabled', false);
+                    $('#DrpCrewCode').select2();
+                    $('#DrpCrewCode').focus();
+                    //$("#jobCrew_SuperviserID").select2("close");
+                    $("#DrpCrewCode").select2("open");
+                }
+            });
+
+            
+        }
+
+        return false;
+    }
+
+     function DrpCrewCode_change (e) {
+
+         var FromDate = new Date(Date.parse($('#CAStartDate').val())).toISOString();
+         var ToDate = new Date(Date.parse($('#CAEndDate').val())).toISOString();      
+         var ID = $(e).val();
+
+         if (FromDate != null && FromDate != "" && ToDate != null && ToDate != "" && ID != null && ID != "") {
+
+                debugger;
+                var AID =@Html.Raw(Json.Encode(Model.BatchID));
+                
+                $(".SearchCrewID").val(ID);
+                var Url = "/JobAllocation/GetCrewMembers?From=" + FromDate + "&To=" + ToDate + "&BatchID=" + AID + "&Crewid=" + ID ;
+                //var url = '/JobAllocation/GetCrewMembers' + "?From=" + $('#CAStartDate').val() + "&To=" + $('#CAEndDate').val() + "&Crewid=" + $(this).val() + "&ActID=" + AID;
+
+                $("#tblCrewDetails").load(Url, function () {
+
+                    DatePickerClass();
+                    EmployeePopOver();
+
+                    return false;
+                })
+
+            }
+            return false;
+
+    }
+
+    function ClearMember() {
+
+        $("#CrewEmp").val('').trigger('change');
+        $("#CrewFromDate").val('');
+        $("#CrewToDate").val('');
+
+    }
+
+    function OnPopoverButtonViewClick(sender) {
+        
+        var row = $(sender).closest('tr');
+        var BatchID = (@Model.BatchID != null ? @Model.BatchID : -1);
+        var url = '@Url.Action("GetEmployeeAllocationDetail", new { EmpID = "-1", FromDate ="-2", ToDate = "-3", BatchID = "-4" })';
+        url = url.replace('-1', row.find('.CrewEmp').val());
+        url = url.replace('-2', encodeURIComponent(moment(row.find('.CrewEmpFromDate').val()).format("MM/DD/YYYY HH:mm:ss")));
+        url = url.replace('-3', encodeURIComponent(moment(row.find('.CrewEmpToDate').val()).format("MM/DD/YYYY HH:mm:ss")));
+        url = url.replace('-4', BatchID);
+        url = url.replace(/&amp;/g, "&");
+        url = url; //encodeURI(url); 
+        $(sender).attr('data-api-parameter', url);
+    }
+
+    function RemoveMember(sender) {
+        //Determine the reference of the Row using the Button.
+        var row = $(sender).closest("TR");
+        var name = $("TD", row).find('.CrewEmpList option:selected').text().trim();
+        if (confirm("Do you want to delete: " + name.trim())) {
+            //Get the reference of the Table.
+            var table = $("#tlbCrew")[0];
+
+            //Delete the Table row using it's Index.
+            table.deleteRow(row[0].rowIndex);
+
+        }
+
+        return false;
+    }
+
+    function isExists(index,value) {
+
+        var result;
+        var FromDate = $("#CrewFromDate").val();
+        var ToDate = $("#CrewToDate").val();
+
+        $("#tlbCrew > TBODY > tr").each(function () {
+
+            if ($(this).find('.CrewEmp').val() == $(value).val() && dateRangeOverlaps($(this).find('.CrewEmpFromDate').val(), $(this).find('.CrewEmpToDate').val(), FromDate, ToDate)) {
+                result = true;
+                return false;
+            }
+        });
+
+        return result;
+    }
+
+
+    function checkEmpExists(Emp) {
+        
+        var exist = Emp.filter(isExists);
+        if (exist.length > 0) { return true; }
+        return false;
+
+    }
+
+
+    function AddCrewMember() {
+
+        var FromDate = $("#CrewFromDate").val();
+        var ToDate = $("#CrewToDate").val();
+
+        if ($('#CrewEmp option:selected').length > 0 && FromDate != null && FromDate != "" && ToDate != null && ToDate != "") {
+
+
+            if (!checkEmpExists($('#CrewEmp option:selected'))) {
+
+                $.each($('#CrewEmp option:selected'), function (index, value) { // loop over each option
+
+                    ////selectedIndices.push(index); // add the index to the array
+                    debugger;
+                    var empComboText = $(value).text();
+                    var empComboValue = $(value).val();
+
+
+                    var tBody = $("#tlbCrew > TBODY")[0];
+                    var rowCount = $('#tlbCrew > TBODY > tr').length;
+                    var row = tBody.insertRow(-1);
+                    //row.className = "package-row";
+                    var cell = $(row.insertCell(-1));
+                    var BatchID = (@Model.BatchID != null ? @Model.BatchID : -1);
+                    var url = '@Url.Action("GetEmployeeAllocationDetail", new { EmpID = "-1", FromDate ="-2", ToDate = "-3" , BatchID ="-4" })';
+                    url = url.replace('-1', empComboValue);
+                    url = url.replace('-2', encodeURIComponent(moment(FromDate).format("MM/DD/YYYY HH:mm:ss")));
+                    url = url.replace('-3', encodeURIComponent(moment(ToDate).format("MM/DD/YYYY HH:mm:ss")));
+                    url = url.replace('-4', BatchID);
+                    url = url.replace(/&amp;/g, "&");
+                    url = url; //encodeURI(url); 
+
+                    var td = '<a href="#" class="myPopover" data-toggle="popover" data-title="Details" data-placement="top right" data-api-parameter="' + url + '" onclick="OnPopoverButtonViewClick(this)">View</a>'
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+
+                    td = '<input class="form-control input-sm clearfix CrewEmpList" id="jobCrew_members_' + rowCount + '__EmpName" name="jobCrew.members[' + rowCount + '].EmpName" type="text" value="' + empComboText + '" readonly="readonly"/>'
+                        + '<input data-val="true" class="CrewEmp" data-val-number="The field EmpID must be a number." data-val-required="The EmpID field is required." id="jobCrew_members_' + rowCount + '__EmpID" name="jobCrew.members[' + rowCount + '].EmpID" type="hidden" value="' + empComboValue + '" autocomplete="off"/>';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix CrewEmpFromDate datetimepicker" data-val="true" data-val-date="The field EffectiveFrom must be a date." id="jobCrew_members_' + rowCount + '__EffectiveFrom" name="jobCrew.members[' + rowCount + '].EffectiveFrom" type="text" value="' + FromDate + '"/>'
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix CrewEmpToDate datetimepicker" data-val="true" data-val-date="The field EffectiveTo must be a date." id="jobCrew_members_' + rowCount + '__EffectiveTo" name="jobCrew.members[' + rowCount + '].EffectiveTo" type="text" value="' + ToDate + '"/>'
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = ''
+                    cell.append(td);
+
+
+                    var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveMember(this)"></button>'
+                    cell = $(row.insertCell(-1));
+                    cell.append(tdremove);
+
+
+                });
+
+                DatePickerClass();
+                EmployeePopOver();
+
+            }
+            else {
+
+                alert('Selected Employees Date range overlapping with existing Allocation List');
+                return false;
+
+            }
+
+        }
+        else {
+
+            alert('Employee,From Date & To Date is required');
+            return false;
+
+        }
+        return false;
+
+    }
+
+    function OnIsSupervisorChange(sender) {
+
+        var checkbox = $(sender);
+        $('.IsSupervisor').not(checkbox).prop('checked', false);
+    }
+</script>

@@ -1,0 +1,375 @@
+﻿@model RELOCBS.Entities.Complaints
+
+@{
+    ViewBag.Title = "Add/Edit Complaint";
+
+}
+
+
+
+@using (Html.BeginForm("Create", "Complaints", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="content tab-content tab-pane white-bg m-t-md">
+        <div class="row m-sm">
+            <div class="pull-right">
+                <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnCreate" />
+            </div>
+        </div>
+        <div class="row m-sm">
+            <div class="col-sm-12">
+
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.HiddenFor(model => model.ComplaintId)
+
+                <div class="row">
+                    <div class="form-group col-md-3">
+                        @Html.LabelFor(model => model.EnqID)
+                        @Html.DropDownListFor(model => model.EnqID, Enumerable.Empty<SelectListItem>(), "Select Enquiry No.", new { @class = "form-control clearfix" })
+                        @Html.ValidationMessageFor(model => model.EnqID, "", new { @class = "text-danger" })
+                        @if (Model.ComplaintId != null && Model.ComplaintId > 0)
+                        {
+                            @Html.HiddenFor(model => model.EnqID)
+                        }
+                    </div>
+                    <div class="form-group col-md-3">
+                        @Html.LabelFor(model => model.EnqDetail_ID)
+                        @Html.DropDownListFor(model => model.EnqDetail_ID, Enumerable.Empty<SelectListItem>(), "Select One", new { @class = "form-control clearfix" })
+                        @Html.ValidationMessageFor(model => model.EnqDetail_ID, "", new { @class = "text-danger" })
+                        @if (Model.ComplaintId != null && Model.ComplaintId > 0)
+                        {
+                            @Html.HiddenFor(model => model.EnqDetail_ID)
+                        }
+                    </div>
+                    <div class="form-group col-md-3">
+                        @Html.LabelFor(model => model.MoveID)
+                        @Html.DropDownListFor(model => model.MoveID, Enumerable.Empty<SelectListItem>(), "Select Job No.", new { @class = "form-control clearfix" })
+                        @Html.ValidationMessageFor(model => model.MoveID, "", new { @class = "text-danger" })
+                        @if (Model.ComplaintId != null && Model.ComplaintId > 0)
+                        {
+                            @Html.HiddenFor(model => model.MoveID)
+                        }
+                    </div>
+                    <div class="form-group col-md-3">
+                        @Html.LabelFor(model => model.ClassificationId, htmlAttributes: new { @class = "requiredlabel" })
+                        @Html.DropDownListFor(model => model.ClassificationId, new SelectList((System.Collections.IEnumerable)ViewData["ClassificationList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm clearfix" })
+                        @Html.ValidationMessageFor(model => model.ClassificationId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class=" row">
+                    <div class="form-group col-md-2">
+                        @Html.LabelFor(model => model.SourceId, htmlAttributes: new { @class = "requiredlabel" })
+                        @Html.DropDownListFor(model => model.SourceId, new SelectList((System.Collections.IEnumerable)ViewData["SourceList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm clearfix" })
+                        @Html.ValidationMessageFor(model => model.SourceId, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group col-md-2">
+                        @Html.LabelFor(model => model.Shipper)
+                        @Html.EditorFor(model => model.Shipper, new { htmlAttributes = new { @class = "form-control  input-sm", @readonly = "readonly" } })
+                        @Html.ValidationMessageFor(model => model.Shipper, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group col-md-3">
+                        @Html.LabelFor(model => model.FromCity)
+                        @Html.EditorFor(model => model.FromCity, new { htmlAttributes = new { @class = "form-control  input-sm", @readonly = "readonly" } })
+                        @Html.ValidationMessageFor(model => model.FromCity, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group col-md-3">
+                        @Html.LabelFor(model => model.ToCity)
+                        @Html.EditorFor(model => model.ToCity, new { htmlAttributes = new { @class = "form-control  input-sm", @readonly = "readonly" } })
+                        @Html.ValidationMessageFor(model => model.ToCity, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group col-md-2">
+                        @Html.LabelFor(model => model.Mode)
+                        @Html.EditorFor(model => model.Mode, new { htmlAttributes = new { @class = "form-control  input-sm", @readonly = "readonly" } })
+                        @Html.ValidationMessageFor(model => model.Mode, "", new { @class = "text-danger" })
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="form-group col-md-3">
+                        @Html.LabelFor(model => model.Logger_Name, htmlAttributes: new { @class = "requiredlabel" })
+                        @Html.EditorFor(model => model.Logger_Name, new { htmlAttributes = new { @class = "form-control  input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Logger_Name, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group col-md-3">
+                        @Html.LabelFor(model => model.Logger_Email, htmlAttributes: new { @class = "requiredlabel" })
+                        @Html.EditorFor(model => model.Logger_Email, new { htmlAttributes = new { @class = "form-control  input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Logger_Email, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group col-md-3">
+                        @Html.LabelFor(model => model.Logger_Mobile)
+                        @Html.EditorFor(model => model.Logger_Mobile, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Logger_Mobile, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group col-md-3">
+                        @Html.LabelFor(model => model.Logger_Phone)
+                        @Html.EditorFor(model => model.Logger_Phone, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Logger_Phone, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="form-group col-md-5">
+                        @Html.LabelFor(model => model.Description)
+                        @Html.TextAreaFor(model => model.Description, new { @class = "form-control input-sm" })
+                        @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts{
+
+    <script>
+     $(document).ready(function () {
+            $("[data-val-required]").each(function () {
+                $("label[for=" + this.id + "]").addClass("requiredlabel")
+            });
+
+            $('.enableSelect').select2();
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                sideBySide: true//,
+                //widgetPositioning: {
+                //    vertical: 'bottom'
+                //}
+
+            });
+
+            $('.datetimepicker').each(function () {
+
+                if ($(this).val().includes("0001")) {
+                    $(this).val("");
+                }
+            });
+
+
+         $('#EnqID').change(function () {
+
+             var Id = parseInt($(this).val());
+             $("#EnqDetail_ID").empty();
+
+             $("#EnqDetail_ID").append($('<option>').text("--Select One--").attr('value', ''));
+             $('#EnqDetail_ID').trigger('change');
+             if (Id && Id > 0) {
+
+                 $.get("@Url.Action("GetComplaintShipmentList", "Complaints")", { EnqId: Id }, function (data) {
+
+                     $.each(data.items, function (number, municipe) {
+
+                         $("#EnqDetail_ID").append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+
+                     });
+                 });
+             }
+
+         });
+
+         $('#EnqDetail_ID,#MoveID').change(function () {
+
+             var Soruce = $(this);
+             var Id = parseInt(Soruce.val());
+
+             $("#Shipper").val(null);
+             $("#FromCity").val(null);
+             $("#ToCity").val(null);
+             $("#Mode").val(null);
+
+             if (Id && Id > 0) {
+
+                 let EnqID = Soruce.attr("id") =="EnqDetail_ID" ? Id : 0;
+                 let MoveID = Soruce.attr("id") == "MoveID" ? Id : 0;
+
+                 $.get("@Url.Action("GetEnqJobDetail", "Complaints")", { EnqDetailId: EnqID, MoveId: MoveID }, function (data) {
+
+                     $("#Shipper").val(data.Shipper);
+                     $("#FromCity").val(data.FromCity);
+                     $("#ToCity").val(data.ToCity);
+                     $("#Mode").val(data.Mode);
+                 });
+             }
+         });
+
+
+     });
+    </script>
+    <script>
+       $(document).ready(function () {
+
+           $("input").attr("autocomplete", "off");
+
+           var form = $("#mdlAddEdit form");
+           form.removeData('validator');
+           form.removeData('unobtrusiveValidation');
+           $.validator.unobtrusive.parse(form);
+
+           var ComplaintId = '@Model.ComplaintId';
+           if (ComplaintId && parseInt(ComplaintId) > 0) {
+
+               AjaxDropdownSearch('#EnqID', "@Url.Action("GetEnqNoSearchList", "Complaints")", '@Model.EnqID',true);
+               AjaxDropdownSearch('#MoveID', "@Url.Action("GetJobNoSearchList", "Complaints")", '@Model.MoveID', true);
+               AjaxDropdownSearch('#EnqDetail_ID', "@Url.Action("GetComplaintShipmentList", "Complaints")", '@Model.EnqDetail_ID',true);
+           }
+           else {
+
+               AjaxDropdownSearch('#EnqID', '@Url.Action("GetEnqNoSearchList", "Complaints")');
+               AjaxDropdownSearch('#MoveID', '@Url.Action("GetJobNoSearchList", "Complaints")');
+           }
+
+           $('#mdlAddEdit').on('shown.bs.modal', function () {
+               $('#CountryID').focus();
+           });
+           $('#mdlAddEdit form').on('submit', function (e) {
+               e.preventDefault();
+               if (!$(this).valid()) { return; }
+
+
+               if (isNaN(parseInt($('#MoveID').val())) || (isNaN(parseInt($('#EnqID').val())) || isNaN(parseInt($('#EnqDetail_ID').val())))) {
+
+                   alert('Enq.No and Shippment No. / Job No required');
+                   return;
+               }
+
+
+               $('#mdlAddEdit .modal-content').mask("Loading...");
+               $(this).ajaxSubmit({
+                   target: '#mdlAddEdit .modal-content',
+                   success: function (data) {
+                       $('#mdlAddEdit .modal-content').html(data.Result);
+                       if (data.Success) {
+                           $('#mgrid .pagination li.active a').trigger('click');
+                           toastr.success("Complaint saved successfully.");
+                           $('#mdlAddEdit').modal('hide');
+                       }
+                       $('#mdlAddEdit .modal-content').unmask();
+                   }
+               });
+           });
+       });
+
+
+    function  AjaxDropdownSearch(id, url, strsearch,isDisable) {
+
+        if (strsearch) {
+            var DrpSelect = $(id);
+            $.ajax({
+                type: 'GET',
+                url: url,
+                data: { Value: strsearch }
+            }).then(function (data) {
+
+                if (data.items.length > 0) {
+                    // create the option and append to Select2
+                    var option = new Option(data.items[0].Text, data.items[0].Value, true, true);
+                    DrpSelect.append(option);//.trigger('change');
+                    DrpSelect.val(strsearch);
+
+                    if (isDisable) {
+                        DrpSelect.attr('disabled', 'disabled');
+
+                    }
+                    else {
+                        // manually trigger the `select2:select` event
+                        DrpSelect.trigger({
+                            type: 'select2:select',
+                            params: {
+                                data: data.items
+                            }
+                        });
+                    }
+
+                }
+
+            });
+        }
+        else {
+
+            $(id).select2({
+                ajax: {
+                    url: url,
+                    dataType: 'json',
+                    //delay: 250,
+                    data: function (params) {
+                        return {
+                            term: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, params) {
+                        return {
+                            results: $.map(data.items, function (item) {
+
+                                return {
+                                    id: item.Value,
+                                    text: item.Text
+                                }
+                            })
+                        };
+
+                    },
+                    cache: true
+                },
+                escapeMarkup: function (markup) {
+                    return markup;
+                }, // let our custom formatter work
+                minimumInputLength: 3,
+                //placeholder: "Select One",
+                allowClear: true,
+                width: '100%',
+                placeholder: "Select One"
+                //templateResult: formatRepo, // omitted for brevity, see the source of this page
+                //templateSelection: formatRepoSelection // omitted for brevity, see the source of this page
+            });
+
+        }
+    }
+
+    function formatRepo(repo) {
+        if (repo.loading) return repo.text;
+
+        var markup = "<div class='select2-result-repository clearfix'>" +
+            "<div class='select2-result-repository__avatar'><img src='" + repo.owner.avatar_url + "' /></div>" +
+            "<div class='select2-result-repository__meta'>" +
+            "<div class='select2-result-repository__title'>" + repo.full_name + "</div>";
+
+        if (repo.description) {
+            markup += "<div class='select2-result-repository__description'>" + repo.description + "</div>";
+        }
+
+        markup += "<div class='select2-result-repository__statistics'>" +
+            "<div class='select2-result-repository__forks'><i class='fa fa-flash'></i> " + repo.forks_count + " Forks</div>" +
+            "<div class='select2-result-repository__stargazers'><i class='fa fa-star'></i> " + repo.stargazers_count + " Stars</div>" +
+            "<div class='select2-result-repository__watchers'><i class='fa fa-eye'></i> " + repo.watchers_count + " Watchers</div>" +
+            "</div>" +
+            "</div></div>";
+
+        return markup;
+    }
+
+    function formatRepoSelection(repo) {
+        return repo.full_name || repo.text;
+        }
+
+        $('form').submit(function (e) {
+            if ($(this).valid()) {
+
+
+
+                if ($('#EnqID option:selected').val()=='' && $('#EnqDetail_ID option:selected').val()=='' && $('#MoveID option:selected').val()=='') {
+
+                    alert('Enq No. ,Shipment No. OR Job No. required');
+                    e.preventDefault();
+                    return false;
+                }
+                else if ($('#EnqID option:selected').val() && $('#EnqDetail_ID option:selected').val()=='') {
+
+                    alert('Enq. Shipment No required');
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+
+    </script>
+}

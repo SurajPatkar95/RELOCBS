@@ -1,0 +1,76 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model IPagedList<RELOCBS.Entities.StorageBillGrid>
+
+@{
+
+    string _PageID = "33";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+
+columns.Add(o => o.JobNo)
+    .Titled("JobNo")
+    .Css("col-md-3")
+    .SetWidth(2)
+    .SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+
+columns.Add(o => o.Shipper)
+.Titled("Shipper").Css("col-md-3");
+
+columns.Add(o => o.Client)
+.Titled("Client").Css("col-md-3");
+
+columns.Add(o => o.LastBillDate)
+.Titled("LastBillDate").Css("col-md-3").Format("{0:dd-MMM-yyyy}");
+
+columns.Add(o => o.BillStatus)
+.Titled("BillStatus").Css("col-md-3");
+
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("Actions")
+.RenderValueAs(d =>
+    @<span>
+        @if (hasEditAccess)
+        {
+         <a href="@Url.Action("Create", "StorageBilling",new { MoveID = d.MoveID,StorageID = d.StorageID,Type="NI" })" class="btnEdit btn btn-sm btn-default pull-left" title="Create Invoice">Process</a>
+        }
+    </span>
+    );
+
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("")
+.RenderValueAs(d =>
+    @<span>
+        @if (hasEditAccess)
+        {
+         <a href="@Url.Action("GetStorageBill", "StorageBilling",new { MoveID = d.MoveID, StorageID = d.StorageID })" class="btnInvoices btn btn-sm btn-default pull-left" title="Invoices">Processed Data</a>
+        }
+    </span>
+    );
+
+}).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager(Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>

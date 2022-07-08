@@ -1,0 +1,118 @@
+﻿@using RELOCBS.Utility
+@{
+    ViewBag.Copyright = "Writer Relocation";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @RenderSection("metatags", false)
+    <title>[@ViewBag.SiteTitleShort] @ViewBag.Title</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,900" rel="stylesheet">
+    @*<script src='https://kit.fontawesome.com/a076d05399.js'></script>*@
+    <script defer src='~/Scripts/a076d05399.js'></script>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+    <style>
+        #overlay {
+            background: #ffffff;
+            color: #666666;
+            position: fixed;
+            height: 100%;
+            width: 100%;
+            z-index: 5000;
+            top: 0;
+            left: 0;
+            float: left;
+            text-align: center;
+            padding-top: 25%;
+            opacity: .80;
+        }
+
+        /*button {
+            margin: 40px;
+            padding: 5px 20px;
+            cursor: pointer;
+        }*/
+
+        .spinner {
+            margin: 0 auto;
+            height: 64px;
+            width: 64px;
+            animation: rotate 0.8s infinite linear;
+            border: 5px solid firebrick;
+            border-right-color: transparent;
+            border-radius: 50%;
+        }
+
+        #hideMe {
+            -webkit-animation: cssAnimation 5s forwards;
+            animation: cssAnimation 5s forwards;
+        }
+    </style>
+</head>
+<body>
+    <div id="overlay">
+        <div class="spinner"></div>
+        <br />
+        <font color="firebrick"><b>Please Wait...</b></font>
+    </div>
+
+    <div id="wrapper">
+        <div class="navbar white-bg text-center m-n">
+                <h2><font face="algerian">@UserSession.GetPageSession()</font></h2>
+        </div>
+        <div class="clearfix gray-bg">
+            @RenderBody()
+        </div>
+        @*<div class="footer">
+            <footer>
+                <p>&copy; @ViewBag.Copyright</p>
+            </footer>
+        </div>*@
+    </div>
+
+
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+
+    @Scripts.Render("~/bundles/jqueryval")
+
+    @*@Styles.Render("~/Content/icheckcss")
+        @Scripts.Render("~/bundles/icheck")*@
+
+    @Styles.Render("~/Content/summernote")
+    @Scripts.Render("~/bundles/jquery-ui")
+    @Scripts.Render("~/bundles/summernote")
+    @Scripts.Render("~/bundles/bgiframe")
+
+    @Scripts.Render("~/bundles/custom")
+
+    @RenderSection("scripts", required: false)
+
+    @{ Html.RenderPartial("_Toastr"); }
+
+    <script>
+        $(document).ready(function () {
+            //$('#overlay').fadeIn().delay(2000).fadeOut();
+            $("input").attr("autocomplete", "off");
+
+            $.validator.methods.date = function (value, element) {
+                return this.optional(element) || moment(value, "DD-MMM-YYYY", true).isValid() || moment(value, "DD-MMM-YYYY HH:mm", true).isValid();
+            }
+
+            $(".onkeydtp").on('keypress paste', function (e) {
+                e.preventDefault();
+                return false;
+            });
+
+
+        });
+    </script>
+    <script src="~/scripts/ajaxglobalerrorhandler.js"></script>
+    <script src="~/Scripts/Plugins/dotdotdot/table2excel.js"></script>
+</body>
+</html>

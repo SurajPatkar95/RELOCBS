@@ -1,0 +1,191 @@
+﻿@model RELOCBS.Entities.Role
+@using RELOCBS.App_Code;
+@using RELOCBS.Utility;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html;
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    IEnumerable<RELOCBS.Entities.Role> RoleList = ViewBag.RoleList;
+    string _PageID = "35";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+}
+<style>
+    .modal.modal-wide .modal-dialog {
+        width: 80%;
+    }
+
+    /*.modal-wide .modal-body {
+        overflow-y: auto;
+    }*/
+
+    .modal-body {
+        max-height: calc(100vh - 212px);
+        overflow-y: auto;
+    }
+
+</style>
+<div class="ibox-content">
+    <a class="btn-link pad-none text-blue-dark" onclick="RoleCreation(this)" id="Create"><strong class="glyphicon-plus">Create New Role</strong></a>
+    @Html.Grid(RoleList).Named("RoleGrid").Columns(columns =>
+    {
+
+        columns.Add(o => o.RoleId)
+            .Titled("Role Id")
+            .Css("RoleId col-md-1")
+            .SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+
+        columns.Add(o => o.RoleName)
+        .Titled("Role Name").Css("RoleName col-md-3 checkbox").SetWidth(2)
+        .Encoded(false)
+    .Sanitized(false)
+        .SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending)
+        .RenderValueAs(d =>
+            @<span>
+                 <a data-placement="bottom" data-toggle="popover" data-title="Role" data-container="body" type="button" data-html="true" href="#" id="role" class="rolepop">@d.RoleName</a>
+</span>
+
+    );
+
+    columns.Add()
+    .Encoded(false)
+    .Sanitized(false)
+    .Sortable(true)
+    .Css("col-md-2").Titled("Actions")
+    .RenderValueAs(d =>
+    @<span>
+        <a class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" onclick="RoleCreation(this)" id="Edit"></a>
+    </span>
+    );
+    }).Sortable()
+</div>
+<div id="popover-content" class="hide">
+    @using (Html.BeginForm("Save", "Role", FormMethod.Post))
+    {
+        @Html.HiddenFor(a => a.RoleId)
+        @Html.TextBoxFor(a => a.RoleName, new { @class = "input-sm form-input  m-l-md", placeholder = "RoleName", title = "Role Name", @id = "popRoleName" })
+        <button type="submit" class="btn btn-xs m-l-md">Save</button>
+    }
+    </div>
+        <div id="mdlAddEdit" class="modal fade modal-wide" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog ">
+
+                <div class="modal-content p-md pad-top-none" style="width:1000px">
+                    <div class="modal-header pad-bot-none">
+                        <h3>Role Creation<button type="button" class="close" data-dismiss="modal">&times;</button></h3>
+                    </div>
+
+                    @using (Html.BeginForm("Save", "Role", FormMethod.Post, new { id = "modaldetails" }))
+                    {
+                        <div class="row">
+                            <div class="col-sm-7">
+                                @Html.HiddenFor(a => a.RoleId)
+                                @Html.HiddenFor(a => a.HFGridValue)
+                                <label>Role Name</label>
+                                @Html.TextBoxFor(a => a.RoleName, new { @class = "input-sm m-t-md", style = "width:50%", placeholder = "RoleName", title = "Role Name", @id = "RoleName" })
+                            </div>
+                            <div class="col-sm-5">
+                                <input type="button" value="Submit" class="btn btn-sm btn-primary filter-custom-margin" id="btnSubmit" form="modaldetails" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="modal-body" id="partial"></div>
+                            </div>
+
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @*<div class="clearfix pnl-pagination">
+                <div class="pull-right">
+                    @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+                    @if (Model.Count() == 0)
+                    {
+                        <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+                    }
+                </div>
+            </div>*@
+        @section Scripts
+{
+            <script type="text/javascript">
+                $("[data-toggle=popover]").popover({
+                    html: true,
+                    content: function () {
+                        return $('#popover-content').html();
+                    }
+
+                });
+
+                $('[data-toggle=popover]').on('click', function (e) {
+                    $('[data-toggle=popover]').not(this).popover('hide');
+                    
+                });
+
+                $('.rolepop').click(function () {
+                    $('.popover-content').find('#RoleId').val($('td:nth-child(1)', $(this).parents('tr')).html());
+                    $('.popover-content').find('#popRoleName').val($('td:nth-child(2)', $(this).parents('tr')).find('a').html());
+                });
+        function RoleCreation(Button) {
+            var RoleId = Button.id == 'Create' ? 0 : $('td:nth-child(1)', $(Button).parents('tr')).html();
+            var RoleName = Button.id == 'Create' ? '' : $('td:nth-child(2)', $(Button).parents('tr')).find('a').html();
+            var route = '@Url.Action("RoleCreation", "Role", new { Role = "-1" })';
+            route = route.replace("-1", RoleId);
+            $('#partial').load(route, function() { });
+            $('#mdlAddEdit').modal();
+            $('#modaldetails').find('#RoleId').val(RoleId);
+            $('#RoleName').val(RoleName);
+
+        };
+
+        $('#CompList').change(function () {
+            $('#CompId').val($('option:selected', this).val());
+            $('#CompName').val($('option:selected', this).text());
+        });
+
+        $('#btnSubmit').click(function ()
+        {
+            var data = [];
+
+            //console.log($('.RoleGrid').find('#mainGrid'));
+            $('.RoleGrid').find('.grid-mvc tbody tr').each(function () {
+                //alert('a');
+                if ($(this).find("td input[name='IsView']").is(':checked') ||
+                    $(this).find("td input[name='IsEdit']").is(':checked') ||
+                    $(this).find("td input[name='IsAdd']").is(':checked') ||
+                    $(this).find("td input[name='IsDelete']").is(':checked')) {
+                    var Role = {};
+                    Role.Id = $(this).find("td").eq(0).html();
+                    Role.Name = $(this).find("td").eq(1).html();
+                    Role.View = $(this).find("td input[name='IsView']").is(':checked') ? 1 : 0;
+                    Role.Add = $(this).find("td input[name='IsAdd']").is(':checked') ? 1 : 0;
+                    Role.Edit = $(this).find("td input[name='IsEdit']").is(':checked') ? 1 : 0;
+                    Role.Delete = $(this).find("td input[name='IsDelete']").is(':checked') ? 1 : 0;
+                    data.push(Role);
+                }
+            });
+            //console.log(JSON.stringify(data));
+            $("#HFGridValue").val(JSON.stringify(data));
+            $("#modaldetails")[0].submit();
+        });
+
+            </script>
+            @Scripts.Render("~/bundles/jqueryval")
+        }
+        @*<style>
+                .modal.modal-wide .modal-dialog {
+                    width: auto;
+                }
+
+                .modal-wide .modal-body {
+                    overflow-y: auto;
+                }
+            </style>*@
+

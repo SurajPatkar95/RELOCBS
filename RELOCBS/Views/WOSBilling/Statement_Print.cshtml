@@ -1,0 +1,937 @@
+﻿@model RELOCBS.Entities.Billing
+@using RELOCBS.Utility;
+@{
+    ViewBag.Title = "BillFormat_Print";
+    Layout = null;
+    //Model.TaxType = "IGST";//"VAT";
+
+    //Model.RevenueBr = "Dubai";
+    //string TableCSS = Model.BillID > 0 ? "table table-bordered table-responsive table-hover" : "table table-bordered table-responsive table-hover hide";
+    decimal? AEDAmtSum = 0;
+    decimal? totalAEDAmtSum = 0;
+    decimal? AEDTaxRateSum = 0;
+    //string invLabel = Model.BillType == 'I' ? "Invoice" : "Cr. Note";
+    //string Number = Model.BillType == 'I' ? Model.InvoiceNo : Model.CreditNoteNo;
+    //DateTime? DateValue = Model.BillType == 'I' ? Model.InvoiceDate : Model.CreditNoteDate;
+    string Desc = string.Empty;
+    if (!string.IsNullOrEmpty(Model.Specification))
+    {
+        Desc = "<p>" + Model.Specification.Replace("\r\n \r\n", "</p><p><br></p><p>").Replace("\r\n", "</p><p>") + "</p>";
+        ////string Desc = "<p>" + (desc).Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>";
+        if (Desc.Contains("</p><p><br></p><p>"))
+        {
+            Desc = Desc.Substring(0, Desc.LastIndexOf("</p><p><br></p><p>"));
+        }
+    }
+
+    int CompID = UserSession.GetUserSession().CompanyID;
+
+}
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+
+
+
+
+    <title>Statement of Charge</title>
+    @Styles.Render("~/Content/css")
+
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style type="text/css">
+        #tblInvoiceItems tbody td {
+            border: solid;
+            border-width: thin;
+            border-color: lightgray;
+        }
+
+        .ttop {
+            vertical-align: top !important;
+        }
+
+        body {
+        }
+
+        .floatLeft {
+            float: left;
+        }
+
+        .tcenter {
+            text-align: center !important;
+        }
+
+        .boxWraper {
+            border: 1px solid #7b7b7b;
+            display: block;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+            .boxWraper .padding tr td {
+                padding: 3px 6px;
+            }
+
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        tr.border_bottom td {
+            border-bottom: 1pt solid black;
+        }
+
+        .tableData {
+            border: 0 !important;
+            line-height: 16px;
+        }
+
+
+            .tableData tr td {
+                background: #fff;
+                height: 100%;
+                vertical-align: middle;
+                border: 1px solid #e3e7ee;
+            }
+
+        .boxWraper tr th {
+            border: 1px solid #e3e7ee;
+            text-align: center;
+            padding: 3px 6px;
+        }
+
+
+        .marginLR {
+            margin: 0 auto;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        /*table {
+            border-collapse: separate;
+            border-spacing: 2px;
+        }*/
+
+        table {
+            background-color: transparent;
+        }
+
+        /*table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+        }*/
+
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            color: #808080;
+            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: subpixel-antialiased;
+            background: #fff;
+        }
+
+        .cw100 {
+            width: 100px !important;
+        }
+
+        .cw110 {
+            width: 110px !important;
+        }
+
+        .cw80 {
+            width: 80px !important;
+        }
+
+        .cw120 {
+            width: 120px !important;
+        }
+
+        .cw140 {
+            width: 140px !important;
+        }
+
+        .cw160 {
+            width: 160px !important;
+        }
+
+        .cw130 {
+            width: 140px !important;
+        }
+
+        .tbold {
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            font-weight: 600;
+        }
+
+        .tright {
+            text-align: right !important;
+        }
+
+        label {
+            margin-bottom: 0;
+            color: black;
+        }
+
+        .tcollapse {
+            border-collapse: collapse;
+        }
+
+
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+        .taW {
+            width: 100% !important;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: normal;
+            font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+        }
+
+        .numbertd {
+            text-align: right;
+        }
+
+        table, img, svg {
+            break-inside: avoid;
+        }
+    </style>
+    <style type="text/css">
+        @@media print {
+            .grid-header {
+                background: #eee;
+                font-size: 13px;
+            }
+
+            body {
+                font-family: Serif;
+            }
+
+            h2 {
+                font-size: 20px;
+                text-transform: uppercase;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            h4 {
+                font-size: 13px;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            img {
+                display: inline;
+            }
+        }
+    </style>
+</head>
+<body>
+</body>
+</html>
+
+
+
+
+<div class="col-lg-10 col-sm-10 col-md-10 BillFormat graph-img graph-7" style=" flex-align:center" id="BillFormat">
+    <table class="marginLR" style="width:20cm;">
+        <tbody>
+            <tr>
+                <td>
+                    <table class="taW">
+                        <tbody>
+                            <tr class="Billheading">
+                                <td style="border-bottom:1px solid #7b7b7b;">
+                                    <div class="tcenter">
+                                        <h2>Statement of Charges</h2>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="headermargin">
+                                <td style="height:5px;"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <div class="boxWraper">
+                                                            <table class="taW tcollapse padding">
+                                                                <tbody>
+
+                                                                    <tr>
+                                                                        <td colspan="3">
+                                                                            <label class="cw100 tbold">Bill To</label> :
+                                                                            @if (Model.BillToID == "Client")
+                                                                            {
+                                                                                <span class="ng-binding">@Html.Raw(Model.Client)</span>
+                                                                            }
+                                                                            else if (Model.BillToID == "Corporate")
+                                                                            {
+                                                                                <span class="ng-binding">@Html.Raw(Model.Account)</span>
+                                                                            }
+                                                                            @if (Model.BillToID == "Shipper")
+                                                                            {
+                                                                                <span class="ng-binding">@Html.Raw(Model.Shipper)</span>
+                                                                            }
+                                                                        </td>
+                                                                    </tr>
+
+                                                                    <tr>
+                                                                        <td colspan="3">
+                                                                            <label class="cw100 tbold">Bill To Address</label> :
+                                                                            <span class="ng-binding">@Html.Raw(Model.Address1) @Html.Raw(Model.Address2), @Html.Raw(Model.BillToCity), @Html.Raw(Model.PinCode)</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td colspan="3">
+                                                                            <label class="cw100 tbold">Subject</label> :
+                                                                            <span class="ng-binding">@Html.Raw(Model.StatementSub)</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td colspan="6">
+                                                                            <label class="cw100 tbold">Specification</label> :
+                                                                            <span class="ng-binding">@Html.Raw(Desc)</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="boxWraper">
+                                                            <table class="taW tcollapse padding">
+                                                                <tbody>
+
+                                                                    <tr>
+                                                                        <td style="width:50%">
+                                                                            <label class="cw100 tbold">Shipper</label> :
+                                                                            <span class="ng-binding">@Html.Raw(Model.Shipper)</span>
+                                                                        </td>
+                                                                        <td style="width:50%">
+                                                                            <label class="cw100 tbold">Job No.</label> :
+                                                                            <span class="ng-binding">@Html.Raw(Model.JobNo)</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td style="width:50%">
+                                                                            <label class="cw100 tbold">Account</label> :
+                                                                            <span class="ng-binding">@Html.Raw(Model.Account)</span>
+                                                                        </td>
+                                                                        <td style="width:50%">
+                                                                            <label class="cw100 tbold">Attention</label> :
+                                                                            <span class="ng-binding">@Html.Raw(Model.Attention)</span>
+                                                                        </td>
+
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td style="width:50%">
+                                                                            <label class="cw100 tbold">File No./Ref. No</label> :
+                                                                            <span class="ng-binding">@Html.Raw(Model.FileNo)</span>
+                                                                        </td>
+                                                                        <td style="width:50%">
+                                                                            <label class="cw100 tbold">Work Order No</label> :
+                                                                            <span class="ng-binding">@Html.Raw(Model.WKNo)</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td style="width:50%">
+                                                                            <label class="cw100 tbold">Prepared Date</label> :
+                                                                            
+                                                                            <span class="ng-binding">
+                                                                                @if (Model.StatementCreatedDate != null)
+                                                                                {@(((DateTime)Model.StatementCreatedDate).ToString("dd/MMM/yyyy"))}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td style="width:50%">
+                                                                            <label class="cw100 tbold">Mode</label> :
+                                                                            <span class="ng-binding">@Html.Raw(Model.Mode)</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td style="width:50%">
+                                                                            <label class="cw100 tbold">Origin City</label> :
+                                                                            <span class="ng-binding">@Html.Raw(Model.OrgCity)</span>
+                                                                        </td>
+                                                                        <td style="width:50%">
+                                                                            <label class="cw100 tbold">Dest. City</label> :
+                                                                            <span class="ng-binding">@Html.Raw(Model.DestCity)</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        @if (Model.IsGoodsDesc)
+                                                                        {
+                                                                            <td style="width:50%">
+                                                                                <label class="cw100 tbold">Goods Desc.</label> :
+                                                                                <span class="ng-binding">@Html.Raw(Model.GoodsDesc)</span>
+                                                                            </td>
+                                                                        }
+
+                                                                        @if (Model.IsVolumeValue)
+                                                                        {
+                                                                            if (Model.IsWtValue)
+                                                                            {
+                                                                                <td style="width:50%">
+                                                                                    <label class="cw100 tbold">Volume/Weight</label> :
+                                                                                    <span class="ng-binding">@Model.VolumeValue / @Model.WtValue</span>
+                                                                                </td>
+                                                                            }
+                                                                            else if (Model.IsGrossWtValue)
+                                                                            {
+                                                                                <td style="width:50%">
+                                                                                    <label class="cw100 tbold">Volume/Weight</label> :
+                                                                                    <span class="ng-binding">@Model.VolumeValue/@Model.GrossWtValue</span>
+                                                                                </td>
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <td style="width:50%">
+                                                                                    <label class="cw100 tbold">Volume/Weight</label> :
+                                                                                    <span class="ng-binding">@Model.VolumeValue</span>
+                                                                                </td>
+                                                                            }
+                                                                        }
+                                                                        else if (Model.IsGrossVolumeValue)
+                                                                        {
+                                                                            if (Model.IsWtValue)
+                                                                            {
+                                                                                <td style="width:50%">
+                                                                                    <label class="cw100 tbold">Volume/Weight</label> :
+                                                                                    <span class="ng-binding">@Model.GrossVolumeValue / @Model.WtValue</span>
+                                                                                </td>
+                                                                            }
+                                                                            else if (Model.IsGrossWtValue)
+                                                                            {
+                                                                                <td style="width:50%">
+                                                                                    <label class="cw100 tbold">Volume/Weight</label> :
+                                                                                    <span class="ng-binding">@Model.GrossVolumeValue / @Model.GrossWtValue</span>
+                                                                                </td>
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <td style="width:50%">
+                                                                                    <label class="cw100 tbold">Volume/Weight</label> :
+                                                                                    <span class="ng-binding">@Model.GrossVolumeValue</span>
+                                                                                </td>
+                                                                            }
+                                                                        }
+                                                                        else if (Model.IsWtValue)
+                                                                        {
+                                                                            <td style="width:50%">
+                                                                                <label class="cw100 tbold">Volume/Weight</label> :
+                                                                                <span class="ng-binding">@Model.WtValue</span>
+                                                                            </td>
+                                                                        }
+                                                                        else if (Model.IsGrossWtValue)
+                                                                        {
+                                                                            <td style="width:50%">
+                                                                                <label class="cw100 tbold">Volume/Weight</label> :
+                                                                                <span class="ng-binding">@Model.GrossWtValue</span>
+                                                                            </td>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <td></td>
+                                                                        }
+
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="boxWraper">
+                                                            <table class="taW tcollapse padding" id="tblInvoiceItems">
+                                                                <tr>
+                                                                    <th style="width:40%;">Particulars</th>
+                                                                    @if (Model.RevenueBr.ToString().ToUpper() == "DUBAI" || Model.RevenueBr.ToString().ToUpper() == "BAHRAIN")
+                                                                    {
+                                                                        <th>VAT %</th>
+                                                                        <th>Base Amount @Model.RateCurrName</th>
+                                                                        <th>VAT Amount @Model.RateCurrName</th>
+                                                                        <th>Total Amount @Model.RateCurrName</th>
+                                                                        <th>Base Amount @Model.BaseCurrName</th>
+                                                                        <th>VAT Amount @Model.BaseCurrName</th>
+                                                                        <th>Total Amount @Model.BaseCurrName</th>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <th>Currency</th>
+                                                                        <th>Amount</th>
+                                                                        if (Model.RevenueBr.ToString().ToUpper() != "QATAR")
+                                                                        {
+                                                                            if (Model.TaxType == "VAT")
+                                                                            {
+                                                                                <th>VAT %</th>
+                                                                                <th>VAT Amt</th>
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <th>GST %</th>
+                                                                                <th>IGST Amt</th>
+                                                                                <th>CGST Amt</th>
+                                                                                <th>SGST Amt</th>
+                                                                            }
+                                                                        }
+                                                                        <th>Total Amt</th>
+                                                                    }
+                                                                    @*<th>Bill Status</th>*@
+                                                                </tr>
+                                                                @if (Model.BillItems != null)
+                                                                {
+                                                                    for (int i = 0; i < Model.BillItems.Count; i++)
+                                                                    {
+                                                                        //Desc = "<p>" + Model.BillItems[i].Description.Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>";
+                                                                        //////string Desc = "<p>" + (desc).Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>";
+                                                                        //if (Desc.Contains("</p><p><br></p><p>"))
+                                                                        //{
+                                                                        //    Desc = Desc.Substring(0, Desc.LastIndexOf("</p><p><br></p><p>"));
+                                                                        //}
+
+                                                                        //Model.BillItems[i].ConvRate = Model.ConvRate;
+                                                                        //if (Model.BaseCurrID != 2 && Model.RateCurrancyID != 2)
+                                                                        //{
+                                                                        //    Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount * Model.BillItems[i].ConvRate;
+                                                                        //}
+                                                                        //else if (Model.BaseCurrID != 2 && Model.RateCurrancyID == 2)
+                                                                        //{
+                                                                        //    Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount * Model.BillItems[i].ConvRate;
+                                                                        //}
+                                                                        //else if (Model.BaseCurrID == 2 && Model.RateCurrancyID != 2)
+                                                                        //{
+                                                                        //    Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount / Model.BillItems[i].ConvRate;
+                                                                        //}
+                                                                        //else
+                                                                        //{
+                                                                        //    Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount / Model.BillItems[i].ConvRate;
+                                                                        //}
+                                                                        //if (Model.TaxType == "IGST")
+                                                                        //{
+                                                                        //    Model.BillItems[i].IGSTAmt = Model.BillItems[i].TaxApp ? (decimal)(Model.BillItems[i].ConvAmount * Model.BillItems[i].GSTVATPercent / 100) : 0;
+                                                                        //    Model.BillItems[i].TotalAmount = Model.BillItems[i].TaxApp ? (decimal)Model.BillItems[i].ConvAmount + Model.BillItems[i].IGSTAmt : (decimal)Model.BillItems[i].ConvAmount;
+                                                                        //}
+                                                                        //if (Model.TaxType == "CGST")
+                                                                        //{
+                                                                        //    Model.BillItems[i].CGSTAmt = Model.BillItems[i].TaxApp ? (decimal)(Model.BillItems[i].ConvAmount * (Model.BillItems[i].GSTVATPercent / 2) / 100) : 0;
+                                                                        //    Model.BillItems[i].SGSTAmt = Model.BillItems[i].TaxApp ? (decimal)(Model.BillItems[i].ConvAmount * (Model.BillItems[i].GSTVATPercent / 2) / 100) : 0;
+                                                                        //    Model.BillItems[i].TotalAmount = Model.BillItems[i].TaxApp ? (decimal)Model.BillItems[i].ConvAmount + Model.BillItems[i].SGSTAmt + Model.BillItems[i].CGSTAmt : (decimal)Model.BillItems[i].ConvAmount;
+                                                                        //}
+                                                                        //if (Model.TaxType == "VAT")
+                                                                        //{
+                                                                        //    Model.BillItems[i].VatAmt = Model.BillItems[i].TaxApp ? (decimal)(Model.BillItems[i].ConvAmount * Model.BillItems[i].GSTVATPercent / 100) : 0;
+                                                                        //    Model.BillItems[i].TotalAmount = Model.BillItems[i].TaxApp ? (decimal)Model.BillItems[i].ConvAmount + Model.BillItems[i].VatAmt : (decimal)Model.BillItems[i].ConvAmount;
+                                                                        //}
+                                                                        //if (Model.TaxType == "NIL")
+                                                                        //{
+                                                                        //    Model.BillItems[i].TotalAmount = (decimal)Model.BillItems[i].ConvAmount;
+                                                                        //    Model.BillItems[i].IGSTAmt = 0;
+                                                                        //    Model.BillItems[i].CGSTAmt = 0;
+                                                                        //    Model.BillItems[i].SGSTAmt = 0;
+                                                                        //}
+                                                                        //if (Model.InvoiceStatus == "Draft" || string.IsNullOrEmpty(Model.InvoiceStatus))
+                                                                        //{
+                                                                        //    Model.BillItems[i].AuditedAmount = Model.BillItems[i].Amount;
+                                                                        //}
+                                                                        //Model.BillItems[i].ConvRate = Convert.ToDecimal(Model.BillItems[i].ConvRate);
+                                                                        //Model.BillItems[i].ConvAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].ConvAmount));
+                                                                        //Model.BillItems[i].IGSTAmt = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].IGSTAmt));
+                                                                        //Model.BillItems[i].CGSTAmt = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].CGSTAmt));
+                                                                        //Model.BillItems[i].SGSTAmt = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].SGSTAmt));
+                                                                        //Model.BillItems[i].VatAmt = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].VatAmt));
+                                                                        //Model.BillItems[i].TotalAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].TotalAmount));
+                                                                        //Model.BillItems[i].AuditedAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].AuditedAmount));
+                                                                        //Model.BillItems[i].Amount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].Amount));
+                                                                        //Model.BillItems[i].OriginalAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].OriginalAmount));
+                                                                        Desc = "<p>" + Model.BillItems[i].Description.Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>";
+                                                                        ////string Desc = "<p>" + (desc).Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>";
+                                                                        if (Desc.Contains("</p><p><br></p><p>"))
+                                                                        {
+                                                                            Desc = Desc.Substring(0, Desc.LastIndexOf("</p><p><br></p><p>"));
+                                                                        }
+
+                                                                        Model.BillItems[i].ConvRate = Model.ConvRate;
+                                                                        if (!(CompID == 1 || CompID == 2))
+                                                                        {
+                                                                            Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount / Model.BillItems[i].ConvRate;
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            if (Model.BaseCurrID != 2 && Model.RateCurrancyID != 2)
+                                                                            {
+                                                                                Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount * Model.BillItems[i].ConvRate;
+                                                                            }
+                                                                            else if (Model.BaseCurrID != 2 && Model.RateCurrancyID == 2)
+                                                                            {
+                                                                                Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount * Model.BillItems[i].ConvRate;
+                                                                            }
+                                                                            else if (Model.BaseCurrID == 2 && Model.RateCurrancyID != 2)
+                                                                            {
+                                                                                Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount / Model.BillItems[i].ConvRate;
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount / Model.BillItems[i].ConvRate;
+                                                                            }
+                                                                        }
+                                                                        if (Model.BillItems[i].TaxType == "IGST")
+                                                                        {
+                                                                            Model.BillItems[i].IGSTAmt = Model.BillItems[i].TaxApp ? (decimal)(Model.BillItems[i].ConvAmount * Model.BillItems[i].GSTVATPercent / 100) : 0;
+                                                                            Model.BillItems[i].TotalAmount = Model.BillItems[i].TaxApp ? (decimal)Model.BillItems[i].ConvAmount + Model.BillItems[i].IGSTAmt : (decimal)Model.BillItems[i].ConvAmount;
+                                                                        }
+                                                                        if (Model.BillItems[i].TaxType == "CGST")
+                                                                        {
+                                                                            Model.BillItems[i].CGSTAmt = Model.BillItems[i].TaxApp ? (decimal)(Model.BillItems[i].ConvAmount * (Model.BillItems[i].GSTVATPercent / 2) / 100) : 0;
+                                                                            Model.BillItems[i].SGSTAmt = Model.BillItems[i].TaxApp ? (decimal)(Model.BillItems[i].ConvAmount * (Model.BillItems[i].GSTVATPercent / 2) / 100) : 0;
+
+                                                                            Model.BillItems[i].TotalAmount = Model.BillItems[i].TaxApp ? (decimal)Model.BillItems[i].ConvAmount + Model.BillItems[i].SGSTAmt + Model.BillItems[i].CGSTAmt : (decimal)Model.BillItems[i].ConvAmount;
+                                                                        }
+                                                                        if (Model.BillItems[i].TaxType == "VAT")
+                                                                        {
+                                                                            Model.BillItems[i].VatAmt = Model.BillItems[i].TaxApp ? (decimal)(Model.BillItems[i].ConvAmount * Model.BillItems[i].GSTVATPercent / 100) : 0;
+                                                                            Model.BillItems[i].TotalAmount = Model.BillItems[i].TaxApp ? (decimal)Model.BillItems[i].ConvAmount + Model.BillItems[i].VatAmt : (decimal)Model.BillItems[i].ConvAmount;
+                                                                        }
+                                                                        if (Model.BillItems[i].TaxType == "NIL")
+                                                                        {
+                                                                            Model.BillItems[i].TotalAmount = (decimal)Model.BillItems[i].ConvAmount;
+                                                                            Model.BillItems[i].IGSTAmt = 0;
+                                                                            Model.BillItems[i].CGSTAmt = 0;
+                                                                            Model.BillItems[i].SGSTAmt = 0;
+                                                                        }
+                                                                        if (Model.InvoiceStatus == "Draft" || string.IsNullOrEmpty(Model.InvoiceStatus))
+                                                                        {
+                                                                            Model.BillItems[i].AuditedAmount = Model.BillItems[i].Amount;
+                                                                        }
+                                                                        Model.BillItems[i].ConvRate = Convert.ToDecimal(Model.BillItems[i].ConvRate);
+                                                                        Model.BillItems[i].ConvAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].ConvAmount));
+                                                                        Model.BillItems[i].IGSTAmt = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].IGSTAmt));
+                                                                        Model.BillItems[i].CGSTAmt = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].CGSTAmt));
+                                                                        Model.BillItems[i].SGSTAmt = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].SGSTAmt));
+                                                                        Model.BillItems[i].VatAmt = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].VatAmt));
+                                                                        Model.BillItems[i].TotalAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].TotalAmount));
+                                                                        Model.BillItems[i].AuditedAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].AuditedAmount));
+                                                                        Model.BillItems[i].Amount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].Amount));
+                                                                        Model.BillItems[i].OriginalAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].OriginalAmount));
+                                                                        <tr>
+                                                                            <td>@Html.Raw(Desc)</td>
+                                                                            @if (Model.RevenueBr.ToString().ToUpper() == "DUBAI" || Model.RevenueBr.ToString().ToUpper() == "BAHRAIN")
+                                                                            {
+                                                                                @*decimal? AEDRate = (decimal?)Model.BillItems[i].AuditedAmount * Model.AEDCurr;
+                                                                                    decimal? AEDTaxRate = 0;
+                                                                                    if (Model.TaxType != "NIL")
+                                                                                    {
+                                                                                        AEDTaxRate = Model.BillItems[i].TaxApp ? AEDRate * Model.BillItems[i].GSTVATPercent / 100 : AEDRate;
+                                                                                    }
+                                                                                    decimal? AEDTotalRate = AEDRate + AEDTaxRate;
+                                                                                    AEDAmtSum = AEDAmtSum + AEDRate;
+                                                                                    totalAEDAmtSum = totalAEDAmtSum + AEDTotalRate;
+                                                                                    AEDRate = Convert.ToDecimal(String.Format("{0:0.00}", AEDRate));
+                                                                                    AEDTaxRate = Convert.ToDecimal(String.Format("{0:0.00}", AEDTaxRate));
+                                                                                    AEDTotalRate = Convert.ToDecimal(String.Format("{0:0.00}", AEDTotalRate));
+                                                                                    AEDAmtSum = Convert.ToDecimal(String.Format("{0:0.00}", AEDAmtSum));
+                                                                                    <td class="numbertd">@Model.BillItems[i].GSTVATPercent</td>
+                                                                                    <td class="numbertd">@Model.BillItems[i].ConvAmount</td>
+                                                                                    <td class="numbertd">@Model.BillItems[i].VatAmt</td>
+                                                                                    <td class="numbertd">@Model.BillItems[i].TotalAmount</td>
+                                                                                    <td class="numbertd">@AEDRate</td>
+                                                                                    <td class="numbertd">@AEDTaxRate</td>
+                                                                                    <td class="numbertd">@AEDTotalRate</td>*@
+
+                                                                                decimal? AEDRate = Model.RMCBuss ? (decimal?)Model.BillItems[i].AuditedAmount * Model.AEDCurr : (decimal?)Model.BillItems[i].AuditedAmount;
+                                                                                decimal? AEDTaxRate = 0;
+                                                                                if (Model.BillItems[i].TaxType != "NIL")
+                                                                                {
+                                                                                    AEDTaxRate = Model.BillItems[i].TaxApp ? AEDRate * Model.BillItems[i].GSTVATPercent / 100 : AEDRate;
+                                                                                }
+                                                                                decimal? AEDTotalRate = AEDRate + AEDTaxRate;
+                                                                                AEDAmtSum = AEDAmtSum + AEDRate;
+                                                                                totalAEDAmtSum = totalAEDAmtSum + AEDTotalRate;
+                                                                                AEDTaxRateSum = AEDTaxRate + AEDTaxRateSum;
+                                                                                AEDTotalRate = AEDRate + AEDTaxRate;
+                                                                                AEDRate = Convert.ToDecimal(String.Format("{0:0.00}", AEDRate));
+                                                                                AEDTaxRate = Convert.ToDecimal(String.Format("{0:0.00}", AEDTaxRate));
+                                                                                AEDTotalRate = Convert.ToDecimal(String.Format("{0:0.00}", AEDTotalRate));
+                                                                                AEDAmtSum = Convert.ToDecimal(String.Format("{0:0.00}", AEDAmtSum));
+                                                                                <td class="numbertd">@Model.BillItems[i].GSTVATPercent</td>
+                                                                                <td class="numbertd">@Model.BillItems[i].ConvAmount</td>
+                                                                                <td class="numbertd">@Model.BillItems[i].VatAmt</td>
+                                                                                <td class="numbertd">@Model.BillItems[i].TotalAmount</td>
+                                                                                <td class="numbertd">@AEDRate</td>
+                                                                                <td class="numbertd">@AEDTaxRate</td>
+                                                                                <td class="numbertd">@AEDTotalRate</td>
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <td>@Model.RateCurrName</td>
+                                                                                @*<td style="width: 5%;">@Model.BillItems[i].OriginalAmount</td>*@
+                                                                                @*@if (Model.BillType == 'I')
+                                                                                    {
+                                                                                        <td style="width: 10%;">@Html.Hidden("hfAmount", Model.BillItems[i].Amount) @Html.TextBoxFor(a => Model.BillItems[i].Amount, AmountReadOnly)</td>
+                                                                                    }*@
+                                                                                <td class="numbertd">@Model.BillItems[i].ConvAmount</td>
+                                                                                if (Model.RevenueBr.ToString().ToUpper() != "QATAR")
+                                                                                {
+                                                                                    <td class="numbertd">@Model.BillItems[i].GSTVATPercent</td>
+                                                                                    if (Model.TaxType == "VAT")
+                                                                                    {
+                                                                                        <td class="numbertd">@Model.BillItems[i].VatAmt</td>
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        if (Model.TaxType == "IGST")
+                                                                                        {
+
+                                                                                            <td class="numbertd">@Model.BillItems[i].IGSTAmt</td>
+                                                                                            <td class="numbertd">0.00</td>
+                                                                                            <td class="numbertd">0.00</td>
+                                                                                        }
+                                                                                        else if (Model.TaxType == "CGST")
+                                                                                        {
+                                                                                            <td class="numbertd">0.00</td>
+                                                                                            <td class="numbertd">@Model.BillItems[i].CGSTAmt</td>
+                                                                                            <td class="numbertd">@Model.BillItems[i].SGSTAmt</td>
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            <td class="numbertd">0.00</td>
+                                                                                            <td class="numbertd">0.00</td>
+                                                                                            <td class="numbertd">0.00</td>
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                <td class="numbertd">@Model.BillItems[i].TotalAmount</td>
+                                                                                @*<td style="width: 5%;"><span>@Model.BillItems[i].BilledStatus</span>@Html.HiddenFor(x => Model.BillItems[i].BilledStatus, new { @class = "BilledStatus" })</td>*@
+                                                                            }
+                                                                        </tr>
+                                                                    }
+                                                                }
+                                                                <tr>
+                                                                    @if (Model.RevenueBr.ToString().ToUpper() == "DUBAI" || Model.RevenueBr.ToString().ToUpper() == "BAHRAIN" || Model.RevenueBr.ToString().ToUpper() == "QATAR")
+                                                                    {
+                                                                        <th>Total Service Charges</th>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <th>Total</th>
+                                                                    }
+
+                                                                    @if (Model.RevenueBr.ToString().ToUpper() == "DUBAI" || Model.RevenueBr.ToString().ToUpper() == "BAHRAIN")
+                                                                    {
+                                                                        <th></th>
+                                                                        <th class="numbertd">@Model.BillItems.Sum(x => x.ConvAmount)</th>
+                                                                        <th class="numbertd">@Model.BillItems.Sum(x => x.VatAmt)</th>
+                                                                        <th class="numbertd">@Model.BillItems.Sum(x => x.TotalAmount)</th>
+                                                                        <th class="numbertd">@AEDAmtSum</th>
+                                                                        <th></th>
+                                                                        <th class="numbertd">@totalAEDAmtSum</th>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <th></th>
+                                                                        @*<td style="width: 5%;">@Model.BillItems[i].OriginalAmount</td>*@
+                                                                        @*@if (Model.BillType == 'I')
+                                                                            {
+                                                                                <td style="width: 10%;">@Html.Hidden("hfAmount", Model.BillItems[i].Amount) @Html.TextBoxFor(a => Model.BillItems[i].Amount, AmountReadOnly)</td>
+                                                                            }*@
+                                                                        <th class="numbertd">@Model.BillItems.Sum(x => x.ConvAmount)</th>
+                                                                        if (Model.RevenueBr.ToString().ToUpper() != "QATAR")
+                                                                        {
+                                                                            <th></th>
+                                                                            if (Model.TaxType == "VAT")
+                                                                            {
+                                                                                <th class="numbertd">@Model.BillItems.Sum(x => x.VatAmt)</th>
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                if (Model.TaxType == "IGST")
+                                                                                {
+                                                                                    <th class="numbertd">@Model.BillItems.Sum(x => x.IGSTAmt)</th>
+                                                                                    <th class="numbertd">0.00</th>
+                                                                                    <th class="numbertd">0.00</th>
+                                                                                }
+                                                                                else if (Model.TaxType == "CGST")
+                                                                                {
+                                                                                    <th class="numbertd">0.00</th>
+                                                                                    <th class="numbertd">@Model.BillItems.Sum(x => x.CGSTAmt)</th>
+                                                                                    <th class="numbertd">@Model.BillItems.Sum(x => x.SGSTAmt)</th>
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    <th class="numbertd">0.00</th>
+                                                                                    <th class="numbertd">0.00</th>
+                                                                                    <th class="numbertd">0.00</th>
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                        <th class="numbertd">@Model.BillItems.Sum(x => x.TotalAmount)</th>
+                                                                        @*<td style="width: 5%;"><span>@Model.BillItems[i].BilledStatus</span>@Html.HiddenFor(x => Model.BillItems[i].BilledStatus, new { @class = "BilledStatus" })</td>*@
+                                                                    }
+                                                                </tr>
+                                                                @if (Model.RateCurrancyID == 2)
+                                                                {
+
+                                                                    <tr>
+
+                                                                        @{
+                                                                            int colcount = 1;
+                                                                        }
+
+                                                                        @if (Model.RevenueBr.ToString().ToUpper() == "DUBAI" && Model.RMCBuss)
+                                                                        {
+                                                                            colcount = colcount + 7;
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            colcount = colcount + 3;
+                                                                            if (Model.TaxType == "VAT")
+                                                                            {
+                                                                                colcount = colcount + 2;
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                colcount = colcount + 2;
+                                                                            }
+                                                                            colcount = colcount + 1;
+                                                                        }
+                                                                        @*<th>Bill Status</th>*@
+
+                                                                        <th colspan="@colcount">@RELOCBS.Common.CommonService.AmountINWords(Convert.ToDouble(Model.BillItems.Sum(x => x.TotalAmount)))</th>
+                                                                    </tr>
+                                                                }
+                                                                @*<tr>
+
+                                                                        @if (Model.BillType == 'I')
+                                                                        {
+                                                                            <td colspan="5"></td>
+                                                                            <td style="width: 10%;">
+                                                                                @Html.TextBox("BillItems._FinalAmount", "", new { @class = "td-amtwidth form-control input-sm clearfix", @readonly = "readonly" })
+                                                                            </td>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <td colspan="5"></td>
+                                                                        }
+                                                                        <td style="width: 10%;">
+                                                                            @Html.TextBox("BillItems._FinalAuditedAmount", "", new { @class = "td-amtwidth form-control input-sm clearfix", @readonly = "readonly" })
+                                                                        </td>
+                                                                        @if (Model.TaxType == "NIL")
+                                                                        {
+                                                                            <td colspan="3"></td>
+                                                                        }
+                                                                        @if (Model.TaxType == "IGST" || Model.TaxType == "VAT")
+                                                                        {
+                                                                            <td colspan="4"></td>
+                                                                        }
+                                                                        @if (Model.TaxType == "CGST")
+                                                                        {
+                                                                            <td colspan="5"></td>
+                                                                        }
+                                                                        <td>
+                                                                            @Html.TextBox("BlillItem_FinalTotalAmount", "", new { @class = "td-amtwidth form-control input-sm clearfix", @readonly = "readonly" })
+                                                                        </td>
+                                                                    </tr>*@
+                                                            </table>
+                                                        </div>
+
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <b>Note :   REQUEST TO REVIEW THE  CHARGES AND KINDLY PROVIDE YOUR APPROVAL ON EMAIL WITHIN 48 HRS. ON RECEIPT OF THE APPROVAL OUR TAX INVOICE WILL BE SENT TO YOU.</b>
+                                                    </td>
+                                                </tr>
+
+
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="col-sm-1" style="border-radius: 50%;">
+    @*<button onclick="printPage('BillFormat','.Billheading{display:none;} .headermargin{height:150px;}')" style="border-radius: 5%;" class="btn btn-primary btn-sm pull-right m-r-lg m-t-lg" title="Print">Print Format </button>*@
+    <button onclick="printPage('BillFormat',null)" style="border-radius: 5%;" class="btn btn-primary btn-sm pull-right m-r-lg m-t-sm" title="Print">Print</button>
+</div>
+<script type="text/javascript">
+    function printPage(elementId, headerclass) {
+        var divToPrint = document.getElementById('BillFormat');
+
+        var newWin = window.open('', 'Print-Window');
+
+        newWin.document.open();
+        var style = '';
+        //style = style + ' <link href="~/Content/bootstrap.css" rel="stylesheet" />';
+        //style = style + ' <link href="~/Content/style.css" rel="stylesheet" />';
+        //style = style + ' <link href="~/Content/custom.css" rel="stylesheet" />';
+        //style = style + ' <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">';
+        style = '<style type="text/css">#tblInvoiceItems tbody td {border: solid;border-width: thin;border-color: lightgray;} .ttop {vertical-align: top !important;} .text-right { text-align: right; }' +
+            'body {} .floatLeft {float: left;} .tcenter {text-align: center !important;} .boxWraper {border: 1px solid #7b7b7b;display: block;overflow: hidden;margin-bottom: 5px;} .boxWraper.padding tr td {padding: 3px 6px;}' +
+            '.grid-header {background: #eee;font-size: 13px;} tr.border_bottom td {border-bottom: 1pt solid black;} .tableData {border: 0!important;line-height: 16px;} .tableData tr td {background: #fff;height: 100%;vertical-align: middle;border: 1px solid #e3e7ee;}' +
+            '.boxWraper tr th {border: 1px solid #e3e7ee; text-align: center;padding: 3px 6px;} .marginLR {margin: 0 auto;} table { border-collapse: collapse;} table {background-color: transparent;}' +
+            'body {padding: 0;margin: 0;font-size: 12px;' +
+            'font-family: Lato, \'Open Sans\', verdana, arialo, "Helvetica Neue", sans-serif;color: #808080;' +
+            ' -webkit-font-smoothing: antialiased;-webkit-font-smoothing: subpixel-antialiased;' +
+            'background: #fff;} .cw100 {width: 100px!important;}.cw110 {width: 110px!important;} .cw80 {width: 80px!important;}.cw120 {width: 120px!important;} .cw140 {width: 140px!important;}' +
+            '.cw160 {width: 160px!important;}.cw130 {width: 140px!important;}' +
+            '.tbold {font-family: Lato, \'Open Sans\', verdana, arialo, "Helvetica Neue", sans-serif;font - weight: 600;}' +
+            '.tright {text - align: right!important;} label {margin-bottom: 0;color: black;} .tcollapse { border-collapse: collapse;} .boxWraper.padding tr td {padding: 3px 6px;}' +
+            '.taW {width: 100% !important;}h4 {font-size: 14px;margin: 6px 0;font-weight: normal;font-family: Lato, verdana, arial, "Helvetica Neue", Helvetica, sans-serif;}' +
+            '.numbertd {text-align: right;} table, img, svg {break-inside: avoid;}' +
+            headerclass +
+            '</style > ';
+        style = style + '<style>@@media print {.grid - header {background: #eee;font-size: 13px;}body {font-family: Serif;} h2 {font-size: 20px;text-transform: uppercase;text-decoration: underline;margin: 6px 0;font-family: Serif;} h4 {font-size: 13px;text-decoration: underline;margin: 6px 0;font-family: Serif;} img {display: inline;}}</style>';
+
+
+
+        newWin.document.write('<html><head>' + style +
+            '</head><body onload="window.print()">' + divToPrint.innerHTML + '</body></html>');
+
+        newWin.document.close();
+
+        setTimeout(function () { newWin.close(); }, 10);
+        //var printContent = document.getElementById(elementId);
+        //var windowUrl = 'about:blank';
+        //var uniqueName = new Date();
+        //var windowName = 'Print' + uniqueName.getTime();
+        //var printWindow = window.open(windowUrl, windowName, 'left=50000,top=50000,width=0,height=0');
+
+        //printWindow.document.write(printContent.innerHTML);
+        //printWindow.document.close();
+        //printWindow.focus();
+        //printWindow.print();
+        //printWindow.close();
+        //newWin.document.close();
+        //setTimeout(function () { printWindow.close(); }, 10);
+    }
+</script>

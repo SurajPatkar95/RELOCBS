@@ -1,0 +1,215 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model RELOCBS.Entities.JobDiaryModel
+
+@{
+
+    string _PageID = "18";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+    WebGrid grid = new WebGrid(source: Model.instructionSheetGrids, canSort: false, canPage: false);
+}
+
+<style type="text/css">
+
+    #subT a:link {
+        color: black;
+        font-weight: bold;
+    }
+
+    th, td {
+        padding: 5px;
+    }
+
+    th {
+        background-color: rgb(248, 248, 248);
+    }
+
+    #gridT, #gridT tr {
+        border: 1px solid #0D857B;
+    }
+
+    #subT, #subT tr {
+        border: 1px solid #f3f3f3;
+    }
+
+    #subT {
+        margin: 0px 0px 0px 10px;
+        padding: 5px;
+        width: 95%;
+    }
+
+        #subT th {
+            font-size: 14px;
+        }
+
+    .hoverEff {
+        cursor: pointer;
+    }
+
+        .hoverEff:hover {
+            background-color: rgb(248, 242, 242);
+        }
+
+    .expands {
+        background-image: url(../Images/expand.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        width: 100px;
+    }
+
+    .collapses {
+        background-image: url(../Images/collapse.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        width: 100px;
+    }
+</style>
+
+@{
+    var gridColumns = new List<WebGridColumn>();
+
+    gridColumns.Add(grid.Column(null, header: "View", style: "webgrid-action",
+        format:@<text>
+                <span>
+                    @if (item.InstID != null && item.InstID > 0)
+                    {
+                        <a href="@Url.Action("GetInstructionSheet", "JobAllocation", new { MoveID = item.MoveID,InstID = item.InstID ,JobType = (item.MoveID > 0 ? 1 : 0)  })" class="btn btn-xs btn-primary pull-left" data-target="#InstructionModal" data-cache="false" title="View Instruction Sheet" onclick="ShowInstruction(this)"><span class="glyphicon glyphicon-eye-open"></span></a>
+                    }
+                </span>
+            </text>
+         ));
+    gridColumns.Add(grid.Column(null, header: "Print", style: "webgrid-action",
+        format:@<text>
+                <span>
+                    @if (item.InstID != null && item.InstID > 0)
+                    {
+                        string ControllerName = item.MoveID > 0 ? "InstructionSheet" : "WarehouseJob";
+                        <a href="@Url.Action("GetInstructionSheetPrint", ControllerName, new { MoveID = item.MoveID,InstID = item.InstID })" class="btn btn-primary btn-sm View m-n" title="Print Instruction Sheet" target="_blank"><i class='glyphicon glyphicon-print'></i></a>
+                    }
+                </span>
+            </text>
+         ));
+
+    gridColumns.Add(grid.Column("JobNo", "Job.No."));
+    gridColumns.Add(grid.Column("Shipper", "Shipper"));
+    gridColumns.Add(grid.Column("InstID", "Inst.No."));
+    gridColumns.Add(grid.Column("InstDate", "Inst.Date", format: (item) => string.Format("{0:dd-MMM-yyyy}", item.InstDate)));
+    gridColumns.Add(grid.Column("BranchName", "Branch"));
+    gridColumns.Add(grid.Column("WarehouseName", "Warehouse"));
+    gridColumns.Add(grid.Column("Inst_Status", "Status"));
+
+    if (hasAddAccess)
+    {
+
+        gridColumns.Add(grid.Column("", header: "", style: "webgrid-action",
+        format:@<text>
+                <span>
+                    @if (item.InstID != null && item.InstID > 0)
+                    {
+                        <a href="@Url.Action("AddActivity", "JobAllocation", new { InstID = item.InstID })" class="btnAddActivity btn btn-xs btn-primary pull-left hide" data-target="#ActivityModal" data-cache="false" title="AddActivity" onclick="ActivityModelClick(this)">Add Activity</a>
+                    }
+                </span>
+            </text>
+         ));
+    }
+
+
+    var SubGridColumns = new List<WebGridColumn>();
+    SubGridColumns.Add(grid.Column(null, null, format: @<text>
+
+
+    @if (item.ACT_BatchID != null && item.ACT_BatchID > 0)
+    {
+        <input type="checkbox" name="chkRow" value="@item.ActivityID" disabled="disabled" />
+    }
+    else
+    {
+        <input type="checkbox" name="chkRow" value="@item.ActivityID" />
+    }
+
+    </text>));
+SubGridColumns.Add(grid.Column("ACT_BatchID", "BatchNo."));
+SubGridColumns.Add(grid.Column("ActivityID", "ActivityNo."));
+SubGridColumns.Add(grid.Column("ActivityTypeName", "Type"));
+SubGridColumns.Add(grid.Column("FromDate", "FromDate", format: (item) => string.Format("{0:dd-MMM-yyyy}", item.FromDate)));
+SubGridColumns.Add(grid.Column("ToDate", "ToDate", format: (item) => string.Format("{0:dd-MMM-yyyy}", item.ToDate)));
+SubGridColumns.Add(grid.Column("NumberOfDays", "Days"));
+SubGridColumns.Add(grid.Column("FromLocation", "FromLocation"));
+SubGridColumns.Add(grid.Column("ToLocation", "ToLocation"));
+SubGridColumns.Add(grid.Column("RepTime", "Time"));
+SubGridColumns.Add(grid.Column("ACT_Status", "Status"));
+
+
+if (hasEditAccess)
+{
+
+ SubGridColumns.Add(grid.Column("", header: "", style: "webgrid-action",
+  format:@<text>
+    <span>
+        @if (item.ACT_BatchID != null && item.ACT_BatchID > 0)
+        {
+            //if (item.Act_StatusID == null || item.Act_StatusID <= 3)
+            {
+                <a href="@Url.Action("CreateActivityAllocation", "JobAllocation", new { ActivityID = item.ActivityID, BatchID = item.ACT_BatchID,JobType = item.JobType })" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" data-target="#mdlAddEdit" data-cache="false" title="Edit" onclick="ModelClick(this)"></a>
+            }
+        }
+    </span>
+</text>
+));
+
+}
+
+
+if (hasDeleteAccess)
+{
+SubGridColumns.Add(grid.Column("", header: "", style: "webgrid-action",
+ format:@<text>
+    <div class="pull-left">
+        @if (item.ACT_BatchID != null && item.ACT_BatchID > 0)
+        {
+            if (item.Act_StatusID == null || item.Act_StatusID <= 3)
+            {
+                <form method="post" action="@Url.Action("DeleteActivityAllocation", "JobAllocation", new { ActivityID = item.ActivityID, BatchID = item.ACT_BatchID,Inst_BatchID=item.Inst_BatchID })" class="frmRWDelete" title="Remove Allocation Mapping">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ActivityID" value="@item.ActivityID" />
+                    <input type="hidden" name="BatchID" value="@item.ACT_BatchID" />
+                    <input type="hidden" name="Inst_BatchID" value="@item.Inst_BatchID" />
+                    <button type="submit" class="btnDelete frmRWDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5"></button>
+                </form>
+            }
+        }
+    </div>
+</text>
+));
+}
+
+//SubGridColumns.Add(grid.Column("ACT_BatchID", null, style: "ACT_BatchID hide"));
+
+
+gridColumns.Add(grid.Column(format: (item) =>
+{
+WebGrid subGrid = new WebGrid(source: item.jobActivities, canPage: false);
+return subGrid.Table(
+tableStyle: "table table-responsive table-bordered",
+htmlAttributes: new { id = "subT" },
+columns: subGrid.Columns(
+SubGridColumns.ToArray()
+)
+);
+}));
+
+}
+
+<div class="row table-responsive m-t-sm">
+    @grid.Table( tableStyle: "table table-responsive table-bordered",
+                         htmlAttributes: new {id="gridT", width="700px" },
+                         columns:grid.Columns(gridColumns.ToArray())
+            )
+</div>

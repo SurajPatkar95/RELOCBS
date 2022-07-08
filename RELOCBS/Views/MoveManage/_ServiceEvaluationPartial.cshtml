@@ -1,0 +1,38 @@
+﻿@using RELOCBS.Entities;
+@model RELOCBS.Entities.MoveManageViewModel
+
+@{
+    string Flag = Model.Flag;
+    string mode = Model.MoveJob.ModeName;
+    ReportView r = new ReportView();
+    string name = string.Empty;
+    if (Flag == "Delivery")
+    {
+        r = Model.DeliveryReport;
+        name = "DeliveryReport";
+    }
+
+}
+<div class="row">
+    <div class="col-sm-2">
+        <div class="form-group">
+            <label class="filter-custom-margin">
+                @Html.CheckBoxFor(a => Model.DeliveryReport.ServiceEvaluation, new { htmlAttributes = new { @placeholder = "SerivceEvaluation", @tooltip = "SerivceEvaluation", @class = "form-control input-sm", title = "SerivceEvaluation", id = "SerivceEvaluation" } }) &nbsp;
+                @Html.DisplayNameFor(a => Model.DeliveryReport.ServiceEvaluation)
+            </label>
+        </div>
+    </div>
+    <div class="col-sm-2">
+        <div class="form-group">
+            <label>Service Evaluation Score</label>
+            @Html.TextBoxFor(a => Model.DeliveryReport.ServiceEvaluationScore, new { @placeholder = "Service Evaluation Score", @tooltip = "Service Evaluation Score", @class = "form-control input-sm", title = "Service Evaluation Score", id = "ServiceEvaluationScore", type="number" })
+        </div>
+    </div>
+    <div class="col-sm-5">
+        <div class="form-group">
+            <label>Service Evaluation Remarks</label>
+            @Html.TextBoxFor(a => Model.DeliveryReport.ServiceEvaluationRemarks, new { @placeholder = "Service Evaluation Remark", @tooltip = "Service Evaluation Remark", @class = "form-control input-sm", title = "Service Evaluation Remark", id = "ServiceEvaluationRemark" })
+        </div>
+    </div>
+</div>
+

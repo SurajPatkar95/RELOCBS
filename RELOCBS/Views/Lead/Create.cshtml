@@ -1,0 +1,759 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.Common;
+
+@model RELOCBS.Entities.LeadViewModel
+@{
+    string _PageID = "17";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+    string Sea = null;
+    string Air = null;
+    string Road = null;
+    IEnumerable<SelectListItem> modelist = (IEnumerable<SelectListItem>)ViewData["ModeList"];
+    if (modelist != null)
+    {
+        Sea = modelist.Where(x => x.Text == "Sea").First().Value;
+        Air = modelist.Where(x => x.Text == "Air").First().Value;
+        Road = modelist.Where(x => x.Text == "Road").First().Value;
+    }
+    bool InValid = ViewBag.InValid;
+    bool IsRoadSelected = Model.IsRoad;
+}
+<div>
+    <div class="row">
+        @using (Html.BeginForm("Create", "Lead", FormMethod.Post, new { enctype = "multipart/form-data", @name = "Filter", @id = "Filter" }))
+        {
+            @Html.AntiForgeryToken()
+
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            <div class="col-sm-1 col-md-1">
+                <div class="form-group">
+                    <label class="filter-custom-margin">@Html.CheckBoxFor(model => model.IsRoad, new { @class = "" }) IsRoad</label>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RMC, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.RMCID, new SelectList((System.Collections.IEnumerable)ViewData["RMClist"], "Value", "Text"), "--Select RMC--", new { @id = "RMC", @class = "form-control input-sm clearfix enableselect" })
+                    @Html.ValidationMessageFor(model => model.RMCID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.FromCity, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.FromCityID, new List<SelectListItem>(), new { @id = "FromCity", @class = "form-control input-sm clearfix CityDropDown" })
+                    @Html.ValidationMessageFor(model => model.FromCityID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ToCity, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.ToCityID, new List<SelectListItem>(), new { @id = "ToCity", @class = "form-control input-sm clearfix CityDropDown" })
+                    @Html.ValidationMessageFor(model => model.ToCityID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group col-md-1">
+                <div class="clearfix">
+                    <input type="submit" id="btnCreate" name="Create" class="btn btn-primary btn-sm filter-custom-margin" value="Go To Pricing" />
+                </div>
+            </div>
+            <div class="form-group col-md-1">
+                <div class="clearfix">
+                    <a class="btnJob btn btn-sm btn-success filter-custom-margin" title="Open Job" data-toggle="modal" data-target="#mdlJobAddEdit" onclick="GetBrookJobDetails(this)" disabled>Open Job</a>
+                </div>
+            </div>
+        }
+
+        @using (Html.BeginForm("Index", "Lead", FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter" }))
+        {
+
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            <div class="form-group col-md-1">
+                <div class="clearfix">
+                    @Html.HiddenFor(model => model.IsRoad, new { @id = "HFIsRoad" })
+                    @Html.HiddenFor(model => model.RMCID)
+                    @Html.HiddenFor(model => model.FromCityID)
+                    @Html.HiddenFor(model => model.ToCityID)
+                    <input type="submit" id="btnSearch" name="Search" class="btn btn-default btn-sm filter-custom-margin" value="Search" />
+                </div>
+            </div>
+
+        }
+    </div>
+</div>
+<div id="mgrid">
+
+    @{
+        /*
+        if (Model.LeadGrid.ToList().Count > 0)
+        {
+
+            var List = Model.LeadGrid.AsEnumerable();
+            */
+        Html.Partial("_PartialGrid", Model);
+        /*}*/
+    }
+</div>
+<div id="mdlJobAddEdit" class="modal fade modal-wide" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog ">
+
+        <div class="modal-content p-md pad-top-none" style="width:1000px" id="Jobpartial">
+            <div class="modal-header pad-bot-none">
+                <h3>Job Opening<button type="button" class="close" data-dismiss="modal">&times;</button></h3>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="modal-body" id="Jobpartial">
+
+                        @using (Html.BeginForm("CreateJob", "Lead", FormMethod.Post, new { enctype = "multipart/form-data", @name = "Filter", @id = "Filter" }))
+                        {
+                            @Html.AntiForgeryToken()
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            @Html.HiddenFor(a => a.HFEnqDet)
+                            @Html.HiddenFor(a => a.manageDet.FSFRLeadDetailsID)
+                            @Html.HiddenFor(a => a.RMCID)
+                            @Html.HiddenFor(a => a.FromCityID)
+                            @Html.HiddenFor(a => a.ToCityID)
+                            @Html.HiddenFor(a => a.manageDet.MoveQuoteID)
+                            @Html.HiddenFor(a => a.manageDet.EnqSourceID)
+                            @Html.HiddenFor(a => a.manageDet.BussinessLineID)
+                            @Html.HiddenFor(a => a.manageDet.UpdatedBatchID)
+                            @Html.HiddenFor(a => a.manageDet.ServiceLnId)
+                            <div class="row mode">
+                                <div class="col-sm-2 col-md-3 div_Mode_Sea">
+                                    <div class="form-group">
+                                        <label>
+                                            <input type="checkbox" class="chk_Mode" id="chk_Mode_Sea" onchange="GenerateXML(this)" data-toggle="collapse" data-target="#Sea" />
+                                            @*@Html.CheckBox("chk_Mode_Sea", new { @class = "chk_Mode", @data-toggle = "collapse", @data-target = "#Sea", onchange = "GenerateXML(this)"  })*@ <span>Sea</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-sm-2 col-md-3 div_Mode_Air">
+                                    <div class="form-group">
+                                        <label>
+                                            <input type="checkbox" class="chk_Mode" id="chk_Mode_Air" onchange="GenerateXML(this)" data-toggle="collapse" data-target="#Air" />
+                                            @*<label>@Html.CheckBox("chk_Mode_Air", new { @class = "chk_Mode", onchange = "GenerateXML(this)" })*@ <span>Air</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-sm-2 col-md-3 div_Mode_Road">
+                                    <div class="form-group">
+                                        <label>
+                                            <input type="checkbox" class="chk_Mode" id="chk_Mode_Road" onchange="GenerateXML(this)" data-toggle="collapse" data-target="#Road" />
+                                            @*@Html.CheckBox("chk_Mode_Road", new { @class = "chk_Mode", onchange = "GenerateXML(this)" })*@ <span>Road</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-2 no-padding-r">
+                                    <div class="form-group">
+                                        <label>Revenue Branch</label>
+                                        @Html.DropDownListFor(a => a.manageDet.RevenueBrId, new List<SelectListItem>(), new { @class = "form-control", id = "RevenueBranch", title = "Revenue Branch" })
+                                        @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })
+                                          @Html.ValidationMessageFor(model => model.OriginRate.AirPortName, "", new { @class = "text-danger" })*@
+                                    </div>
+                                </div>
+                                <div class="col-sm-10 form-group no-padding-r width-auto">
+                                    <label>Corporate</label>
+                                    @Html.DropDownListFor(a => a.manageDet.AccountID, new SelectList((System.Collections.IEnumerable)ViewData["AccountList"], "Value", "Text", ViewData["AccountList"]), "Select One", new { @class = "form-control enableselect", id = "Account", title = "Corporate", autocomplete = "on" })
+                                    @*@Html.HiddenFor(model => model.OriginRate.CityID, new { id = "OCityID", name = "OCityID" })
+                                      @Html.ValidationMessageFor(a => a.manageDet.AccountID, "", new { @class = "text-danger" })*@
+                                </div>
+                            </div>
+                            <div class="row">
+
+                                <div class="col-sm-3 no-padding-r">
+                                    <div class="form-group">
+                                        <label>Sch. Survey Date</label>
+                                        @Html.EditorFor(a => a.manageDet.SchSurveyDate, new { htmlAttributes = new { @placeholder = "Sch. Survey Date", @tooltip = "Sch. Survey Date", @class = "form-control input-sm datetimepicker onkeydtp", title = "Sch. Survey Date", id = "SchSurveyDate" } })
+                                        <span class="input-group-addon" style="display: none">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                        @Html.ValidationMessageFor(a => a.manageDet.SchSurveyDate, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-sm-3 no-padding-r">
+                                    <div class="form-group">
+                                        <label>Sch. Move Date</label>
+                                        @Html.EditorFor(a => a.manageDet.SchMoveDate, new { htmlAttributes = new { @placeholder = "Sch. Move Date", @tooltip = "Sch. Move Date", @class = "form-control input-sm datetimepicker onkeydtp", title = "Sch. Move Date", id = "SchMoveDate" } })
+                                        <span class="input-group-addon" style="display: none">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                        @Html.ValidationMessageFor(a => a.manageDet.SchMoveDate, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row collapse" id="Sea">
+                                <div class="col-sm-2 no-padding-r">
+                                    <div class="form-group">
+                                        <label>Sea Volume</label>
+                                        @Html.TextBoxFor(a => a.manageDet.SearWt, new { @class = "form-control input-sm", placeholder = "Sea Volume", title = "Sea Volume", @id = "SeaWt" })
+                                        @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })
+                                          @Html.ValidationMessageFor(a => a.manageDet.SearWt, "", new { @class = "text-danger" })*@
+                                    </div>
+                                </div>
+                                <div class="col-sm-2 no-padding-r">
+                                    <div class="form-group">
+                                        <label>Unit</label>
+                                        @Html.DropDownListFor(a => a.manageDet.SeaWtUnitId, new SelectList((System.Collections.IEnumerable)ViewData["UnitList"], "Value", "Text", ViewData["UnitList"]), "--Select Unit--", new { @class = "form-control input-sm", id = "SeaWtUnitId", title = "Unit" })
+                                        @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })*@
+                                        @Html.ValidationMessageFor(a => a.manageDet.SeaWtUnitId, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-sm-2 no-padding-r">
+                                    <div class="form-group">
+                                        <label>Container Type</label>
+                                        @Html.DropDownListFor(a => a.manageDet.ContainerTypeID, new SelectList((System.Collections.IEnumerable)ViewData["ContainerList"], "Value", "Text", ViewData["ContainerList"]), "--Select Container Type--", new { @class = "form-control input-sm", id = "ContainerTypeID", title = "Container Type" })
+                                        @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })*@
+                                        @Html.ValidationMessageFor(a => a.manageDet.ContainerTypeID, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-sm-2 no-padding-r">
+                                    <div class="form-group">
+                                        <label>Commodity</label>
+                                        @Html.DropDownListFor(a => a.manageDet.SeaCommodity, new SelectList((System.Collections.IEnumerable)ViewData["CommodityList"], "Value", "Text", ViewData["CommodityList"]), "--Select One--", new { @class = "form-control", id = "Commodity", title = "Commodity" })
+                                        @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })*@
+        @Html.ValidationMessageFor(model => model.manageDet.SeaCommodity, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row collapse" id="Air">
+                        <div class="col-sm-2 no-padding-r">
+                            <div class="form-group">
+                                <label>Air Weight</label>
+                                @Html.TextBoxFor(a => a.manageDet.AirWt, new { @class = "form-control input-sm", placeholder = "Air Weight", title = "Air Weight", @id = "AirWt" })
+                                @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })*@
+                                    @Html.ValidationMessageFor(a => a.manageDet.AirWt, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-sm-2 no-padding-r">
+                                    <div class="form-group">
+                                        <label>Unit</label>
+                                        @Html.DropDownListFor(a => a.manageDet.AirWtUnitId, new SelectList((System.Collections.IEnumerable)ViewData["UnitList"], "Value", "Text", ViewData["UnitList"]), "--Select Unit--", new { @class = "form-control input-sm", id = "AirWtUnitId", title = "Unit" })
+                                        @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })*@
+                                        @Html.ValidationMessageFor(a => a.manageDet.AirWtUnitId, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-sm-2 no-padding-r">
+                                    <div class="form-group">
+                                        <label>Commodity</label>
+                                        @Html.DropDownListFor(a => a.manageDet.AirCommodity, new SelectList((System.Collections.IEnumerable)ViewData["CommodityList"], "Value", "Text", ViewData["CommodityList"]), "--Select One--", new { @class = "form-control", id = "AirCommodity", title = "Commodity" })
+                                        @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })*@
+                @Html.ValidationMessageFor(model => model.manageDet.AirCommodity, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row collapse" id="Road">
+                                <div class="col-sm-2 no-padding-r">
+                                    <div class="form-group">
+                                        <label>Road Weight</label>
+                                        @Html.TextBoxFor(a => a.manageDet.RoadWt, new { @class = "form-control input-sm", placeholder = "Road Weight", title = "Road Weight", @id = "RoadWt" })
+                                        @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })*@
+                                        @Html.ValidationMessageFor(a => a.manageDet.RoadWt, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-sm-2 no-padding-r">
+                                    <div class="form-group">
+                                        <label>Unit</label>
+                                        @Html.DropDownListFor(a => a.manageDet.RoadWtUnitId, new SelectList((System.Collections.IEnumerable)ViewData["UnitList"], "Value", "Text", ViewData["UnitList"]), "--Select Unit--", new { @class = "form-control input-sm", id = "RoadWtUnitId", title = "Unit" })
+                                        @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })*@
+                                        @Html.ValidationMessageFor(a => a.manageDet.RoadWtUnitId, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-sm-2 no-padding-r">
+                                    <div class="form-group">
+                                        <label>Commodity</label>
+                                        @Html.DropDownListFor(a => a.manageDet.RoadCommodity, new SelectList((System.Collections.IEnumerable)ViewData["CommodityList"], "Value", "Text", ViewData["CommodityList"]), "--Select One--", new { @class = "form-control", id = "RoadCommodity", title = "Commodity" })
+                                        @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })
+                                          @Html.ValidationMessageFor(model => model.OriginRate.AirPortName, "", new { @class = "text-danger" })*@
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <fieldset class="col-md-12 border m-n">
+                                <legend>Shipper Details</legend>
+                                <div class="m-t-sm m-n pad-none">
+                                    <div class="row">
+                                        <div class="form-group col-sm-1 col-md-1 m-r-n no-padding-r width-auto">
+                                            <label @*style = "width:50px"*@></label>
+                                            @Html.DropDownListFor(a => a.manageDet.ShipperTitle, CommonService.Title, new { @class = "form-control ", @style = "width:75%", id = "Title", title = "Title" })
+                                        </div>
+                                        <div class="form-group col-sm-3 col-md-2 no-padding-left-right width-auto">
+                                            <label>First Name</label>
+                                            @Html.TextBoxFor(a => a.manageDet.ShipperFName, new { @class = "form-control input-sm ", placeholder = "First Name", title = "First Name", @id = "ShipperFName" })
+                                            @Html.ValidationMessageFor(a => a.manageDet.ShipperFName, "", new { @class = "text-danger" })
+                                        </div>
+                                        <div class="form-group col-sm-3 col-md-2 no-padding-left-right width-auto">
+                                            <label>Last Name</label>
+                                            @Html.TextBoxFor(a => a.manageDet.ShipperLName, new { @class = "form-control input-sm", placeholder = "Last Name", title = "Last Name", @id = "ShipperLName" })
+                                            @Html.ValidationMessageFor(a => a.manageDet.ShipperLName, "", new { @class = "text-danger" })
+                                        </div>
+                                        <div class="form-group col-sm-2 col-md-2 no-padding-r width-auto">
+                                            <label>Shipper Type</label>
+                                            @Html.DropDownListFor(a => a.manageDet.ShipTypeID, new SelectList((System.Collections.IEnumerable)ViewData["ShipperTypeList"], "Value", "Text", ViewData["ShipperTypeList"]), "Select One", new { @class = "form-control input-sm m-n pad-none", id = "ShipperType", title = "Shipper Type" })
+                                            @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })*@
+                                            @Html.ValidationMessageFor(a => a.manageDet.ShipTypeID, "", new { @class = "text-danger" })
+                                        </div>
+                                        <div class="form-group col-sm-2 col-md-2 no-padding-r width-auto">
+                                            <label>Shipper Category</label>
+                                            @Html.DropDownListFor(a => a.manageDet.ShipCategoryID, new SelectList((System.Collections.IEnumerable)ViewData["ShipperCategoryList"], "Value", "Text", ViewData["ShipperCategoryList"]), "Select One", new { @class = "form-control input-sm m-n pad-none", id = "ShipperCategory", title = "Shipper Category" })
+                                            @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })*@
+                                            @Html.ValidationMessageFor(a => a.manageDet.ShipCategoryID, "", new { @class = "text-danger" })
+                                        </div>
+                                        <div class="form-group col-sm-2 m-r-n">
+                                            <label>Email</label>
+                                            @Html.TextBoxFor(a => a.manageDet.Email, new { @class = "form-control input-sm", placeholder = "Email", title = "Email", @id = "Email" })
+
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group col-sm-2 m-r-n">
+                                            <label>Address 1</label>
+                                            @Html.TextBoxFor(a => a.manageDet.Address1, new { @class = "form-control input-sm", placeholder = "Address1", title = "Address 1", @id = "Address1" })
+                                        </div>
+                                        <div class="form-group col-sm-2 m-r-n">
+                                            <label>Address 2</label>
+                                            @Html.TextBoxFor(a => a.manageDet.Address2, new { @class = "form-control input-sm", placeholder = "Address1", title = "Address 1", @id = "Address1" })
+                                        </div>
+                                        <div class="form-group col-sm-2 m-r-n">
+                                            <label>City</label>
+                                            @Html.DropDownListFor(a => a.manageDet.AddressCityID, new List<SelectListItem>(), new { @class = "form-control enableselect CityDropDown", id = "City", title = "City" })
+                                            @Html.ValidationMessageFor(a => a.manageDet.AddressCityID, "", new { @class = "text-danger" })
+
+                                        </div>
+                                        <div class="form-group col-sm-2 m-r-n">
+                                            <label>PIN Code</label>
+                                            @Html.TextBoxFor(a => a.manageDet.PIN, new { @class = "form-control input-sm", placeholder = "PIN", title = "PIN", @id = "PIN" })
+                                        </div>
+                                        <div class="form-group col-sm-2 m-r-n">
+                                            <label>Phone 1</label>
+                                            @Html.TextBoxFor(a => a.manageDet.Phone1, new { @class = "form-control input-sm", placeholder = "Phone1", title = "Phone 1", @id = "Phone1" })
+                                            @Html.ValidationMessageFor(a => a.manageDet.Phone1, "", new { @class = "text-danger" })
+                                        </div>
+                                        <div class="form-group col-sm-2 m-r-n">
+                                            <label>Phone 2</label>
+                                            @Html.TextBoxFor(a => a.manageDet.Phone2, new { @class = "form-control input-sm", placeholder = "Phone2", title = "Phone 2", @id = "Phone2" })
+                                            @Html.ValidationMessageFor(a => a.manageDet.Phone2, "", new { @class = "text-danger" })
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="col-md-12 border m-n" id="Document">
+                                <legend>Document Detail</legend>
+                                <div class="row">
+                                    <div class="col-sm-2 col-md-2">
+                                        <div class="form-group">
+                                            @Html.LabelFor(model => model.manageDet.RMCFileNo, htmlAttributes: new { @class = "control-label" })
+                                            @Html.TextBoxFor(a => a.manageDet.RMCFileNo, new { @class = "form-control input-sm", placeholder = "RMC File No", title = "RMC File No", @id = "RMCFileNo" })
+                                            @Html.ValidationMessageFor(a => a.manageDet.RMCFileNo, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2 col-md-2">
+                                        <div class="form-group">
+                                            @Html.LabelFor(model => model.manageDet.WKNo, htmlAttributes: new { @class = "control-label" })
+                                            @Html.TextBoxFor(a => a.manageDet.WKNo, new { @class = "form-control input-sm", placeholder = "Work Order No", title = "Work Order No", @id = "WKNo" })
+                                            @Html.ValidationMessageFor(a => a.manageDet.WKNo, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3 col-md-3">
+                                        <div class="form-group">
+                                            @Html.LabelFor(model => model.manageDet.MoveCoordinator, htmlAttributes: new { @class = "control-label" })
+                                            @Html.DropDownListFor(model => model.manageDet.MoveCoordinatorID, new SelectList((System.Collections.IEnumerable)ViewData["MoveCoordinatorList"], "Value", "Text"), "--Select Assigned move coordinator--", new { @class = "form-control input-sm clearfix", @id = "MoveCoordinator" })
+                                            @Html.ValidationMessageFor(a => a.manageDet.MoveCoordinatorID, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3 col-md-3">
+                                        <div class="form-group">
+                                            @Html.LabelFor(model => model.manageDet.OFSDocument, htmlAttributes: new { @class = "control-label" })
+                                            @Html.TextBoxFor(a => a.manageDet.OFSDocument, new { type = "file", @class = "form-control input-sm", placeholder = "OFS Document", title = "OFS Document", @id = "OFSDocument" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <input type="submit" id="btn_SaveJob" class="btn-primary input-sm" value="Save Job" />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    <script type="text/javascript">
+        $('.datetimepicker1').datetimepicker({
+            format: 'DD-MMM-YYYY',
+        });
+
+        $('#btnSearch').click(function (e) {
+            
+            var FromCitySelected = $('#FromCity').find('option:selected').val();
+            var ToCitySelected = $('#ToCity').find('option:selected').val();
+            var RMCSelected = $('#RMC').find('option:selected').val();
+            var IsError = false;
+            if (!FromCitySelected) {
+                alert("FromCity is Required.");
+                IsError = !FromCitySelected;
+            }
+            if (!ToCitySelected) {
+                alert("ToCity is Required.");
+                IsError = !ToCitySelected;
+            }
+            if (!RMCSelected) {
+                alert("RMC is Required.");
+                IsError = !RMCSelected;
+            }
+            if (IsError) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        $(document).ready(function () {
+            
+            if ('@InValid' == 'True') {
+                $('.btncancel').removeClass('hide');
+                $('.OtherJobModal').find('.close').addClass('hide');
+                $('.OtherJobModal').modal();
+                if ('@IsRoadSelected' == 'True') {
+                    $('#IsRoad').attr('checked');
+                    $('.OtherJobModal').find('.div_Mode_Road').removeClass('hide');
+                    $('.OtherJobModal').find('.div_Mode_Sea').addClass('hide');
+                    $('.OtherJobModal').find('.div_Mode_Air').addClass('hide');
+                }
+                else {
+                    $('.OtherJobModal').find('.div_Mode_Road').addClass('hide');
+                    $('.OtherJobModal').find('.div_Mode_Sea').removeClass('hide');
+                    $('.OtherJobModal').find('.div_Mode_Air').removeClass('hide');
+                }
+            }
+            else {
+                $('.btncancel').addClass('hide');
+                $('.OtherJobModal').find('.close').removeClass('hide');
+            }
+            AjaxFillDropDown('.CityDropDown', "@Url.Action("GetCityList", "Lead")");
+            
+
+            $("#FromCity, #ToCity, #RMC,#IsRoad").change(function () {
+                
+                var Selected = $('option:selected', this).val();
+
+
+                if (this.id =="FromCity") {
+
+                    $("#FromCityID").val(Selected);
+                    //$("#Jobpartial").find('#FromCityID').val(Selected);
+
+                    @*$.get("@Url.Action("GetaJAXClientDetails", "Enquiry")", { ClientId: client, Mode: 'C' }, function(data) {
+                        //alert(data.AccountMgr);
+                        if (data.result)
+                        {
+                            if ($('#chg_AccMgr').text() == 'Change') {
+                                $("#AccountMgr").val(data.result.AccountMgr);
+                            }
+                            else {
+                                $("#AccountMgr").val('');
+                            }
+                            $("#AccountGSTNO").val(data.result.AccountGSTNO);
+                        }
+                    });*@
+                }
+                if (this.id == "ToCity") {
+
+                    $("#ToCityID").val(Selected);
+                    //$("#Jobpartial").find('#ToCityID').val(Selected);
+                }
+
+                if (this.id == "RMC") {
+
+                    $("#RMCID").val(Selected);
+                    //$("#Jobpartial").find('#RMCID').val(Selected);
+                }
+                if (this.id == "IsRoad") {
+
+                    $("#HFIsRoad").val($(this).is(':checked'));
+                    //$("#Jobpartial").find('#RMCID').val(Selected);
+                }
+
+                $('.datetimepicker').datetimepicker({
+                    format: 'DD-MMM-YYYY',
+                });
+
+
+            });
+            //$('.enableselect').select2();
+        });
+
+        $('#RMC').change(
+            function()
+            {
+
+                var RMCID = $(this).val();
+                $.get("@Url.Action("GetRMCType")", { RMCID: RMCID }, function (data) {
+                    if (data.RMCType == 'Brookfield Type') {
+                        $('.btnJob').removeAttr('disabled');
+                        $('#btnCreate').attr('disabled', 'disabled');
+                        $('#btnSearch').attr('disabled', 'disabled');
+                    }
+                    else {
+                        $('.btnJob').attr('disabled', 'disabled');
+                        $('#btnCreate').removeAttr('disabled');
+                        $('#btnSearch').removeAttr('disabled');
+                    }    
+                });
+                
+                
+                $.get("@Url.Action("GetRevenuelist")", { RMCID: RMCID }, function (data) {
+                    $('#RevenueBranch').find('option').remove();
+                    $.each(data.RevenueList, function (i) {
+                        $('#RevenueBranch').append($('<option></option>').val(data.RevenueList[i].Value).html(data.RevenueList[i].Text));
+                    });
+                });
+            }
+        );
+
+                    function PagedOnCompleteBinds()
+                    {
+            $(document).ready(function () {
+
+                $('.grid-header-title a').on('click', function (e) {
+                    e.preventDefault();
+                    var sturl = "@Url.Action("Index", "Lead")" + $(this).attr('href');
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('form.frmRWDelete').on('submit', function (e) {
+                    e.preventDefault();
+                    $frmRWDelete = this;
+                    swal({
+                        title: "Are you sure?",
+                        //text: "Your will not be able to recover this imaginary file!",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Delete",
+                        cancelButtonText: "No",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $('#mgrid').mask("Loading...");
+                            $($frmRWDelete).ajaxSubmit({
+                                success: function (data) {
+                                    if (data.Success) {
+                                        toastr.success("Lead deleted successfully.");
+                                        $('#mgrid .pagination li.active a').trigger('click');
+                                    } else if (!data.Success) {
+                                        swal({
+                                            text: "Lead delete failed. Please try again.",
+                                            type: "error"
+                                        });
+                                    }
+                                    $('#mgrid').unmask();
+                                },
+                                complete: function () {
+                                    $('#mgrid').unmask();
+                                }
+                            });
+                        } else {
+                            swal("", "Lead delete cancelled.", "error");
+                        }
+                    });
+                });
+                $('#mgrid .pagination li a').on('click', function (e) {
+                    
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    var sturl = $('#mgrid .sorted.grid-header-title a').attr('href');
+                    if (typeof sturl != 'undefined') {
+                        var gdir = url("?grid-dir", sturl);
+                        sturl = sturl.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0 ? 1 : 0));
+                        sturl = sturl.replace('?', '&');
+                    }
+
+                    var sturl2 = $(this).attr('href');
+                    if (sturl2 == undefined) {
+                        sturl2 = "@Url.Action("Index", "Lead")?page=" + parseInt($(this).html());
+                    }
+                    //sturl = sturl2 + typeof sturl != 'undefined' ?sturl.replace(/page=\d+/i, "") : '';
+                    if (sturl == undefined) {
+                        //sturl = sturl2 + sturl == undefined ? '' : sturl.replace(/page=\d+/i, "");
+                        sturl = sturl2;
+                    }
+                    else {
+                        sturl = sturl2 + sturl.replace(/page=\d+/i, "");
+                    }
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+            });
+        }
+        $(document).ready(function () {
+            PagedOnCompleteBinds();
+
+
+            $('form#CustomFilter').on('submit', function (e) {
+                e.preventDefault();
+                $(this).ajaxSubmit({
+                    target: '#mgrid',
+                    success: function () {
+                        PagedOnCompleteBinds();
+                    }
+                });
+            });
+
+            //$('#btn_SaveJob').on('click', function (e) {
+            //    $(this).closest('.mode').find('.chk_Mode').each(function () {
+            //        debugger;
+            //        if ($(this).is(':checked')) {
+            //            var Commodity = $(this).closest('form').find('#SeaCommodity').val();
+            //            if ($(this).attr('id').includes('Sea') && !($(this).closest('form').find('#SeaCommodity').val()))
+            //            {
+                            
+            //                swal("Warning!", "Please select commodity.", "error");
+            //                e.preventDefault();
+            //            }
+            //            else if ($(this).attr('id').includes('Air') && !($(this).closest('form').find('#AirCommodity').val()))
+            //            {
+            //                swal("Warning!", "Please select commodity.", "error");
+            //                e.preventDefault();
+            //            }
+            //            else if ($(this).attr('id').includes('Road') && !($(this).closest('form').find('#RoadCommodity').val()))
+            //            {
+            //                swal("Warning!", "Please select commodity.", "error");
+            //                e.preventDefault();
+            //            }
+
+
+                        
+            //            //swal("Warning!", "Please select commodity.", "error");
+            //            //e.preventDefault();
+            //            //e.preventDefault();
+            //        }
+            //        else {
+            //            //swal("Warning!","Please select commodity.","error");
+            //            //e.preventDefault();
+            //        }
+            //    });
+            //});
+        });
+
+
+        function GenerateXML(element)
+        {
+            
+            var control = $(element);
+            var data = getAllData(control);
+            if (data)
+                $("#HFEnqDet").val(JSON.stringify(data));
+            else
+                $("#HFEnqDet").val(null);
+        }
+
+        function getAllData(control) {
+            var mode, modename;
+            var data = [];
+            control.closest('.mode').find('.chk_Mode').each(function ()
+            {
+                
+                var fromcity = $(this).closest('form').find('#FromCityID').val();
+                var tocity = $(this).closest('form').find('#ToCityID').val();
+                var Commodity = $(this).closest('form').find('#Commodity').val();
+                modename = $(this).closest('label').find('span').html();
+                if ($(this).is(':checked')) {
+                    if ($(this).attr('id').includes('Sea'))
+                        mode = '@Sea';
+                    else if ($(this).attr('id').includes('Air'))
+                        mode = '@Air';
+                    else
+                        mode = '@Road';
+
+                    var alldata = {
+                    'EnqDetailID': null,
+                    'EnqID': null,
+                    'HandlingBrId': '@Model.manageDet.HandlingBrId',
+                    'ServiceLineID': '@Model.manageDet.ServiceLnId',
+                    'FromCity': fromcity,@*'@Model.FromCityID',*@
+                    'ToCityID': tocity,@*'@Model.ToCityID',*@
+                    'Mode': modename.trim(),
+                    'ModeID': parseInt(mode),
+                    'ShipmentTypeID': '@Model.manageDet.ShipmentTypeId',
+                    'GoodsDescId': Commodity.trim(),@*'@Model.manageDet.CommodityId',*@
+                    'WtUnitid': null,
+                    'WtNet': null,
+                    'WtGross': null,
+                    'WtACWT': null,
+                    'VolumeUnitID': null,
+                    'VolumeToPack': null,
+                    'VolumeNet': null,
+                    'VolumeGross': null,
+                    'LooseCased': null,
+                    'DensityFact': null,
+                    'LCLorFCL': null,
+                    'ContainerTypeID': null,
+                    'Remarks': null,
+                    'TentativeMovedate': null,//moment().format('DD-MMM-YYYY'),
+                    'SchSurveyorID': null,
+                    'SchSurveyDate': null,
+                    'SchSurveyorRemarks': null,
+                    'IsActive': true
+                }
+                data.push(alldata);
+                }
+                else {
+                    var parentelement = $(this).closest('.mode').siblings('#' + modename);
+                    parentelement.find('input,select').val('');//.each(function{ });
+                }
+            });
+            return data.length > 0 ? { 'EnqDetail': data } : '';
+        }
+
+        function GetBrookJobDetails(button)
+        {
+            
+            var RMCID = $('#RMCID').val();
+            var ToCityID = $('#ToCityID').val();
+            var FromCityID = $('#FromCityID').val();
+
+            SetJobDetails(RMCID, FromCityID, ToCityID);
+            debugger;
+            if ($('#IsRoad').is(':checked')) {
+                $('#Jobpartial').find('.div_Mode_Road').removeClass('hide');
+                $('#Jobpartial').find('.div_Mode_Sea').addClass('hide');
+                $('#Jobpartial').find('.div_Mode_Air').addClass('hide');
+            }
+            else {
+                $('#Jobpartial').find('.div_Mode_Road').addClass('hide');
+                $('#Jobpartial').find('.div_Mode_Sea').removeClass('hide');
+                $('#Jobpartial').find('.div_Mode_Air').removeClass('hide');
+            }
+
+        }
+
+        function SetJobDetails(RMCID, FromCityID, ToCityID) {
+            $('#Jobpartial').find('#RMCID').val(RMCID);
+            $('#Jobpartial').find('#ToCityID').val(ToCityID);
+            $('#Jobpartial').find('#FromCityID').val(FromCityID);
+        }
+    </script>
+
+}

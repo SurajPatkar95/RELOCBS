@@ -1,0 +1,469 @@
+﻿@using RELOCBS.Utility;
+@{
+
+    string _PageID = "19";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+
+}
+
+<div class="col-lg-12 col-sm-12 col-md-12" style="padding-right:20px;">
+    <div class="pnl-gridtop clearfix">
+        <div id="divInstructionSheet">
+            @using (Html.BeginForm(null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+            {
+                <div class="clearfix pnl-filter">
+
+                        @Html.AntiForgeryToken()
+                        <div class="form-group col-md-2">
+                            <label class="marr-5">Job From Date</label>
+                            <div class="clearfix">
+                                @Html.TextBox("FromDate", null, new { @class = "form-control input-sm datepicker" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="marr-5">To Date</label>
+                            <div class="clearfix">
+                                @Html.TextBox("ToDate", null, new { @class = "form-control input-sm datepicker" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="marr-5">Shipper</label>
+                            <div class="clearfix">
+                                @Html.Editor("Shipper", new { htmlAttributes = new { @placeholder = "Shipper Name", @tooltip = "Shipper", @class = "form-control input-sm ", title = "Shipper", id = "Shipper" } })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="marr-5">Job No.</label>
+                            <div class="clearfix">
+                                @Html.DropDownList("JobNo", new SelectList((System.Collections.IEnumerable)ViewData["JobNoList"], "Value", "Text", ViewData["MoveId"]), "Select Job No", new { @class = "form-control input-sm enableselect" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-1">
+                            <div class="clearfix">
+                                <input type="submit" id="btnSearch" name="Search" class="btn btn-default btn-sm filter-custom-margin" value="Search" />
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-1">
+                            <div class="clearfix">
+                                <input type="button" id="btnCreate" name="Create" class="btn btn-primary btn-sm m-t-sm" formaction='@Url.Action("Create", "InstructionSheet")' value="Create Instruction Sheet" onclick="CreateOnClick(this)" />
+                            </div>
+                        </div>
+                        <a href="@Url.Action("CrewUtilization","JobAllocation",new { Page = 19 })" class="btn btn-danger btn-sm lnkExportToExcel m-r-sm pull-right">Crew Utilization</a>
+                    </div>
+
+            }
+            <div id="mgrid">
+                @Html.Partial("_AjaxPartial")
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+
+    <script type="text/javascript">
+
+        function CreateOnClick(sender) {
+            
+            var btn = $(sender);
+
+            if (btn != null && parseInt($('#JobNo').val())> 0) {
+
+                var MoveId = parseInt($('#JobNo').val());
+                var JobNoMsg = "Advance or Pre Payment related details needs to be captured in Job before requesting for WIS Instructions as this is a Private shipper OR advance collection  OR Pre payment instructions  is mentioned on the B&C for this shipment";
+                //var JobNoMsg = "please update cheque details for Job No. :" + $('#JobNo option:selected').text() +" by going into job opening.";
+                var url = '@Url.Action("CheckCreditPrivateClient", "MoveManage", new { id = "-1",IsWIS = true })';
+                url = url.replace("-1", MoveId);
+                url = url.replace(/&amp;/g, "&");
+                $.getJSON(url, null, function (data) {
+                
+                    if (data.result==true) {
+
+                        swal({
+                            title: "",
+                            text: JobNoMsg,
+                            icon: "warning",
+                        });
+                        return false; 
+                    }
+
+                   var url = '@Url.Action("Create", "InstructionSheet", new { MoveID = "__id__" })';
+                   window.location.href = url.replace('__id__', MoveId);
+
+                });
+                
+            }
+            else {
+
+                swal({
+                    title: "",
+                    text: "Job No. is required",
+                    icon: "warning",
+                });
+                
+            }
+
+            return false;
+        }
+
+        //$(function () {
+        //    GridBind();
+        //});
+
+
+        function GridBind() {
+            
+            var size = $("#mgrid #gridT > thead > tr >th").size(); // get total column
+            $("#mgrid #gridT > thead > tr >th").last().remove(); // remove last column
+            $("#mgrid #gridT > thead > tr").prepend("<th></th>"); // add one column at first for collapsible column
+            $("#mgrid #gridT > tbody > tr").each(function (i, el) {
+                $(this).prepend(
+                    $("<td></td>")
+                        .addClass("expands")
+                        .addClass("hoverEff")
+                        .attr('title', "click for show/hide")
+                        .attr('style', "width:100px;")
+                );
+
+                //Now get sub table from last column and add this to the next new added row
+                var table = $("table", this).parent().html();
+                //add new row with this subtable
+                $(this).after("<tr><td></td><td style='padding:5px; margin:0px;' colspan='" + (size - 1) + "'>" + table + "</td></tr>");
+                $("table", this).parent().remove();
+                // ADD CLICK EVENT FOR MAKE COLLAPSIBLE
+                $(".hoverEff", this).on('click', function () {
+                    $(this).parent().closest("tr").next().slideToggle(100);
+                    $(this).toggleClass("expands collapses");
+                });
+            });
+
+            //by default make all subgrid in collapse mode
+            $("#mgrid #gridT > tbody > tr td.expands").each(function (i, el) {
+                $(this).toggleClass("expands collapses");
+                $(this).parent().closest("tr").next().slideToggle(100);
+            });
+
+
+            $('#mgrid #gridT .subT th a,.btnInstructionView,.btnEdit').on("click", function (e) {
+                e.preventDefault();
+            });
+
+            //debugger;
+            //$("#subT TH:last-child").eq(0).hide();
+            //$("#subT TH:nth-last-child(2)").eq(0).hide();
+
+            $('.subT').each(function (index, value) {
+
+                $(this).find('TH:last-child').eq(0).hide();
+                $(this).find('TH:nth-last-child(2)').eq(0).hide();
+            });
+
+
+            //$("td.btnEdit").html(function () {
+
+            //    return "<a class='btn btn-primary btn-sm Edit m-n' href='javascript:void(0)' onclick='Grid_OnEdit(this)'><i class='glyphicon glyphicon-pencil'></i></a>";
+            //});
+
+            //$("td.btnView").html(function () {
+
+            //    return "<a class='btn btn-primary btn-sm View m-n' href='javascript:void(0)' onclick='Grid_OnView(this)'><i class='glyphicon glyphicon-eye-open'></i></a>";
+            //});
+            
+            $("td.btnDelete").html(function () {
+                return "<a class='btn btn-primary btn-sm Delete' href='javascript:void(0)' onclick='Grid_OnDelete(this)'><i class='glyphicon glyphicon-trash'></i></a>";
+            });
+
+
+            OpenGrid();
+        }
+
+        function Grid_OnView(sender) {
+
+            var ID1 = parseInt($(sender).closest("tr").find(".MoveID").text());
+            var ID2 = parseInt($(sender).closest("tr").find(".InstID").text());
+            var url = "@Url.Action("GetInstructionSheetPrint", "InstructionSheet")?MoveID=-1&InstID=-2";
+            url = url.replace('-1', ID1);
+            url = url.replace('-2', ID2);
+            url= url.replace(/&amp;/g, "&");
+
+            if (ID1 > 0 && ID2 > 0) {
+
+                window.open(url, '_blank');
+            }
+        }
+
+        function Grid_OnEdit(sender) {
+
+            var ID1 = parseInt($(sender).closest("tr").find(".MoveID").text());
+            var ID2 = parseInt($(sender).closest("tr").find(".InstID").text());
+            var url = "@Url.Action("Create", "InstructionSheet")?MoveID=-1&InstID=-2";
+            url = url.replace('-1', ID1);
+            url = url.replace('-2', ID2);
+            url= url.replace(/&amp;/g, "&");
+
+            if (ID1 > 0 && ID2 > 0) {
+
+                window.open(url, '_blank');
+
+            }
+        }
+
+        function Grid_OnDelete(sender) {
+
+        }
+
+        //Assign Click event to Plus Image.
+        $("body").on("click", "img[src*='expand.jpg']", function () {
+
+            $(this).closest("tr").after("<tr><td></td><td colspan = '999'>" + $(this).next().html() + "</td></tr>");
+            $(this).attr("src", "/images/collapse.jpg");
+        });
+        //Assign Click event to Minus Image.
+        $("body").on("click", "img[src*='collapse.jpg']", function () {
+            $(this).attr("src", "/images/expand.jpg");
+            $(this).closest("tr").next().remove();
+        });
+
+
+        $(document).ready(function () {
+
+            $('.datepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('#FromDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+
+            $('#ToDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+
+            $('#Shipper').on('change', function () {
+                loadJobNo();
+            });
+        });
+
+
+        function loadJobNo() {
+            
+            var url = '@Url.Action("GetJobNoList", "Combo")';
+            var ShipperText = $('#Shipper').val();
+            if ((ShipperText.trim()).length == 0 || (ShipperText.trim()).length >= 3) {
+
+                var name = { shipper: ShipperText, Type: "I" };
+                var selectdepartment = $('#JobNo');
+                $.getJSON(url, name, function (data) {
+                    //selectdepartment.empty();
+
+                    selectdepartment.html('').select2({ data: [{ id: '', text: '' }] });
+                    var Default = new Option('Select Job No', '', true, true);
+                    selectdepartment.append(Default);
+                    //$(selectdepartment).append('<option value=0>Please Select</option>');
+                    for (var i = 0; i < data.length; i++) {
+                        var newState = new Option(data[i].Text, data[i].Value);
+                        // Append it to the select
+                        selectdepartment.append(newState);
+                    }
+                    selectdepartment.trigger('change');
+                });
+
+            }
+            
+        };
+        
+        function OpenGrid() {
+
+            var table = document.getElementById("gridT");
+            var tbody = table.tBodies[0];
+
+            if (tbody.rows.length == 2) {
+
+                $('.hoverEff').trigger('click');
+            }
+        }
+
+
+    </script>
+
+    <script>
+        function rebindState() {
+            
+            return false;
+            @*if ('@ViewData["Selectedstate"]'!= null) {
+
+                $("#SelectedCountryID").val('@Model.SelectedCountryID');
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("GetStates")',
+                    dataType: 'json',
+                    data: {
+                        id: $("#SelectedCountryID").val()
+                    },
+                    success: function (states) {
+
+                        $.each(states, function (i, state) {
+                            $("#SelectedStateID").append('<option value="' + state.Value + '">' + state.Text + '</option>');
+
+                            if ('@ViewData["Selectedstate"]' != 0) {
+                                $("#SelectedStateID").val('@ViewData["Selectedstate"]');
+                            }
+
+                        });
+                    },
+                    error: function (ex) {
+                        alert('Failed to retrieve states.' + ex);
+                    }
+                });
+            }*@
+
+
+        }
+    </script>
+
+
+    <script type="text/javascript">
+        /////Grid populate
+        $(document).ready(function () {
+            GridBind();
+            PagedOnCompleteBinds();
+            AutoDropFill();
+
+            $('form#CustomFilter').on('submit', function (e) {
+                e.preventDefault();
+                $(this).ajaxSubmit({
+                    target: '#mgrid',
+                    success: function () {
+
+                        PagedOnCompleteBinds();
+                        GridBind();
+                    }
+                });
+            });
+
+        });
+
+
+                /////search form data
+        function PagedOnCompleteBinds() {
+            $(document).ready(function () {
+                $('select').select2();
+                $('.grid-header-title a').on('click', function (e)
+                {
+                    e.preventDefault();
+                    var sturl = "@Url.Action("Index", "InstuctionSheet")" + $(this).attr('href');
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('#mgrid .pagination li a').on('click', function (e) {
+                    e.preventDefault();
+
+                    e.stopImmediatePropagation();
+                    var sturl = $('#mgrid .sorted.grid-header-title a').attr('href');
+                    if (typeof sturl != 'undefined') {
+                        var gdir = url("?grid-dir", sturl);
+                        var gcol = url("?grid-column", sturl);
+                        sturl = sturl.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0) ? 1 : 0);
+                        sturl = sturl.replace('?', '&');
+                    }
+
+                    var sturl2 = $(this).attr('href');
+                    if (sturl2 == undefined) {
+                        sturl2 = "@Url.Action("Index", "InstuctionSheet")?page=" + parseInt($(this).html());
+                    }
+
+                    if (sturl == undefined && typeof sturl2 != 'undefined') {
+                        sturl = sturl2;
+                    }
+
+                    //sturl = sturl2 + sturl.replace(/page=\d+/i, "");
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('form.frmRWDelete').on('submit', function (e) {
+                    e.preventDefault();
+                    $frmRWDelete = this;
+                    swal({
+                        title: "Are you sure you want to delete this record?",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Delete",
+                        cancelButtonText: "No",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                        function (isConfirm) {
+                            if (isConfirm) {
+                                $('#mgrid').mask("Loading...");
+                                $($frmRWDelete).ajaxSubmit({
+                                    success: function (data) {
+                                        if (data.Success) {
+                                            toastr.success("InstructionSheet deleted successfully.");
+                                            $('#mgrid .pagination li.active a').trigger('click');
+                                        } else if (!data.Success) {
+                                            swal({
+                                                text: "InstructionSheet Delete Failed.",
+                                                type: "error"
+                                            });
+                                        }
+                                        $('#mgrid').unmask();
+                                    },
+                                    complete: function () {
+                                        $('#mgrid').unmask();
+                                    }
+                                });
+                            } else {
+                                swal("", "InstructionSheet Delete Cancelled.", "error");
+                            }
+                        });
+                });
+                $('.lnkExportToExcel').on('click', function () {
+                    var url = '@Url.Action("ExportToExcel", "InstructionSheet", new { })';
+                    window.location.href = url;
+                });
+            });
+        }
+
+        function PagedOnComplete(obj) {
+            $('#mgrid table').unmask();
+            GridBind();
+            PagedOnCompleteBinds();
+        }
+
+
+    function AutoDropFill() {
+            var returnResult = [];
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetShipperNameList", "Combo")",
+                method: 'GET',
+            async: 'false',
+            dataType: 'json',
+            success: function (result) {
+                var data = $.map(result, function (obj) {
+                    obj.value = obj.Text; // desired field
+                    obj.data = obj.Value; // desired field
+                    returnResult.push(obj);
+                    $("#Shipper").autocomplete({
+                        lookup: returnResult
+                    });
+
+                });
+            },
+            error: function () { }
+        });
+    }
+    </script>
+}

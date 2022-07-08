@@ -1,0 +1,637 @@
+﻿@model RELOCBS.Entities.InsuranceViewModel
+
+@using RELOCBS.Common;
+@using RELOCBS.Utility;
+
+
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string _PageID = "24";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+<style type="text/css">
+    .table-borderless > tbody > tr > td,
+    .table-borderless > tbody > tr > th,
+    .table-borderless > tfoot > tr > td,
+    .table-borderless > tfoot > tr > th,
+    .table-borderless > thead > tr > td,
+    .table-borderless > thead > tr > th {
+        border: none;
+    }
+
+    .red-border input {
+        border: 1px solid #FF4500;
+        font-weight: bolder;
+        color: #FF0000;
+    }
+
+    .red-border .form-control:focus {
+        border: 1px solid #FF4500;
+        box-shadow: 0 0 0 0.2rem rgba(186, 104, 200, .25);
+    }
+
+    .green-border input {
+        border: 1px solid #8bc34a;
+        font-weight: bolder;
+        color: #008000;
+    }
+
+    .green-border .form-control:focus {
+        border: 1px solid #8bc34a;
+        box-shadow: 0 0 0 0.2rem rgba(186, 104, 200, .25);
+    }
+
+
+</style>
+
+<div>
+    @using (Html.BeginForm("Create", "Insurance", new { key = CommonService.GenerateQueryString("MoveID=ParamValue0&InsuranceID=ParamValue1", new string[] { Convert.ToString(@Model.MoveID), (string.IsNullOrWhiteSpace(Convert.ToString(@Model.Insurance_ID)) ? "-1" : Convert.ToString(@Model.Insurance_ID)) }) }, FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.ValidationSummary(false, "")
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(a => a.MoveID)
+        @Html.HiddenFor(a => a.Insurance_ID)
+
+        <fieldset class="col-md-12 border-grey m-t-xs">
+            <div class="row m-t-xs">
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Job No. :</strong>&nbsp;<strong>@Html.Raw(Model.JobNo)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <strong>Ins No. :</strong>&nbsp;<strong>@Html.Raw(Model.Insurance_ID > 0 ? Model.Insurance_ID : null)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>ServiceLine:</strong>&nbsp;<strong>@Html.Raw(Model.ServiceLine)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label class="col-sm-5 col-form-label">Business Line:</label>
+                        <div class="col-sm-7">
+                            <strong>@Html.Raw(Model.Controller)</strong>
+                            @*@Html.DropDownListFor(model => Model.ControllerID, new SelectList((System.Collections.IEnumerable)ViewData["ControllerList"], "Value", "Text"), "--Select Controller--", new { @class = "form-control input-sm clearfix Controller disabled", @disabled= "disabled" })*@
+                            @Html.HiddenFor(model => Model.ControllerID)
+                            @Html.ValidationMessageFor(a => a.ControllerID, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-1 col-md-1">
+                    <div class="clearfix">
+                        <button type="submit" class="btn btn-primary btn-sm pull-left" name="submit" value="Save" id="btnSave">Save</button> &nbsp;
+                        @if (Model.Insurance_ID > 0)
+                        {
+                            <a href="@Url.Action("GetInsurancePrint", "Insurance",new { Key = CommonService.GenerateQueryString("MoveID=ParamValue0&InsuranceID=ParamValue1", new string[] {Model.MoveID.ToString(),!string.IsNullOrWhiteSpace(Convert.ToString(Model.Insurance_ID)) ? Convert.ToString(Model.Insurance_ID) : "-1"})})" class="btnView btn btn-xs btn-default glyphicon glyphicon-print pull-right" target="_blank" title="View Report"></a>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="row m-t-xs">
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Org. City :</strong>&nbsp;<strong>@Html.Raw(Model.OrgCity)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Dest. City :</strong>&nbsp;<strong>@Html.Raw(Model.DestCity)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <strong>Mode:</strong>&nbsp;<strong>@Html.Raw(Model.Mode)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Corporate:</strong>&nbsp;<strong>@Html.Raw(Model.Corporate)</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row m-t-xs">
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Shipper :</strong>&nbsp;<strong>@Html.Raw(Model.ShipperName)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Client :</strong>&nbsp;<strong>@Html.Raw(Model.Client)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-5 col-md-5">
+                    <div class="form-group">
+                        <label for="Pack_Superviser" class="col-xs-4 text-right">Pack Supervisor</label>
+                        <div class="col-xs-8">
+                            @Html.TextBoxFor(model => Model.Pack_Superviser, new { @class = "form-control input-sm Pack_Superviser" })
+                            @Html.ValidationMessageFor(a => a.Pack_Superviser, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-1 col-md-1">
+                    <div class="clearfix">
+                        <a href="@Url.Action("Create", "DMS", new {  id = @Model.Insurance_ID, Type = "Insurance" })" class="btn btn-primary btn-sm pull-right m-r-xs" data-toggle="modal" data-target="#mdlDMS" data-cache="false" title="DMS"><i class="glyphicon glyphicon-folder-open m-r-xs"></i>DMS</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row m-t-xs">
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Org. Agent:</strong>&nbsp;<strong>@Html.Raw(Model.OrgAgent)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Dest. Agent:</strong>&nbsp;<strong>@Html.Raw(Model.DestAgent)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group" style="color: #FF0000">
+                        <strong>TAT indicator(Hrs):</strong>&nbsp;<strong>@Html.Raw(Model.TATinHrs)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label for="Pac_Disp_Date" class="col-sm-5 text-right">Pack/Disp Date</label>
+                        <div class="col-sm-7">
+                            @Html.TextBoxFor(model => Model.Pac_Disp_Date, new { @class = "form-control input-sm clearfix Pac_Disp_Date datetimepicker" })
+                            @Html.ValidationMessageFor(a => a.Pac_Disp_Date, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row m-t-xs">
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Requested SD:</strong>&nbsp;<strong>@Html.Raw(Model.JobInsCreatedBy)</strong>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="col-md-12 border-grey m-t-sm">
+            <div class="row">
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label>Insurance Company</label>
+                        @Html.DropDownListFor(model => Model.InsuranceCompanyID, new SelectList((System.Collections.IEnumerable)ViewData["InsuranceCompList"], "Value", "Text"), "--Select Insurance Company--", new { @class = "form-control input-sm clearfix InsuranceComp" })
+                        @Html.ValidationMessageFor(a => a.InsuranceCompanyID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <label>Policy No.</label>
+                        @Html.DropDownListFor(model => Model.Policy_No, new SelectList((System.Collections.IEnumerable)ViewData["Policy_NoList"], "Value", "Text"), "--Select Policy No--", new { @class = "form-control input-sm clearfix Policy_No" })
+                        @Html.ValidationMessageFor(a => a.Policy_No, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <label>CERT No</label>
+                        @Html.TextBoxFor(model => Model.CertNo, new { @class = "form-control input-sm clearfix CertNo" })
+                        @Html.ValidationMessageFor(a => a.CertNo, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                @*<div class="col-sm-1 col-md-1">
+            <div class="form-group">
+                <label class="text-right">P.A. No</label>
+                @Html.TextBoxFor(model => Model.P_A_No, new { @class = "form-control input-sm clearfix P_A_No" , @readonly="readonly" })
+                @Html.ValidationMessageFor(a => a.P_A_No, "", new { @class = "text-danger" })
+            </div>
+        </div>*@
+                <div class="col-md-1 col-sm-1">
+                    <div class="form-group">
+                        <label class="text-right">Status</label>
+                        @Html.DropDownListFor(model => Model.Status, new SelectList((System.Collections.IEnumerable)ViewData["StatusList"], "Value", "Text", Model.Status), "--Select Status--", new { @class = "form-control input-sm clearfix Status" })
+                        @Html.ValidationMessageFor(a => a.Status, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-2">
+                    <div class="form-group">
+                        <label class="text-right">Status Remark</label>
+                        @Html.TextBoxFor(model => Model.StatusRemark, new { @class = "form-control input-sm clearfix" })
+                        @Html.ValidationMessageFor(a => a.StatusRemark, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="col-md-2 col-sm-2">
+                    <div class="form-group">
+                        <label class="text-right">Ins Delay Reason</label>
+                        @Html.DropDownListFor(model => Model.InsDelayReason, new SelectList((System.Collections.IEnumerable)ViewData["InsDelayReasonList"], "Value", "Text", Model.InsDelayReason), "--Select Reason--", new { @class = "form-control input-sm clearfix InsDelayReason" })
+                        @Html.ValidationMessageFor(a => a.InsDelayReason, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group clearfix m-t-md">
+                        @Html.CheckBoxFor(model => model.IsCoverNote, new { @class = "col-sm-3 filter-custom-margin" }) <b>CoverNote</b>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label>Rate Curr.</label>
+                        @Html.DropDownListFor(model => Model.RateCurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["Currency"], "Value", "Text"), "--Select Rate Currency--", new { @class = "form-control input-sm clearfix ExCurrM" })
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <label>ExRate</label>
+                        @Html.TextBoxFor(model => Model.ExRate, new { @class = "form-control input-sm clearfix ExRateM", onkeypress = "return OnlyDouble(this, event);" })
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label>Base Curr.</label>
+                        @Html.DropDownListFor(model => Model.BaseCurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["Currency"], "Value", "Text"), "--Select Base Currency--", new { @class = "form-control input-sm clearfix", @disabled = "disabled" })
+                        @Html.HiddenFor(model => Model.BaseCurrencyID, new { @class = "BaseCurrency" })
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    @{ var textColor = (Model.BalPremPercent < 5 ? " red-border" : "green-border"); }
+                    <div class="form-group @textColor">
+                        <label>Bal.Prem.%</label>
+                        @Html.TextBoxFor(model => Model.BalPremPercent, new { @class = "form-control input-sm", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                    </div>
+                </div>
+            </div>
+            <table class="table table-borderless table-condensed">
+                <tbody>
+                    <tr>
+                        <th class="text-right">Open Prem Amt</th>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Open_Prem_Amt, new { @class = "form-control input-sm clearfix Open_Prem_Amt", onkeypress = "return OnlyDouble(this, event);",@readonly="readonly" })
+                            @Html.ValidationMessageFor(a => a.Open_Prem_Amt, "", new { @class = "text-danger" })
+                        </td>
+                        <th class="text-right">Open SI</th>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Open_SI_Amt, new { @class = "form-control input-sm clearfix Open_Prem_Amt", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(a => a.Open_SI_Amt, "", new { @class = "text-danger" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="text-right">Sum Insrd Amt</th>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Sum_Insrd_Amt, new { @class = "form-control input-sm clearfix Rate", onkeypress = "return OnlyDouble(this, event);" })
+                            @Html.ValidationMessageFor(a => a.Sum_Insrd_Amt, "", new { @class = "text-danger" })
+                        </td>
+                        <th class="text-right"><span class="InsBaseCurrText font-bold"></span></th>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Sum_Insrd_Amt_Ex, new { @class = "form-control input-sm clearfix Amount" ,@readonly="readonly" })
+                            @Html.ValidationMessageFor(a => a.Sum_Insrd_Amt_Ex, "", new { @class = "text-danger" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="text-right col-md-1">Shp Prem Amt</th>
+                        <td class="col-md-2">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="form-group has-feedback">
+                                        @Html.TextBoxFor(model => Model.Shp_Prem_Percent, new { @class = "form-control input-sm clearfix Shp_Prem_Amt", onkeypress = "return OnlyDouble(this, event);" })
+                                        <span class="fa fa-percent form-control-feedback" aria-hidden="true"></span>
+                                    </div>
+                                    @Html.ValidationMessageFor(a => a.Shp_Prem_Percent, "", new { @class = "text-danger" })
+                                </div>
+                                <div class="col-md-7">
+                                    @Html.TextBoxFor(model => Model.Shp_Prem_Amt, new { @class = "form-control input-sm clearfix Shp_Prem_Amt Rate", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(a => a.Shp_Prem_Amt, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </td>
+                        <th class="text-right col-md-1"><span class="InsBaseCurrText font-bold"></span></th>
+                        <td class="col-md-2">
+                            @Html.TextBoxFor(model => Model.Shp_Prem_Amt_Ex, new { @class = "form-control input-sm clearfix Amount", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(a => a.Shp_Prem_Amt_Ex, "", new { @class = "text-danger" })
+                        </td>
+                        <td class="col-md-1"></td>
+                        
+                    </tr>
+
+                    <tr>
+                        <th class="text-right">Basic Prem Paid</th>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Basic_Prem_Paid, new { @class = "form-control input-sm clearfix Basic_Prem_Paid Rate", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(a => a.Shp_Prem_Amt, "", new { @class = "text-danger" })
+                        </td>
+                        <th class="text-right"><span class="InsBaseCurrText font-bold"></span></th>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Basic_Prem_Paid_Ex, new { @class = "form-control input-sm clearfix Amount", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(a => a.Basic_Prem_Paid_Ex, "", new { @class = "text-danger" })
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="text-right">GST Paid</th>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Service_Tax_Paid, new { @class = "form-control input-sm clearfix Basic_Prem_Paid Rate", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(a => a.Service_Tax_Paid, "", new { @class = "text-danger" })
+                        </td>
+                        <th class="text-right"><span class="InsBaseCurrText font-bold"></span></th>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Service_Tax_Paid_Ex, new { @class = "form-control input-sm clearfix Amount", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(a => a.Service_Tax_Paid_Ex, "", new { @class = "text-danger" })
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="text-right">Stamp Duty Paid</th>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Stamp_Duty_Paid, new { @class = "form-control input-sm clearfix Basic_Prem_Paid Rate", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(a => a.Stamp_Duty_Paid, "", new { @class = "text-danger" })
+                        </td>
+                        <th class="text-right"><span class="InsBaseCurrText font-bold"></span></th>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Stamp_Duty_Paid_Ex, new { @class = "form-control input-sm clearfix Amount", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(a => a.Stamp_Duty_Paid_Ex, "", new { @class = "text-danger" })
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="text-right">Total Prem Paid</th>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Total_Prem_Paid, new { @class = "form-control input-sm clearfix Basic_Prem_Paid Rate", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(a => a.Total_Prem_Paid, "", new { @class = "text-danger" })
+                        </td>
+                        <th class="text-right"><span class="InsBaseCurrText font-bold"></span></th>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Total_Prem_Paid_Ex, new { @class = "form-control input-sm clearfix Amount", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(a => a.Total_Prem_Paid_Ex, "", new { @class = "text-danger" })
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="text-right">Balance Prem Amt</th>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Bal_Prem_Amt, new { @class = "form-control input-sm clearfix Basic_Prem_Paid", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(a => a.Bal_Prem_Amt, "", new { @class = "text-danger" })
+                        </td>
+                        <th class="text-right">Bal SI</th>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Bal_SI, new { @class = "form-control input-sm clearfix", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(a => a.Bal_SI, "", new { @class = "text-danger" })
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </fieldset>
+    }
+</div>
+
+
+<!--DMS Model-->
+<div id="mdlDMS" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+        </div>
+    </div>
+</div>
+
+
+@section Scripts{
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            var InsID = $('#Insurance_ID').val();
+
+            if (InsID=="-1" && ($('.ExCurrM').val() == null || $('.ExCurrM').val()=="")) {
+
+                $("#BaseCurrencyID option").each(function () {
+
+                    if ($(this).text().toLocaleUpperCase() == "RUPEE" || $(this).text().toLocaleUpperCase() == "INR") {
+                        $(this).attr('selected', 'selected');
+                        $('.BaseCurrency').val($(this).val());
+                    }
+                });
+
+
+
+                $(".ExCurrM option").each(function () {
+
+                    if ($(this).text().toLocaleUpperCase() == "RUPEE" || $(this).text().toLocaleUpperCase() == "INR") {
+                        $(this).attr('selected', 'selected');
+                    }
+                });
+
+                $(".ExRateM").val("1");
+
+                $("#ControllerID option").each(function () {
+
+                    if ($(this).text().toLocaleUpperCase().startsWith("WRITER")) {
+                        $(this).attr('selected', 'selected');
+
+                        return false;
+                    }
+                });
+
+            }
+
+            $('.InsBaseCurrText').html($('#BaseCurrencyID option:selected').val() != "" ? $('#BaseCurrencyID option:selected').text() : "");
+
+        });
+
+        $('.InsuranceComp').select2();
+        
+        // Reusable helper functions
+        const calculateSale = (listPrice, discount) => {
+            listPrice = parseFloat(listPrice);
+            discount = parseFloat(discount);
+            //return (listPrice - (listPrice * discount / 100)).toFixed(2); // Sale price
+
+            return ((listPrice * discount / 100)).toFixed(2); // Sale price
+        }
+        const calculateDiscount = (listPrice, salePrice) => {
+            
+            listPrice = parseFloat(listPrice);
+            salePrice = listPrice - parseFloat(salePrice);
+            return 100 - (salePrice * 100 / listPrice); // Discount percentage
+        }
+
+        const calculateExchangeAmt = (Amount,ExchangeRate)=> {
+
+            return parseFloat(Amount) * parseFloat(ExchangeRate);
+        }
+
+
+        $('.Rate, .ExRateM').on('input', function(e) {
+            
+            CalculateExchange();
+            
+        });
+
+        function CalculateExchange() {
+
+            var ExRate = $('.ExRateM').val();
+
+            $('table > tbody  > tr').each(function (index, tr) {
+                var Amount = $(this).find('.Amount');
+                var Rate = $(this).find('.Rate');
+                var Amt = 0;
+                if (Rate.length && ExRate.length) {
+
+                    Amt = calculateExchangeAmt(Rate.val(), ExRate);
+                }
+
+                Amount.val(Amt);
+            });
+
+
+        }
+
+
+
+        // Our use case
+        const $Sum_Insrd_Amt = $('#Sum_Insrd_Amt'),
+            $Shp_Prem_Percent = $('#Shp_Prem_Percent'),
+            $Shp_Prem_Amt = $('#Shp_Prem_Amt');
+
+        $Sum_Insrd_Amt.add($Shp_Prem_Percent).on('input', () => { // List and Discount inputs events
+            let sale = $Sum_Insrd_Amt.val();              // Default to List price
+            if ($Shp_Prem_Percent.val().length) {          // if value is entered- calculate sale price
+                sale = calculateSale($Sum_Insrd_Amt.val(), $Shp_Prem_Percent.val());
+            }
+            $Shp_Prem_Amt.val(sale);
+
+            CalculateExchange();
+        });
+
+        $Shp_Prem_Amt.on('input', () => {      // Sale input events
+            let disc = 0;                // Default to 0%
+            if ($Shp_Prem_Amt.val().length) {  // if value is entered- calculate the discount
+                disc = calculateDiscount($Sum_Insrd_Amt.val(), $Shp_Prem_Amt.val());
+            }
+            $Shp_Prem_Percent.val(disc);
+
+            
+
+        });
+
+        // Init!
+        $Sum_Insrd_Amt.trigger('input');
+
+        $('#InsuranceCompanyID').on('change', function () {
+
+            if ($('#InsuranceCompanyID').val() != null && $('#InsuranceCompanyID').val()!="") {
+
+                
+
+                $.get("@Url.Action("GetInsurancePolicyList", "Combo")", { InsuranceCompID: $('#InsuranceCompanyID').val()},
+                    function (data) {
+
+                        if (data.length >0 ) {
+
+                            $("#Policy_No").val(null);
+                            $("#Policy_No").empty();
+
+                            $("#Policy_No").append($('<option>').text("--Select Policy No--").attr('value', -1));
+
+                            $.each(data, function (number, municipe) {
+
+                                $("#Policy_No").append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+                            });
+
+                        }
+                        //if (data.length==1) {
+
+                        //     //$("#Policy_No option:first").attr('selected', 'selected');
+                        //    $('#Policy_No').find('option:eq(1)').prop('selected', true);
+                        //}
+                });
+
+                GetInsuranceAmounts($('#InsuranceCompanyID').val(), $('#Policy_No').val(), $('#Sum_Insrd_Amt').val());
+            }
+        });
+
+        $('#Policy_No').on('change', function () {
+
+            GetInsuranceAmounts($('#InsuranceCompanyID').val(), $('#Policy_No').val() ,$('#Sum_Insrd_Amt').val());
+
+        });
+
+
+
+        $("#Sum_Insrd_Amt").on('blur',function () {
+            GetInsuranceAmounts($('#InsuranceCompanyID').val(), $('#Policy_No').val(), $('#Sum_Insrd_Amt').val());
+
+        });
+
+
+        function GetInsuranceAmounts(CompID,policyNo,SumInsAmt) {
+
+            debugger;
+
+            if (CompID != null && CompID != "" && policyNo != null && policyNo!="" && parseFloat(SumInsAmt) >= 0) {
+
+                $.get("@Url.Action("GetInsuranceAmounts", "Insurance")", { InsCompID: CompID, policyNo: policyNo , Sum_Ins_Amt: SumInsAmt },
+                    function (data) {
+
+                        $('#Bal_Prem_Amt').val(data.Bal_Prem_Amt);
+                        $('#Bal_SI').val(data.Bal_SI);
+                        $('#Open_Prem_Amt').val(data.Open_Prem_Amt);
+                        $('#Basic_Prem_Paid').val(data.Basic_Prem_Paid);
+                        $('#Service_Tax_Paid').val(data.Service_Tax_Paid);
+                        $('#Stamp_Duty_Paid').val(data.Stamp_Duty_Paid);
+                        $('#Total_Prem_Paid').val(data.Total_Prem_Paid);
+                        $('#Open_SI_Amt').val(data.Open_SI_Amt);     
+
+                        CalculateExchange();
+                    });
+            }
+
+            CalculateExchange();   
+        }
+
+
+        $('.DocDownload').click(function (e) {
+            debugger;
+            e.preventDefault();
+            var url = $(this).attr('data-url');
+            var antiToken = $('input[name="__RequestVerificationToken"]').val();
+            var DocID = $('#Insurance_ID').val();
+            var form = $('#frmDownload');
+            if (form != null) {
+                form.remove();
+            }
+            var newForm = $('<form>', {
+                'id': 'frmDownload',
+                'action': url,
+                'target': '_blank',
+                'method': 'POST'
+            }).append(jQuery('<input>', {
+                'name': '__RequestVerificationToken',
+                'value': antiToken,
+                'type': 'hidden'
+            })).append(jQuery('<input>', {
+                'name': 'id',
+                'value': DocID,
+                'type': 'hidden'
+            }));
+
+            newForm.appendTo('body').submit();
+        });
+
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+}

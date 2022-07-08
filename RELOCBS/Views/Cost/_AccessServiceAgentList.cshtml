@@ -1,0 +1,130 @@
+﻿@model RELOCBS.Entities.AccessServiceAgentList
+@{
+
+
+}
+<div id="pnl-RateList" style="width:1200px;height:400px;overflow-y:auto;overflow-x:scroll;">
+    @Html.HiddenFor(Model => Model.ASACityID)
+    @Html.HiddenFor(Model => Model.ASARMCID)
+    <table class="table table-bordered" id="tblCityRates">
+        <thead>
+            <tr>
+                @{
+                    if (Model.AgentList != null && Model.AgentList.Rows.Count > 0)
+                    {
+                        <th class="col-sm-3">Service Name</th>
+                    }
+                    else
+                    {
+                        <th class="col-sm-5">No Additional Services rates found for this city and rmc!</th>
+                    }
+
+                }
+
+                @{
+                    if (Model.AgentList != null && Model.AgentList.Rows.Count > 0)
+                    {
+                        for (int ix = 2; ix < Model.AgentList.Columns.Count; ix++)
+                        {
+
+                            if (@Model.AgentList.Columns[ix].ColumnName.ToString() == "CalculatedWBCOST")
+                            { break; }
+                            else
+                            {
+                                <th class="col-sm-2">@Model.AgentList.Columns[ix].ColumnName</th>
+                            }
+                        }
+                    }
+                }
+
+                @{
+                    if (Model.AgentList != null && Model.AgentList.Rows.Count > 0)
+                    {
+                        <th class="col-sm-2 td-w-90">UOM</th>
+                        @*<th class="col-sm-2 td-w-90">W Base Cost</th>*@
+                        foreach (var data in Model.MinMaxList)
+                        {
+                            <th>
+
+                                @*@Html.RadioButton("MinMax", data.Type, new { @class = data.Type })*@
+
+                                @Html.RadioButtonFor(x => x.MinMax, data.ID, new { @class = data.Type })
+
+                                @*@Html.RadioButtonFor(model => model.MinMax, new { id = "WD" + data.ID })*@
+                                @Html.Label("WD" + data.ID, data.Type)
+                            </th>
+                        }
+                        <th class="col-sm-4 td-w-150">Value WP</th>
+                        <th class="col-sm-2 td-w-90">Rate</th>
+                    }
+                }
+
+            </tr>
+
+        </thead>
+        <tbody>
+            @{
+                int i = 0;
+                if (Model.CitywiseAdditionalServiceRates != null)
+                {
+                    foreach (var serv in Model.CitywiseAdditionalServiceRates)
+                    {
+                        <tr>
+                            <td>
+                                @serv.ServiceName
+                                <input type="hidden" name="CitywiseAdditionalServiceRates[@i].AdditionalServiceId" value="@serv.AdditionalServiceId" class="" />
+                            </td>
+
+                            @{
+                                if (Model.AgentList != null && Model.AgentList.Rows.Count > 0)
+                                {
+                                    for (int ix = 2; ix < Model.AgentList.Columns.Count; ix++)
+                                    {
+
+                                        if (@Model.AgentList.Columns[ix].ColumnName.ToString() == "CalculatedWBCOST")
+                                        { break; }
+                                        else
+                                        {
+                                            <td><lable name="CitywiseVendors">@Model.AgentList.Rows[i][ix].ToString()</lable></td>
+                                        }
+                                    }
+                                }
+                            }
+                            <td>
+                                @*<input type="text" name="CitywiseAdditionalServiceRates[@i].UOMID" value="" class="" />*@
+                                @*@Html.DropDownListFor(model => Model.CitywiseAdditionalServiceRates[i].UOMID, new SelectList((System.Collections.Generic.List<SelectListItem>)ViewData["UOM"], "Value", "Text"), "", new { @class = "" })*@
+                                @*@Html.DropDownListFor(m => m.CitywiseAdditionalServiceRates[i].UOMID, new SelectList((System.Collections.Generic.List<SelectListItem>)ViewData["UOM"], "Value", "Text", Model.CitywiseAdditionalServiceRates[i].UOMID), new { @class = "form-control", disabled = "disabled" })*@
+                                <lable name="txtUOM">@serv.UOMID</lable>
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => model.CitywiseAdditionalServiceRates[@i].MinAmt, new { @class = "form-control MinAmt", @readonly = "readonly" })
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => model.CitywiseAdditionalServiceRates[@i].MaxAmt, new { @class = "form-control MaxAmt", @readonly = "readonly" })
+                            </td>
+                            <td class="td-w-150">
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-6 no-padding-r">
+                                            @Html.DropDownListFor(m => m.CitywiseAdditionalServiceRates[i].USDPM, new SelectList((System.Collections.Generic.List<SelectListItem>)ViewData["USDPM"], "Value", "Text", Model.CitywiseAdditionalServiceRates[i].USDPM), new { @class = "form-control USDPM" })
+                                        </div>
+                                        <div class="col-sm-6 no-padding-l">
+                                            @Html.TextBoxFor(model => model.CitywiseAdditionalServiceRates[@i].WriterProfit, new { @class = "form-control  WriterProfit" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => model.CitywiseAdditionalServiceRates[@i].Rate, new { @class = "form-control Rate", @readonly = "readonly" })
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                }
+            }
+
+        </tbody>
+    </table>
+
+
+</div>

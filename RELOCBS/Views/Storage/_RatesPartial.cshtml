@@ -1,0 +1,361 @@
+﻿@model RELOCBS.Entities.JobStorage
+
+@using RELOCBS.Common;
+@using RELOCBS.Utility;
+@using RELOCBS.Extensions;
+
+
+@{
+    ViewBag.Title = "Add Rate & Insurance Details";
+    string _PageID = "24";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+    <div class="row">
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <label class="text-right">Storage Increase %</label>
+                @Html.TextBoxFor(model => Model.Strg_Inc_percent, new { @class = "form-control input-sm clearfix Strg_Inc_percent" })
+                @Html.ValidationMessageFor(a => a.Strg_Inc_percent, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <label class="text-right">As On Date</label>
+                @Html.TextBoxFor(model => Model.AsOnDate, new { @class = "form-control input-sm clearfix Monthpicker AsOnDate" })
+                @Html.ValidationMessageFor(a => a.AsOnDate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label class="text-right">Every</label>
+                @Html.DropDownListFor(model => Model.Months, new SelectList((System.Collections.IEnumerable)ViewData["SplPeriodList"], "Value", "Text"), "--Select Months--", new { @class = "form-control input-sm clearfix Months" , @disabled = "disabled" })
+                @Html.HiddenFor(model => model.Months,new { @class= "Months" })
+                @Html.ValidationMessageFor(a => a.Months, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        @if (Model.IsRateVolumeBilled == 0)
+        {
+            <div class="form-group col-md-3 col-sm-3">
+                <div class="clearfix text-center">
+                    <input type="button" id="btnClearRate" name="Clear" class="btn btn-primary m-t-sm m-b-sm m-l-sm btn-sm filter-custom-margin pull-right" value="Cancel" formnovalidate="formnovalidate" disabled />
+                    <input type="submit" id="btnSaveRate" name="Save" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin pull-right" value="Save" disabled />
+                </div>
+            </div>
+        }
+    </div>
+
+@*if(Model.ratesList == null || (Model.ratesList != null && Model.ratesList.Count > 0 && Model.ratesList.FirstOrDefault().IsBilled == 0))*@
+@*{*@
+    <div class="row">
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label class="text-right">Volume Unit</label>
+                @Html.DropDownListFor(model => model.RateVolumeUnitID, new SelectList((System.Collections.IEnumerable)ViewData["UnitList"], "Value", "Text"), "--Select Unit--", new { @class = "form-control input-sm clearfix RateVolumeUnitID", @disabled = "disabled" })
+                @Html.HiddenFor(model => model.RateVolumeUnitID)
+                @Html.HiddenFor(model => model.RateStorageDetailID)
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label class="text-right">Volume</label>
+                @Html.TextBoxFor(model => model.RateVolumeCFT, new { @class = "form-control input-sm clearfix RateVolumeCFT", @readonly = "readonly" })
+            </div>
+        </div>
+        
+    </div> 
+    <div class="row">
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <label class="text-right">Ins. From Date</label>
+                @Html.TextBoxFor(model => Model.InsuranceDate, new { @class = "form-control input-sm clearfix Monthpicker InsuranceDate", @readonly = "@readonly" })
+                @Html.ValidationMessageFor(a => a.InsuranceDate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label class="text-right">Ins.Value ( @Model.BaseCurrName ) </label>
+                @Html.TextBoxFor(model => model.InsuranceValue, new { @class = "form-control input-sm clearfix InsuranceValue", @readonly = "@readonly" })
+                @Html.ValidationMessageFor(a => a.InsuranceValue, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label class="text-right">Ins.%</label>
+                @Html.TextBoxFor(model => model.InsurancePercent, new { @class = "form-control input-sm clearfix InsurancePercent", @readonly = "@readonly" })
+                @Html.ValidationMessageFor(a => a.InsurancePercent, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label class="text-right">Ins. Cycle</label>
+                @Html.DropDownListFor(model => model.InsuranceCycleID, new SelectList((System.Collections.IEnumerable)ViewData["PeriodList"], "Value", "Text"), "--Select Unit--", new { @class = "form-control input-sm clearfix InsuranceCycleID", @disabled = "disabled" })
+                @Html.ValidationMessageFor(a => a.InsuranceCycleID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <label class="text-right">Rate From Date</label>
+                @Html.TextBoxFor(model => Model.RateFromDate, new { @class = "form-control input-sm clearfix Monthpicker RateFromDate", @readonly = "@readonly", @autocomplete = "off" })
+                @Html.ValidationMessageFor(a => a.RateFromDate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-3">
+            <div class="form-group">
+                <label class="text-right">Cost Head</label>
+                @Html.DropDownList("CostHead", new SelectList((System.Collections.IEnumerable)ViewData["CostHeadList"], "Value", "Text"), "--Select CostHead--", new { @class = "form-control input-sm clearfix CostHead" ,@disabled= "disabled" })
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label class="text-right">Amount ( @Model.BaseCurrName )</label>
+                @Html.TextBox("RateAmt", null, new { @class = "form-control input-sm clearfix RateAmt",@readonly= "@readonly" })
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label class="text-right">Qtn UOM</label>
+                @Html.DropDownList("Qtn_UOM", new SelectList((System.Collections.IEnumerable)ViewData["PeriodList"], "Value", "Text"), "--Select Qtn UOM--", new { @class = "form-control input-sm clearfix Qtn_UOM", @disabled = "disabled" })
+            </div>
+        </div>
+
+        @if (Model.IsRateVolumeBilled == 0)
+        {
+        <div class="col-sm-1 col-md-1 form-group">
+            <div class="clearfix">
+                <input type="button" id="btnAdd" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="AddRate()" disabled />
+            </div>
+        </div>
+        }
+    </div>
+    <div class="table-responsive">
+        @Html.HiddenFor(model=>model.HFrateList)
+        <table class="table table-striped border" id="RatesDetailTable">
+            <thead>
+                <tr class="bg-white">
+                    <th>Volume Unit</th>
+                    <th>Volume</th>
+                    <th>Cost Head</th>
+                    <th>Amount ( @Model.BaseCurrName )</th>
+                    <th>Amount per Unit</th>
+                    <th>Cycle</th>
+                    @if(!Model.ApprovalStatus)
+                    {
+                        <th></th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.ratesList.Count; i++)
+                {
+
+                    <tr>
+                        <td class="VolumeUnit">
+                            @Html.TextBoxFor(a => Model.ratesList[i].VolumeUnit, new { @class = "form-control input-sm clearfix TblVolumeUnit", @readonly = "readonly" })
+                            @Html.HiddenFor(a => Model.ratesList[i].VolumeUnitID, new { @class = "TblVolumeUnitID" })
+                            @Html.HiddenFor(a => Model.ratesList[i].StorageDetailID, new { @class = "TblStorageDetailID" })
+                        </td>
+                        <td class="VolumeCFT">
+                            @Html.TextBoxFor(a => Model.ratesList[i].VolumeCFT, new { @class = "form-control input-sm clearfix TblVolumeCFT", @readonly = "readonly" })
+                        </td>
+                        <td class="CostHead">
+                            @Html.TextBoxFor(a => Model.ratesList[i].CostHead, new { @class = "form-control input-sm clearfix TblCostHead", @readonly = "readonly" })
+                            @Html.HiddenFor(a => Model.ratesList[i].CostHeadid, new { @class = "TblCostHeadId" })
+                        </td>
+                        <td class="Rate">
+                            @{ Model.ratesList[i].Rate = Convert.ToDecimal(String.Format("{0:0.0000}", Model.ratesList[i].Rate)); }
+                            @Html.TextBoxFor(a => Model.ratesList[i].Rate, new { @class = "form-control input-sm clearfix TblRate", onblur = " OnChangeRate(this);" }).DisableIf(() => Model.ratesList[i].IsBilled == 1)
+                        </td>
+                        <td class="RatePerUnit">
+
+                          @{  Model.ratesList[i].RatePerUnit = Convert.ToDecimal(String.Format("{0:0.0000}", Model.ratesList[i].RatePerUnit));  }
+                            @Html.TextBoxFor(a => Model.ratesList[i].RatePerUnit, new { @class = "form-control input-sm clearfix  TblRatePerUnit", @readonly = "readonly" })
+                        </td>
+                        <td class="RatePeriod">
+                            @Html.TextBoxFor(a => Model.ratesList[i].RatePeriod, new { @class = "form-control input-sm clearfix TblRatePeriod", @readonly = "readonly" })
+                            @Html.HiddenFor(a => Model.ratesList[i].RatePeriodID, new { @class = "TblRatePeriodID" })
+                        </td>
+                        <td>
+                            @*@if (Model.ratesList[i].IsBilled == 0)
+                            {*@
+                                @if(!Model.ApprovalStatus)
+                                {
+                                    <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left m-n" onclick="DeletRates(this)"></button>
+                                }
+                            @*}*@
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+@*}*@
+<script type="text/javascript">
+    function DeletRates(sender) {
+
+        var row = $(sender).closest("TR");
+        var name = row[0].rowIndex;
+        if (confirm("Do you want to delete row " + name)) {
+
+            var table = $("#RatesDetailTable")[0];
+            table.deleteRow(row[0].rowIndex);
+            
+            return false; 
+        }
+        
+        return false;
+    }
+
+
+    function OnChangeRate(sender) {
+        debugger;
+        let row = $(sender).closest("TR");
+        //var row = row[0].rowIndex;
+        let Qtn_UOM = row.find('.TblRatePeriod');
+        let Months = 1;
+        let RateVolumeCFT = row.find(".TblVolumeCFT").val();
+        let Rate = $(sender).val();
+
+        if (Qtn_UOM.val().trim() != "" && Qtn_UOM.val().trim().toUpperCase() == "MONTHLY") {
+
+            Months = 1;
+        }
+
+        if (Qtn_UOM.val().trim() != "" && Qtn_UOM.val().trim().toUpperCase() == "QUATERLY") {
+
+            Months = 3;
+        }
+
+        if (Qtn_UOM.val().trim() != "" && Qtn_UOM.val().trim().toUpperCase() == "HALF YEARLY") {
+
+            Months = 6;
+        }
+
+        if (Qtn_UOM.val().trim() != "" && Qtn_UOM.val().trim().toUpperCase() == "YEARLY") {
+
+            Months = 12;
+        }
+
+        let RatePerUnit = ((parseFloat(Rate) / parseFloat(RateVolumeCFT)) / Months);
+        RatePerUnit = parseFloat(RatePerUnit).toFixed(4);    
+
+        row.find('.TblRatePerUnit').val(RatePerUnit);
+
+        return false;
+    }
+
+    function checkRateExists(CostHeadID) {
+
+        var result = false;
+
+        $("#RatesDetailTable > TBODY").find('.TblCostHeadId').each(function () {
+
+            if (parseInt($(this).val()) === CostHeadID) {
+                result = true;
+                return false;
+            }
+        });
+
+        return result;
+    }
+
+    function AddRate() {
+
+        debugger;
+        var CostHead = $("#CostHead option:selected");
+        var RateVolumeUnitID = $("#RateVolumeUnitID option:selected");
+        var RateVolumeCFT = $("#RateVolumeCFT").val();
+        var Rate = $(".RateAmt").val();
+        var Qtn_UOM = $("#Qtn_UOM option:selected");
+
+        if (parseInt(CostHead.val()) > 0 && parseInt(CostHead.val()) > 0 && parseFloat(Rate) > 0 && parseInt(Qtn_UOM.val()) > 0 && parseInt(RateVolumeCFT) > 0) {
+
+            //if (checkRateExists(CostHead.val()))
+            {
+
+                var tBody = $("#RatesDetailTable > TBODY")[0];
+                var rowCount = $('#RatesDetailTable > TBODY > tr').length;
+                var row = tBody.insertRow(-1);
+                row.className = "package-row";
+                
+                var Months = 1;
+
+                if (Qtn_UOM.text().trim() != "" && Qtn_UOM.text().trim().toUpperCase()=="MONTHLY") {
+
+                    Months = 1;
+                }
+
+                if (Qtn_UOM.text().trim() != "" && Qtn_UOM.text().trim().toUpperCase() == "QUATERLY") {
+
+                    Months = 3;
+                }
+
+                if (Qtn_UOM.text().trim() != "" && Qtn_UOM.text().trim().toUpperCase() == "HALF YEARLY") {
+
+                    Months = 6;
+                }
+
+                if (Qtn_UOM.text().trim() != "" && Qtn_UOM.text().trim().toUpperCase() == "YEARLY") {
+
+                    Months = 12;
+                }
+
+                var RatePerUnit = ((parseFloat(Rate) / parseFloat(RateVolumeCFT)) / Months);
+                RatePerUnit = parseFloat(RatePerUnit).toFixed(4);    
+                var td = '<input class="form-control input-sm clearfix TblVolumeUnit" id="ratesList_' + rowCount + '__VolumeUnit" name="ratesList[' + rowCount + '].VolumeUnit" type="text" value="' + RateVolumeUnitID.text() + '" readonly="readonly" autocomplete="off"></input>'
+                    + '<input class="TblVolumeUnitID" data-val="true" data-val-number="The field VolumeUnitID must be a number." data-val-required="The VolumeUnitID field is required." id="ratesList_' + rowCount + '__VolumeUnitID" name="ratesList[' + rowCount + '].VolumeUnitID" type="hidden" value="' + parseInt(RateVolumeUnitID.val()) + '" autocomplete="off"></input>';
+                var cell = $(row.insertCell(-1));
+                cell.append(td);
+
+                
+                var td = '<input class="form-control input-sm clearfix TblVolumeCFT" id="ratesList_' + rowCount + '__VolumeCFT" name="ratesList[' + rowCount + '].VolumeCFT" type="text" value="' + parseFloat(RateVolumeCFT) + '" readonly="readonly" autocomplete="off"></input>';
+                var cell = $(row.insertCell(-1));
+                cell.append(td);
+
+                
+                var td = '<input class="form-control input-sm clearfix TblCostHead" id="ratesList_' + rowCount + '__CostHead" name="ratesList[' + rowCount + '].CostHead" type="text" value="' + CostHead.text() + '" readonly="readonly" autocomplete="off"></input>'
+                    + '<input class="TblCostHeadId" data-val="true" data-val-number="The field CostHeadid must be a number." data-val-required="The CostHeadid field is required." id="ratesList_' + rowCount + '__CostHeadid" name="ratesList[' + rowCount + '].CostHeadid" type="hidden" value="' + parseInt(CostHead.val()) + '" autocomplete="off"></input>';
+                var cell = $(row.insertCell(-1));
+                cell.append(td);
+
+                
+                var td = '<input class="form-control input-sm clearfix TblRate" id="ratesList_' + rowCount + '__Rate" name="ratesList[' + rowCount + '].Rate" type="text" value="' + parseFloat(Rate) + '" autocomplete="off" onblur="OnChangeRate(this);"></input>'
+                var cell = $(row.insertCell(-1));
+                cell.append(td);
+
+                
+                var td = '<input class="form-control input-sm clearfix TblRatePerUnit" id="ratesList_' + rowCount + '__RatePerUnit" name="ratesList[' + rowCount + '].RatePerUnit" type="text" value="' + RatePerUnit + '" readonly="readonly" autocomplete="off"></input>'
+                var cell = $(row.insertCell(-1));
+                cell.append(td);
+
+                
+                var td = '<input class="form-control input-sm clearfix TblRatePeriod" id="ratesList_' + rowCount + '__RatePeriod" name="ratesList[' + rowCount + '].RatePeriod" type="text" value="' + Qtn_UOM.text() + '" readonly="readonly" autocomplete="off"></input>'
+                    + '<input class="TblRatePeriodID" data-val="true" data-val-number="The field RatePeriodID must be a number." data-val-required="The RatePeriodID field is required." id="ratesList_' + rowCount + '__RatePeriodID" name="ratesList[' + rowCount + '].RatePeriodID" type="hidden" value="' + parseInt(Qtn_UOM.val()) + '" autocomplete="off"></input>';
+                var cell = $(row.insertCell(-1));
+                cell.append(td);
+
+                
+                var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left m-n" onclick="DeletRates(this)" />';
+
+                cell = $(row.insertCell(-1));
+                cell.append(tdremove);
+            }
+            //else {
+
+            //    alert('Cost Head already exists');
+            //}
+        }
+        else {
+
+            alert('Cost Head,Volume,Rate,Qtn UOM required');
+        }
+
+        return false;
+    }
+
+</script>

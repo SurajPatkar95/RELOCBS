@@ -1,21 +1,47 @@
-﻿using RELOCBS.Entities;
+﻿using Newtonsoft.Json;
+using RELOCBS.Common.ExceptionHandling;
+using RELOCBS.DAL.Pricing;
+using RELOCBS.Entities;
+using RELOCBS.Utility;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Web;
+using System.Web.Mvc;
+using System.Xml.Linq;
 
 namespace RELOCBS.BL.Pricing
 {
     public class PricingBL
     {
 
-        public DataTable GetProperWeightSlab(int UploadType)
+        private PricingDAL _pricingDAL;
+
+        public PricingDAL pricingDAL
+        {
+            get
+            {
+
+                if (_pricingDAL == null)
+                {
+                    _pricingDAL = new PricingDAL();
+                }
+
+                return _pricingDAL;
+
+            }
+        }
+
+        public DataTable GetProperWeightSlab(int RateComponentID, int RMCID = 1)
         {
             DataTable dtweightslab = new DataTable();
             dtweightslab.Columns.Add("WeightSlab", typeof(string));
 
-            if (UploadType == 1 || UploadType == 3)
+            dtweightslab = pricingDAL.GetWeightSlab(RateComponentID, RMCID, UserSession.GetUserSession().LoginID);
+
+            /***
+            if ((RateComponentID == 1 || RateComponentID == 3) && RMCID==1)
             {
                 dtweightslab.Rows.Add("1000-1999");
                 dtweightslab.Rows.Add("2000-2999");
@@ -42,7 +68,7 @@ namespace RELOCBS.BL.Pricing
                 dtweightslab.Rows.Add("107-154");
                 dtweightslab.Rows.Add("155-212");
             }
-            else if (UploadType == 2)
+            else if (RateComponentID == 2 && RMCID == 1)
             {
                 dtweightslab.Rows.Add("1000-1999");
                 dtweightslab.Rows.Add("2000-2999");
@@ -60,7 +86,7 @@ namespace RELOCBS.BL.Pricing
                 dtweightslab.Rows.Add("107-154");
                 dtweightslab.Rows.Add("155-212");
             }
-            else if (UploadType == 4)
+            else if (RateComponentID == 4 && RMCID == 1)
             {
                 dtweightslab.Rows.Add("1000-1999");
                 dtweightslab.Rows.Add("2000-2999");
@@ -81,7 +107,7 @@ namespace RELOCBS.BL.Pricing
                 dtweightslab.Rows.Add("17000-17999");
                 dtweightslab.Rows.Add("18000-99999");
             }
-            else if (UploadType == 7)//7 for Brookfield Air file Templatedata
+            else if (RateComponentID == 7)//7 for Brookfield Air file Templatedata
             {
                 dtweightslab.Rows.Add("Minimum");
                 dtweightslab.Rows.Add("100k");
@@ -99,7 +125,7 @@ namespace RELOCBS.BL.Pricing
 
             }
 
-            else if (UploadType == 50)// 50 for Brookfield Sea file Templatedata
+            else if (RateComponentID == 50)// 50 for Brookfield Sea file Templatedata
             {
 
                 dtweightslab.Rows.Add("Minimum");
@@ -142,8 +168,7 @@ namespace RELOCBS.BL.Pricing
 
 
             }
-
-            else if (UploadType == 8)//8 for Freight Brookfield Air file Templatedata
+            else if (RateComponentID == 8)//8 for Freight Brookfield Air file Templatedata
             {
                 dtweightslab.Rows.Add("Minimum");
                 dtweightslab.Rows.Add("100k");
@@ -160,7 +185,7 @@ namespace RELOCBS.BL.Pricing
                 dtweightslab.Rows.Add("1500k");
 
             }
-            else if (UploadType == 51)//51 for Freight Brookfield sea file Templatedata
+            else if (RateComponentID == 51)//51 for Freight Brookfield sea file Templatedata
             {
 
                 dtweightslab.Rows.Add("Minimum");
@@ -173,7 +198,7 @@ namespace RELOCBS.BL.Pricing
                 dtweightslab.Rows.Add("40' HC");
 
             }
-            else if (UploadType == 9)//9 for  Brookfield Rate
+            else if (RateComponentID == 9)//9 for  Brookfield Rate
             {
                 dtweightslab.Rows.Add("Minimum");
                 dtweightslab.Rows.Add("100k");
@@ -191,7 +216,7 @@ namespace RELOCBS.BL.Pricing
 
             }
             // SANKET BROOKFILED CR 6JUNE2018
-            else if (UploadType == 52)//52for sEA od  Brookfield Rate
+            else if (RateComponentID == 52)//52for sEA od  Brookfield Rate
             {
                 dtweightslab.Rows.Add("Minimum");
                 dtweightslab.Rows.Add("5 cbm");
@@ -232,7 +257,7 @@ namespace RELOCBS.BL.Pricing
                 dtweightslab.Rows.Add("40 HC lump sum");
 
             }
-            else if (UploadType == 53)//53 for air odf  Brookfield Rate
+            else if (RateComponentID == 53)//53 for air odf  Brookfield Rate
             {
                 dtweightslab.Rows.Add("Minimum");
                 dtweightslab.Rows.Add("100k");
@@ -249,7 +274,7 @@ namespace RELOCBS.BL.Pricing
                 dtweightslab.Rows.Add("1500k");
 
             }
-            else if (UploadType == 54)//54 for sea f  Brookfield Rate
+            else if (RateComponentID == 54)//54 for sea f  Brookfield Rate
             {
                 dtweightslab.Rows.Add("Minimum");
                 dtweightslab.Rows.Add("5 cbm");
@@ -263,7 +288,7 @@ namespace RELOCBS.BL.Pricing
             }
 
             // SANKET BROOKFILED CR 6JUNE2018
-
+            ***/
             return dtweightslab;
         }
 
@@ -271,6 +296,8 @@ namespace RELOCBS.BL.Pricing
         {
             if (dt.Rows.Count > 0)
             {
+                ConversionRate = 1;
+
                 switch (UploadType)
                 {
                     case 1: // Origin Rates
@@ -382,8 +409,132 @@ namespace RELOCBS.BL.Pricing
             return dt;
         }
 
+        public DataTable GetPricingBuffer(int RMCID)
+        {
+            DataTable data = new DataTable();
+            //DataTable dt = new DataTable();
+            int LoginId = UserSession.GetUserSession().LoginID;
+            int CompId = UserSession.GetUserSession().CompanyID;
+            try
+            {
+                data = pricingDAL.GetPricingBuffer(RMCID, LoginId, CompId);
+            }
+            catch (Exception ex)
+            {
+                throw new BussinessLogicException(Convert.ToString(LoginId), "PricingBL", "GetPricingBuffer", RELOCBS.Properties.Resources.UnExpectedErrorAtBL, ex);
+            }
 
-        public bool  InsertOriginRate(List<SaveOriginRate> SaveOriginRate, RateUpload R, int LoginID)
+            return data;
+        }
+
+        public DataTable GetFixedRateCharges(int RMCID)
+        {
+            DataTable data = new DataTable();
+            //DataTable dt = new DataTable();
+            int LoginId = UserSession.GetUserSession().LoginID;
+            int CompId = UserSession.GetUserSession().CompanyID;
+            try
+            {
+                data = pricingDAL.GetFixedRateCharges(RMCID, LoginId, CompId);
+
+            }
+            catch (Exception ex)
+            {
+                throw new BussinessLogicException(Convert.ToString(LoginId), "PricingBL", "GetFixedRateCharges", RELOCBS.Properties.Resources.UnExpectedErrorAtBL, ex);
+            }
+
+            return data;
+        }
+
+        public DataTable GetPricingCombination(ref DataTable dtAgentCombo, ref DataTable dtOriginal, RMCPricing model, bool bufferflag, bool IsRoad)
+        {
+            DataTable data = new DataTable();
+            DataSet dt2 = new DataSet();
+            int LoginId = UserSession.GetUserSession().LoginID;
+            try
+
+            {
+                data = pricingDAL.GetPricingCombination(LoginId, model, bufferflag, IsRoad);
+                data.DefaultView.Sort = "UniqID2 ASC,ModeId ASC,WeightFrom ASC";
+                dt2 = Pivot(data.DefaultView.ToTable(), "", bufferflag);
+                dtAgentCombo = dt2.Tables[1];
+                dtOriginal = data;
+
+                return dt2.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                throw new BussinessLogicException(Convert.ToString(LoginId), "PricingBL", "GetPricingCombination", RELOCBS.Properties.Resources.UnExpectedErrorAtBL, ex);
+            }
+        }
+
+        private DataSet Pivot(DataTable dt, string groupingcol, bool bufferflag)
+        {
+            DataSet ds = new DataSet();
+            try
+            {
+                DataTable temp = new DataTable();
+                DataTable temp1 = new DataTable();
+                temp = (new DataView(dt)).ToTable("dtPriceCombo", true, "WeightFrom");
+                temp1 = (new DataView(dt)).ToTable("dtAgentCombo", true, new string[] { "UniqID2", /*"OrigAgent", "DestAgent"*//*"OrigPortAir", "OrigPortSea",  "DestPortAir", "DestPortSea"*/ });
+                temp1.Columns.AddRange(new[] {
+                                    new DataColumn("OrigAgent", typeof(string)),
+                                    new DataColumn("OrigPortAir", typeof(string)),
+                                    new DataColumn("OrigPortSea", typeof(string)),
+                                    new DataColumn("DestAgent", typeof(string)),
+                                    new DataColumn("DestPortAir", typeof(string)),
+                                    new DataColumn("DestPortSea", typeof(string)),
+                                });
+                //new DataColumn[] { "OrigAgent", "OrigPortAir", "OrigPortSea", "DestAgent", "DestPortAir", "DestPortSea" })
+                //temp1.Select("UniqID2 = " + col)
+
+                List<string> uniqid = new List<string>();
+                foreach (DataRow item in dt.Rows)
+                {
+                    string col = item["UniqID2"].ToString();
+                    if (!temp.Columns.Contains(col))
+                    {
+                        temp.Columns.Add(col);
+                    }
+                    temp.AsEnumerable().Where(s => Convert.ToString(s["WeightFrom"]).Equals(item["WeightFrom"].ToString())).ToList()
+                    .ForEach(D => D.SetField(col, item["CostVal"].ToString() + "~" + item["TransitTime"].ToString() + "~" + item["SFR"].ToString()+"~"+ item["GPPercent"].ToString()));
+
+                    if (!uniqid.Contains(col))//temp1.Select("UniqID2=" + col).Length > 0 &&
+                    {
+                        uniqid.Add(col);
+                        //if (item["ModeID"].ToString() == "1")
+                        //{
+                        temp1.AsEnumerable().Where(s => Convert.ToString(s["UniqID2"]).Equals(col)).ToList()
+                        .ForEach(D => D.SetField("OrigPortSea", item["OrigPortSea"].ToString()));
+                        temp1.AsEnumerable().Where(s => Convert.ToString(s["UniqID2"]).Equals(col)).ToList()
+                        .ForEach(D => D.SetField("DestPortSea", item["DestPortSea"].ToString()));
+                        temp1.AsEnumerable().Where(s => Convert.ToString(s["UniqID2"]).Equals(col)).ToList()
+                        .ForEach(D => D.SetField("OrigAgent", item["OrigAgent"].ToString()));
+                        temp1.AsEnumerable().Where(s => Convert.ToString(s["UniqID2"]).Equals(col)).ToList()
+                        .ForEach(D => D.SetField("DestAgent", item["DestAgent"].ToString()));
+                        /*}
+                        else if (item["ModeID"].ToString() == "2")
+                        {*/
+                        temp1.AsEnumerable().Where(s => Convert.ToString(s["UniqID2"]).Equals(col)).ToList()
+                        .ForEach(D => D.SetField("OrigPortAir", item["OrigPortAir"].ToString()));
+                        temp1.AsEnumerable().Where(s => Convert.ToString(s["UniqID2"]).Equals(col)).ToList()
+                        .ForEach(D => D.SetField("DestPortAir", item["DestPortAir"].ToString()));
+                        //}
+                    }
+                }
+
+                ds.Tables.AddRange(new DataTable[] { temp, temp1 });
+
+            }
+            catch (Exception e)
+            {
+
+
+            }
+            return ds;
+        }
+
+        public bool InsertOriginRate(List<SaveOriginRate> SaveOriginRate, RateUpload R, int LoginID)
         {
 
             try
@@ -394,7 +545,7 @@ namespace RELOCBS.BL.Pricing
             {
                 return false;
                 //throw;
-               
+
             }
 
             return true;
@@ -467,6 +618,53 @@ namespace RELOCBS.BL.Pricing
 
         }
 
+        public bool SaveAmendRates(RMCPricing model)
+        {
+            try
+            {
+                //var ModeXML = model.ModeList != null ? new XElement("Modes", model.ModeList.Select(x => new XElement("ModeIDs", new XElement("ModeID", x)))) : new XElement("Modes");
 
-    }
+                var charges = new XElement("SFRFixedCosts",
+                from emp in model.RMCFees
+                select new XElement("SFRFixedCost",
+                               new XElement("FixedCostID", emp.CostHeadId),
+                               new XElement("FixedCostVal", emp.Amount),
+                               new XElement("FixedCostPercent", emp.Percent)
+                           ));
+
+                System.Xml.Linq.XNode node = JsonConvert.DeserializeXNode(model.SFRGridList, "SFRDetails");
+                string SFRListXml = node.ToString();
+
+                model.ModeList = node.Document.Descendants("ModeID").Select(p => p.Value).Distinct().ToArray();
+                var ModeXML = model.ModeList != null ? new XElement("Modes", model.ModeList.Select(x => new XElement("ModeIDs", new XElement("ModeID", x)))) : new XElement("Modes");
+
+                string result = "";
+                return pricingDAL.SaveAmendRates(model, ModeXML, charges, SFRListXml, out result);
+                //return true;
+            }
+            catch (DataAccessException ex)
+            {
+                throw new BussinessLogicException(RELOCBS.Properties.Resources.UnExpectedErrorAtBL);
+            }
+            catch (Exception ex)
+            {
+                throw new BussinessLogicException(Convert.ToString(UserSession.GetUserSession().LoginID), "CityBL", "Insert", RELOCBS.Properties.Resources.UnExpectedErrorAtBL, ex);
+            }
+        }
+
+		public DataTable GetPricingByJob(int UpdatedBatchID)
+		{
+			DataTable data = new DataTable();
+			int LoginId = UserSession.GetUserSession().LoginID;
+			try
+			{
+				data = pricingDAL.GetPricingByJob(UpdatedBatchID);
+				return data;
+			}
+			catch (Exception ex)
+			{
+				throw new BussinessLogicException(Convert.ToString(LoginId), "PricingBL", "GetPricingByJob", RELOCBS.Properties.Resources.UnExpectedErrorAtBL, ex);
+			}
+		}
+	}
 }

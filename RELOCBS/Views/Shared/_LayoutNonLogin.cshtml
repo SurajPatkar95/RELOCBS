@@ -1,0 +1,153 @@
+﻿@using RELOCBS.Utility
+@{
+    ViewBag.Copyright = "Writer Relocation";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @RenderSection("metatags", false)
+    <title>[@ViewBag.SiteTitleShort] @ViewBag.Title</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,900" rel="stylesheet">
+    <script defer src='~/Scripts/a076d05399.js'></script>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+    <style>
+        #overlay {
+            background: #ffffff;
+            color: #666666;
+            position: fixed;
+            height: 100%;
+            width: 100%;
+            z-index: 5000;
+            top: 0;
+            left: 0;
+            float: left;
+            text-align: center;
+            padding-top: 25%;
+            opacity: .80;
+        }
+
+        .spinner {
+            margin: 0 auto;
+            height: 64px;
+            width: 64px;
+            animation: rotate 0.8s infinite linear;
+            border: 5px solid firebrick;
+            border-right-color: transparent;
+            border-radius: 50%;
+        }
+
+        #hideMe {
+            -webkit-animation: cssAnimation 5s forwards;
+            animation: cssAnimation 5s forwards;
+        }
+    </style>
+</head>
+<body class="mini-navbar">
+    <div id="overlay">
+        <div class="spinner"></div>
+        <br />
+        <font color="firebrick"><b>Please Wait...</b></font>
+    </div>
+    <div id="wrapper">
+        @*<div class="navbar-default navbar-static-side" role="navigation">
+                <div class="sidebar-collapse">
+                    <ul class="nav metismenu" id="side-menu">
+                        <li class="nav-header">
+                            <div id="logo">
+                                <a class="logo" href="#"></a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>*@
+
+        <div id="page-wrapper" class="navbar white-bg text-center m-n">
+
+            @*<ul class="nav metismenu" id="side-menu">
+                <li class="nav-header">
+                    <div id="logo">
+                        <a class="BTRlogo" href="#"></a>
+                    </div>
+                </li>
+            </ul>*@
+
+            @*<h2><font face="algerian">@UserSession.GetPageSession()</font></h2>*@
+            <div class="clearfix gray-bg">
+                @RenderBody()
+                <div class="footer">
+                    <footer>
+                        <p>&copy; @ViewBag.Copyright</p>
+                    </footer>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+
+    @Scripts.Render("~/bundles/jqueryval")
+
+    @Styles.Render("~/Content/summernote")
+    @Scripts.Render("~/bundles/jquery-ui")
+    @Scripts.Render("~/bundles/summernote")
+    @Scripts.Render("~/bundles/bgiframe")
+
+    @Scripts.Render("~/bundles/custom")
+
+    @RenderSection("scripts", required: false)
+
+    @{ Html.RenderPartial("_Toastr"); }
+
+    <script>
+        $(document).ready(function () {
+            $("input").attr("autocomplete", "off");
+
+            $.validator.methods.date = function (value, element) {
+                return this.optional(element) || moment(value, "DD-MMM-YYYY", true).isValid() || moment(value, "DD-MMM-YYYY HH:mm", true).isValid();
+            }
+
+            $(".onkeydtp").on('keypress paste', function (e) {
+                e.preventDefault();
+                return false;
+            });
+        });
+        $(document).ready(function () {
+            $('#pnl-todolist .ibox-content').slimScroll({
+                height: '200px'
+            });
+
+            $('a#lnkUpdateTodoCall').webuiPopover({ cache: false, animation: 'fade', placement: 'bottom-left', delay: 500, html: true, dismissible: false });
+
+            $('form.frmUpdateTodo').on('submit', function (e) {
+                e.preventDefault();
+                var todoid = $(this).closest('.pnlUpdateTodoCall').attr('id');
+                todoid = todoid.replace('pnlUpdateTodoCall-', '');
+                $('.webui-popover.in .webui-popover-content .pnlUpdateTodoCall').mask("Loading...");
+                $(this).ajaxSubmit({
+                    target: '.webui-popover.in .webui-popover-content',
+                    success: function (data) {
+                        if (data.Success) {
+                            toastr.success("Task completed successfully.");
+                            $('#pnl-todolist .todoitm-' + todoid).remove();
+                        } else if (!data.Success) {
+                            toastr.error("Task completion failed. Please try again.");
+                        }
+                        $('.webui-popover.in .webui-popover-content .pnlUpdateTodoCall').unmask();
+                        $('.webui-popover.in').remove();
+                    },
+                    complete: function () {
+                        $('.webui-popover.in .webui-popover-content .pnlUpdateTodoCall').unmask();
+                    }
+                });
+            });
+        });
+    </script>
+    <script src="~/scripts/ajaxglobalerrorhandler.js"></script>
+    <script src="~/Scripts/Plugins/dotdotdot/table2excel.js"></script>
+</body>
+</html>

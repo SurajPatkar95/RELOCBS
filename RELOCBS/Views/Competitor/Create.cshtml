@@ -1,0 +1,155 @@
+﻿
+@model RELOCBS.Entities.CompetitorViewModel
+
+@{
+    //Layout = null;
+    ViewBag.Title = "New Competitor";
+}
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+@using (Html.BeginForm("Create", "Competitor", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+
+        <div class="row">
+            <div class="col-sm-12">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.CompitName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.CompitName, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.CompitName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.CompanyName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.CompId, new SelectList((System.Collections.IEnumerable)ViewData["Company"], "Value", "Text"), "--Select Company--", new { @class = "form-control input-sm clearfix enableselect" })
+                        @Html.ValidationMessageFor(model => model.CompId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.ContactPerson, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.ContactPerson, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.ContactPerson, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.ContactNo, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.ContactNo, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.ContactNo, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-2">
+                        <div class="col-md-5">
+                            @Html.CheckBoxFor(model => model.Isactive, new { htmlAttributes = new { @class = "form-control input-sm" } }) Active
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnCreate" />
+        </div>
+    </div>
+
+}
+<script>
+    $(document).ready(function () {
+        $("[data-val-required]").each(function () {
+            $("label[for=" + this.id + "]").addClass("requiredlabel")
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+
+        $("input").attr("autocomplete", "off");
+
+        $('.enableselect').select2();
+
+        var form = $("#mdlAddEdit form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+
+
+        $('#mdlAddEdit').on('shown.bs.modal', function () {
+            $('#CountryID').focus();
+        });
+
+        @*$('body').on('change', '#CountryID', function (e) {
+            var CountryID = $(this).val();
+            $("select#StateID").empty();
+            $('#StateID').append($('<option>', {
+                value: 0,
+                text: 'Select State'
+            }));
+            $.ajax({
+                url: "@Url.Action("GetState", "City")?CountryID=" + CountryID,
+                success: function (data) {
+                    var data = $.map(data, function (obj) {
+                        obj.text = obj.text || obj.Text;
+                        obj.id = obj.id || obj.Value;
+                        return obj;
+                    });
+                    $('select#StateID').select2({ data: data });
+                }
+            });
+        });*@
+
+
+        AutoDropFill();
+        $('#mdlAddEdit form').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+
+            $('#mdlAddEdit .modal-content').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '#mdlAddEdit .modal-content',
+                success: function (data) {
+                    $('#mdlAddEdit .modal-content').html(data.Result);
+                    if (data.Success) {
+                        $('#mgrid .pagination li.active a').trigger('click');
+                        toastr.success("Competitor saved successfully.");
+                        $('#mdlAddEdit').modal('hide');
+                    }
+                    $('#mdlAddEdit .modal-content').unmask();
+                }
+            });
+        });
+        function AutoDropFill() {
+            var returnResult = [];
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetAutoPopulateList", "Competitor")",
+                method: 'GET',
+            async: 'false',
+            dataType: 'json',
+            success: function (result) {
+                var data = $.map(result, function (obj) {
+                    obj.value = obj.Text; // desired field
+                    obj.data = obj.Value; // desired field
+                    returnResult.push(obj);
+                    $("#CompitName").autocomplete({
+                        lookup: returnResult
+                    });
+
+                });
+            },
+            error: function () { }
+        });
+    }
+
+    });
+
+</script>

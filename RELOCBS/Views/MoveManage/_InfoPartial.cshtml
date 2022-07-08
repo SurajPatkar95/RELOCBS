@@ -1,0 +1,914 @@
+﻿@using RELOCBS.Entities;
+@using RELOCBS.Common;
+@using Newtonsoft.Json;
+@model RELOCBS.Entities.MoveManageViewModel
+@{
+    string mode = Model.MoveJob.ModeName;
+    string Flag = Model.Flag;
+    string RMCType = Model.RMCType;
+    //var TranshipPort = JsonConvert.SerializeObject((System.Collections.IEnumerable)ViewData["RateCurrency"]);
+    //var TranshipPort = JsonConvert.SerializeObject(((System.Collections.IEnumerable)ViewData["RateCurrency"])).ToString();
+
+    //(List<SelectListItem>)ViewData["ContainerUnitList"])
+    var ContainerName = Model.PackingReport.ContainerSizeID > 0 ?
+    ((List<SelectListItem>)ViewData["ContainerUnitList"]).Where(x => x.Value == Model.PackingReport.ContainerSizeID.ToString()).First().Text : null;
+    ReportView r = new ReportView();
+    string name = string.Empty;
+    string transitchkCSS = mode == "Road" ? "col-sm-2" : "col-sm-3";
+    string ACWTCSS = mode != "Air" ? "col-sm-1 hide" : "col-sm-1";
+    string sm2HideShowCss = mode == "Air" ? "col-sm-2 hide" : "col-sm-2";
+    string label = string.Empty;
+    if (Flag == "Packing")
+    {
+        r = Model.PackingReport;
+        name = "PackingReport";
+    }
+    else if (Flag == "Freight")
+    {
+        r = Model.FreightReport;
+        name = "FreightReport";
+    }
+    else if (Flag == "Delivery")
+    {
+        r = Model.DeliveryReport;
+        name = "DeliveryReport";
+    }
+    else if (Flag == "Survey")
+    {
+        r = Model.SurveyReport;
+        name = "SurveyReport";
+    }
+
+    //r.IsBLSentToAgent = true;
+    //r.IsSD = true;
+    string WtVolValid = Model.RMCBuss ? "WtVolValidation(this, '" + Model.Flag + "')" : "";
+}
+
+@if (Model.Flag != "Freight")
+{
+    if ((Model.Flag == "Survey" && !Model.HideSurveySave) || Model.Flag != "Survey" && !Model.IsDestApprove && Model.MoveJob.ShowGetCost)
+    {
+        <div class="row m-t-n">
+            <input type="submit" id="btnUpdateCost" name="Save" class="btn btn-primary m-t-sm pull-right m-r-sm btn-sm filter-custom-margin m-n" value="Get Cost" />
+        </div>
+    }
+}
+
+
+
+<style type="text/css">
+    .fixed-table-body {
+        overflow-x: visible;
+        overflow-y: visible;
+        height: 100%;
+    }
+</style>
+
+<div class="row p-xs pad-top-none pad-bot-none" id="divInstructList">
+    <div class="row  densfact">
+        @if (Model.Flag == "Packing")
+        {
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>Sch. Pack Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.PackingReport.ScheduledPackDate, new { htmlAttributes = new { @placeholder = "Sch. Pack Date", @tooltip = "Sch. Pack Date", @class = "form-control input-sm datepicker", title = "Sch. Pack Date", id = "SchPackDate", onfocus = "ShowDatePicker(this)" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>Packed Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.PackingReport.Packdate, new { htmlAttributes = new { @placeholder = "Pack Date", @tooltip = "Pack Date", @class = "form-control input-sm PackDate", title = "Pack Date", id = "PackDate", onfocus = "ShowDatePicker(this)" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>Load Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.PackingReport.Loaddate, new { htmlAttributes = new { @placeholder = "Load Date", @tooltip = "Load Date", @class = "form-control input-sm datepicker", title = "Load Date", id = "LoadDate", onfocus = "ShowDatePicker(this)" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="form-group">
+                    <label>Stg Start Date(Org)</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.PackingReport.OrgStgStartDate, new { htmlAttributes = new { @placeholder = "OrgStgStartDate", @tooltip = "OrgStgStartDate", @class = "form-control input-sm datepicker", title = "OrgStgStartDate", id = "OrgStgStartDate", onfocus = "ShowDatePicker(this)" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="form-group">
+                    <label>Stg End Date(Org)</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.PackingReport.OrgStgEndDate, new { htmlAttributes = new { @placeholder = "OrgStgEndDate", @tooltip = "OrgStgEndDate", @class = "form-control input-sm datepicker", title = "OrgStgEndDate", id = "OrgStgEndDate", onfocus = "ShowDatePicker(this)" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        }
+        @if (Model.Flag == "Survey")
+        {
+            @*if (!Model.IsSOCost)
+            {
+                <div class="row clearfix m-t-n">
+                    <div class="col-sm-12 col-md-12">
+                        <input type="button" id="btnGetSOCost" name="btnGetSOCost" class="btn btn-primary m-t-sm pull-right m-r-sm btn-sm filter-custom-margin m-n" value="Get SO Cost" onclick="GetSOCost(this)" />
+                    </div>
+                </div>
+            }*@
+
+            <div class="col-sm-2 form-group">
+                @*<div class="form-group">*@
+                <label>Surveyor Name</label>
+                @Html.DropDownListFor(a => a.SurveyReport.SurveyorID, new SelectList((System.Collections.IEnumerable)ViewData["SurveyConductedByList"], "Value", "Text", r.SurveyorID), new { @class = "form-control", id = "SurveyorID", title = "Surveyor" })
+                @*</div>*@
+            </div>
+
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>Sch. Survey Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.SurveyReport.SchSurveydate, new { htmlAttributes = new { @placeholder = "Sch. Survey Date", @tooltip = "Sch. Survey Date", @class = "form-control input-sm datepicker", title = "Survey Date", id = "SchSurveyDate", onfocus = "ShowDatePicker(this)" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>Surveyed Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.SurveyReport.Surveydate, new { htmlAttributes = new { @placeholder = "Survey Date", @tooltip = "Survey Date", @class = "form-control input-sm SurveyDate", title = "Survey Date", id = "SurveyDate", onfocus = "ShowDatePicker(this)" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>Surveyed Time</label>
+                    @Html.TextBoxFor(a => a.SurveyReport.SurveyDateTime, new { @class = "form-control input-sm single-line", placeholder = "SurveyTime", title = "SurveyTime", @id = "SurveyTime" })
+                    @Html.ValidationMessageFor(model => model.SurveyReport.SurveyDateTime, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>Sch. Pack Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.SurveyReport.Packdate, new { htmlAttributes = new { @placeholder = "Pack Date", @tooltip = "Pack Date", @class = "form-control input-sm datepicker", title = "Pack Date", id = "PackDate", onfocus = "ShowDatePicker(this)" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>Sch. Load Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.SurveyReport.Loaddate, new { htmlAttributes = new { @placeholder = "Load Date", @tooltip = "Load Date", @class = "form-control input-sm datepicker", title = "Load Date", id = "LoadDate", onfocus = "ShowDatePicker(this)" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (Model.Flag == "Freight")
+        {
+            if (mode == "Sea" || mode == "Air")
+            {
+                <div class="row well well-sm m-n m-t-lg">
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            @{
+                                label = mode == "Sea" ? "BL Sent To Agent" : "AWB Sent To Agent";
+                                string IsShowBLSentToAgent = "input-group input-group-sm date chksibling " + (!Model.FreightReport.IsBLSentToAgent ? "hide" : "");
+                            }
+
+                            @Html.CheckBoxFor(a => a.FreightReport.IsBLSentToAgent, new { @class = "chkFunction", @onchange = "chkFunction(this)" }) &emsp;<label>@label</label>
+                            <div class="@IsShowBLSentToAgent" id="dtp_ToDate">
+                                @Html.EditorFor(a => a.FreightReport.BLSentToAgentOn, new { htmlAttributes = new { @placeholder = "BL SentToAgent On", @tooltip = "BLSentToAgentOn", @class = "form-control input-sm datepicker", title = "BLSentToAgentOn", id = "BLSentToAgentOn", onfocus = "ShowDatePicker(this)" } })
+                                <span class="input-group-addon" style="display: none">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            @{
+                                string IsShowSD = "input-group input-group-sm date chksibling " + (!Model.FreightReport.IsSD ? "hide" : "");
+                            }
+                            @Html.CheckBoxFor(a => a.FreightReport.IsSD, new { @class = "chkFunction", @onchange = "chkFunction(this)" }) &emsp;<label>Shipment Ready for Dispatch(SD)</label>
+                            <div class="@IsShowSD" id="dtp_ToDate">
+                                @Html.EditorFor(a => a.FreightReport.SD, new { htmlAttributes = new { @placeholder = "Shipment Ready for Dispatch(SD)", @tooltip = "Shipment Ready for Dispatch(SD)", @class = "form-control input-sm datepicker", title = "Shipment Ready for Dispatch(SD)", id = "SD", onfocus = "ShowDatePicker(this)" } })
+                                <span class="input-group-addon" style="display: none">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    @if (mode == "Sea")
+                    {
+                        <div class="col-sm-2 form-group">
+                            @*<div class="form-group">*@
+
+                            @{
+                                string IsShowISF = "form-control input-sm chksibling " + (!Model.FreightReport.IsISF ? "hide" : "");
+                                string ShowFCLdiv = "col-sm-3 " + (!string.IsNullOrWhiteSpace(Model.FreightReport.LCL_FCL) && Model.FreightReport.LCL_FCL == "LCL" ? "hide" : "");
+                            }
+
+                            @Html.CheckBoxFor(a => a.FreightReport.IsISF, new { @class = "chkFunction", @onchange = "chkFunction(this)" }) &emsp;<label>ISF Form sent to DA</label>
+                            @Html.TextBoxFor(a => a.FreightReport.ISF_Ref, new { @class = IsShowISF, placeholder = "ISF Ref", title = "ISF Ref", @id = "ISFRef" })
+                            @*</div>*@
+                        </div>
+
+                        <div class="col-sm-1">
+                            <div class="form-group">
+                                <label>LCL/FCL</label>
+                                @Html.DropDownListFor(a => a.FreightReport.LCL_FCL, new SelectList((System.Collections.IEnumerable)ViewData["LCLFCLList"], "Value", "Text"), new { @class = "form-control FreightLCLFCL", id = "LCL_FCL", title = "LCL FCL", @onchange = "IsDirectHideShow(this)" })
+                            </div>
+                        </div>
+                        <div id="FCLinput" class="@ShowFCLdiv">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        @Html.Label("20’ FCL")
+                                        @Html.TextBoxFor(a => a.FreightReport.FCL_20, new { @class = "form-control input-sm", placeholder = " x 20’ FCL", title = "FCL 20" })
+                                    </div>
+                                    <div class="col-sm-4">
+                                        @Html.Label("40’ FCL")
+                                        @Html.TextBoxFor(a => a.FreightReport.FCL_40, new { @class = "form-control input-sm", placeholder = " x 40' FCL", title = "FCL 40" })
+                                    </div>
+                                    <div class="col-sm-4">
+                                        @Html.Label("40’HC FCL")
+                                        @Html.TextBoxFor(a => a.FreightReport.FCLHC_40, new { @class = "form-control input-sm", placeholder = "x 40’HC FCL", title = "FCLHC 40" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @*<div class="row well well-sm m-n m-t-xs">
+                  <div class="col-offset-4 col-md-8">
+                      <div class="form-group">
+                          <label>Distribution Job Nos.</label>
+                          @Html.ListBoxFor(model => model.FreightReport.TransitDistMoveIDList, new SelectList((System.Collections.IEnumerable)ViewData["TransitJobNoList"], "Value", "Text", Model.FreightReport.TransitDistMoveIDList), new { @class = "form-control input-sm enableselect TransitDistMoveIDList", @multiple = "multiple", placeholder = "Job No", title = "Job No" })
+                      </div>
+                  </div>
+                </div>*@
+
+            }
+            <div class="row">
+                @if (mode == "Sea" || mode == "Air")
+                {
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Confirmed Ready for Dispatch(OPS)</label>
+                            <div class="input-group input-group-sm date" id="dtp_ToDate">
+                                @Html.EditorFor(a => a.FreightReport.OPS, new { htmlAttributes = new { @placeholder = "Confirmed Ready for Dispatch(OPS)", @tooltip = "Confirmed Ready for Dispatch(OPS)", @class = "form-control input-sm datepicker", title = "Confirmed Ready for Dispatch(OPS)", id = "OPS", onfocus = "ShowDatePicker(this)" } })
+                                <span class="input-group-addon" style="display: none">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="form-group">
+                            @*@{ label = mode == "Sea" ? "Shipment Carted On" : "Shipment Loaded On";}*@
+                            <label>Shipment Carted On</label>
+                            <div class="input-group input-group-sm date" id="dtp_ToDate">
+                                @Html.EditorFor(a => a.FreightReport.ShipmentCartedOn, new { htmlAttributes = new { @placeholder = "Shipment Carted On", @tooltip = "Shipment Carted On", @class = "form-control input-sm datepicker", title = "Shipment Carted On", id = "ShipmentCartedOn", onfocus = "ShowDatePicker(this)" } })
+                                <span class="input-group-addon" style="display: none">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="form-group">
+                            <label>Custom Cleared On</label>
+                            <div class="input-group input-group-sm date" id="dtp_ToDate">
+                                @Html.EditorFor(a => a.FreightReport.CustomeClearedOn, new { htmlAttributes = new { @placeholder = "Custome Cleared On", @tooltip = "Custome Cleared On", @class = "form-control input-sm datepicker", title = "Custome Cleared On", id = "CustomeClearedOn", onfocus = "ShowDatePicker(this)" } })
+                                <span class="input-group-addon" style="display: none">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="form-group">
+                            <label>Clearance docs uploaded on</label>
+                            <div class="input-group input-group-sm date" id="dtp_ToDate">
+                                @Html.EditorFor(a => a.FreightReport.SB_GivenOn, new { htmlAttributes = new { @placeholder = "SB Given On", @tooltip = "SB Given On", @class = "form-control input-sm datepicker", title = "SB Given On", id = "SB_GivenOn", onfocus = "ShowDatePicker(this)" } })
+                                <span class="input-group-addon" style="display: none">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    if (mode == "Sea")
+                    {
+
+                        <div class="col-sm-2 divisDirect hide">
+                            <div class="form-group clearfix">
+                                <div class="filter-custom-margin">
+                                    @Html.CheckBoxFor(a => a.FreightReport.IsDirectCarting)&emsp;<label>Direct Carting</label>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    //Bill_No
+                }
+                else
+                {
+                    <div class="col-sm-2">
+                        <div class="form-group">
+                            <label>Truck No</label>
+                            @Html.TextBoxFor(a => a.FreightReport.TruckNo, new { @class = "form-control input-sm", placeholder = "Truck No", title = "Truck No", @id = "TruckNo" })
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="form-group">
+                            <label>Vehicle Type</label>
+                            @Html.DropDownListFor(a => a.FreightReport.VehicleTypeId, new SelectList((System.Collections.IEnumerable)ViewData["ContainerUnitList"], "Value", "Text", r.VolumeUnitID), new { @class = "form-control", id = "VehicleTypeId", title = "Vehicle Type" })
+                        </div>
+                    </div>
+                    <div class="col-sm-1">
+                        <div class="form-group">
+                            <label>Total Cap.</label>
+                            @Html.TextBoxFor(a => a.FreightReport.TotalCapacity, new { @class = "form-control input-sm", placeholder = "Total Capacity", title = "Total Capacity", @id = "TotalCapacity" })
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="form-group">
+                            <label>Esorded By</label>
+                            @Html.TextBoxFor(a => a.FreightReport.EsordedBy, new { @class = "form-control input-sm", placeholder = "Esorded By", title = "Esorded By", @id = "EsordedBy" })
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="form-group">
+                            <label>Left On Date</label>
+                            <div class="input-group input-group-sm date" id="dtp_ToDate">
+                                @Html.EditorFor(a => a.FreightReport.LeftOnDate, new { htmlAttributes = new { @placeholder = "Left On Date", @tooltip = "Left On Date", @class = "form-control input-sm datepicker", title = "Left On Date", id = "LeftOnDate", onfocus = "ShowDatePicker(this)" } })
+                                <span class="input-group-addon" style="display: none">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+
+                }
+
+            </div>
+
+            <!---SSL Agent -->
+        }
+        @if (Model.Flag == "Delivery")
+        {
+            <div class="col-sm-3">
+                <div class="form-group">
+                    <label>Delivery Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.DeliveryReport.DeliveryDate, new { htmlAttributes = new { @placeholder = "Delivery Date", @tooltip = "Delivery Date", @class = "form-control input-sm DeliveryDate", title = "Delivery Date", id = "DeliveryDate", onfocus = "ShowDatePicker(this)" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-1">
+                <div class="form-group">
+                    <label class="filter-custom-margin">
+                        @Html.CheckBoxFor(a => a.DeliveryReport.IsClaim, new { htmlAttributes = new { @placeholder = "Claim", @tooltip = "Claim", @class = "form-control input-sm", title = "Claim", id = "IsClaim" } }) &nbsp;
+                        @Html.DisplayNameFor(a => a.DeliveryReport.IsClaim)
+                    </label>
+                </div>
+            </div>
+
+            <div class="col-sm-3">
+                <div class="form-group">
+                    <label>Passport No.</label>
+                    @Html.TextBoxFor(a => a.DeliveryReport.PassportNo, new { @placeholder = "Passport No", @tooltip = "Passport No", @class = "form-control input-sm", title = "Passport No", id = "PassportNo" })
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>Stg Start Date(Dest)</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.DeliveryReport.DestStgStartDate, new { htmlAttributes = new { @placeholder = "DestStgStartDate", @tooltip = "DestStgStartDate", @class = "form-control input-sm datepicker", title = "DestStgStartDate", id = "DestStgStartDate", onfocus = "ShowDatePicker(this)" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>Stg End Date(Dest)</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.DeliveryReport.DestStgEndDate, new { htmlAttributes = new { @placeholder = "DestStgEndDate", @tooltip = "DestStgEndDate", @class = "form-control input-sm datepicker", title = "DestStgEndDate", id = "DestStgEndDate", onfocus = "ShowDatePicker(this)" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        }
+        <div class="col-sm-3">
+            <div class="form-group">
+                <label>Remarks</label>
+                @Html.TextBox(name + ".StageRemarks", r.StageRemarks,new { @placeholder = "Remarks", @tooltip = "Remarks", @class = "form-control input-sm", title = "Remarks", id = "StageRemarks" })
+            </div>
+        </div>
+
+    </div>
+    @if (Model.Flag != "Freight")
+    {
+        @*<div class="row Wt_Vol">
+
+            </div>*@
+        @Html.DropDownList("ddl_TranshipPortDemo", new SelectList((System.Collections.IEnumerable)ViewData["PortList"], "Value", "Text"), "--Select Port--", new { @class = "form-control input-sm clearfix hide", @id = "ddl_TranshipPortDemo" })
+
+        <div class="row Wt_Vol">
+            <div class="row">
+
+
+
+                @if (Model.Flag != "Delivery" || !Model.RMCBuss)
+                {
+                    <div class="col-sm-2 hide">
+                        <div class="form-group">
+                            <label>Density Factor</label>
+                            @Html.TextBox(name + ".DensityFact", r.DensityFact, new { @class = "form-control input-sm vol-wt", placeholder = "Density Factor", title = "Density Factor" })@*, onblur = "CalculateVolWt(this,'" + Model.Flag + "','" + Model.RMCType + "')"*@
+                        </div>
+                    </div>
+                    <div class="@sm2HideShowCss">
+                        <div class="form-group">
+                            <label>Loose/Cased</label>
+                            @Html.DropDownList(name + ".LooseCased", CommonService.Loosecased, "--Select one--", new { @class = "form-control input-sm vol-wt", title = "LOOSEDCASED" })
+                        </div>
+                    </div>
+                    <div class="@sm2HideShowCss">
+                        <div class="form-group">
+                            <label>LCL/FCL</label>
+                            @Html.DropDownList(name + ".LCLorFCL", new SelectList((System.Collections.IEnumerable)ViewData["LCLFCLList"], "Value", "Text"), "--Select one--", new { @class = "form-control input-sm vol-wt", title = "LCLFCL" })
+                        </div>
+                    </div>
+                    <div class="@sm2HideShowCss">
+                        <div class="form-group">
+                            <label>Container</label>
+                            @Html.DropDownList(name + ".ContainerSizeID", new SelectList((System.Collections.IEnumerable)ViewData["ContainerUnitList"], "Value", "Text"), "--Select One--", new { @class = "form-control", title = "ContainerType" })@*id = "ContainerTypeDropDown",*@
+                        </div>
+                    </div>
+
+                }
+                else
+                {
+                    <div class="col-sm-2 hide">
+                        <div class="form-group">
+                            <label>Density Factor</label>
+                            @Html.TextBox(name + ".DensityFact", Model.PackingReport.DensityFact, new { @class = "form-control input-sm vol-wt", placeholder = "Density Factor", title = "Density Factor", @readonly = true })
+                        </div>
+                    </div>
+                    <div class="@sm2HideShowCss">
+                        <div class="form-group">
+                            <label>Loose/Cased</label>
+                            @Html.TextBox(name + ".LooseCased", Model.PackingReport.LooseCased, new { @class = "form-control input-sm vol-wt", title = "LOOSEDCASED", @readonly = true })
+
+                        </div>
+                    </div>
+                    <div class="@sm2HideShowCss">
+                        <div class="form-group">
+                            <label>LCL/FCL</label>
+                            @Html.TextBox(name + ".LCLorFCL", Model.PackingReport.LCLorFCL, new { @class = "form-control input-sm vol-wt", title = "LCLFCL", @readonly = true })
+                        </div>
+                    </div>
+                    <div class="@sm2HideShowCss">
+                        <div class="form-group">
+                            <label>Container</label>
+                            @Html.Hidden(name + ".ContainerSizeID", Model.PackingReport.ContainerSizeID, new { @class = "form-control", title = "ContainerType" })
+                            @Html.TextBox("ContainerSizeName", ContainerName, new { @class = "form-control", title = "ContainerType", @readonly = true })
+                            @*@Html.DropDownList(name + ".ContainerSizeID", new SelectList((System.Collections.IEnumerable)ViewData["ContainerUnitList"], "Value", "Text"), "--Select One--", new { @class = "form-control", title = "ContainerType" })id = "ContainerTypeDropDown",*@
+                        </div>
+                    </div>
+                }
+                @if (Model.Flag != "Freight" && mode == "Road" && Model.RMCType == "Brookfield Type" && Model.CompanyID == 2)
+                {
+                    <div class="col-sm-2">
+                        <div class="form-group">
+                            <label>Road KMS</label>
+                            @Html.TextBox(name + ".RoadKMS", r.RoadKMS, new { @placeholder = "Road KMS", @tooltip = "Road KMS", @class = "form-control input-sm", title = "Road KMS", id = "RoadKMS" })
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="row">
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label>Vol Unit</label>
+                        @Html.DropDownList(name + ".VolumeUnitID", new SelectList((System.Collections.IEnumerable)ViewData["VolumeUnitList"], "Value", "Text", r.VolumeUnitID), new { @class = "form-control", title = "Volume Unit", onchange = "UnitChange(this)" })
+                    </div>
+                </div>
+                <div class="col-sm-2 form-group width-auto hide">
+                    @*<div class="form-group">*@
+                    <label>To Be Packed</label>
+                    @Html.TextBox(name + ".TobePackedVol", r.TobePackedVol, new { @class = "form-control input-sm vol-wt", placeholder = "To Pack", title = "To Pack", onblur = @WtVolValid })
+                    @*</div>*@
+                </div>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label>Net</label>
+                        @Html.TextBox(name + ".NetVol", r.NetVol, new { @class = "form-control input-sm vol-wt", placeholder = "Net", title = "Net", onblur = @WtVolValid })
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label>Gross</label>
+                        @Html.TextBox(name + ".GrossVol", r.GrossVol, new { @class = "form-control input-sm vol-wt", placeholder = "Gross", title = "Gross", onblur = @WtVolValid })
+                    </div>
+                </div>
+                <div class="col-sm-1 vdivide">
+                    <div class="form-group">
+                        <hr />
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label>Wt Unit</label>
+                        @Html.DropDownList(name + ".WeightUnitID", new SelectList((System.Collections.IEnumerable)ViewData["WeightUnitList"], "Value", "Text", r.WeightUnitID), new { @class = "form-control", title = "Weight Unit", onchange = "UnitChange(this)" })
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label>Net</label>
+                        @Html.TextBox(name + ".NetWt", r.NetWt, new { @class = "form-control input-sm vol-wt", placeholder = "Net", title = "Net", onblur = @WtVolValid })
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label>Gross</label>
+                        @Html.TextBox(name + ".GrossWt", r.GrossWt, new { @class = "form-control input-sm vol-wt", placeholder = "Gross", title = "Gross", onblur = @WtVolValid })
+                    </div>
+                </div>
+                <div class="@ACWTCSS">
+                    <div class="form-group">
+                        <label>ACWT</label>
+                        @Html.TextBox(name + ".ACWTWt", r.ACWTWt, new { @class = "form-control input-sm vol-wt", placeholder = "ACWT", title = "ACWT", onblur = @WtVolValid })
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    }
+    else
+    {
+        //if (mode != "Road")
+        {
+            @Html.Partial("_TranshipWtVolPartial", Model)
+        }
+        @Html.Hidden(name + ".HFTransitList", null, new { @id = "HFTransitList" })
+
+        <!--SSL Agent-->
+        if (mode == "Sea" || mode == "Air")
+        {
+            <div class="row SSLAgentDiv">
+                @*@if (mode == "Sea")
+                    { *@
+                <div class="col-sm-3 form-group">
+                    @*<div class="form-group">*@
+                    @{ string SSLLabel = (mode == "Sea" ? "SSL Agent" : "IATA Agent"); }
+                    <label>@Html.Raw(SSLLabel)</label>
+                    @Html.TextBoxFor(a => a.FreightReport.SSAgent, new { @class = "form-control input-sm hide", placeholder = SSLLabel, title = SSLLabel, @id = "SSAgent" })
+                    @Html.DropDownListFor(a => a.FreightReport.SSLAgentId, new SelectList((Enumerable.Empty<SelectListItem>()), "Value", "Text"), "--Select " + SSLLabel + "--", new { @placeholder = SSLLabel, @tooltip = SSLLabel, @class = "form-control input-sm enableselect", title = SSLLabel, id = "SSLAgentId" })
+                    @*</div>*@
+                </div>
+                @*}*@
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>
+                            @{ string Carrier = mode == "Air" ? "Airline" : "Carrier";
+                                string SelectOneCarrierText = "--Select " + Carrier + "--";
+                            }
+                            @Html.Raw(Carrier)
+                        </label>
+                        @Html.DropDownListFor(a => a.FreightReport.SSLCarrierId, new SelectList((Enumerable.Empty<SelectListItem>()), "Value", "Text"), SelectOneCarrierText, new { @placeholder = "SSL Carrier", @tooltip = "SSL Carrier", @class = "form-control input-sm enableselect", title = "SSL Carrier", id = "SSLCarrierId" })
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>Port Load</label>
+                        @Html.DropDownListFor(a => a.FreightReport.PortLoad, new SelectList((Enumerable.Empty<SelectListItem>()), "Value", "Text"), "--Select Port--", new { @placeholder = "PortLoad", @tooltip = "Port Load", @class = "form-control input-sm enableselect", title = "Port Load", id = "PortLoad" })
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>Port Discharge</label>
+                        @Html.DropDownListFor(a => a.FreightReport.PortDischarge, new SelectList((Enumerable.Empty<SelectListItem>()), "Value", "Text"), "--Select Port--", new { @placeholder = "PortDischarge", @tooltip = "Port Discharge", @class = "form-control input-sm enableselect", title = "Port Discharge", id = "PortDischarge" })
+                    </div>
+                </div>
+
+                @if (mode == "Sea")
+                {
+                    <div class="col-sm-3 divisTHC">
+                        <div class="form-group clearfix">
+                            <div class="filter-custom-margin">
+                                <label>Destination THC :</label>
+                                @Html.CheckBoxFor(a => a.FreightReport.THCCollect, new { @class = "DestinationTHC", @onchange = "DestinationTHC_Change(this)" })<label>&nbsp; Collect</label>&emsp;
+                                @Html.CheckBoxFor(a => a.FreightReport.THCPrepaid, new { @class = "DestinationTHC", @onchange = "DestinationTHC_Change(this)" })<label>&nbsp; Prepaid</label>
+                            </div>
+                        </div>
+                    </div>
+
+                }
+
+            </div>
+        }
+        <!--SSL Agent-->
+        <div class="row divTransShip">
+            <div class="col-sm-3">
+                <div class="form-group">
+                    @{
+                        string Label = "Schedule Vessel";
+                        if (mode == "Road")
+                        {
+                            Label = "Transporter Name";
+                        }
+                        else if (mode == "Air")
+                        {
+                            Label = "Flight No";
+                        }
+
+                    }
+                    <label>@Label</label>
+                    @Html.TextBox("txt_ScheduleVessel", "", new { @class = "form-control input-sm clearfix", placeholder = @Label, title = @Label, @id = "txt_ScheduleVessel" })
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>ETD</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.Editor("Dt_ETD", new { htmlAttributes = new { @placeholder = "ETD", @tooltip = "ETD", @class = "form-control input-sm datepicker", title = "ETD", id = "Dt_ETD" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>ETA</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.Editor("Dt_ETA", new { htmlAttributes = new { @placeholder = "ETA", @tooltip = "ETA", @class = "form-control input-sm datepicker", title = "ETA", id = "Dt_ETA" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 hide">
+                <div class="form-group">
+                    <label>Actual Dep.</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.Editor("Dt_ATD", new { htmlAttributes = new { @placeholder = "ATD", @tooltip = "ATD", @class = "form-control input-sm datepicker", title = "ATD", id = "Dt_ATD" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 hide">
+                <div class="form-group">
+                    <label>Actual Arr.</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.Editor("Dt_ATA", new { htmlAttributes = new { @placeholder = "ATA", @tooltip = "ATA", @class = "form-control input-sm datepicker", title = "ATA", id = "Dt_ATA" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            @{string HideTranshipPort = (mode == "Road") ? "hide" : "";}
+            <div class="col-sm-2 @HideTranshipPort">
+                <div class="form-group">
+                    <label>Tranship Port</label>
+                    @Html.DropDownListFor(a => a.FreightReport.TranshipPort, new SelectList(Enumerable.Empty<SelectListItem>(), "Value", "Text"), "--Select Port--", new { @class = "form-control input-sm clearfix enableselect ddl_TranshipPortId" })
+                </div>
+            </div>
+            @{
+                var IsTransitShipment = r.TranShipmentList.Count > 1 ? true : false;
+                var TranshipBtnAddDisble = "btn btn-primary btn-sm filter-custom-margin" + (IsTransitShipment || r.TranShipmentList.Count == 0 ? " " : " disabled");
+            }
+            <div class="col-sm-1">
+                <div class="clearfix">
+                    <input type="button" id="btnAddTranShipment" value="Add" class="@TranshipBtnAddDisble" onclick="TranshipAdd(this)" />
+                </div>
+            </div>
+            <div class="col-sm-1">
+                <div class="clearfix">
+                    <input type="button" id="btnDownloadTranShipment" value="Download" class="btn btn-primary btn-sm filter-custom-margin" data-url="@Url.Action("GetTransitVessel", "MoveManage" ,new { id =Model.MoveID})" onclick="DownloadTransShipment(this)" />
+                </div>
+            </div>
+            <div class="@transitchkCSS @HideTranshipPort">
+                <div class="form-group">
+                    <label>
+
+                        <input type="checkbox" class="TransitShipment filter-custom-margin" id="TransitShipment" onchange="IsTranshipment(this)" checked="@IsTransitShipment" />
+                        @*@Html.CheckBox("chk_Mode_Sea", new { @class = "chk_Mode", @data-toggle = "collapse", @data-target = "#Sea", onchange = "GenerateXML(this)"  })*@ <span>@Html.DisplayNameFor(a => a.FreightReport.TransitShipment)</span>
+                    </label>
+                    @*<label class="filter-custom-margin">
+                            @Html.CheckBoxFor(a => a.FreightReport.TransitShipment, new { htmlAttributes = new { @placeholder = "Transit Shipment", @tooltip = "Transit Shipment", @class = "form-control input-sm", title = "TransitShipment", id = "TransitShipment", @onchange = "IsTranshipment(this)" } }) &nbsp;
+                            @Html.DisplayNameFor(a => a.FreightReport.TransitShipment)
+                        </label>*@
+                </div>
+            </div>
+        </div>
+
+        try
+        {
+            <div class="row TranshipTable">
+                <div class="col-sm-12 m-b-lg">
+                    <div class="table-responsive" id="pnl-rates">
+                        <table id="MoveTranshiptable" class="ScrollTable table table-striped table-bordered ScrollTable" style="width:100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th class="tdNone"></th>
+                                    @{
+                                        Label = "Schedule Vessel";
+                                        if (mode == "Road")
+                                        {
+                                            Label = "Transporter Name";
+                                        }
+                                        else if (mode == "Air")
+                                        {
+                                            Label = "Flight No";
+                                        }
+
+                                        string HideFromToPort = (mode == "Road") ? "hide" : "";
+                                    }
+                                    <th>@Label</th>
+
+                                    <th class="@HideFromToPort">From Port</th>
+                                    <th>ETD</th>
+                                    <th>Act Dept</th>
+                                    <th class="@HideFromToPort">To Port</th>
+                                    <th>ETA</th>
+                                    <th>Act Arr</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{int RowNo = 0;}
+
+                                @foreach (RELOCBS.Entities.TranShipment row in r.TranShipmentList)
+                                {
+
+                                    RowNo++;
+                                    <tr class="package-row">
+                                        <td class="tdNone">
+                                            <input type="hidden" id="HFVIsActive" class="TblIsActive saved" value="@row.Isactive.ToString()" />
+                                            @Html.HiddenFor(x => row.OrderNo, new { @class = "Grd_OrderNo" })
+                                            @*<input type="hidden" id="HFVTranshipPortID" class="TblTranshipPort" value="@row.TranshipPortId" />
+                                                <input type="hidden" id="HFVBaseCurrID" class="TblBaseCurr" value="@row.RateCurrID" />
+                                                    <input type="hidden" id="HFVRateCurrID" class="TblRateCurr" value="@row.BaseCurrID" />
+
+                                                    <input type="hidden" id="HFVRateCompID" class="TblRateComp" value="@row.RateCompId" />*@
+                                        </td>
+                                        <td class="ScheduleVessel">
+                                            @Html.TextBox("Grd_txt_ScheduleVessel", @row.ScheduleVessel, new { @class = "form-control input-sm clearfix Grd_txt_ScheduleVessel", placeholder = "ScheduleVessel", @title = @row.ScheduleVessel, @id = "Grd_txt_ScheduleVessel" })
+                                            @*<a href = "javascript:void(0)" id="Grd_txt_ScheduleVessel_tooltip" class="fa fa-info-circle Grd_txt_ScheduleVessel_tooltip"></a>*@
+                                        </td>
+                                        <td class="From @HideFromToPort">
+                                            @{ var DrpFromPortId = "Grd_ddl_FromPortId_" + Convert.ToString(RowNo); }
+                                            @Html.DropDownListFor(a => row.FromPortId, new SelectList((System.Collections.IEnumerable)ViewData["PortList"], "Value", "Text", row.FromPortId), "--Select From--", new { @class = "form-control input-sm clearfix Grd_Dll_FromPortId", @id = DrpFromPortId })
+                                        </td>
+                                        <td class="ETD">
+                                            <div class="input-group input-group-sm date" id="dtp_ToDate">
+                                                @Html.EditorFor(a => row.ETD, new { htmlAttributes = new { @class = "form-control input-sm datepicker Grd_Dt_ETD", id = "Grd_Dt_ETD" } })
+                                                <span class="input-group-addon" style="display: none">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="ActDep">
+                                            <div class="input-group input-group-sm date" id="dtp_ToDate">
+                                                @Html.EditorFor(a => row.ActDep, new { htmlAttributes = new { @class = "form-control input-sm datepicker Grd_Dt_ATD", id = "Grd_Dt_ATD" } })
+                                                <span class="input-group-addon" style="display: none">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="TranshipPort @HideFromToPort">
+                                            @Html.DropDownListFor(a => row.TranshipPortId, new SelectList((System.Collections.IEnumerable)ViewData["PortList"], "Value", "Text", row.TranshipPortId), "--Select To--", new { @class = "form-control input-sm clearfix Grd_Dll_TranshipPortId", @onchange = "TranshipPortChange(this)" })
+                                        </td>
+                                        <td class="ETA">
+                                            <div class="input-group input-group-sm date" id="dtp_ToDate">
+                                                @Html.EditorFor(a => row.ETA, new { htmlAttributes = new { @class = "form-control input-sm datepicker Grd_Dt_ETA", id = "Grd_Dt_ETA" } })
+                                                <span class="input-group-addon" style="display: none">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="ActArr">
+                                            <div class="input-group input-group-sm date" id="dtp_ToDate">
+                                                @Html.EditorFor(a => row.ActArr, new { htmlAttributes = new { @class = "form-control input-sm datepicker Grd_Dt_ATA", id = "Grd_Dt_ATA" } })
+                                                <span class="input-group-addon" style="display: none">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-danger btn-sm btnTrasitWtRemove" id="btnRemove" onclick="TranshipRemove(this)">
+                                                <span class="glyphicon glyphicon-trash"></span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    @*<td class="ConversionRate">
+                                                @Html.TextBox("Grd_txt_ConversionRate", @row.ConversionRate, new { @class = "form-control input-sm clearfix", placeholder = "ConversionRate", title = "ConversionRate", @id = "Grd_txt_ConversionRate" })
+                                            </td>
+                                            <td class="CostValue">
+                                                @Html.TextBox("Grd_txt_CostValue", @row.CostValue, new { @class = "form-control input-sm clearfix", placeholder = "CostValue", title = "CostValue", @id = "Grd_txt_CostValue" })
+                                            </td>
+
+                                            <td class="RevenueValue">
+                                                @Html.TextBox("Grd_txt_RevenueValue", @row.RevenueValue, new { @class = "form-control input-sm clearfix", placeholder = "RevenueValue", title = "RevenueValue", @id = "Grd_txt_RevenueValue" })
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-danger btn-sm" id="btnRemove" onclick="CostRemove(this)">
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </button>
+                                            </td>
+                                        </tr>*@
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.ToString());
+        }
+    }
+
+</div>
+
+<style>
+
+    hr {
+        border: none;
+        border-left: 1px solid hsla(200, 10%, 50%,100);
+        min-height: 50px;
+        width: 1px;
+    }
+
+    .col-sm-1.vdivide {
+        width: 1px;
+    }
+</style>
+
+<script type="text/javascript">
+
+    
+    
+    function TranshipAdd(button) {
+        var Mode = '@mode';
+        fn_TranshipAdd(button, Mode);
+    }
+    
+    function IsDirectHideShow(control) {
+        var LCLFCL = $(control).val();
+        var MoveID = '@Model.MoveID';
+        fn_IsDirectHideShow(control, LCLFCL, MoveID);
+    }
+
+    
+</script>
+@*@Scripts.Render("~/bundles/jqueryval")*@

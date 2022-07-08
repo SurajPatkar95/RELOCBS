@@ -1,0 +1,185 @@
+﻿@model RELOCBS.Entities.RMCPricing
+@using RELOCBS.App_Code;
+@using RELOCBS.Utility;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html;
+@{
+    /*ViewBag.Title = "Index";*/
+    if (ViewBag.IsView)
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+    string Txtreadonly = ViewBag.IsView ?"readonly":"";
+
+    string _PageID = "7";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+    decimal? feesamt = 0;
+    decimal? adminpercent = 0;
+    decimal? micspercent = 0;
+    decimal? auditpercent = 0;
+    decimal? commpercent = 0;
+    if (Model.RMCFees != null)
+    {
+        for (int i = 0; i < Model.RMCFees.Count; i++)
+        {
+            //Model.RMCFees[i].CostHeadId
+
+            feesamt += Model.RMCFees[i].BAFlag == 'A' ? Model.RMCFees[i].Amount : 0;
+
+            if (Model.RMCFees[i].CostHeadName.Contains("Audit") && Model.RMCFees[i].Percent != 0)
+            {
+                auditpercent = Model.RMCFees[i].Percent;
+            }
+            if (Model.RMCFees[i].CostHeadName.Contains("Admin") && Model.RMCFees[i].Percent != 0)
+            {
+                adminpercent = Model.RMCFees[i].Percent;
+            }
+            if (Model.RMCFees[i].CostHeadName.Contains("Commission") && Model.RMCFees[i].Percent != 0)
+            {
+                commpercent = Model.RMCFees[i].Percent;
+            }
+            if (Model.RMCFees[i].CostHeadName.Contains("Miscellaneous") && Model.RMCFees[i].Percent != 0)
+            {
+                micspercent = Model.RMCFees[i].Percent;
+            }
+        }
+    }
+
+}
+<style>
+    .grid-mvc tbody {
+        height: 200px;
+        overflow-y: scroll;
+    }
+
+    .GPNg {
+        color: red;
+    }
+</style>
+<div class="ibox-content SFRGrid m-l-n pad-none">
+    @Html.Grid(Model.SFRCalculationList).Named("mainGrid").Columns(columns =>
+    {
+        columns.Add(o => o.ModeID)
+            .Titled("Mode")
+            .Css("ModeID hide");
+        columns.Add(o => o.WeightFrom)
+            .Titled("Slab")
+            .Css("col-md-1 WeightFrom");
+        columns.Add(o => o.OrgCost)
+        .Titled("Origin").Css("col-md-1 OrgCost");
+        columns.Add(o => o.FrtCost)
+        .Titled("Freight").Css("col-md-1 FrtCost");
+        columns.Add(o => o.DestCost)
+        .Titled("Destination").Css("col-md-1 DestCost");
+        columns.Add(o => o.DtDCost)
+        .Titled("DTD").Css("col-md-1 DtDCost");
+        columns.Add(o => o.Buff)
+        .Titled("Buffer").Css("col-md-1 Buff");
+        columns.Add(o => o.SFRAmt)
+        .Titled("SFR Amt").Css("col-md-1 SFRAmt");
+        columns.Add(o => o.SFR)
+        .Titled("SFR").Css("col-md-1 SFR");
+        columns.Add(o => o.RevSFR)
+        .Titled("Reverse SFR").Css("col-md-1 RevSFR");
+        columns.Add().Titled("FSFR")
+        .Css("FSFR")
+             .Encoded(false)
+             .Sanitized(false)
+             .SetWidth(10)
+             .RenderValueAs(o => Html.TextBox("FSFR", o.FSFR, new { @class = "form-control input-sm m-t-xs txtFSFR", onkeypress = "return OnlyDouble(this, event);"}));
+        columns.Add(o => o.FSFRAmt)
+        .Titled("FSFR Amt").Css("col-md-1 FSFRAmt");
+        columns.Add(o => o.NetRev)
+        .Titled("NRev").Css("col-md-1 NetRev");
+        columns.Add(o => o.GPVal)
+        .Titled("GP Val").Css("col-md-1 GPVal");
+        columns.Add(o => o.GPPercent)
+        .Titled("GP Percent").Css("col-md-1 GPPercent");
+        columns.Add().Titled("TimeFrom")
+        .Css("TimeFrom")
+             .Encoded(false)
+             .Sanitized(false)
+             .SetWidth(10)
+             .RenderValueAs(o => Html.TextBox("TimeFrom", o.TransitFrom, new { @class = "form-control input-sm m-t-xs txtTimeFrom", onkeypress = "return OnlyDouble(this, event);" }));
+        columns.Add().Titled("TimeTo")
+        .Css("TimeTo")
+                .Encoded(false)
+                .Sanitized(false)
+                .SetWidth(10)
+                .RenderValueAs(o => Html.TextBox("TimeTo", o.TransitTo, new { @class = "form-control input-sm m-t-xs txtTimeTo", onkeypress = "return OnlyDouble(this, event);" }));
+    }).Sortable()
+</div>
+
+<script>
+$(document).ready(function ()
+{
+	$('#partial .grid-mvc table tbody tr td').each(function () {
+
+		var value = parseInt($(this).text());
+		if (value < 0) {
+			$(this).addClass('GPNg');
+		}
+
+	});
+});
+//$('.txtTimeFrom').on('blur', function () {
+//	var timeFrom = $(this).val();
+//	if (timeFrom) {
+//		$('#partial .grid-mvc table tbody tr').each(function () {
+//			$(this).find('td.TimeFrom').find('.txtTimeFrom').val(timeFrom);
+//		});
+//	}
+
+//});
+//$('.txtTimeTo').on('blur', function () {
+//	var timeTo = $(this).val();
+//	if (timeTo) {
+//		$('#partial .grid-mvc table tbody tr').each(function () {
+//			$(this).find('td.TimeTo').find('.txtTimeTo').val(timeTo);
+//		});
+//	}
+
+//});
+$('.txtFSFR').on('blur', function () {
+	debugger;
+	var FSFR = $(this).val();
+	var td = $(this).closest('td');
+	var feesamt = '@feesamt'
+	var adminpercent = '@adminpercent';
+	var micspercent = '@micspercent';
+	var auditpercent = '@auditpercent';
+	var commpercent = '@commpercent';
+	var ogrev = 0;
+	//if (adminpercent != 0) {
+	//    ogrev += ((FSFR - feesamt) / 100) * adminpercent;
+	//}
+	//if (auditpercent != 0) {
+	//    ogrev += ((FSFR - feesamt) / 100) * auditpercent;
+	//}
+	//if (commpercent != 0) {
+	//    ogrev += ((FSFR - feesamt) / 100) * commpercent;
+	//}
+	//if (micspercent != 0) {
+	//    ogrev += ((FSFR - feesamt) / 100) * micspercent;
+	//}
+	var FSFRAmt = td.siblings('td.FSFRAmt').html();
+	if (td.siblings('td.ModeID').html() == 1 || td.siblings('td.ModeID').html() == 3) {
+		FSFRAmt = (FSFR / 100) * td.siblings('td.WeightFrom').html();
+	}
+	else if (td.siblings('td.ModeID').html() == 2) {
+		FSFRAmt = (FSFR) * td.siblings('td.WeightFrom').html();
+	}
+
+	var netRev = (FSFRAmt - feesamt - (((FSFRAmt - feesamt)*10.72)/100));
+	var GPVal = netRev - td.siblings('td.DtDCost').html();
+	var GPPercent = (GPVal / netRev) * 100;
+
+	td.siblings('td.FSFRAmt').html(parseFloat(FSFRAmt).toFixed(2));
+	td.siblings('td.NetRev').html(parseFloat(netRev).toFixed(2));
+	td.siblings('td.GPVal').html(parseFloat(GPVal).toFixed(2));
+	td.siblings('td.GPPercent').html(parseFloat(GPPercent).toFixed(2));
+});
+</script>`

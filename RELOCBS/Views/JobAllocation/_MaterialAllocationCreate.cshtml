@@ -1,0 +1,56 @@
+﻿<div id="divMaterialAllocation" class="modal pannel-table fade" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width:1020px;">
+        <div class="modal-content">
+            <div class="panel popup-panel">
+                <div class="panel-heading">
+                    <h3>
+                        Material Allocation
+                        <a id="btnMaterialAllocationClose" class="close floatRight" data-dismiss="modal"><span class="fa fa-close"></span></a>
+                    </h3>
+                </div>
+                <div class="panel-body" style="padding-top:0;">
+                    <table class="tableData taW tbodyScroll">
+                        <thead>
+                            <tr>
+                                <th class="thRound thRoundFirst cw60">Material</th>
+                                <th class="thRound cw200"><input type="text" class="flatbox taW" data-ng-model="MaterialItem" data-ng-change="filter()" /></th>
+                                <th class="thRound cw80">&nbsp;</th>
+                                <th class="thRound cw60 thRoundLast">&nbsp;</th>
+                                @* <th class="thRound cw60">Return</th>
+                                    <th class="thRound thRoundLast cw60">Used</th>*@
+                            </tr>
+                            <tr>
+                                <th class="thRound thRoundFirst cw60">Code</th>
+                                <th class="thRound cw200">Material</th>
+                                <th class="thRound cw80">UOM</th>
+                                <th class="thRound cw60 thRoundLast">Issue</th>
+                                @* <th class="thRound cw60">Return</th>
+                                    <th class="thRound thRoundLast cw60">Used</th>*@
+                            </tr>
+                        </thead>
+                        <tbody style="max-height:380px;">
+                            <tr data-ng-repeat="row in MaterialAllocList | filter: MaterialFilter">
+                                <td class="cw60 tright">
+                                    {{row.ItemCode}}
+                                    <input type="hidden" data-ng-model="row.ItemId" />
+                                    <input type="hidden" data-ng-model="row.WisId" data-ng-init="row.WisId=seletedJob.WisId" />
+                                    <input type="hidden" data-ng-model="row.BranchId" data-ng-init="row.BranchId=seletedJob.BranchId" />
+                                </td>
+                                <td class="cw200">{{row.ItemName}}</td>
+                                <td class="cw80">Each</td>
+                                <td class="cw60 tright"><input type="number" class="flatbox taW" data-ng-model="row.IssuedQty" min="0" /></td>
+                                @*<td class="cw60"><input type="text" class="flatbox taW" /></td>
+                                    <td class="cw60 tright">10</td>*@
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel-footer tcenter">
+                    <button type="button" class="btn btn-primary" data-ng-click="SaveMaterialAllocData()">Save</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

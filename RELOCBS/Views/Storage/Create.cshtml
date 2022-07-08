@@ -1,0 +1,631 @@
+﻿@model RELOCBS.Entities.JobStorage
+
+@using RELOCBS.Common;
+@using RELOCBS.Utility;
+
+@{
+    ViewBag.Title = "Create Storage";
+    string _PageID = "29";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+    string ShowState = "hide";
+    string ShowCity = "hide";
+
+    if (UserSession.GetUserSession().CompanyName.Equals("Relo-India", StringComparison.OrdinalIgnoreCase))
+    {
+        ShowState = "";
+        Model.StrgCityID=Model.StrgCityID==null ? 0 : Model.StrgCityID;
+    }
+    if (UserSession.GetUserSession().CompanyName.Equals("BTR", StringComparison.OrdinalIgnoreCase))
+    {
+        ShowCity = "";
+        Model.StrgStateID=Model.StrgStateID == null ? 0 : Model.StrgStateID;
+    }
+
+    if(Model.StorageID==null || Model.StorageID==0)
+    {
+        Model.StrgStateID = 0;
+        Model.StrgCityID = 0;
+    }
+
+    string BaseCurr = Model.BaseCurrName;
+}
+<style type="text/css">
+    .bg {
+        border-left: 5px solid red;
+    }
+
+    .tdNone {
+        display: none;
+    }
+</style>
+<div class="content">
+    <div>
+        @*class="col-md-12 border-grey m-t-none"*@
+    @*<legend>Job Detail</legend>*@
+    <div class="row m-t-xs">
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <strong>Job No. :</strong>&nbsp;<strong>@Html.Raw(Model.jobDetail.JobNo)</strong>
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <strong>ServiceLine:</strong>&nbsp;<strong>@Html.Raw(Model.jobDetail.ServiceLine)</strong>
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <strong>Controller:</strong>&nbsp;<strong>@Html.Raw(Model.jobDetail.Controller)</strong>
+            </div>
+        </div>
+        @*<div class="col-sm-1 col-md-1">
+                <div class="clearfix">
+                    <button type="submit" class="btn btn-primary btn-sm pull-right" name="submit" value="Save" id="btnSave">Save</button>
+                </div>
+            </div>*@
+    </div>
+
+    <div class="row m-t-xs">
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <strong>Quotation :</strong>&nbsp;<strong>@Html.Raw(Model.jobDetail.QuotationID)</strong>
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <strong>Shipper :</strong>&nbsp;<strong>@Html.Raw(Model.jobDetail.ShipperName)</strong>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-6">
+            <div class="form-group">
+                <strong>Shipper Address:</strong>&nbsp;<strong>@Html.Raw(Model.jobDetail.ShipperAddress)</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="row m-t-xs">
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <strong>Corporate :</strong>&nbsp;<strong>@Html.Raw(Model.jobDetail.Corporate)</strong>
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <strong>Client :</strong>&nbsp;<strong>@Html.Raw(Model.jobDetail.Client)</strong>
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <strong>Commodity :</strong>&nbsp;<strong>@Html.Raw(Model.jobDetail.JobCommodity)</strong>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            @if (Model.StorageID != null && Model.StorageID > 0 && Model.Approver)
+            {
+                using (Html.BeginForm("CreateApprove", "Storage", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                {
+
+                    @Html.ValidationSummary(false,"")
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("MoveID", Model.jobDetail.MoveID)
+                    @Html.Hidden("StorageID", Model.StorageID)
+                    @Html.Hidden("Index", Model.TabIndex)
+                    @Html.Hidden("IsApproved", Model.ApprovalStatus)
+                    <input type="submit" id="btnApprove" name="Save" class="btn btn-primary m-t-sm pull-left m-r-sm btn-sm filter-custom-margin m-n Showspinner" value="@Model.BtnApproveLable" />
+                }
+            }
+        </div>
+    </div>
+
+     @if(Model.StorageID != null && Model.StorageID > 0 && !String.IsNullOrEmpty(Model.CreatedBY))
+     {
+         <div class="row m-t-xs">
+            <div class="col-sm-2 col-md-2">
+                <strong>Prepared By: @Model.CreatedBY</strong>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <strong>Prepared Date: @Model.CreatedDate</strong>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <strong>Approved By: @Model.ApprovedBY</strong>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <strong>Approved Date: @Model.ApprovedDate</strong>
+            </div>
+        </div>
+     }
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="tabs-container" id="tabRateUpload">
+            <ul class="nav nav-tabs" role="tablist">
+                <li role="presentation" class="@(Model.TabIndex == 0 ? "active" : "")"><a href="#Storage" aria-controls="Storage" class="Tablist" role="tab" data-toggle="tab" aria-expanded="true">Storage</a></li>
+                @if (Model.StorageID != null && Model.StorageID > 0)
+                {
+                    <li role="presentation" class="@(Model.TabIndex == 1 ? "active" : "")"><a href="#Rate" aria-controls="Rate" class="Tablist" role="tab" data-toggle="tab" aria-expanded="true">Rate</a></li>
+                }
+            </ul>
+            <div class="tab-content">
+                <div role="tabpanel" class="@(Model.TabIndex == 0 ? "tab-pane active" : "tab-pane")" id="Storage">
+                    @using (Html.BeginForm("Create", "Storage", new { MoveID = Model.jobDetail.MoveID, StorageID = Model.StorageID, Index = 0 }, FormMethod.Post, new { enctype = "multipart/form-data" }))
+                    {
+                        @Html.ValidationSummary(false, "")
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(a => a.jobDetail.MoveID)
+                        @Html.HiddenFor(a => a.StorageID)
+
+                        <fieldset class="col-md-12 border-grey m-t-xs">
+                            <legend>Storage Details</legend>
+                            <div class="row">
+                                @*<div class="col-md-3 col-sm-3">
+            <div class="form-group">
+                <label class="text-right">Commodity</label>
+                @Html.DropDownListFor(model => Model.StorageCommodityID, new SelectList((System.Collections.IEnumerable)ViewData["CommodityList"], "Value", "Text"), "--Select Commodity--", new { @class = "form-control input-sm clearfix StorageCommodity" })
+                @Html.ValidationMessageFor(a => a.StorageCommodityID, "", new { @class = "text-danger" })
+            </div>
+        </div>*@
+                                <div class="col-md-3 col-sm-3">
+                                    <div class="form-group">
+                                        <label class="text-right">Currency</label>
+                                        @Html.DropDownListFor(model => Model.CurrID, new SelectList((System.Collections.IEnumerable)ViewData["CurrencyList"], "Value", "Text"), "--Select Currency--", new { @class = "form-control input-sm clearfix Currency", @disabled = "disabled" })
+                                        @Html.HiddenFor(model => Model.CurrID)
+                                        @Html.ValidationMessageFor(a => a.CurrID, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-3">
+                                    <div class="form-group">
+                                        <label class="text-right">Warehouse</label>
+                                        @Html.DropDownListFor(model => Model.WarehouseID, new SelectList((System.Collections.IEnumerable)ViewData["WarehouseList"], "Value", "Text"), "--Select Warehouse--", new { @class = "form-control input-sm clearfix Warehouse" })
+                                        @Html.ValidationMessageFor(a => a.WarehouseID, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-3 @ShowState">
+                                    <div class="form-group">
+                                        <label class="text-right">Warehouse state</label>
+                                        @Html.DropDownListFor(model => Model.StrgStateID, new SelectList((System.Collections.IEnumerable)ViewData["StatesList"], "Value", "Text"), "--Select Warehouse State--", new { @class = "form-control input-sm clearfix PackState" })
+                                        @Html.ValidationMessageFor(a => a.StrgStateID, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-3 @ShowCity">
+                                    <div class="form-group"></div>
+                                    <label class="text-right">Warehouse City</label>
+                                    @if(string.IsNullOrWhiteSpace(ShowCity))
+                                    {
+                                        @Html.DropDownListFor(a => a.StrgCityID, new List<SelectListItem>(), "--Select Warehouse City--", new { @class = "form-control input-sm clearfix" })
+                                        @Html.ValidationMessageFor(a => a.StrgCityID, "", new { @class = "text-danger" })
+                                    }
+                                    else
+                                    {
+                                        @Html.HiddenFor(a => a.StrgCityID)
+                                    }
+
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3 col-sm-3">
+                                    <div class="form-group">
+                                        <label class="text-right">Stg Entry Date</label>
+                                        @Html.TextBoxFor(model => Model.StorageEntryDate, new { @class = "form-control input-sm clearfix StorageEntryDate datetimepicker" })
+                                        @Html.ValidationMessageFor(a => a.StorageEntryDate, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-3">
+                                    <div class="form-group">
+                                        <label class="text-right">Bill Start Date</label>
+                                        @Html.TextBoxFor(model => Model.BillStartDate, new { @class = "form-control input-sm clearfix BillStartDate Monthpicker" })
+                                        @Html.ValidationMessageFor(a => a.BillStartDate, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-3">
+                                    <div class="form-group">
+                                        <label class="text-right">Stg Exit Date</label>
+                                        @Html.TextBoxFor(model => Model.StorageExitDate, new { @class = "form-control input-sm clearfix StorageExitDate datetimepicker" })
+                                        @Html.ValidationMessageFor(a => a.StorageExitDate, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                @*<div class="col-md-3 col-sm-3">
+                                    <div class="form-group">
+                                        <label class="text-right">File Close Date</label>
+                                        @Html.TextBoxFor(model => Model.FileCloseDate, new { @class = "form-control input-sm clearfix FileCloseDate datetimepicker" })
+                                        @Html.ValidationMessageFor(a => a.FileCloseDate, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+                            </div>
+                            <div class="row">
+                                @*<div class="col-md-1 col-sm-1">
+            <label class="clearfix m-t-md">@Html.CheckBoxFor(model => Model.IsInsured)&nbsp;Insurance</label>
+            @Html.ValidationMessageFor(a => a.IsInsured, "", new { @class = "text-danger" })
+        </div>*@
+                                <div class="col-md-3 col-sm-3">
+                                    <div class="form-group">
+                                        <label class="text-right">Insured By</label>
+                                        @Html.DropDownListFor(model => Model.InsuredByID, new SelectList((System.Collections.IEnumerable)ViewData["InsuranceCompList"], "Value", "Text"), "--Select Insured By--", new { @class = "form-control input-sm clearfix InsuranceComp disableselect" })
+                                        @Html.ValidationMessageFor(a => a.InsuredByID, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-md-2 col-sm-2">
+                                    <div class="form-group">
+                                        <label class="text-right">Load Date</label>
+                                        @Html.TextBoxFor(model => Model.LoadDate, new { @class = "form-control input-sm clearfix LoadDate datetimepicker" })
+                                        @Html.ValidationMessageFor(a => a.LoadDate, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-md-2 col-sm-2">
+                                    <div class="form-group">
+                                        <label class="text-right">Pack Date</label>
+                                        @Html.TextBoxFor(model => Model.PackDate, new { @class = "form-control input-sm clearfix PackDate datetimepicker" })
+                                        @Html.ValidationMessageFor(a => a.PackDate, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-md-2 col-sm-2">
+                                    <div class="form-group">
+                                        <label class="text-right">Doc Rec.Date</label>
+                                        @Html.TextBoxFor(model => Model.DocRecDate, new { @class = "form-control input-sm clearfix DocRecDate datetimepicker" })
+                                        @Html.ValidationMessageFor(a => a.DocRecDate, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3 col-sm-3">
+                                    <div class="form-group">
+                                        <label class="text-right">SD HO</label>
+                                        @Html.DropDownListFor(model => Model.SD_HOID, new SelectList((System.Collections.IEnumerable)ViewData["EmpList"], "Value", "Text"), "--Select SD HO--", new { @class = "form-control input-sm clearfix SD_HO enableselect" })
+                                        @Html.ValidationMessageFor(a => a.SD_HOID, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-3">
+                                    <div class="form-group">
+                                        <label class="text-right">SD Branch</label>
+                                        @Html.DropDownListFor(model => Model.SD_BranchID, new SelectList((System.Collections.IEnumerable)ViewData["EmpList"], "Value", "Text"), "--Select SD Branch--", new { @class = "form-control input-sm clearfix SD_Branch enableselect" })
+                                        @Html.ValidationMessageFor(a => a.SD_BranchID, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-sm-6">
+                                    <div class="form-group">
+                                        <label class="text-right">Storage Details</label>
+                                        @Html.TextBoxFor(model => Model.StorageDetails, new { @class = "form-control input-sm clearfix StorageDetails" })
+                                        @Html.ValidationMessageFor(a => a.StorageDetails, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <fieldset class="col-md-12 border-grey">
+                            <legend><span class="StorageDetailTitle">Add Volume Detail</span></legend>
+                            <div class="row">
+                                @Html.HiddenFor(model => model.StorageDetailID)
+                                <div class="col-md-2 col-sm-2">
+                                    <div class="form-group">
+                                        <label class="text-right">Volume Unit</label>
+                                        @Html.DropDownListFor(model => model.VolumeUnitID, new SelectList((System.Collections.IEnumerable)ViewData["UnitList"], "Value", "Text"), "--Select Unit--", new { @class = "form-control input-sm clearfix VolumeUnitID" })
+                                        @*@Html.HiddenFor(model => model.VolumeUnitID)*@
+                                        @Html.ValidationMessageFor(a => a.VolumeUnitID, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-sm-3 col-md-3">
+                                    <div class="form-group">
+                                        <label class="text-right">Volume</label>
+                                        @Html.TextBoxFor(model => Model.VolumeCFT, new { @class = "form-control input-sm clearfix VolumeCFT" })
+                                        @Html.ValidationMessageFor(a => a.VolumeCFT, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-sm-3 col-md-3">
+                                    <div class="form-group">
+                                        <label class="text-right">Volume Date</label>
+                                        @Html.TextBoxFor(model => Model.VolumeDate, new { @class = "form-control input-sm clearfix VolumeDate Monthpicker" })
+                                        @Html.ValidationMessageFor(a => a.VolumeDate, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-sm-4 col-md-4">
+                                    <div class="form-group">
+                                        <label class="text-right">Remark</label>
+                                        @Html.TextBoxFor(model => Model.VolumeRemark, new { @class = "form-control input-sm clearfix VolumeRemark" })
+                                        @Html.ValidationMessageFor(a => a.VolumeRemark, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="form-group col-md-12">
+                            <div class="clearfix text-center">
+                                <input type="submit" id="btnSave" name="Save" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Save" />
+                                <input type="button" id="btnClear" name="Clear" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Cancel" formnovalidate="formnovalidate" />
+                            </div>
+                        </div>
+                        <div class="row col-sm-12">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-condensed" id="DetailTable">
+                                    <thead>
+                                        <tr class="ibox-title">
+                                            <th class="tdNone"></th>
+                                            <th>Volume Unit</th>
+                                            <th>Volume</th>
+                                            <th>VolumeDate</th>
+                                            <th>Remark</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (RELOCBS.Entities.StorageDetails row in Model.StorageList)
+                                        {
+
+                                            <tr>
+                                                <td class="tdNone">
+                                                    <input type="hidden" class="TblStorageDetailID" name="TblStorageDetailID" id="TblStorageDetailID" value="@row.StorageDetailID" />
+                                                </td>
+                                                <td class="VolumeUnit">
+                                                    @Html.DropDownList("TblVolumeUnitID", new SelectList((System.Collections.IEnumerable)ViewData["UnitList"], "Value", "Text", row.VolumeUnitID), "--Select Unit--", new { @class = "form-control input-sm TblVolumeUnitID", @disabled = "disabled" })
+                                                    <input type="hidden" class="TblHFVVolumeUnitID" name="TblHFVVolumeUnitID" id="TblHFVVolumeUnitID" value="@row.VolumeUnitID" />
+                                                </td>
+                                                <td class="VolumeCFT">
+                                                    <input type="text" name="TblVolumeCFT" value="@row.VolumeCFT" class="form-control input-sm TblVolumeCFT" readonly />
+                                                </td>
+                                                <td class="VolumeDate">
+                                                    <input type="text" name="TblVolumeDate" value="@row.VolumeDate" class="form-control input-sm  datetimepicker TblVolumeDate" readonly />
+                                                </td>
+                                                <td class="VolumeRemark">
+                                                    <textarea name="TblVolumeRemark" class="form-control TblVolumeRemark" rows="2" readonly>@row.VolumeRemark</textarea>
+                                                </td>
+                                                <td>
+                                                    @if (row.IsBilled == 0)
+                                                    {
+                                                        <button type="button" class="btnEdit btn btn-xs btn-success m-t-xs" onclick="Edit(this)"><i class="fa fa-pencil-square-o"></i></button>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                </div>
+                @if (Model.StorageID != null && Model.StorageID > 0)
+                {
+                    <div role="tabpanel" class="@(Model.TabIndex == 1 ? "tab-pane active" : "tab-pane")" id="Rate">
+                        @Html.Partial("Rate_Insurance", Model)
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+</div>
+@section Scripts
+{
+
+    <script type="text/javascript">
+        $("#btnClear").on("click", function () {
+            Clear();
+        });
+
+        function Edit(button) {
+            debugger;
+            //Determine the reference of the Row using the Button..\
+            var row = $(button).closest("TR");
+            $('#StorageDetailID').val(row.find('.TblStorageDetailID').val());
+            $('#VolumeUnitID').val(row.find('.TblHFVVolumeUnitID').val());
+            $('#VolumeCFT').val(row.find('.TblVolumeCFT').val());
+            $('#VolumeDate').val(row.find('.TblVolumeDate').val());
+            $('#VolumeRemark').val(row.find('.TblVolumeRemark').val());
+
+            row.closest('table').find('tr').each(function () { $(this).removeClass('bg') });
+            row.addClass('bg');
+            rowIndex = row[0].rowIndex;
+            $('#btnSave').val('Update');
+            $(".StorageDetailTitle").html("Update Volume Detail");
+
+        }
+
+        function Clear() {
+            $('#StorageDetailID').val(null);
+            $('#VolumeUnitID').val(null);
+            $('#VolumeCFT').val(null);
+            $('#VolumeDate').val(null);
+            $('#VolumeRemark').val(null);
+            $('#DetailTable tbody tr').each(function () { $(this).removeClass('bg') });
+            rowIndex = 0;
+            $(".StorageDetailTitle").html("Add Volume Detail");
+
+            $('#btnSave').val('Save');
+        }
+
+        $(document).ready(function () {
+
+            $('.enableselect').select2();
+
+            $('.datetimepicker').datetimepicker({
+                format: 'DD-MMM-YYYY',
+                widgetPositioning:
+                {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            AjaxFillDropDown('#StrgCityID', "@Url.Action("GetCityList", "Enquiry")");
+            var CityID = '@Model.StrgCityID';
+            if (CityID > 0)
+            {
+                AjaxFillDropDown('#StrgCityID', "@Url.Action("GetCityList", "Enquiry")", '@Model.StrgCityID');
+            }
+            else {
+                $('#StrgCityID').val('0');
+            }
+        });
+
+    </script>
+
+    <script type="text/javascript">
+        
+        $(document).on('click', '#btnClearRate', function (e) {
+            e.preventDefault();
+            ClearRates();
+        });
+        
+        function EditRates(button, IsEdit) {
+            debugger;
+            var row = $(button).closest("TR");
+            var StorageDetailID = row.find('.TblRateStorageDetailID').val();
+            if (parseInt(StorageDetailID)>0) {
+                var url = '@Url.Action("GetRateInsurance", "Storage",new { MoveID=Model.jobDetail.MoveID, StorageID = Model.StorageID, StorageDetailID="-1", BaseCurr = Model.BaseCurrName })';
+                url= url.replace("-1", StorageDetailID);
+                url = url.replace(/&amp;/g, "&");
+
+                $("#RateDiv").load(url, function () {
+
+                    //perform the url load  then
+                    row.closest('table').find('tr').each(function () { $(this).removeClass('bg') });
+                    row.addClass('bg');
+                    DataSelect();
+
+                    if (IsEdit) {
+
+                        $('#btnSaveRate').removeAttr('disabled');
+                        $('#btnClearRate').removeAttr('disabled');
+                        $('#btnAdd').removeAttr('disabled');
+
+                        //$('#RateFromDate').removeAttr('readonly');
+                        $('.CostHead').removeAttr('disabled');
+                        $('.Qtn_UOM').removeAttr('disabled');
+                        $('.RateAmt').removeAttr('readonly');
+
+                        //$('#InsuranceDate').removeAttr('readonly');
+                        $('#InsuranceValue').removeAttr('readonly');
+                        $('#InsurancePercent').removeAttr('readonly');
+                        $('#InsuranceCycleID').removeAttr('disabled');
+                        
+                        $('#btnSaveRate').on('click', function () {
+
+                            var data = getRateData();
+                            if (data != null && data.length > 0) {
+
+                                $('#HFrateList').val(JSON.stringify(data));
+                            }
+                        });
+                    }
+
+                    return false;
+                });
+
+
+            }
+            //$(".StorageDetailTitle").html("Update Volume Detail");
+
+            return false; 
+        }
+
+
+        function getRateData() {
+
+            var data = [];
+            $('#RatesDetailTable tbody tr').each(function () {
+
+                var VolumeUnit = $(this).find('.TblVolumeUnit').val();
+                var VolumeUnitID = $(this).find('.TblVolumeUnitID').val();
+                var StorageDetailID = $(this).find('.TblStorageDetailID').val();
+                var VolumeCFT = $(this).find('.TblVolumeCFT').val();
+                var CostHead = $(this).find('.TblCostHead').val();
+                var CostHeadId = $(this).find('.TblCostHeadId').val();
+                var Rate = $(this).find('.TblRate').val();
+                var RatePerUnit = $(this).find('.TblRatePerUnit').val();
+                var RatePeriod = $(this).find('.TblRatePeriod').val();
+                var RatePeriodID = $(this).find('.TblRatePeriodID').val();
+
+                var alldata = {
+                    'VolumeUnit': VolumeUnit,
+                    'VolumeUnitID': parseInt(VolumeUnitID),
+                    'StorageDetailID': parseInt(StorageDetailID),
+                    'VolumeCFT': VolumeCFT,
+                    'CostHead': CostHead,
+                    'CostHeadId': CostHeadId,
+                    'Rate': Rate,
+                    'RatePerUnit': RatePerUnit,
+                    'RatePeriod': RatePeriod,
+                    'RatePeriodID': RatePeriodID
+                }
+                data.push(alldata);
+            });
+
+             
+            return data;
+        }
+
+        function ClearRates() {
+
+            debugger;
+
+                var url = '@Url.Action("GetRateInsurance", "Storage",new { MoveID=Model.jobDetail.MoveID, StorageID = Model.StorageID, StorageDetailID="-1" })';
+                url = url.replace(/&amp;/g, "&");
+
+                $("#RateDiv").load(url, function () {
+                    $('#StrgDetailTable tbody tr').each(function () { $(this).removeClass('bg') });
+                    DataSelect();
+                    //$('#btnSaveRate').attr('disabled', 'disabled');
+                    //$('#btnClearRate').attr('disabled', 'disabled');
+                    
+                });
+        }
+
+
+        $(document).ready(function () {
+
+            DataSelect();
+
+            @*var packStateID = '@Model.StrgStateID';
+
+            AjaxFillDropDown('#StrgStateID', "@Url.Action("GetStateList", "Combo")");
+
+            if (packStateID != null && parseInt(packStateID)>0) {
+                AjaxFillDropDown('#StrgStateID', "@Url.Action("GetStateList", "Combo")",packStateID);
+            }*@
+
+            
+        });
+
+        function DataSelect() {
+
+            $('.enableselect').select2();
+
+            $('.datetimepicker').datetimepicker({
+                format: 'DD-MMM-YYYY',
+                widgetPositioning:
+                {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            
+
+            $(".Monthpicker").datetimepicker({
+                //viewMode: 'months',
+                format: 'DD-MMM-YYYY',
+                useCurrent: false,
+                //dayViewHeaderFormat: 'MMMM YYYY',
+                showTodayButton: false,
+                //minDate: false,
+                //maxDate : new Date()
+            });
+
+            //$(".Monthpicker").on("dp.change", function (e) {
+            //    let CurrentDate = new Date(e.date._d);
+            //    e.date._d = new Date(CurrentDate.getFullYear(), CurrentDate.getMonth() , 1);
+            //    $(this).val(moment(new Date(CurrentDate.getFullYear(), CurrentDate.getMonth(), 1)).format('DD-MMM-YYYY'));
+            //    $(this).datepicker('hide');
+            //});
+
+            if ($('select#Months').val() == null || $('select#Months').val() == "") {
+
+                $('.Months').val(6);
+            }
+        }
+
+    </script>
+
+    @Scripts.Render("~/bundles/jqueryval")
+}

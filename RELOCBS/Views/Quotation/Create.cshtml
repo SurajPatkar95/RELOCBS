@@ -1,0 +1,1642 @@
+﻿@*Quoting Create *@
+@using RELOCBS.Utility;
+@using System.Data;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model RELOCBS.Entities.QuotingViewModel
+
+@{
+    ViewBag.Title = "Quotation";
+
+    string _PageID = "45";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+    bool hasViewAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.VIEW);
+    //_PageID = "9";
+    bool hasAddSurveyAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditSurveyAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasViewSurveyAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.VIEW);
+    bool hasApproveAccess = UserSession.HasPermission("46", EnumUtility.PageAction.ADD) || UserSession.HasPermission("46", EnumUtility.PageAction.EDIT);
+    int ApprovalCount = ViewBag.ApprovalCount;
+}
+
+@Styles.Render("~/Content/bootstrap-selectcss")
+<style>
+    .tdNone {
+        display: none;
+    }
+
+
+    .grid-header {
+        background-color: white;
+        color: black;
+        font-weight: bold;
+        border-top: 1px thin grey;
+        border-bottom: 1px medium grey;
+    }
+
+    .important {
+        color: black;
+        font-weight: bold;
+        /*background-color: #c7ea46;*/
+        background-color: #C0C0C0;
+    }
+
+    .nonimportant {
+        color: black;
+        font-weight: bold;
+        background-color: red;
+    }
+
+    .fixed_header {
+        table-layout: fixed;
+        border-collapse: collapse;
+        align-content: center;
+    }
+
+        .fixed_header thead {
+            display: table-row;
+            width: 99%;
+        }
+
+        .fixed_header tbody {
+            display: block;
+            width: 100%;
+            overflow: auto;
+            height: 100px;
+        }
+
+        .fixed_header thead tr {
+            display: block;
+        }
+
+        .fixed_header thead {
+            color: black;
+            background: #fff;
+        }
+
+        .fixed_header th, .fixed_header tbody td {
+            padding: 5px;
+            text-align: left;
+            width: 200px;
+        }
+
+    .modal.modal-wide .modal-dialog {
+        width: 90%;
+    }
+
+    #SubCostHeadModal .modal-dialog {
+        width: 50%;
+    }
+
+    .modal-wide .modal-body {
+        overflow-y: auto;
+    }
+</style>
+@*Fixed Header*@
+<style type="text/css">
+    .table-fixed tbody {
+        display: block;
+        height: 200px;
+        overflow: auto;
+    }
+
+        .table-fixed thead, .table-fixed tbody tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+    .table-fixed thead {
+        width: calc( 100% - 1em )
+    }
+</style>
+<div class="modal modal-wide fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="partial">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal modal-wide fade" id="PrintModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content  m-n" id="PrintPartial">
+        </div>
+    </div>
+</div>
+
+<div class="modal modal-wide" id="SubCostHeadModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                Sub Cost Details
+                <button type="button" class="SubCostClose close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="SubCostHead">
+                @(new HtmlString(ViewBag.SubCostList))
+            </div>
+            @*<div class="modal-footer">
+                    <button id="btnSubCostAdd" class="btn btn-sm btn-primary" onclick="SubCostAdd();">Add</button>
+                    <button id="btnSubCostCancel" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</button>
+                </div>*@
+        </div>
+    </div>
+</div>
+@*"Create", "Cost", FormMethod.Post, new { enctype = "multipart/form-data", id = "frmimportLaneRate" }*@
+@using (Html.BeginForm("Create", "Quotation", new { SurveyID = @Model.SurveyID, RateCompRateWtID = @Model.RateCompRateWtID, RateCompRateBatchID = @Model.RateCompRateBatchID }, FormMethod.Post, new { enctype = "multipart/form-data", @id = "Form_Quote", @name = "Form_Quote" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div id="mdlSendtoApproval" class="modal fade" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <button type="button" class="close danger ApprovalCloseModal" data-dismiss="modal" aria-label="Close" style="background: red; opacity: unset; width:50px;color:white;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-content  p-xl">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <label>Select User for Approval</label>
+                        @*@Html.DropDownList("pkgInvoiceList", new List<SelectListItem>(), new { @class = "form-control InvoiceList" })*@
+                        @if (ApprovalCount > 1)
+                        {
+                            @Html.DropDownList("SendtoApprovalList", new SelectList((System.Collections.IEnumerable)ViewData["ApprovalUserList"], "Value", "Text"), "--Select Approval User--", new { @class = "form-control" })
+                        }
+                        else
+                        {
+                            @Html.DropDownList("SendtoApprovalList", new SelectList((System.Collections.IEnumerable)ViewData["ApprovalUserList"], "Value", "Text"), new { @class = "form-control" })
+                        }
+
+                    </div>
+                    <div class="col-sm-6 ">
+                        <input type="submit" name="SubmitRate" value="Proceed for Approval" class="btn btn-sm btn-primary filter-custom-margin" id="btnSendToQuoteApprove" form="Form_Quote" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="m-t-sm">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(a => a.SurveyID)
+        @Html.HiddenFor(a => a.EnqDetailID)
+        @Html.HiddenFor(a => a.EnqID)
+        @Html.HiddenFor(a => a.RateCompRateWtID)
+        @Html.HiddenFor(a => a.RateCompRateWtBatchID)
+        @Html.HiddenFor(a => a.HFVQuotingList)
+        @Html.HiddenFor(a => a.QuoteSenttoApproveUser)
+        <div class="row">
+            @if (Model.SurveyID != null && Model.SurveyID > 0)
+            {
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <strong>Survey No. :</strong>&nbsp;<strong>@Model.SurveyID</strong>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Enq. No / Shp. No :</strong> &nbsp;<strong>@Model.EnqNo / @Model.EnqDetSequenceID</strong>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="col-sm-5 col-md-5">
+                    <div class="form-group">
+                        <label> </label>
+                    </div>
+                </div>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.QuoteNo))
+            {
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <strong><label class="control-label">QuoteNo</label> : </strong>&nbsp;<strong>@Model.QuoteNo</strong>
+                        @Html.HiddenFor(model => model.QuoteNo)
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <label> </label>
+                    </div>
+                </div>
+            }
+                <div class="col-sm-5 col-md-5 pad-none">
+
+                    @if (hasAddAccess || hasEditAccess || hasAddSurveyAccess || hasEditSurveyAccess)
+                    {
+                        <input type="button" id="btnClearFields" class="btn btn-default btn-sm  pull-right hidden m-r-xs" value="Clear Data" />
+                        <input type="submit" id="btnSave" name="SubmitRate" class="btn btn-primary pull-right btn-sm m-r-xs" value="Save" /> @*formnovalidate="formnovalidate"*@
+                        <input type="button" id="btn_Report" class="btn btn-default btn-sm  pull-right m-r-xs" value="Terms" />
+                    }
+                    @*@if (hasApproveAccess)
+        {*@
+                    @{ var buttonText = Model.QuoteApprove.ToUpper() == "Y" ? "Remove Approval" : "Approval Pending"; }
+                    @if (Model.QuoteSentApprove)
+                    {
+                        <input type="submit" id="btnApprove" name="SubmitRate" class="btn btn-primary pull-right btn-sm m-r-xs btnApprove" value="@buttonText" />
+                    }
+                    else
+                    {
+                        <input type="button" id="btnSendToApprove" name="SubmitRate" class="btn btn-primary pull-right btn-sm m-r-xs btnApprove" value="Send For Approval" />
+                    }
+
+                    @*}*@
+
+                    @if (hasViewAccess || hasViewSurveyAccess)
+                    {
+                        <a id="btnCompare" class="btn btn-default btn-sm pull-right m-r-xs hide" href="@Url.Action("GetCompareQuote","Quotation",new {surveyid = Model.SurveyID})" target="_blank">View Compare</a>
+                    }
+                    @if (hasAddAccess || hasEditAccess || hasViewAccess || hasAddSurveyAccess || hasEditSurveyAccess || hasViewSurveyAccess)
+                    {
+                        <a href="@Url.Action("Create", "Cost", new { SurveyID = @Model.SurveyID })" class="btnEstimation btn btn-sm btn-default pull-right m-r-xs" data-cache="false" title="Go To Estimation">Go To Estimation</a>
+                    }
+
+                    <a href="@Url.Action("Create", "DMS", new {  id = @Model.SurveyID, Type = "Quote" })" class="btn btn-primary btn-sm pull-right m-r-xs" data-toggle="modal" data-target="#mdlDMS" data-cache="false" title="DMS"><i class="glyphicon glyphicon-folder-open m-r-xs"></i>DMS</a>
+                </div>
+        </div>
+        <div class="row">
+
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong><label class="control-label">Estimated By</label> : </strong>&nbsp;<strong>@Model.EstimatedBy</strong>
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong><label class="control-label">Estimated Date</label> : </strong>&nbsp;<strong>@Model.EstimatedDate</strong>
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong><label class="control-label">Approved By</label> : </strong>&nbsp;<strong>@Model.ApprovedBy</strong>
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong><label class="control-label">Approved Date</label> : </strong>&nbsp;<strong>@Model.ApprovedDate</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong><label class="control-label">ServiceLine</label> : </strong>&nbsp;<strong>@Model.ServiceLineName</strong>
+                    @Html.HiddenFor(model => model.ServiceLineName)
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <strong><label class="control-label">Mode</label> : </strong>&nbsp;<strong>@Model.ModeName</strong>
+                    @Html.HiddenFor(model => model.ModeName)
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <strong><label class="control-label">Controller</label> : </strong>&nbsp;<strong>@Model.BusinessLineName</strong>
+                    @Html.HiddenFor(model => model.BusinessLineName)
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong><label class="control-label">Goods Desc.</label> : </strong>&nbsp;<strong>@Model.GoodsDescriptionName</strong>
+                    @Html.HiddenFor(model => model.GoodsDescriptionName)
+                </div>
+            </div>
+        </div>
+        <div class="row hidden">
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RMCName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.RMCID, new SelectList((System.Collections.IEnumerable)ViewData["RMC"], "Value", "Text"), "--Select RMC--", new { id = "RMCDropdown", @class = "form-control input-sm clearfix", @onchange = "javascript:RMC_OnChange(this.value);" })
+                    @Html.HiddenFor(model => model.RMCID)
+                    @Html.ValidationMessageFor(model => model.RMCID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.GoodsDescriptionName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.GoodsDescriptionID, new SelectList((System.Collections.IEnumerable)ViewData["GoodsDescription"], "Value", "Text"), "--Select Goods Description--", new { id = "GoodsDescriptionDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.HiddenFor(model => model.GoodsDescriptionID)
+                    @Html.ValidationMessageFor(model => model.GoodsDescriptionID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ModeName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.ModeID, new SelectList((System.Collections.IEnumerable)ViewData["Mode"], "Value", "Text"), "--Select Mode--", new { id = "ModeDropdown", @class = "form-control input-sm clearfix " })
+                    @Html.HiddenFor(model => model.ModeID)
+                    @Html.ValidationMessageFor(model => model.ModeID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong><label class="control-label">From City</label> : </strong>&nbsp;<strong>@Model.FromLocationName</strong>
+                    @Html.HiddenFor(model => model.FromLocationName)
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong><label class="control-label">Exit Port</label> : </strong>&nbsp;<strong>@Model.ExitPointName</strong>
+                    @Html.HiddenFor(model => model.ExitPointName)
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong><label class="control-label">Entry Port</label> : </strong>&nbsp;<strong>@Model.EntryPointName</strong>
+                    @Html.HiddenFor(model => model.EntryPointName)
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong><label class="control-label">To City</label> : </strong>&nbsp;<strong>@Model.ToLocationName</strong>
+                    @Html.HiddenFor(model => model.ToLocationName)
+                </div>
+            </div>
+        </div>
+        <div class="row hidden">
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.FromLocationName, htmlAttributes: new { id = "FromLocationName", @class = "control-label" })
+                    @Html.DropDownListFor(model => model.FromLocationID, new SelectList((System.Collections.IEnumerable)ViewData["CityList"], "Value", "Text"), new { id = "FromLocationDropdown", @class = "form-control input-sm clearfix CityDropDown" })
+                    @Html.HiddenFor(model => model.FromLocationID)
+                    @Html.ValidationMessageFor(model => model.FromLocationID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ExitPointName, htmlAttributes: new { id = "ExitPortName", @class = "control-label" })
+                    @Html.DropDownListFor(model => model.ExitPointID, new SelectList((System.Collections.IEnumerable)ViewData["PortList"], "Value", "Text"), "--Select Exit Port--", new { id = "ExitPortDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.HiddenFor(model => model.ExitPointID)
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.EntryPointName, htmlAttributes: new { id = "EntryPortnName", @class = "control-label" })
+                    @Html.DropDownListFor(model => model.EntryPointID, new SelectList((System.Collections.IEnumerable)ViewData["PortList"], "Value", "Text"), "--Select Entry Port--", new { id = "EntryPortDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.HiddenFor(model => model.EntryPointID)
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ToLocationName, htmlAttributes: new { id = "ToLocationName", @class = "control-label" })
+                    @Html.DropDownListFor(model => model.ToLocationID, new SelectList((System.Collections.IEnumerable)ViewData["CityList"], "Value", "Text"), new { id = "ToLocationDropdown", @class = "form-control input-sm clearfix CityDropDown" })
+                    @Html.HiddenFor(model => model.ToLocationID)
+                    @Html.ValidationMessageFor(model => model.ToLocationID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Wt/Vol Unit</label>
+                    @Html.DropDownListFor(model => model.WeightUnitID, new SelectList((System.Collections.IEnumerable)ViewData["WeightUnit"], "Value", "Text"), "--Select Weight Unit--", new { id = "WeightUnitDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.WeightUnitID, "", new { @class = "text-danger" })
+                    @Html.HiddenFor(model => model.WeightUnitID)
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Wt/Vol</label>
+                    @Html.EditorFor(model => model.WeightUnitFrom, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+                    @Html.ValidationMessageFor(model => model.WeightUnitFrom, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Shipping Lines</label>
+                    @Html.DropDownListFor(model => model.ShipingLineID, new SelectList((System.Collections.IEnumerable)ViewData["ShippingLineList"], "Value", "Text"), "--Select ShippingLine--", new { id = "ShippingLineDropdown", @class = "form-control input-sm clearfix " })
+                    @Html.HiddenFor(model => model.ShipingLineID)
+                </div>
+            </div>
+        </div>
+        <div class="row no-gutters">
+
+            <div class="col-sm-2 col-sm-1">
+                <label>Org.Estimate</label>
+                <input type="number" class="form-control input-sm" id="txtOriginEstimate" placeholder="Origin Estimate" disabled />
+            </div>
+            <div class="col-sm-2 col-sm-1">
+                <label>Frg.Estimate</label>
+                <input type="number" class="form-control input-sm" id="txtFrightEstimate" placeholder="Freight Estimate" disabled />
+            </div>
+            <div class="col-sm-2 col-sm-1">
+                <label>Dest.Estimate</label>
+                <input type="number" class="form-control input-sm" id="txtDestinationEstimate" placeholder="Destination Estimate" disabled />
+            </div>
+            <div class="col-sm-2 col-md-1">
+                <div class="form-group">
+                    <label>NetEstimate</label>
+                    <input type="number" class="form-control input-sm" id="txtNetEstimate" disabled />
+                </div>
+            </div>
+            <div class="col-sm-2 col-sm-1">
+                <label>GP %</label>
+                <input type="number" class="form-control input-sm" id="txtMarginPercent" placeholder="Enter Margin %" />
+            </div>
+            <div class="col-sm-2 col-md-1">
+                <div class="form-group">
+                    <label>GP Amount</label>
+                    <input type="number" class="form-control input-sm" id="txtNetMarginAmout" />
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Gross Amount</label>
+                    <input type="number" class="form-control input-sm" id="txtGrossAmount" />
+                </div>
+            </div>
+            <div class="form-group col-sm-1 col-md-1 m-l-n">
+                <div class="clearfix">
+                    <input type="button" id="btnAddMargin" value="Apply to All" class="btn btn-primary btn-sm filter-custom-margin" />
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-1">
+                <div class="form-group">
+                    <label>Org. Gross</label>
+                    <input type="number" class="form-control input-sm" id="txtOriginGross" disabled />
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-1">
+                <div class="form-group">
+                    <label>Frg. Gross</label>
+                    <input type="number" class="form-control input-sm" id="txtFreightGross" disabled />
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-1">
+                <div class="form-group">
+                    <label>Dest. Gross</label>
+                    <input type="number" class="form-control input-sm" id="txtDestinationGross" disabled />
+                </div>
+            </div>
+        </div>
+        <div class="row">
+
+            @*<div class="form-group">
+                <div class="col-md-2 col-sm-2">
+                    @Html.CheckBoxFor(model => model.ShowConstHeads, new { htmlAttributes = new { @class = "form-control input-sm", id = "chkShowCostHead" } }) Apply Cost Heads
+                </div>
+            </div>*@
+        </div>
+    </div>
+    <div>
+        <div class="row" id="divCostHead">
+            @try
+            {
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="table-responsive" id="pnl-rates">
+
+                            <table class="table table-responsive fixed_header" id="CostHeadtable">
+                                <thead>
+                                    <tr>
+                                        <th class="tdNone"></th>
+                                        <th>Sr No.</th>
+                                        <th>Agent</th>
+                                        <th>Rate Componet</th>
+                                        <th>CostHead</th>
+                                        <th>Transit Time</th>
+                                        <th>Base Currency</th>
+                                        <th class="hide">Rate Currency</th>
+                                        <th class="hide">Conversion Rate</th>
+                                        <th class="hide">Estimate</th>
+                                        <th>Base.Estimate</th>
+                                        <th>GP %</th>
+                                        <th>GP Amount</th>
+                                        <th>Gross Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (RELOCBS.Entities.QuotingCostHeadDetail row in Model.CostHeadList)
+                                    {
+                                        <tr>
+                                            <td class="tdNone">
+                                                <input type="hidden" class="TblRateComponent" name="HFVRateComponent" id="HFVRateComponentID" value="@row.RateComponentID" />
+                                                <input type="hidden" class="TblHFVCostHead" name="HFVCostHead" id="HFVCostHeadID" value="@row.CostHeadID" />
+                                                <input type="hidden" class="TblHFVAgent" name="HFVAgent" id="HFVAgentID" value="@row.AgentID" />
+                                                <input type="hidden" class="TblHFVBaseRate" name="HFVBaseRate" id="HFVBaseRateID" value="@row.BaseCurrencyRateID" />
+                                                <input type="hidden" class="TblHFVRateCurrency" name="HFVRateCurrency" id="HFVRateCurrencyID" value="@row.RateCurrencyID" />
+                                                <input type="hidden" class="TblRateCompRateId" name="HFVRateCompRate" id="HFVRateCompRateId" value="@row.RateComponentRateID" />
+                                            </td>
+                                            <td style="width:5%;">@Html.DropDownListFor(x => row.OrderSeq, new SelectList((System.Collections.IEnumerable)ViewData["Sequence"], "Value", "Text", row.OrderSeq), new { @class = "OrderSeq" })</td>
+                                            <td class="Agent">
+                                                @row.AgentName
+                                            </td>
+                                            <td class="RateComponent">
+                                                @row.RateComponentName
+                                            </td>
+                                            <td class="CostHead">
+                                                @row.CostHeadName
+                                                @if (row.IsSubCost)
+                                                {
+                                                    <button type="button" id="btnSubCost" class="btnSubCost" onclick="GetSubCost(this);"><span class="glyphicon glyphicon-eye-open"></span></button>
+                                                }
+                                            </td>
+                                            <td class="TransitTime ">
+                                                From: @row.TransitTimeFrom
+                                                To : @row.TransitTimeTo.ToString()
+                                            </td>
+                                            <td class="BaseCurrencyRate ">
+                                                @row.BaseCurrencyRateName
+                                            </td>
+                                            <td class="RateCurrency hide">
+                                                @row.RateCurrencyName
+                                            </td>
+                                            <td class="ConversionRate hide">
+                                                <input type="text" class="form-control input-sm TbltxtConversionRate" style="width:50px" value="@row.ConversionRate.ToString()" />
+                                            </td>
+                                            <td class="BaseAmount hide">
+                                                <input type="text" class="form-control input-sm TbltxtBaseAmount" style="width:50px" value="@row.BaseAmount.ToString()" readonly />
+                                            </td>
+                                            <td class="Amount ">
+                                                <input type="text" class="form-control input-sm TbltxtAmount" style="width:50px" value="@row.Amount.ToString()" readonly />
+                                            </td>
+                                            <td class="AmtPercent ">
+                                                <input type="text" class="form-control input-sm TblAmtPercent txtFixed" style="width:50px" value="@row.QuotePercent.ToString()" />
+                                            </td>
+                                            <td class="AmtPercentValue ">
+                                                <input type="text" class="form-control input-sm TblAmtPercentValue txtFixed" style="width:50px" value="@row.QuotePercentAmount.ToString()" />
+                                            </td>
+                                            <td class="TotalAmount ">
+                                                <input type="text" class="form-control input-sm TblTotalAmount txtFixed" style="width:50px" value="@row.TotalAmount.ToString()" />
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                //if (Model.CostHeadList.Count > 0)
+                //{
+                //}
+            }
+            catch { }
+        </div>
+    </div>
+}
+<div id="QuoteGrid" class="row">
+    @Html.Partial("_PartialGrid", Model.SurveyRateGridDt);
+</div>
+
+
+
+<!--DMS Model-->
+<div id="mdlDMS" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+        </div>
+    </div>
+</div>
+
+
+@section Scripts{
+    <script type="text/javascript">
+    $(document).ready(function () {
+        // Enable Live Search.
+        //$('select').select2();
+        @*AjaxFillDropDown('.CityDropDown', "@Url.Action("GetCityList", "Quotation")");*@
+        $('#ModeDropdown').change(function () {
+            var mode = $(this).val();
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                url: "GetShippingLineList",
+                data: "{mode:'" + mode + "'}",
+                success: function (data) {
+
+                    alert('done');
+                },
+                failure: function (data) {
+                    //alert('error occured');
+                }
+
+            });
+        });
+
+
+        $('#BaseCurrencyRateDropdown').change(function () {
+
+            if ($(this).val() == $('#RateCurrencyDropdown').val()) {
+
+                $('#txtConversionRate').val(1);
+            }
+
+        });
+
+        $('#RateCurrencyDropdown').change(function () {
+
+            if ($(this).val() == $('#BaseCurrencyRateDropdown').val()) {
+
+                $('#txtConversionRate').val(1);
+            }
+
+        });
+
+        $("#TbltxtAmount").blur(function () {
+            TotalCalEstimate();
+        });
+        
+        $('.TbltxtConversionRate').on('change', function () {
+
+            var row = $(this).closest('TR');
+            var txtConversionRate = $(this).val();
+
+            if (isNaN(parseFloat(txtConversionRate)) == false && isNaN(parseFloat(txtConversionRate)) == false) {
+
+                var txtBaseAmount = $("TD", row).find('.TbltxtBaseAmount').val();
+
+                if (isNaN(parseFloat(txtBaseAmount)) == false && isNaN(parseFloat(txtBaseAmount)) == false) {
+
+                    var Amount = parseFloat(txtBaseAmount) * parseFloat(txtConversionRate);
+                    $("TD", row).find('.TbltxtAmount').val(Amount.toFixed(2));
+                    $("TD", row).find('.TbltxtAmount').attr('title', Amount.toFixed(2));
+                }
+
+                var txtPercent = $("TD", row).find('.TblAmtPercent').val();
+
+                if (isNaN(parseFloat(txtPercent)) == false && isNaN(parseFloat(txtPercent)) == false) {
+
+                    var txtAmount = $("TD", row).find('.TbltxtAmount').val();
+                    var txtAmtPercentValue = $("TD", row).find('.TblAmtPercentValue');
+                    var txtTotalAmount = $("TD", row).find('.TblTotalAmount');
+
+                    if (isNaN(parseFloat(txtAmount)) == false && isNaN(parseFloat(txtPercent)) == false) {
+
+                        var Result = (parseFloat(txtPercent) / 100) * parseFloat(txtAmount);
+                        txtAmtPercentValue.val(Result.toFixed(9));
+                        txtAmtPercentValue.attr('title', Result.toFixed(9));
+                        var totalAmount = parseFloat(txtAmount) + Math.round(Result);
+                        txtTotalAmount.val(totalAmount.toFixed(2));
+                        txtTotalAmount.attr('title', totalAmount.toFixed(2));
+                    }
+
+                    TotalCalEstimate();
+
+
+                }
+            }
+
+
+        });
+        
+        $('.TblAmtPercentValue').on('change',function () {
+
+
+            var row = $(this).closest('TR');
+            var txtAmtPercentValue = $(this).val();
+            var txtAmount = $("TD", row).find('.TbltxtAmount').val();
+            //var txtGrosAmount = $("TD", row).find('.TbltxtAmount').val();
+            var txtPercent = $("TD", row).find('.TblAmtPercent');
+
+            var txtTotalAmount = $("TD", row).find('.TblTotalAmount');
+
+            if (isNaN(parseFloat(txtAmount)) == false && isNaN(parseFloat(txtAmtPercentValue)) == false) {
+                //if (parseFloat(txtAmtPercentValue)!=0) {
+                    var totalAmount = parseFloat(txtAmount) + parseFloat(txtAmtPercentValue);
+                    txtTotalAmount.val(totalAmount.toFixed(2));
+                    txtTotalAmount.attr('title', totalAmount.toFixed(2));
+
+                    var Result = (parseFloat(txtAmtPercentValue) / parseFloat(totalAmount)) * 100;
+                    txtPercent.val(Result.toFixed(9));
+                    txtPercent.attr('title', Result.toFixed(9));
+                //}
+                //else {
+                //    var totalAmount = parseFloat(txtAmount) + parseFloat(txtAmtPercentValue);
+                //    txtTotalAmount.val(totalAmount.toFixed(2));
+                //    txtTotalAmount.attr('title', totalAmount.toFixed(2));
+                //    txtPercent.val(parseFloat(0).toFixed(9));
+                //    txtPercent.attr('title', parseFloat(0).toFixed(9));
+                //}
+            }
+
+            TotalCalEstimate();
+
+        });
+
+        $('.TblAmtPercent').on('change', function () {
+            var row = $(this).closest('TR');
+            var txtAmtPercentValue = $("TD", row).find('.TblAmtPercentValue');
+            var txtAmount = $("TD", row).find('.TbltxtAmount').val();
+            //var txtGrosAmount = $("TD", row).find('.TbltxtAmount').val();
+            var txtPercent = $("TD", row).find('.TblAmtPercent').val();
+
+            var txtTotalAmount = $("TD", row).find('.TblTotalAmount');
+
+            if (isNaN(parseFloat(txtAmount)) == false && isNaN(parseFloat(txtPercent)) == false) {
+                //if (parseFloat(txtPercent) != 0) {
+                    debugger;
+                    var totalAmount = (parseFloat(txtAmount) * 100) / (100 - parseFloat(txtPercent));
+                    txtTotalAmount.val(totalAmount.toFixed(2));
+                    txtTotalAmount.attr('title', totalAmount.toFixed(2));
+
+                    //var Result = (parseFloat(txtAmtPercentValue) / parseFloat(totalAmount)) * 100;
+                    //txtPercent.val(Result.toFixed(9));
+                    //txtPercent.attr('title', Result.toFixed(9));
+                    var PercentValue = totalAmount - parseFloat(txtAmount);
+                    txtAmtPercentValue.val(PercentValue.toFixed(2));
+                    txtAmtPercentValue.attr('title', PercentValue.toFixed(2));
+                //}
+                //else {
+                //    txtAmtPercentValue.val(parseFloat(0).toFixed(2));
+                //    txtAmtPercentValue.attr('title', parseFloat(0).toFixed(2));
+                //    if (txtTotalAmount.val() != txtAmount) {
+                //        txtTotalAmount.val(parseFloat(0).toFixed(2));
+                //        txtTotalAmount.attr('title', parseFloat(0).toFixed(2));
+                //    }
+
+                //}
+
+
+            }
+
+            TotalCalEstimate();
+
+        });
+
+        $('.TblTotalAmount').on('change', function () {
+
+            debugger;
+            var row = $(this).closest('TR');
+            var txtAmtPercentValue = $("TD", row).find('.TblAmtPercentValue');
+            var txtAmount = $("TD", row).find('.TbltxtAmount').val();
+            //var txtGrosAmount = $("TD", row).find('.TbltxtAmount').val();
+            var txtPercent = $("TD", row).find('.TblAmtPercent');
+
+            var txtTotalAmount = $("TD", row).find('.TblTotalAmount').val();
+            txtTotalAmount = parseFloat(txtTotalAmount).toFixed(2) == 0.00 ? 0.001 : txtTotalAmount;
+            if (isNaN(parseFloat(txtAmount)) == false && isNaN(parseFloat(txtTotalAmount)) == false) {
+
+
+                    //var totalAmount = (parseFloat(txtAmount) * 100) / (100 - parseFloat(txtPercent));
+                    //txtTotalAmount.val(totalAmount.toFixed(2));
+                    //txtTotalAmount.attr('title', totalAmount.toFixed(2));
+                    var PercentValue = txtTotalAmount - parseFloat(txtAmount);
+                    txtAmtPercentValue.val(PercentValue.toFixed(2));
+                    txtAmtPercentValue.attr('title', PercentValue.toFixed(2));
+                    var Result = (parseFloat(txtAmtPercentValue.val()) / parseFloat(txtTotalAmount)) * 100;
+                    txtPercent.val(Result.toFixed(9));
+                    txtPercent.attr('title', Result.toFixed(9));
+
+                //else {
+                //    txtAmtPercentValue.val(parseFloat(0).toFixed(2));
+                //    txtAmtPercentValue.attr('title', parseFloat(0).toFixed(2));
+                //    txtPercent.val(parseFloat(0).toFixed(9));
+                //    txtPercent.attr('title', parseFloat(0).toFixed(9));
+                //}
+
+
+            }
+
+
+            TotalCalEstimate();
+
+        });
+
+        var IsSurvey= @Html.Raw(Json.Encode(Model.SurveyID));
+
+        if ((IsSurvey != null && IsSurvey > 0)) {
+
+            $("#ModeDropdown").attr('disabled', 'disabled');
+            $("#ToLocationDropdown").attr('disabled', 'disabled');
+            $("#FromLocationDropdown").attr('disabled', 'disabled');
+
+            $("#RMCDropdown").attr('disabled', 'disabled');
+            $("#BusinessLineDropdown").attr('disabled', 'disabled');
+            $("#GoodsDescriptionDropdown").attr('disabled', 'disabled');
+            $("#ExitPortDropdown").attr('disabled', 'disabled');
+            $("#EntryPortDropdown").attr('disabled', 'disabled');
+            $("#WeightUnitDropdown").attr('disabled', 'disabled');
+            $("#ShippingLineDropdown").attr('disabled', 'disabled');
+        }
+        else {
+
+            $("#ModeDropdown").removeAttr('disabled');
+            $("#ToLocationDropdown").removeAttr('disabled');
+            $("#FromLocationDropdown").removeAttr('disabled');
+
+            $("#RMCDropdown").removeAttr('disabled');
+            $("#BusinessLineDropdown").removeAttr('disabled');
+            $("#GoodsDescriptionDropdown").removeAttr('disabled');
+            $("#ExitPortDropdown").removeAttr('disabled');
+            $("#EntryPortDropdown").removeAttr('disabled');
+            $("#WeightUnitDropdown").removeAttr('disabled');
+            $("#ShippingLineDropdown").removeAttr('disabled');
+
+        }
+        
+        $("div").find("[data-gridname='mainGrid']").find("table").removeClass("table-striped");
+
+        TotalCalEstimate();
+        $('#txtGrossAmount').trigger('change');
+        $('.btnDelete').on('click', function (e) {
+            e.preventDefault();
+            debugger;
+            var frmRWDelete = $(this);
+            swal({
+                title: "Are you sure?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Delete",
+                cancelButtonText: "No",
+                closeOnConfirm: true,
+                closeOnCancel: true
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+
+                        $(frmRWDelete).closest('form').submit();
+                    }
+                }
+            );
+        });
+
+    });
+
+    /////On RMC Change
+        function RMC_OnChange(_RMC)
+        {
+
+        $("#CostHeadDropdown").empty();
+
+        $("#CostHeadDropdown").append($('<option>').text("--Select CostHead--").attr('value', -1));
+
+
+
+        if (_RMC != null && _RMC != "") {
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetCostHead", "Combo")?RMCID=" + _RMC,
+                async: 'false',
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+
+
+                    $.each(data, function (number, municipe) {
+
+                        $("#CostHeadDropdown").append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+
+                    });
+
+
+                },
+                error: function (reponse) {
+                    alert("error : " + reponse);
+                }
+            });
+        }
+
+    }
+
+    /////Cost head table Add/Remove from list
+
+        $("body").on("click", "#btnAddMargin", function () {
+
+            var RateCompTblRows = $('#CostHeadtable > TBODY > tr');
+            var MarginPercent = $('#txtMarginPercent').val();
+            var GrossAmount = $('#txtGrossAmount').val();
+            var NetEstimation = $('#txtNetEstimate').val();
+            var NetAmount = 0;
+            var OrgAmt = 0;
+            var FrgAmt = 0;
+            var DestAmt = 0;
+            var TotalAmount = 0;
+            if (isNaN(parseFloat(MarginPercent))==false && RateCompTblRows.length > 0) {
+
+
+                $('#CostHeadtable > TBODY > tr').each(function () {
+                    debugger;
+
+                    $('.TblAmtPercent', this).val(parseFloat(MarginPercent).toFixed(9));
+                    $('.TblAmtPercent', this).attr('title', parseFloat(MarginPercent).toFixed(9));
+
+
+                    var txtPercent = MarginPercent;
+
+                    var txtAmount = $('.TbltxtAmount',this).val();
+                    var txtAmtPercentValue = $('.TblAmtPercentValue',this);
+                    var txtTotalAmount = $('.TblTotalAmount',this);
+
+                    if (isNaN(parseFloat(txtAmount)) == false && isNaN(parseFloat(txtPercent)) == false) {
+
+                        var totalAmount = (parseFloat(GrossAmount) / parseFloat(NetEstimation)) * parseFloat(txtAmount); //(parseFloat(txtPercent) / 100) * parseFloat(txtAmount);
+
+                        txtTotalAmount.val(totalAmount.toFixed(2));
+                        txtTotalAmount.attr('title', totalAmount.toFixed(2));
+
+                        Result = totalAmount - parseFloat(txtAmount);
+                        txtAmtPercentValue.val(Result.toFixed(2));
+                        txtAmtPercentValue.attr('title', Result.toFixed(2));
+                        //totalAmount = parseFloat(result) + parseFloat(txtAmount);
+                    }
+                });
+                TotalCalEstimate();
+            }
+
+        });
+
+
+        function getAllData() {
+
+        var data = [];
+        $('#CostHeadtable tbody tr').each(function () {
+
+            var RateCompRateID = $(this).find('.TblRateCompRateId').val();
+            var ConversionRate = 1;//$(this).find('.TbltxtConversionRate').val();
+            var CostHeadID = $(this).find('.TblHFVCostHead').val();
+            var Amount = $(this).find('.TbltxtBaseAmount').val();
+            var QuoteAmount = $(this).find('.TblTotalAmount').val();
+            var AmtPercent = $(this).find('.TblAmtPercent').val();
+            var GPAmount = $(this).find('.TblAmtPercentValue').val();
+            var OrderSeq = $(this).find('.OrderSeq').val();
+            var alldata = {
+                'OrderSeq': OrderSeq,
+                'RateCompRateID': parseInt(RateCompRateID),
+                'CostHeadID': parseInt(CostHeadID),
+                'BaseCurrConversRate': 1, //parseFloat(ConversionRate),
+                'QuoteAmt': parseFloat(Amount),
+                'QuotePercent': parseFloat(AmtPercent),
+                'GPQuoted': parseFloat(GPAmount),
+                'NetQuotedAmt': parseFloat(QuoteAmount)
+            }
+            data.push(alldata);
+        });
+
+        var pair = { 'CostHeadwiseDetail': data }
+        return pair;
+    }
+
+    ////On Amount text box enter key press call the Add button event
+        $('#txtMarginPercent').on("keypress", function (e) {
+        if (e.keyCode == 13) {
+
+            $('#btnAddMargin').click();
+            return false; // prevent the button click from happening
+        }
+    });
+        $('#txtMarginPercent').on("blur", function (e) {
+            if (isNaN(parseFloat($('#txtNetEstimate').val())) == false && isNaN(parseFloat($(this).val())) == false) {
+
+                debugger;
+                var grossamt = ((parseFloat($('#txtNetEstimate').val()) * 100) / (100 -parseFloat($(this).val())));
+                $('#txtGrossAmount').val(Math.round(grossamt));
+                $('#txtGrossAmount').attr('title', Math.round(grossamt));
+                var GPAmt = grossamt - $('#txtNetEstimate').val();
+                //var GPPercentAmt = (((grossamt - $('#txtNetEstimate').val()) / grossamt) * 100)
+                //var GPPercentAmt = (((grossamt - $('#txtNetEstimate').val()) / grossamt) * 100)
+                $('#txtNetMarginAmout').val(parseFloat(GPAmt).toFixed(2));
+                $('#txtNetMarginAmout').attr('title', parseFloat(GPAmt).toFixed(2));
+                //$('#txtMarginPercent').val(GPPercentAmt.toFixed(9));
+                //$('#txtMarginPercent').attr('title', GPPercentAmt.toFixed(9));
+            }
+        });
+        $('#txtNetMarginAmout').on("blur", function (e) {
+            if (isNaN(parseFloat($('#txtNetEstimate').val())) == false && isNaN(parseFloat($(this).val())) == false) {
+
+                debugger;
+                var grossamt = (parseFloat($('#txtNetEstimate').val()) + parseFloat($(this).val()));
+                $('#txtGrossAmount').val(Math.round(grossamt));
+                $('#txtGrossAmount').attr('title', Math.round(grossamt));
+                //var GPAmt = $(this).val() - $('#txtNetEstimate').val();
+                var GPPercentAmt = (((grossamt - $('#txtNetEstimate').val()) / grossamt) * 100)
+                //var GPPercentAmt = (((grossamt - $('#txtNetEstimate').val()) / grossamt) * 100)
+                //$('#txtNetMarginAmout').val(parseFloat(GPAmt).toFixed(2));
+                //$('#txtNetMarginAmout').attr('title', parseFloat(GPAmt).toFixed(2));
+                $('#txtMarginPercent').val(GPPercentAmt.toFixed(9));
+                $('#txtMarginPercent').attr('title', GPPercentAmt.toFixed(9));
+            }
+
+        });
+
+
+    $('#txtGrossAmount').on("blur", function (e) {
+
+        if (isNaN(parseFloat($('#txtNetEstimate').val())) == false && isNaN(parseFloat($(this).val())) == false) {
+
+
+            var GPAmt = $(this).val() - $('#txtNetEstimate').val();
+           // var GPPercentAmt = ((($(this).val() - $('#txtNetEstimate').val()) / $('#txtNetEstimate').val()) * 100)
+            var GPPercentAmt = ((($(this).val() - $('#txtNetEstimate').val()) / $(this).val() * 100));
+            $('#txtNetMarginAmout').val(parseFloat(GPAmt).toFixed(2));
+            $('#txtNetMarginAmout').attr('title', parseFloat(GPAmt).toFixed(2));
+            $('#txtMarginPercent').val(GPPercentAmt.toFixed(9));
+            $('#txtMarginPercent').attr('title', GPPercentAmt.toFixed(9));
+        }
+
+    });
+
+    $(function () {
+    //////Start Save data
+    var SaveData = function (e) {
+
+        try {
+
+
+            if ($('#CostHeadtable > TBODY > tr') == null || $('#CostHeadtable > TBODY > tr').length <= 0) {
+
+                alert('Add Cost atleast one Cost Heads to Save');
+                e.preventDefault();
+                return false;
+            }
+            var BreakOut = false;
+            var isvalid = false;
+            var Mode = parseInt($('#ModeDropdown').val());
+            var ShippingLine = parseInt($('#ShippingLineDropdown').val());
+            $('#CostHeadtable > TBODY > tr').each(function () {
+                debugger;
+                //look for the fields TbltxtAmount in the tr
+
+                if (parseInt($('.TblTotalAmount', this).val()) > 0) {
+                    isvalid = true;
+                    //BreakOut = true;
+                    //return false;
+                }
+            });
+            if (!isvalid) {
+                alert('Quote Amount is required.');
+                BreakOut = true;
+            }
+            if (BreakOut) {
+                e.preventDefault();
+                return false;
+            }
+
+            $("#HFVQuotingList").val(JSON.stringify(getAllData()));
+
+
+        }
+        catch (e) {
+
+            alert('Unable to save data');
+            e.preventDefault();
+            return false;
+        }
+    }
+
+        $("#btnSave,#btnApprove,#btnSendToApprove").bind("click", SaveData);
+
+});
+
+    //$('#btnSave').on("click", function (e) {
+    //    SaveData(e);
+    //});
+
+        ////////Get existing Rate for Grid
+        function GetRateGridForRateComponent(RateComponetID) {
+
+            $("#ViewCostRateGridPlaceHolder").load("@Url.Action("Index", "GeneralPricing")",
+                { RateComponetID: RateComponetID });
+        }
+
+
+        ///////Clear all selection data
+
+        $("#btnClearFields").on("click", function () {
+
+        $('#RMCDropdown :selected').val('').change();
+        $('#RMCDropdown :selected').val('').change();
+        $('#BusinessLineDropdown :selected').val('').change();
+        $('#GoodsDescriptionDropdown :selected').val('').change();
+        $('#ModeDropdown :selected').val('').change();
+        $('#RateComponentDropdown :selected').val('').change();
+        $('#AgentDropdown :selected').val('').change();
+        $('#FromLocationDropdown :selected').val('').change();
+        $('#ToLocationDropdown :selected').val('').change();
+        $('#RateCurrencyDropdown :selected').val('').change();
+        $('#BaseCurrencyRateDropdown :selected').val('').change();
+        $('#WeightUnitDropdown :selected').val('').change();
+
+        $("#ConversionRate").val('');
+        $("#WeightUnitFrom").val('');
+        $("#WeightUnitTo").val('');
+        $('#TransitTimeFrom').val('');
+        $('#TransitTimeTo').val('');
+        $('#Rate').val('');
+        $('#ShowConstHeads').prop('checked', false);
+
+        });
+
+
+        function CopyRate(button) {
+
+
+
+            var row = $(button).closest("TR");
+            var param1 = $(".tdSurvey", row).val();
+            var param2 = $(".tdRateWt", row).val();
+            var param3 = $(".tdRateCompRateBatchId", row).val();
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("CopyRate", "Cost")' + '?param1=' + param1 + "&param2=" + param2 + "&param3=" + param3,
+                type: 'GET',
+                async: 'false',
+                dataType: 'json',
+
+                success: function (result) {
+
+                    var data = result;
+                    $("#RMCDropdown").val(data.RMCID);
+                    $("#ModeDropdown").val(data.ModeID);
+                    $("#GoodsDescriptionDropdown").val(data.BusinessLineID);
+                    $("#BusinessLineDropdown").val(data.GoodsDescriptionID);
+
+                    //alert(result);
+                },
+                error: function (reponse) {
+                    toastr.error("unable to copy estimate.");
+                }
+            });
+
+
+        }
+
+
+        function TotalCalEstimate() {
+
+            var NetAmount = 0;
+            var OrgAmt = 0;
+            var FrgAmt = 0;
+            var DestAmt = 0;
+            var TotalAmount = 0;
+
+            var OrgGrossAmt = 0;
+            var FrgGrossAmt = 0;
+            var DestGrossAmt = 0;
+            var GPAmount = 0;
+            var TotalGPAmount = 0;
+            var GrossAmount = 0;
+            var TotalGrossAmount = 0;
+            $('#CostHeadtable > TBODY > tr').each(function () {
+
+
+                var RateCompDropdownText = $('.RateComponent', this).text().trim();
+
+                NetAmount = (isNaN(parseFloat($('.TbltxtAmount', this).val()))) ? 0 : parseFloat($('.TbltxtAmount', this).val());
+                GPAmount = (isNaN(parseFloat($('.TblAmtPercentValue', this).val()))) ? 0 : parseFloat($('.TblAmtPercentValue', this).val());
+                GrossAmount = (isNaN(parseFloat($('.TblTotalAmount', this).val()))) ? 0 : parseFloat($('.TblTotalAmount', this).val());
+                TotalGPAmount = TotalGPAmount + GPAmount;
+                TotalAmount = TotalAmount + NetAmount;
+                TotalGrossAmount = TotalGrossAmount + GrossAmount;
+                if (RateCompDropdownText.toLowerCase() == 'origin') {
+
+                    OrgAmt = OrgAmt + NetAmount;
+                    OrgGrossAmt = OrgGrossAmt + GrossAmount;
+
+                    $('#txtOriginEstimate').val(OrgAmt);
+                    $('#txtOriginGross').val(OrgGrossAmt);
+                }
+                else if (RateCompDropdownText.toLowerCase() == 'freight') {
+
+                    FrgAmt = FrgAmt + NetAmount;
+                    FrgGrossAmt = FrgGrossAmt + GrossAmount;
+                    $('#txtFrightEstimate').val(FrgAmt);
+                    $('#txtFreightGross').val(FrgGrossAmt);
+                }
+                else if (RateCompDropdownText.toLowerCase() == 'destination') {
+
+                    DestAmt = DestAmt + NetAmount;
+                    DestGrossAmt = DestGrossAmt + GrossAmount;
+                    $('#txtDestinationEstimate').val(DestAmt);
+                    $('#txtDestinationGross').val(DestGrossAmt);
+
+                }
+
+            });
+
+            $('#txtNetMarginAmout').val(TotalGPAmount.toFixed(2));
+            $('#txtNetMarginAmout').attr('title', TotalGPAmount.toFixed(2));
+            $('#txtNetEstimate').val(TotalAmount.toFixed(2));
+            $('#txtNetEstimate').attr('title', TotalAmount.toFixed(2));
+            $('#txtGrossAmount').val(Math.round(TotalGrossAmount));
+            $('#txtGrossAmount').attr('title', Math.round(TotalGrossAmount));
+            var gppercent = parseFloat(((TotalGrossAmount - TotalAmount) / TotalGrossAmount) * 100).toFixed(9);
+            $('#txtMarginPercent').val(gppercent);
+            $('#txtMarginPercent').attr('title', gppercent);
+        }
+
+        function showDetails(clickedElement) {
+
+            var id = $(clickedElement).data('assigned-id');
+            var batchid = $(clickedElement).data('batch-id');
+            var route = '@Url.Action("Details", "Quotation", new { id= "-1",batchid="-2" })';
+            aroute = route.replace("-1", id);
+            route = route.replace("-2", batchid);
+            route = route.replace(/&amp;/g, "&");
+            $('#partial').load(route, function () {
+
+                TotalCalCostEstimateDetail();
+            });
+
+            //var dataid = $(clickedElement).attr("data-id");
+            //showDetailsAjax(dataid);
+                }
+                function UpdateUseForJob(clickedElement,TotQuote) {
+
+                    var id = parseInt($(clickedElement).data('assigned-id'));
+                    var id3 = parseInt($(clickedElement).data('batch-id'));
+                    var id2 = parseInt($(clickedElement).data('id'));
+                    var QuoteAmt = parseInt(TotQuote);
+                    var ForJobs = $('a.ForJobDetails');
+                    var IsAlreadyJob = false;
+                    debugger;
+                    if (QuoteAmt <= 0) {
+                        alert('Quote Amount cannot be zero.');
+                        return false;
+                    }
+
+                    $(ForJobs).each(function (index) {
+
+
+                        if ($(this).data('id') != id2 && $(this).data('batch-id') != id3 && $(this).data('useforjob') == "True") {
+
+                            IsAlreadyJob = true;
+                        }
+                    });
+
+
+
+                    if (IsAlreadyJob) {
+
+                        if (confirm("Job already Opened for current survey.If you Click 'OK' Open Job will be deactivated and current one will get open.Are sure you want to change?") == true) {
+
+                            UpdateForJobDetails(id, id2,id3);
+
+                        }
+                        else
+                        {
+                            return false;
+                        }
+
+                    }
+                    else {
+                        UpdateForJobDetails(id, id2, id3);
+                    }
+
+
+
+                }
+
+                function UpdateForJobDetails(id, id2, id3) {
+
+                    if (!isNaN(id) && !isNaN(id2) && !isNaN(id3)) {
+
+                        $.ajax({
+                            contentType: "application/json; charset=utf-8",
+                            url: '@Url.Action("UpdateForJob", "Quotation")',
+                            type: 'POST',
+                            dataType: 'json',
+                            data: "{ SurveyID : '" + id + "' , RateCompRateWtID :'" + id2 + "' , RateCompRateBatchID :'" + id3 + "' }",
+                            success: function (result) {
+
+                                if (result.Success) {
+
+                                    var url = "@Url.Action("GetPartialGrid", "Quotation")";
+                                    $("#QuoteGrid").load();
+
+                                    $('#QuoteGrid').load(url, { SurveyID: id, RateCompRateWtID: id2, RateCompRateBatchID: id3 }, function () {
+
+                                        var Grid = $('#QuoteGrid').find("[data-gridname='mainGrid']").find("table");
+                                        if (Grid.hasClass('table-striped')) {
+                                            Grid.removeClass("table-striped");
+                                        }
+                                    });
+
+                                    toastr.success(result.Message);
+                                }
+                                else {
+                                    toastr.error(result.Message);
+                                }
+
+
+                                //$("#QuoteGrid").html(result);
+
+
+
+                            },
+                            error: function (reponse) {
+                                toastr.error("unable to copy estimate.");
+                            }
+                        });
+
+
+
+
+                    }
+
+
+
+                }
+
+                function TotalCalCostEstimateDetail() {
+
+                    var NetAmount = 0;
+                    var OrgAmt = 0;
+                    var FrgAmt = 0;
+                    var DestAmt = 0;
+                    var BaseEstimate = 0;
+
+                    var OrgQutAmt  = 0;
+                    var FrgQutAmt  = 0;
+                    var DestQutAmt = 0;
+                    var NeQutAmt   = 0;
+
+                    $('#CostHeadtableDetail > TBODY > tr').each(function () {
+
+                        var RateCompDropdownText = $('.tdRateComponent', this).text().trim();
+                        var tdAmount = (isNaN(parseFloat($('.tdAmount', this).text().trim()))) ? 0 : parseFloat($('.tdAmount', this).text().trim());
+                        var tdTotalAmount = (isNaN(parseFloat($('.tdTotalAmount', this).text().trim()))) ? 0 : parseFloat($('.tdTotalAmount', this).text().trim());
+                        BaseEstimate = tdAmount;
+                        NetAmount = NetAmount + BaseEstimate;
+                        NeQutAmt = NeQutAmt + tdTotalAmount;
+
+                        if (RateCompDropdownText.toLowerCase() == 'origin') {
+
+                            OrgAmt = OrgAmt + BaseEstimate;
+                            OrgQutAmt = OrgQutAmt + tdTotalAmount;
+
+                            $('#txtOriginEstimateDetail').val(OrgAmt);
+                            $('#txtOriginQuoteDetail').val(OrgQutAmt);
+                        }
+                        else if (RateCompDropdownText.toLowerCase() == 'freight') {
+
+                            FrgAmt = FrgAmt + BaseEstimate;
+                            FrgQutAmt = FrgQutAmt + tdTotalAmount;
+
+                            $('#txtFrightEstimateDetail').val(FrgAmt);
+                            $('#txtFrightQuoteDetail').val(FrgQutAmt);
+                        }
+                        else if (RateCompDropdownText.toLowerCase() == 'destination') {
+
+                            DestAmt = DestAmt + BaseEstimate;
+                            DestQutAmt = DestQutAmt + tdTotalAmount;
+                            $('#txtDestinationEstimateDetail').val(DestAmt);
+                            $('#txtDestinationQuoteDetail').val(FrgQutAmt);
+
+                        }
+                    });
+
+
+                    $('#txtNetEstimateDetail').val(NetAmount.toFixed(2));
+                    $('#txtNetEstimateDetail').attr('title', NetAmount.toFixed(2));
+                    $('#txtNetQuoteDetail').val(NeQutAmt.toFixed(2));
+                    $('#txtNetQuoteDetail').attr('title', NeQutAmt.toFixed(2));
+                }
+                ////To change the height of the model to the screen size -200
+                $(".modal-wide").on("show.bs.modal", function () {
+                    var height = $(window).height() - 20;
+                    $(this).find(".modal-body").css("max-height", height);
+                });
+
+
+                $("#btn_Report").on("click", function (e) {
+
+                    e.preventDefault();
+
+                    swal({
+                        title: "Click the quote type",
+                        type: 'info',
+                        showCancelButton: true,
+                        showConfirmButton: true,
+                        showCloseButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "LUMSUM",
+                        cancelButtonText: "BREAKDOWN",
+                        closeOnConfirm: true,
+                        closeOnCancel: true,
+
+                    }, function (isConfirm) {
+
+                        var url = '@Url.Action("GetPrint", "Quotation", new { SurveyID = "-1", RateCompRateWtID = "-2",IsLumsum="-3", RateCompRateWtBatchID ="-4" })';
+                        debugger;
+                        url=url.replace('-1', '@Model.SurveyID');
+                        url = url.replace('-2', '@Model.RateCompRateWtID');
+                        url=url.replace('-4', '@Model.RateCompRateWtBatchID');
+                        url = url.replace(/&amp;/g, '&');
+
+                        if (isConfirm) {
+                            url = url.replace('-3', true);
+                        } else {
+                            url = url.replace('-3', false);
+                        }
+
+                        debugger;
+                        if (url && url != "") {
+
+                            url = url.replace(/&amp;/g, '&');
+                            $('#PrintPartial').load(url, function () {
+
+
+                                var theDiv = $((".IS" + $("#BillingOn").val()).toUpperCase());
+                                theDiv.slideDown().removeClass("hidden");
+                                theDiv.siblings('[class*=IS]').slideUp(function () {
+                                    $(this).addClass("hidden");
+                                });
+
+                                $('#Client').attr('disabled', 'disabled');
+                                $('#Account').attr('disabled', 'disabled');
+
+
+                                $('.enableselect').select2(
+                                    {
+                                        width: '100%',
+                                        dropdownParent: $("#PrintModal .modal-content")
+                                    }
+                                );
+                                PopupDropDown('#City', "@Url.Action("GetCityList", "Quotation")");
+
+                                $("#PrintModal").modal();
+                            });
+
+
+
+                        }
+
+
+                    });
+
+                });
+
+            function GetSubCost(element) {
+                debugger;
+                var CostHeadID = $(element).closest('tr').find('td .TblHFVCostHead').val();
+                var RateCompID = $(element).closest('tr').find('td .TblRateComponent').val();
+                @*var RateCompRateWtID = ($('#RateCompRateWtID').val()) ? $('#RateCompRateWtID').val() : 0;
+                var RateCompRateWtBatchID = ($('#RateCompRateWtBatchID').val()) ? $('#RateCompRateWtBatchID').val() : 0;
+                var SurveyID = ($('#SurveyID').val()) ? $('#SurveyID').val() : 0;
+                var len = $('#SubCostHead .SubCost').length;
+                var route = '@Url.Action("GetSubCostDetails", new {CostHeadID = "-1", RateCompID = "-6", SurveyID = "-4",RateCompRateID = "-2",RateCompRateBatchID = "-3",ListLength="-5", IsEdit="-7"})';
+                route = route.replace("-1", CostHeadID);
+                route = route.replace("-2", RateCompRateWtID);
+                route = route.replace("-3", RateCompRateWtBatchID);
+                route = route.replace("-4", SurveyID);
+                route = route.replace("-5", len);
+                route = route.replace("-6", RateCompID);
+                route = route.replace("-7", 1);
+                route = route.replace(/&amp;/g, "&");*@
+                PopUpSubCost(CostHeadID, RateCompID, '0');
+            }
+
+        function PopupDropDown(control, url, strsearch) {
+
+            if (strsearch) {
+                var DrpSelect = $(control);
+                $.ajax({
+                    type: 'GET',
+                    url: url,
+                    data: { Value: strsearch }
+                }).then(function (data) {
+
+                    debugger;
+                    // create the option and append to Select2
+                    var option = new Option(data.CountryList[0].Text, data.CountryList[0].Value, true, true);
+                    DrpSelect.append(option).trigger('change');
+
+                    // manually trigger the `select2:select` event
+                    DrpSelect.trigger({
+                        type: 'select2:select',
+                        params: {
+                            data: data.CountryList
+                        }
+                    });
+                });
+            }
+            else {
+                $(control).select2({
+                    dropdownParent: $("#PrintModal"),
+                    minimumInputLength: 3,
+                    ajax: {
+                        url: url, // Controller - Select2Demo and Action -AccessRemoteData
+                        type: "POST",
+                        dataType: 'json',
+                        data: function (term) {
+                            return {
+                                term: term.term,
+                            };
+                        },
+                        processResults: function (data) {
+                            return {
+                                results: $.map(data.CountryList, function (item) {
+                                    return {
+                                        id: item.Value,
+                                        text: item.Text
+                                    }
+                                })
+                            }; // data.CountryList returning json data from Controlle
+                        }
+                    }
+                });
+            }
+
+        }
+
+        $('#btnSendToApprove').on('click', function () {
+            debugger;
+            $('#btnSave').attr('disabled', true);
+            var count = $('#SendtoApprovalList option').length;
+
+            if (count > 1) {
+                $('#mdlSendtoApproval').modal();
+            }
+            else {
+                //////debugger;
+                $('#QuoteSenttoApproveUser').val($('#SendtoApprovalList').val());
+                $('#btnSendToQuoteApprove').click();
+            }
+
+        });
+
+        $('#SendtoApprovalList').on('change', function () {
+            debugger;
+            $('#btnSave').attr('disabled', true);
+            $('#QuoteSenttoApproveUser').val($('#SendtoApprovalList').val());
+        });
+
+        $('#btnSendToQuoteApprove').click(function (e) {
+            debugger;
+            $('#btnSave').attr('disabled', true);
+            var ApprovalSelect = $('#QuoteSenttoApproveUser').val();
+            if (ApprovalSelect <= 0) {
+                e.preventDefault();
+                alert("Please select Approval User.");
+            }
+
+
+            if ($('#CostHeadtable > TBODY > tr') == null || $('#CostHeadtable > TBODY > tr').length <= 0) {
+
+                alert('Add Cost atleast one Cost Heads to Save');
+                e.preventDefault();
+                return false;
+            }
+
+
+
+            var BreakOut = false;
+            var isvalid = false;
+            var Mode = parseInt($('#ModeDropdown').val());
+            var ShippingLine = parseInt($('#ShippingLineDropdown').val());
+            $('#CostHeadtable > TBODY > tr').each(function () {
+                debugger;
+                //look for the fields TbltxtAmount in the tr
+
+                if (parseInt($('.TblTotalAmount', this).val()) > 0) {
+                    isvalid = true;
+                    //BreakOut = true;
+                    //return false;
+                }
+
+
+            });
+            if (!isvalid) {
+                alert('Quote Amount is required.');
+                BreakOut = true;
+            }
+            if (BreakOut) {
+
+                e.preventDefault();
+                return false;
+            }
+
+            $("#HFVQuotingList").val(JSON.stringify(getAllData()));
+
+
+
+        });
+
+        $('.ApprovalCloseModal').on('click', function () {
+            $('#btnSave').attr('disabled', false);
+        });
+        
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/SubCostHead")
+    @*<script type="text/javascript" src="http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>*@
+}

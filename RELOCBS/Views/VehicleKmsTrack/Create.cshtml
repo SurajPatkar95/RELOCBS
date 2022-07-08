@@ -1,0 +1,625 @@
+﻿@model RELOCBS.Entities.VehicleKms
+
+@using RELOCBS.Common;
+@using RELOCBS.Utility;
+
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string _PageID = "68";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@using (Html.BeginForm("Create", "VehicleKmsTrack", FormMethod.Post, new { enctype = "multipart/form-data",@id="VehicleTrackfrm" }))
+{
+
+    @Html.ValidationSummary(false, "")
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(a => a.VehicleKmsID)
+    @Html.HiddenFor(a => a.HFVkmsJobs)
+    @Html.HiddenFor(a => a.HFVLocations)
+
+    <fieldset class="col-md-12 border-grey m-t-xs">
+        <div class="row m-t-xs">
+            <div class="col-sm-2 form-group">
+                <label>Branch</label>
+                @Html.DropDownListFor(model => model.BranchID, new SelectList((System.Collections.IEnumerable)ViewData["BranchList"], "Value", "Text"), "--Select Branch--", new { id = "BranchDropdown", @class = "form-control input-sm clearfix enableselect" })
+                @Html.ValidationMessageFor(model => model.BranchID, "", new { @class = "text-danger" })
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Vehicle No.</label>
+                    @Html.DropDownListFor(model => Model.VehicleID, new SelectList((System.Collections.IEnumerable)ViewData["VehicleNoList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm clearfix VehicleNo enableselect" })
+                    @Html.ValidationMessageFor(a => a.VehicleID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>StartOdometer</label>
+                    @Html.TextBoxFor(model => Model.StartOdometer, new { @class = "form-control input-sm clearfix StartOdometer", onkeypress = "return OnlyDouble(this, event);" })
+                    @Html.ValidationMessageFor(a => a.StartOdometer, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>EndOdometer</label>
+                    @Html.TextBoxFor(model => Model.EndOdometer, new { @class = "form-control input-sm clearfix EndOdometer", onkeypress = "return OnlyDouble(this, event);" })
+                    @Html.ValidationMessageFor(a => a.EndOdometer, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Total</label>
+                    @Html.TextBoxFor(model => Model.TotalOdometer, new { @class = "form-control input-sm clearfix EndOdometer", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                    @Html.ValidationMessageFor(a => a.TotalOdometer, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Date</label>
+                    @Html.TextBoxFor(model => Model.OdometerDate, new { @class = "form-control input-sm clearfix OdometerDate datetimepicker" })
+                    @Html.ValidationMessageFor(a => a.OdometerDate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-4 col-md-4">
+                <div class="form-group">
+                    <label>Remark</label>
+                    @Html.TextAreaFor(model => Model.Remarks, new { @class = "form-control input-sm clearfix Remarks", @columns = "10", @rows = "3" })
+                    @Html.ValidationMessageFor(a => a.Remarks, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-1 col-md-1">
+                <div class="clearfix m-t-md">
+                    <button type="submit" class="btn btn-primary btn-sm pull-left" name="submit" value="Save" id="btnSave">Save</button>
+                </div>
+            </div>
+            @if(Model.VehicleKmsID!=null && Model.VehicleKmsID>0)
+            { 
+                <div class="col-sm-1 col-md-1">
+                    <div class="clearfix m-t-md">
+                        <a href="@Url.Action("Create", "DMS", new {  id = @Model.VehicleKmsID, Type = "VehicleKmsTrack" })" class="btn btn-primary btn-sm pull-right m-r-xs" data-toggle="modal" data-target="#mdlDMS" data-cache="false" title="DMS"><i class="glyphicon glyphicon-folder-open m-r-xs"></i>DMS</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </fieldset>
+
+    <fieldset id="divShipments" class="row col-md-12 border-grey m-xs">
+        <legend>Shipments</legend>
+        <div class="row">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-sm-3 col-md-3 form-group">
+                            <label class="control-label col-sm-5" for="FromLocation">From Location</label>
+                            <div class="col-sm-7">
+                                @Html.TextBox("FromLocation", null, new { @class = "form-control input-sm clearfix FromLoc" })
+                            </div>
+                        </div>
+                        <div class="col-sm-3 col-md-3 form-group">
+                            <label class="control-label col-sm-4" for="ToLocation">To Location</label>
+                            <div class="col-md-8">
+                                @Html.TextBox("ToLocation", null, new { @class = "form-control input-sm clearfix ToLoc" })
+                            </div>
+                        </div>
+                        <div class="col-sm-3 col-md-3 form-group">
+                            <label class="control-label col-sm-4" for="LocationComment">Remark</label>
+                            <div class="col-md-8">
+                                @Html.TextBox("LocationComment", null, new { @class = "form-control input-sm clearfix LocationComment" })
+                            </div>
+                        </div>
+                        <div class="col-sm-2 col-md-2">
+                            <input type="button" id="btnAddAccess" value="Add" class="btn btn-primary btn-sm" onclick="AddLocations()">
+                        </div>
+                    </div>
+                </div>
+                <table id="tblLocations" class="table table-fixed-header">
+                    <thead>
+                        <tr>
+                            <th class="col-md-5">From Location</th>
+                            <th class="col-md-5">To Location</th>
+                            <th class="col-md-5">Remark</th>
+                            <th style="width:55px">&nbsp;</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (var i = 0; i < Model.travelLocations.Count; i++)
+                        {
+                            <tr>
+                                <td class="col-md-5">
+                                    @Html.EditorFor(a => Model.travelLocations[i].FromLocation, new { htmlAttributes = new { @placeholder = "From Location", @tooltip = "From Location", @class = "form-control input-sm FromLocation", title = "FromLocation" } })
+                                </td>
+                                <td class="col-md-5">
+                                    @Html.EditorFor(a => Model.travelLocations[i].ToLocation, new { htmlAttributes = new { @placeholder = "To Location", @tooltip = "To Location", @class = "form-control input-sm ToLocation", title = "FromLocation" } })
+                                </td>
+                                <td class="col-md-5">
+                                    @Html.EditorFor(a => Model.travelLocations[i].Remark, new { htmlAttributes = new { @placeholder = "Remark", @tooltip = "Remark", @class = "form-control input-sm LocationRemark", title = "Remark" } })
+                                </td>
+                                <td>
+                                    <button type="button" class="btnLocationsDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveLocations(this)"></button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="col-md-12 m-n pad-none border-grey">
+        <legend>
+            Jobs
+        </legend>
+        <div class="m-t-sm" id="SODetails">
+            <div class="row">
+                <div class="col-sm-2 col-md-2 form-group hide">
+                    <label>ServiceLine</label>
+                    @Html.DropDownList("ServiceLine", new SelectList((System.Collections.IEnumerable)ViewData["ServiceLineList"], "Value", "Text"), "--Select ServiceLine--", new { @class = "form-control input-sm clearfix enableselect ServiceLine" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Job No.</label>
+                    @Html.DropDownList("Job", new SelectList((System.Collections.IEnumerable)ViewData["JobNoList"], "Value", "Text"), "--Select Job No--", new { @class = "form-control input-sm clearfix enableselect Job" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Shipper</label>
+                    @Html.TextBox("Shipper", null, new { @class = "form-control input-sm clearfix Shipper", @readonly = "readonly" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Account</label>
+                    @Html.TextBox("Account", null, new { @class = "form-control input-sm clearfix Account", @readonly = "readonly" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Remark</label>
+                    @Html.TextBox("JobComment", null, new { @class = "form-control input-sm clearfix JobComment" })
+                </div>
+                <div class="col-sm-1 col-md-1 form-group">
+                    <div class="clearfix">
+                        <input type="button" id="btnAdd" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="addJob()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-12">
+                    <table id="tblJobs" class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Job No</th>
+                                <th>Shipper</th>
+                                <th>Account</th>
+                                <th>Remark</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.kmsJobs.Count; i++)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.EditorFor(a => Model.kmsJobs[i].JobNo, new { htmlAttributes = new { @placeholder = "Job No", @tooltip = "JobNo", @class = "form-control input-sm JobNo", title = "JobNo", @readonly = "readonly" } })
+                                        @Html.HiddenFor(x => Model.kmsJobs[i].MoveID, new { @class = "MoveID" })
+                                        @Html.HiddenFor(x => Model.kmsJobs[i].VehicleKmsJobID, new { @class = "VehicleKmsJobID" })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(a => Model.kmsJobs[i].Shipper, new { htmlAttributes = new { @placeholder = "Shipper", @tooltip = "Shipper", @class = "form-control input-sm Shipper", title = "Shipper", @readonly = "readonly" } })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(a => Model.kmsJobs[i].AccountName, new { htmlAttributes = new { @placeholder = "Account", @tooltip = "Account", @class = "form-control input-sm AccountName", title = "Account", @readonly = "readonly" } })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(a => Model.kmsJobs[i].Remark, new { htmlAttributes = new { @placeholder = "Remark", @tooltip = "Remark", @class = "form-control input-sm JobRemark", title = "Remark" } })
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveJob(this)"></button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+}
+
+<!--DMS Model-->
+<div id="mdlDMS" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>
+
+
+@section Scripts{
+
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('#btnSave').on('click', function (e) {
+
+                GetJsonData();
+                let form = $('#VehicleTrackfrm');
+                if (form.valid()) {
+
+                    $('#overlay').fadeIn();
+                }
+                else {
+                    e.preventDefault();
+                }
+            });
+
+            var Joburl = '@Url.Action("GetLoadChartJobSearchList", "Combo",new { Type = "B" })';
+            AjaxFillDropDown(".Job", Joburl);
+
+            $('#StartOdometer,#EndOdometer').on("change", function () {
+
+                GetTotal();
+
+            });
+
+            GetJsonData();
+            GetTotal();
+        });
+
+        function GetTotal() {
+
+            $("#TotalOdometer").val(parseFloat($('#EndOdometer').val()) - parseFloat($('#StartOdometer').val()));
+        }
+
+        function GetJsonData() {
+
+            var data = GetData(true);
+            if (data != null && data.length > 0) {
+
+                $('#HFVLocations').val(JSON.stringify(data));
+            }
+
+            data = GetData(false);
+
+            if (data != null && data.length > 0) {
+
+                $('#HFVkmsJobs').val(JSON.stringify(data));
+            }
+        }
+
+        function GetData(Loction) {
+            var data = [];
+
+            if (Loction === true) {
+
+                $('#tblLocations tbody tr').each(function () {
+
+                    var FromLocation = $(this).find('.FromLocation').val();
+                    var ToLocation = $(this).find('.ToLocation').val();
+                    let Remark = $(this).find('.LocationRemark').val();
+
+                    var alldata = {
+                        'FromLocation': FromLocation,
+                        'ToLocation': ToLocation,
+                        'Remark': Remark
+                    }
+                    data.push(alldata);
+                });
+            }
+            else {
+
+                $('#tblJobs tbody tr').each(function () {
+
+                    var JobNo = $(this).find('.JobNo').val();
+                    var MoveID = $(this).find('.MoveID').val();
+                    var VehicleKmsJobID = $(this).find('.VehicleKmsJobID').val();
+                    var Shipper = $(this).find('.Shipper').val();
+                    var AccountName = $(this).find('.AccountName').val();
+                    let Remark = $(this).find('.JobRemark').val();
+                    var alldata = {
+                        'JobNo': JobNo,
+                        'MoveID': MoveID,
+                        'VehicleKmsJobID': VehicleKmsJobID,
+                        'Shipper': Shipper,
+                        'AccountName': AccountName,
+                        'Remark': Remark
+                    }
+                    data.push(alldata);
+                });
+
+            }
+
+            return data;
+        }
+
+        $('#ServiceLine').change(function () {
+            var id = $(this).val();
+
+            if (id != null && id != "") {
+
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("GetServiceLineJobNoList", "Combo")' + '?ServiceLineID=' + id,
+                    data: "{ServiceLineID:'" + id + "'}",
+                    success: function (data) {
+
+                        if ($("#ServiceLine").val() != "") {
+                            $("#Job").prop("disabled", true);
+
+                            $("#Job").empty();
+                            var s = '<option value="-1">--Select JobNo--</option>';
+                            $("#Job").append(s);
+                            $.each(data, function (index, item) {
+                                $("#Job").append($('<option></option>').text(item.Text).val(item.Value));
+                            });
+
+
+
+                            $("#Job").prop("disabled", false);
+
+                        }
+                    },
+                    failure: function (data) {
+                        //alert('error occured');
+                    }
+
+                });
+
+            }
+
+        });
+
+        $('#Job').change(function () {
+            var id = $(this).val();
+
+            if (id != null && id != "") {
+
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("GetJobDetail", "LoadChart")' + '?MoveID=' + id,
+                    data: "{MoveID:'" + id + "'}",
+                    success: function (data) {
+
+                        if (data != null) {
+
+                            $('#Shipper').val(data.Shipper);
+                            $('#Account').val(data.AccountName);
+
+                        }
+                    },
+                    failure: function (data) {
+                        //alert('error occured');
+                    }
+
+                });
+
+
+            }
+
+        });
+
+        function checkLocationsExists(FromLoc, ToLoc) {
+
+            var result = false;
+
+            $("#tblLocations > TBODY > tr").each(function () {
+
+                if ($('.FromLocation').val() === FromLoc && $('.ToLocation').val() === ToLoc) {
+                    result = true;
+                    return false;
+                }
+
+            });
+
+            return result;
+
+        }
+
+        function RemoveLocations(sender) {
+
+            //Determine the reference of the Row using the Button.
+            var row = $(sender).closest("TR");
+            var name = row[0].rowIndex;
+            if (confirm("Are you sure you want to delete?")) {
+
+                var table = $("#tblLocations")[0];
+                table.deleteRow(row[0].rowIndex);
+                return false;
+            }
+
+            return false;
+
+        }
+
+        function AddLocations() {
+
+
+            var FromLocation = $('.FromLoc').val();
+            var ToLocation = $('.ToLoc').val();
+            var Remark = $('.LocationComment').val();
+
+            if (FromLocation != null && FromLocation != "" && ToLocation != null && ToLocation != "") {
+
+                if (!checkLocationsExists(FromLocation, ToLocation)) {
+
+
+                    var tBody = $("#tblLocations > TBODY")[0];
+                    var rowCount = $('#tblLocations > TBODY > tr').length;
+
+                    var row = tBody.insertRow(-1);
+                    row.className = "package-row";
+
+                    var cell = $(row.insertCell(-1));
+                    cell.addClass("col-md-5");
+                    var td = '<input class="form-control input-sm clearfix FromLocation text-box single-line valid" data-val="false" data-val-required="The FromLocation field is required."  id="travelLocations_' + rowCount + '__FromLocation" name="travelLocations[' + rowCount + '].FromLocation" type="text" value="' + FromLocation + '" autocomplete="off" ></input>';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    cell.addClass("col-md-5");
+                    var td = '<input class="form-control input-sm clearfix ToLocation text-box single-line valid" data-val="false" data-val-required="The ToLocation field is required."  id="travelLocations_' + rowCount + '__ToLocation" name="travelLocations[' + rowCount + '].ToLocation" type="text" value="' + ToLocation + '" autocomplete="off" ></input>';
+                    cell.append(td);
+
+
+
+                    cell = $(row.insertCell(-1));
+                    cell.addClass("col-md-5");
+                    var td = '<input class="form-control input-sm clearfix LocationRemark text-box single-line"  id="travelLocations_' + rowCount + '__Remark" name="travelLocations[' + rowCount + '].Remark" type="text" value="' + Remark + '" autocomplete="off" ></input>';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    var tdremove = '<button type="button" class="btnLocationsDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveLocations(this)" />';
+                    cell.append(tdremove);
+                }
+                else {
+
+                    alert('Same From Location and To Location already added');
+                }
+
+            }
+            else {
+
+                alert('From Location and To Location required');
+            }
+
+        }
+
+
+        function checkJobExists(MoveId) {
+
+            var result = false;
+
+            $("#tblJobs > TBODY > tr").each(function () {
+
+                if ($('.MoveID').val() === MoveId) {
+                    result = true;
+                    return false;
+                }
+
+            });
+
+            return result;
+
+        }
+
+        function RemoveJob(sender) {
+
+            //Determine the reference of the Row using the Button.
+            var row = $(sender).closest("TR");
+            var name = row[0].rowIndex;
+            if (confirm("Are you sure you want to delete?")) {
+
+                var table = $("#tblJobs")[0];
+                table.deleteRow(row[0].rowIndex);
+                return false;
+            }
+
+            return false;
+
+        }
+
+        function addJob() {
+
+            var JobNo = $("#Job option:selected");
+            var Shipper = $("#Shipper").val();
+            var Account = $("#Account").val();
+            var Remark = $('#JobComment').val();
+
+            if (parseInt(JobNo.val()) > 0) {
+
+                if (!checkJobExists(parseInt(JobNo.val()))) {
+
+
+                    var tBody = $("#tblJobs > TBODY")[0];
+                    var rowCount = $('#tblJobs > TBODY > tr').length;
+
+                    var row = tBody.insertRow(-1);
+                    row.className = "package-row";
+
+                    var cell = $(row.insertCell(-1));
+                    var td = '<input class="form-control input-sm clearfix JobNo" id="kmsJobs_' + rowCount + '__JobNo" name="kmsJobs[' + rowCount + '].JobNo" type="text" value="' + JobNo.text() + '" readonly="readonly" autocomplete="off"></input>'
+                        + '<input class="MoveID" data-val="true" data-val-number="The field MoveID must be a number." data-val-required="The MoveID field is required." id="kmsJobs_' + rowCount + '__MoveID" name="kmsJobs[' + rowCount + '].MoveID" type="hidden" value="' + parseInt(JobNo.val()) + '" autocomplete="off"></input>'
+                        + '<span class="field-validation-valid text-danger" data-valmsg-for="kmsJobs[' + rowCount + '].MoveID" data-valmsg-replace="true"></span>'
+                        + '<input class="VehicleKmsJobID" data-val="false" id="kmsJobs_' + rowCount + '__MoveID" name="kmsJobs[' + rowCount + '].VehicleKmsJobID" type="hidden" value="-1" autocomplete="off"></input>';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix Shipper text-box single-line valid" data-val="false" data-val-required="The Shipper field is required."  id="kmsJobs_' + rowCount + '__Shipper" name="kmsJobs[' + rowCount + '].Shipper" type="text" value="' + Shipper + '" autocomplete="off" readonly="readonly"></input>';
+
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix AccountName text-box single-line valid" data-val="false" data-val-required="The AccountName field is required."  id="kmsJobs_' + rowCount + '__AccountName" name="kmsJobs[' + rowCount + '].AccountName" type="text" value="' + Account + '" autocomplete="off" readonly="readonly"></input>';
+
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix JobRemark text-box single-line" id="kmsJobs_' + rowCount + '__Remark" name="kmsJobs[' + rowCount + '].Remark" type="text" value="' + Remark + '" autocomplete="off"></input>';
+
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveJob(this)" />';
+                    cell.append(tdremove);
+
+                }
+                else {
+
+                    alert('Job No. already exists in list');
+                }
+
+            }
+            else {
+
+                alert('Job No. is required');
+            }
+        }
+
+
+
+        $('#BranchDropdown').change(function () {
+            var id = $(this).val();
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("GetVehicleList", "VehicleKmsTrack")'+'?BranchID=' + id,
+                data: "{BranchID:'" + id + "'}",
+                success: function (data) {
+
+                    if ($("#BranchDropdown").val() != "") {
+
+                        $("#VehicleID").select2('destroy');
+                        $("#VehicleID").empty();
+                        var s = '<option value="">--Select One--</option>';
+                        $("#VehicleID").append(s);
+                        $.each(data, function (index, item) { // item is now an object containing properties ID and Text
+                            $("#VehicleID").append($('<option></option>').text(item.Text).val(item.Value));
+                        });
+                        
+                        $("#VehicleID").prop("disabled", false);
+                        $("#VehicleID").select2();
+                    }
+                },
+                failure: function (data) {
+                    //alert('error occured');
+                }
+
+            });
+        });
+
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+}

@@ -1,0 +1,65 @@
+﻿@model IEnumerable<RELOCBS.Entities.MenuRole>
+@using RELOCBS.App_Code;
+@using RELOCBS.Utility;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html;
+
+@{
+    /*ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";*/
+
+    string _PageID = "7";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+}
+<style>
+    .grid-mvc tbody {
+        height: 200px;
+        overflow-y: scroll;
+    }
+</style>
+<div class="ibox-content RoleGrid">
+    @Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+
+columns.Add(o => o.MenuId)
+    .Titled("Menu Id")
+    .Css("col-md-2")
+    .SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+
+columns.Add(o => o.MenuName)
+.Titled("Menu Name").Css("col-md-2").SetWidth(2)
+.SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+columns.Add(o => o.ParentMenuName)
+.Titled("Parent Menu").Css("col-md-2").SetWidth(2);
+    columns.Add().Titled("Allow View")
+        .Encoded(false)
+        .Sanitized(false)
+        .SetWidth(10)
+        .RenderValueAs(o => Html.CheckBox("IsView", o.Allow_View));
+
+    columns.Add().Titled("Allow Add")
+        .Encoded(false)
+        .Sanitized(false)
+        .SetWidth(10)
+        .RenderValueAs(o => Html.CheckBox("IsAdd", o.Allow_Add));
+
+    columns.Add().Titled("Allow Edit")
+        .Encoded(false)
+        .Sanitized(false)
+        .SetWidth(10)
+        .RenderValueAs(o => Html.CheckBox("IsEdit", o.Allow_Edit));
+
+    columns.Add().Titled("Allow Delete")
+        .Encoded(false)
+        .Sanitized(false)
+        .SetWidth(10)
+        .RenderValueAs(o => Html.CheckBox("IsDelete", o.Allow_Delete));
+                                                                
+}).Sortable(false)
+    
+
+</div>

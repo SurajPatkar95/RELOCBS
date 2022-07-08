@@ -16,6 +16,8 @@ using RELOCBS.CustomAttributes;
 using RELOCBS.Extensions;
 using RELOCBS.AjaxHelper;
 using System.Net;
+using RELOCBS.Common;
+using RELOCBS.BL;
 
 namespace RELOCBS.Controllers.Common
 {
@@ -46,6 +48,19 @@ namespace RELOCBS.Controllers.Common
                     this._cityBL = new CityBL();
                 return this._cityBL;
 
+            }
+        }
+
+        private ComboBL _comboBL;
+
+        public ComboBL comboBL
+        {
+
+            get
+            {
+                if (this._comboBL == null)
+                    this._comboBL = new ComboBL();
+                return this._comboBL;
             }
         }
 
@@ -107,6 +122,7 @@ namespace RELOCBS.Controllers.Common
         {
             string ContinentID = string.Empty;
             ViewData["Country"] = cityBL.GetCountryByContinent(ContinentID);
+            ViewData["State"] = new List<SelectListItem>();
             CityViewModel model = new CityViewModel();
             model.isActive = true;
             return Request.IsAjaxRequest()
@@ -125,6 +141,7 @@ namespace RELOCBS.Controllers.Common
 
                 //ViewData["StateList"] = cityBL.BindDropdown("StatesByCountryId", "", "");
                 ViewData["Country"] = cityBL.GetCountryByContinent("");
+                ViewData["State"] = comboBL.GetStateDropdown(SPTYPE: "ALLACTIVE", CountryID: data.CountryID);
                 AjaxResponse result = new AjaxResponse();
                 if (ModelState.IsValid)
                 {
@@ -133,6 +150,7 @@ namespace RELOCBS.Controllers.Common
                     if (result.Success)
                     {
                         ViewData["Country"] = cityBL.GetCountryByContinent("");
+                        ViewData["State"] = comboBL.GetStateDropdown(SPTYPE: "ALLACTIVE", CountryID: data.CountryID);
                         result.Message = Message;
                         result.Result = this.RenderPartialViewToString("Create", data);
                         return Json(result);
@@ -140,6 +158,7 @@ namespace RELOCBS.Controllers.Common
                     else
                     {
                         ViewData["Country"] = cityBL.GetCountryByContinent("");
+                        ViewData["State"] = comboBL.GetStateDropdown(SPTYPE: "ALLACTIVE", CountryID: data.CountryID);
                         ModelState.AddModelError(string.Empty, Message);
                     }
                 }
@@ -164,6 +183,7 @@ namespace RELOCBS.Controllers.Common
             }
             CityViewModel data = cityBL.GetDetailById(id);
             ViewData["Country"] = cityBL.GetCountryByContinent("");
+            ViewData["State"] = comboBL.GetStateDropdown(SPTYPE: "ALLACTIVE", CountryID: data.CountryID);
             if (data == null)
             {
                 return HttpNotFound();
@@ -184,6 +204,7 @@ namespace RELOCBS.Controllers.Common
             try
             {
                 ViewData["Country"] = cityBL.GetCountryByContinent("");
+                ViewData["State"] = comboBL.GetStateDropdown(SPTYPE: "ALLACTIVE", CountryID:city.CountryID);
                 AjaxResponse result = new AjaxResponse();
                 string message = string.Empty;
                 if (ModelState.IsValid)
@@ -193,12 +214,14 @@ namespace RELOCBS.Controllers.Common
                     if (result.Success)
                     {
                         ViewData["Country"] = cityBL.GetCountryByContinent("");
+                        ViewData["State"] = comboBL.GetStateDropdown(SPTYPE: "ALLACTIVE", CountryID: city.CountryID);
                         result.Result = this.RenderPartialViewToString("Create", city);
                         return Json(result);
                     }
                     else
                     {
                         ViewData["Country"] = cityBL.GetCountryByContinent("");
+                        ViewData["State"] = comboBL.GetStateDropdown(SPTYPE: "ALLACTIVE", CountryID: city.CountryID);
                         ModelState.AddModelError(string.Empty, message);
                     }
                 }
@@ -262,54 +285,31 @@ namespace RELOCBS.Controllers.Common
 
         public ActionResult ExportToExcel()
         {
-            DataTable dtUser = new DataTable();
+            Dictionary<string, string> param = new Dictionary<string, string>();
             try
             {
-                GenerateExcel("City", "usp_City_ExpToExl", dtUser);
+
+                string SearchKey = string.Empty;
+                if (Request.Form["SearchKey"] != null && Request.Form["SearchKey"].Trim() != "")
+                {
+                    param.Add("@SP_SearchString", Request.Form["SearchKey"]);
+                }
+
+                param.Add("@SP_LoginID", Convert.ToString(UserSession.GetUserSession().LoginID));
+
+                CommonService.GenerateExcel(this.Response,"City", "[Comm].[GETCityForGrid_ExpToExl]", param);
             }
             catch (Exception ex)
             {
-                return RedirectToAction("Index");
+                this.AddToastMessage("RELOCBS", "UnExpected Error occured", ToastType.Error);
             }
-            return RedirectToAction("Index");
+            return View();
         }
 
-        public void GenerateExcel(string excelName, string spName, DataTable exptoExlParameters)
+        public JsonResult GetState(int CountryID)
         {
-            try
-            {
-                var gv = new GridView();
-                DataTable dtgridData = new DataTable(); //_spService.GetExportToExcelData(exptoExlParameters, spName);
-                if (dtgridData.Rows.Count > 0)
-                {
-                    gv.DataSource = dtgridData;
-                }
-                else
-                {
-                    dtgridData = new DataTable();
-                    dtgridData.Columns.Add("Message", typeof(string));
-                    dtgridData.Rows.Add("There are no items to display! ");
-                    gv.DataSource = dtgridData;
-                }
-                gv.DataBind();
-
-                Response.ClearContent();
-                Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment; filename=" + excelName + ".xls");
-                Response.ContentType = "application/ms-excel";
-
-                Response.Charset = "";
-                System.IO.StringWriter objStringWriter = new StringWriter();
-                HtmlTextWriter objHtmlTextWriter = new HtmlTextWriter(objStringWriter);
-                gv.RenderControl(objHtmlTextWriter);
-                Response.Output.Write(objStringWriter.ToString());
-                Response.Flush();
-                Response.End();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            var data = comboBL.GetStateDropdown(SPTYPE: "ALLACTIVE", CountryID: CountryID) ;
+            return Json(data, JsonRequestBehavior.AllowGet);
         }
     }
 }

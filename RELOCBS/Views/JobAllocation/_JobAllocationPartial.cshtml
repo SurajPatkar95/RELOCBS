@@ -1,0 +1,312 @@
+﻿@model RELOCBS.Entities.JobAllocationModel
+
+@{
+    //Layout = null;
+    ViewBag.Title = "Job Allocation";
+}
+
+<div class="row m-t-sm m-l-sm m-r-sm">
+    <fieldset class="col-md-12 m-n pad-none">
+        <legend>Job Details</legend>
+        <div class="m-t-sm">
+            <div class="row">
+
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>Expected Begin Date & Time</label>
+                        @Html.HiddenFor(a => a.InstID)
+                        @Html.EditorFor(a => a.ExpBeginDate, new { htmlAttributes = new { @class = "form-control input-sm clearfix datetimepicker", id = "ExpBeginDate", @readonly = "readonly" } })
+                        @*<div class="input-group">
+                                <span class="input-group-addon" style="display: none">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>*@
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label>Expected Completion Date & Time</label>
+                        @Html.EditorFor(a => a.ExpCompDate, new { htmlAttributes = new { @class = "form-control input-sm clearfix datetimepicker", id = "ExpCompDate", @readonly = "readonly" } })
+
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>Actual Begin Date & Time</label>
+                        @Html.EditorFor(a => a.ActualBeginDate, new { htmlAttributes = new { @class = "form-control input-sm clearfix datetimepicker", id = "ActualBeginDate" } })
+                        @Html.ValidationMessageFor(a => a.ActualBeginDate, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label>Actual Completion Date & Time</label>
+                        @Html.EditorFor(a => a.ActulaCompleteDate, new { htmlAttributes = new { @class = "form-control input-sm clearfix datetimepicker", id = "ActulaCompleteDate" } })
+                        @Html.ValidationMessageFor(a => a.ActulaCompleteDate, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>Turnaround Time</label>
+                        @*<div class="input-group">*@
+                        @Html.EditorFor(a => a.TurnaroundTime, new { htmlAttributes = new { @placeholder = "Turnaround Time", @tooltip = "Turnaround Time", @class = "form-control input-sm clearfix timepicker", title = "Turnaround Time", id = "TurnaroundTime" } })
+                        @*<span class="input-group-addon">
+                                <span class="fa fa-clock-o"></span>
+                            </span>*@
+                        @*</div>*@
+                        @Html.ValidationMessageFor(a => a.TurnaroundTime, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label>Special Instructions</label>
+                        @Html.TextAreaFor(m => m.Special_Instructions, new { @class = "form-control customTxt" })
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label>Remarks</label>
+                        @Html.TextBoxFor(a => a.Remark, new { @class = "form-control input-sm", placeholder = "Remark", title = "Remark", @id = "Remark" })
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="col-md-12 m-n pad-none">
+        <legend>Activities</legend>
+        <div class="row">
+            <div class="col-sm-4 col-md-4 form-group">
+                <label>Activity Type</label>
+                @Html.DropDownList("ActivityType", new SelectList((System.Collections.IEnumerable)ViewData["ActivityTypeList"], "Value", "Text"), "--Select Activity Type--", new { @class = "form-control input-sm clearfix enableselect" })
+            </div>
+            <div class="col-sm-3 col-md-3 form-group">
+                <label>From Date</label>
+                @Html.TextBox("AFromDate", null, new { @class = "form-control input-sm clearfix AFromDate datetimepicker " })
+            </div>
+            <div class="col-sm-3 col-md-3 form-group">
+                <label>To Date</label>
+                @Html.TextBox("AToDate", null, new { @class = "form-control input-sm clearfix AToDate datetimepicker" })
+            </div>
+            <div class="col-sm-2 col-md-2 form-group">
+                <label>RepTime</label>
+                @Html.TextBox("ARepTime", null, new { @class = "form-control input-sm clearfix ARepTime timepicker" })
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3 col-md-3 form-group">
+                <label>From Location</label>
+                @Html.TextBox("AFromLoc", null, new { @class = "form-control input-sm clearfix AFromLoc" })
+            </div>
+            <div class="col-sm-3 col-md-3 form-group">
+                <label>To Location</label>
+                @Html.TextBox("AToLoc", null, new { @class = "form-control input-sm clearfix AToLoc" })
+            </div>
+            <div class="col-sm-3 col-md-3 form-group">
+                <label>Remark</label>
+                @Html.TextBox("ARemark", null, new { @class = "form-control input-sm clearfix ARemark" })
+            </div>
+            <div class="col-sm-2 col-md-2 form-group">
+                <div class="clearfix">
+                    <input type="button" id="btnAdd" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="AddActivity()">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <table id="tblActivities" class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Activity Type</th>
+                            <th>From Date</th>
+                            <th>To Date</th>
+                            <th>From Location</th>
+                            <th>To Location</th>
+                            <th>Rep Time</th>
+                            <th>Remark</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody style="max-height:150px">
+                        @for (var i = 0; i < Model.activities.Count; i++)
+                        {
+
+                            <tr>
+                                <td>
+                                    @Html.EditorFor(a => Model.activities[i].ActivityName, new { htmlAttributes = new { @placeholder = "Activity Type", @tooltip = "Activity Type", @class = "form-control input-sm ActType", title = "Activity Type", @readonly = "readonly" } })
+                                    @Html.HiddenFor(x => Model.activities[i].ActivityID, new { @class = "ActivityID" })
+                                    @Html.HiddenFor(x => Model.activities[i].InstID, new { @class = "JAId" })
+                                    @Html.HiddenFor(x => Model.activities[i].ActivityTypeID, new { @class = "WactId" })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(a => Model.activities[i].FromDate, new { htmlAttributes = new { @placeholder = "From Date", @tooltip = "From Date", @class = "form-control input-sm datetimepicker ActFromDate", title = "From Date" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(a => Model.activities[i].ToDate, new { htmlAttributes = new { @placeholder = "To Date", @tooltip = "To Date", @class = "form-control input-sm datetimepicker ActFromDate", title = "To Date" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => Model.activities[i].FromLocation, new { htmlAttributes = new { @class = "form-control input-sm clearfix ActFromLoc" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => Model.activities[i].ToLocation, new { htmlAttributes = new { @class = "form-control input-sm clearfix ActToLoc" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(a => Model.activities[i].RepTime, new { htmlAttributes = new { @placeholder = "Rep Time", @tooltip = "Rep Time", @class = "form-control input-sm clearfix timepicker ActRepTime" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => Model.activities[i].Remark, new { htmlAttributes = new { @class = "form-control input-sm clearfix ActRemark" } })
+                                </td>
+                                <td data-ng-if="seletedJob.WisStatus != 'Completed'">
+                                    <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveActivity(this)" />
+                                </td>
+                            </tr>
+
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </fieldset>
+
+    
+</div>
+<!--Activities Creation-->
+<!--Crew Allocation-->
+<!--Vehicle Allocation Partial-->
+<!--Additional Service-->
+<!--Material Request-->
+<!--Document Upload-->
+
+<script type="text/javascript">
+
+    function ClearActivity() {
+
+        $("#ActivityType").val('').trigger('change');
+        $("#AFromDate").val('');
+        $("#AToDate").val('');
+        $("#AFromLoc").val('');
+        $("#AToLoc").val('');
+        $('#ARepTime').val('');
+        $('#ARemark').val('');
+    }
+
+    function RemoveActivity(sender) {
+
+        //Determine the reference of the Row using the Button.
+        var row = $(sender).closest("TR");
+        var name = $("TD", row).find('.ActType').val().trim();
+        if (confirm("Do you want to delete: " + name.trim())) {
+            //Get the reference of the Table.
+            var table = $("#tblActivities")[0];
+
+            //Delete the Table row using it's Index.
+            table.deleteRow(row[0].rowIndex);
+
+        }
+
+        return false;
+    }
+
+    function checkActivityExists(Activity) {
+
+        var result = false;
+
+        $("#tblActivities > TBODY").find('.ActType').each(function () {
+
+            if (parseInt($(this).val()) === Activity) {
+                result = true;
+                return false;
+            }
+
+        });
+
+        return result;
+
+    }
+
+
+    function AddActivity() {
+
+        var Activity = $("#ActivityType option:selected");
+        var RepTime = $("#ARepTime").val();
+        var Remark = $("#ARemark").val();
+        var FromDate = $("#AFromDate").val();
+        var ToDate = $("#AToDate").val();
+        var FromLoc = $("#AFromLoc").val();
+        var ToLoc = $("#AToLoc").val();
+
+        debugger;
+
+        if (parseInt(Activity.val()) > 0 && FromDate != null && FromDate != "" && ToDate != null && ToDate != "") {
+
+            if (!checkActivityExists(parseInt(Activity.val()))) {
+
+                var tBody = $("#tblActivities > TBODY")[0];
+                var rowCount = $('#tblActivities > TBODY > tr').length;
+                var row = tBody.insertRow(-1);
+                row.className = "package-row";
+                var cell = $(row.insertCell(-1));
+                var td = '<input class="form-control input-sm clearfix ActType" id="activities_' + rowCount + '__ActivityName" name="activities[' + rowCount + '].ActivityName" type="text" value="' + Activity.text() + '">'
+                    + '<input data-val="true" data-val-number="The field ActivityID must be a number." data-val-required="The ActivityID field is required." id="activities_' + rowCount + '__ActivityID" name="activities[' + rowCount + '].ActivityID" type="hidden" value="' + parseInt(Activity.val()) + '" autocomplete="off">';
+                cell.append(td);
+                
+                cell = $(row.insertCell(-1));
+
+                td = '<input class="form-control input-sm clearfix ActFromDate datetimepicker" data-val="true" data-val-date="The field FromDate must be a date." id="activities_' + rowCount + '__FromDate" name="activities[' + rowCount + '].FromDate" type="text" value="' + FromDate + '">'
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+                td = '<input class="form-control input-sm clearfix ActToDate datetimepicker" data-val="true" data-val-date="The field ToDate must be a date." id="activities_' + rowCount + '__ToDate" name="activities[' + rowCount + '].ToDate" type="text" value="' + ToDate + '">'
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+
+                td = '<input class="form-control input-sm clearfix ActFromLoc" id="activities_' + rowCount + '__FromLocation" name="activities[' + rowCount + '].FromLocation" type="text" value="' + FromLoc + '">'
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+
+                td = '<input class="form-control input-sm clearfix ActToLoc" id="activities_' + rowCount + '__ToLocation" name="activities[' + rowCount + '].ToLocation" type="text" value="' + ToLoc + '">'
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+
+                td = '<input class="form-control input-sm clearfix ActRepTime timepicker" id="activities_' + rowCount + '__RepTime" name="activities[' + rowCount + '].RepTime" type="text" value="' + RepTime + '">'
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+
+                td = '<input class="form-control input-sm clearfix ActRemark" id="activities_' + rowCount + '__Remark" name="activities[' + rowCount + '].Remark" type="text" value="' + Remark + '">'
+                cell.append(td);
+
+
+                var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveActivity(this)" />'
+                cell = $(row.insertCell(-1));
+                cell.append(tdremove);
+
+                DatePickerClass();
+                ClearActivity();
+            }
+            else {
+
+                alert('Activity Type already exists in list');
+                return false;
+
+            }
+
+        }
+        else {
+            alert('Activity Type,From Date,To Date is required');
+            return false;
+        }
+
+        return false;
+
+    }
+
+</script>
+

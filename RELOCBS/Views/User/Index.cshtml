@@ -1,0 +1,775 @@
+﻿@{
+    /**/
+
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using System.Security.Policy
+@using GridMvc.Html
+@using PagedList.Mvc;
+@using PagedList;
+
+<style>
+    .grid-mvc {
+        overflow: auto;
+    }
+</style>
+
+<div class="col-md-12 no-padding m-t-sm">
+    <div class="pnl-gridtop clearfix">
+        <div class="clearfix pnl-filter">
+            @Html.Partial("_SearchForm")
+        </div>
+        <div id="mgrid">
+            @Html.Partial("_AjaxPartial")
+        </div>
+    </div>
+
+    <div id="mdlAddEdit" class="modal fade" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            </div>
+        </div>
+    </div>
+
+    <div id="mdlLocationListing" class="modal fade" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog" style="width:90%">
+            <div class="modal-content">
+                @*<div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    </div>*@
+                @using (Html.BeginForm("SaveMapping", "User", FormMethod.Post, new { id = "modaldetails" }))
+                {
+                    <div class="modal-body" id="mdlcontLocationListing">
+                    </div>
+                }
+                @*<div class="modal-footer pad-none">
+                        <input type="button" class="btn-sm btn-primary pull-left" value="Back" />
+                        <input type="button" class="btn-sm btn-primary pull-right" value="Next" />
+                    </div>*@
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="CopyUserRightsModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    Copy User Rights
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modalCopyUserRights" style="height:300px;">
+                    <div class="m-t-sm pad-none">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12">
+                                <div class="form-group">
+                                    <label>Copy User Rights From</label>
+                                    @Html.DropDownList("CopyFromLoginID", new SelectList((System.Collections.IEnumerable)ViewData["UserList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm clearfix enableselect" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12">
+                                <div class="form-group">
+                                    <label>Copy User Rights To</label>
+                                    @Html.DropDownList("CopyToLoginID", new SelectList((System.Collections.IEnumerable)ViewData["UserList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm clearfix enableselect" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12">
+                                <div class="form-group">
+                                    <div class="radio">
+                                        <label>@Html.RadioButton("OverwriteAppend", "O", new { @class = "OverwriteAppend", @id = "OverwriteAppend", @checked = true }) Overwrite</label>
+                                        <label>@Html.RadioButton("OverwriteAppend", "A", new { @class = "OverwriteAppend", @id = "OverwriteAppend" })Append</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12 text-center">
+                                <input type="submit" id="btnCopyUserRights" class="btn btn-primary m-t-sm m-r-sm btn-sm filter-custom-margin m-n"
+                                       value="Save" form="formCopyUserRights" onclick="CopyUserRights()" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+    <script>
+        function SetRight(param) {
+            if (param == 'country') {
+                var value = $('#DefCountryList').val();
+                $('#DefCountryList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#CountryList').append(this);
+                    }
+                });
+            }
+            if (param == 'city') {
+                var value = $('#DefCityList').val();
+                $('#DefCityList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#CityList').append(this);
+                    }
+                });
+            }
+            if (param == 'comp') {
+                var value = $('#DefCompList').val();
+                $('#DefCompList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#CompList').append(this);
+                    }
+                });
+            }
+
+            if (param == 'role') {
+                var value = $('#DefRoleList').val();
+                $('#DefRoleList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#RoleList').append(this);
+                    }
+                });
+            }
+
+            if (param == 'buss') {
+                var value = $('#DefBussList').val();
+                $('#DefBussList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#BussList').append(this);
+                    }
+                });
+
+                if (value.indexOf('NON-RMC BUSSINESS') == -1) {
+                    ///$('.rmc').removeClass('hide');
+                }
+            }
+
+            if (param == 'warehouse') {
+                var value = $('#WarehouseList').val();
+                $('#WarehouseList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#MappedWarehouseList').append(this);
+                    }
+                });
+            }
+
+            if (param == 'report') {
+                var value = $('#ReportList').val();
+                $('#ReportList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#MappedReportList').append(this);
+                    }
+                });
+            }
+
+            if (param == 'serviceline') {
+                var value = $('#ServicelineList').val();
+                $('#ServicelineList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#MappedServicelineList').append(this);
+                    }
+                });
+            }
+
+            if (param == 'rvbranch') {
+                var value = $('#rvbranchList').val();
+                $('#rvbranchList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#MappedrvbranchList').append(this);
+                    }
+                });
+            }
+
+            if (param == 'clickrestrict') {
+                var value = $('#clickrestrictList').val();
+                $('#clickrestrictList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#MappedclickrestrictList').append(this);
+                    }
+                });
+            }
+        }
+
+        function SetLeft(param) {
+            if (param == 'country') {
+                var value = $('#CountryList').val();
+                $('#CountryList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#DefCountryList').append(this);
+                    }
+                });
+            }
+            if (param == 'city') {
+                var value = $('#CityList').val();
+                $('#CityList option').each(function () {
+
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#DefCityList').append(this);
+                    }
+                });
+            }
+            if (param == 'comp') {
+                var value = $('#CompList').val();
+                $('#CompList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#DefCompList').append(this);
+                    }
+                });
+            }
+
+            if (param == 'role') {
+                var value = $('#RoleList').val();
+                $('#RoleList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#DefRoleList').append(this);
+                    }
+                });
+            }
+
+            if (param == 'buss') {
+
+                var value = $('#BussList').val();
+                $('#BussList option').each(function () {
+
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#DefBussList').append(this);
+                    }
+                });
+
+                if (value.indexOf('NON-RMC BUSSINESS') == -1) {
+                    //$('.rmc').addClass('hide');
+                    value = $('#RMCList').val();
+                    $('#RMCList option').each(function () {
+                        $('#DefRMCList').append(this);
+                    });
+                }
+            }
+
+            if (param == 'warehouse') {
+                var value = $('#MappedWarehouseList').val();
+                $('#MappedWarehouseList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#WarehouseList').append(this);
+                    }
+                });
+            }
+
+            if (param == 'report') {
+                var value = $('#MappedReportList').val();
+                $('#MappedReportList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#ReportList').append(this);
+                    }
+                });
+            }
+
+            if (param == 'serviceline') {
+                var value = $('#MappedServicelineList').val();
+                $('#MappedServicelineList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#ServicelineList').append(this);
+                    }
+                });
+            }
+
+            if (param == 'rvbranch') {
+                var value = $('#MappedrvbranchList').val();
+                $('#MappedrvbranchList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#rvbranchList').append(this);
+                    }
+                });
+            }
+
+            if (param == 'clickrestrict') {
+                var value = $('#MappedclickrestrictList').val();
+                $('#MappedclickrestrictList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#clickrestrictList').append(this);
+                    }
+                });
+            }
+        }
+
+        function SetAllRight(param) {
+            if (param == 'country') {
+                var value = $('#DefCountryList').val();
+                $('#DefCountryList option').each(function () {
+                    $('#CountryList').append(this);
+                });
+            }
+            if (param == 'city') {
+                var value = $('#DefCityList').val();
+                $('#DefCityList option').each(function () {
+                    $('#CityList').append(this);
+                });
+            }
+            if (param == 'comp') {
+                var value = $('#DefCompList').val();
+                $('#DefCompList option').each(function () {
+                    $('#CompList').append(this);
+                });
+            }
+
+            if (param == 'role') {
+                var value = $('#DefRoleList').val();
+                $('#DefRoleList option').each(function () {
+                    $('#RoleList').append(this);
+                });
+            }
+
+            if (param == 'buss') {
+                var value = $('#DefBussList').val();
+                $('#DefBussList option').each(function () {
+                    $('#BussList').append(this);
+                });
+                //$('.rmc').removeClass('hide');
+            }
+
+            if (param == 'warehouse') {
+                var value = $('#WarehouseList').val();
+                $('#WarehouseList option').each(function () {
+                    $('#MappedWarehouseList').append(this);
+                });
+            }
+
+            if (param == 'report') {
+                var value = $('#ReportList').val();
+                $('#ReportList option').each(function () {
+                    $('#MappedReportList').append(this);
+                });
+            }
+
+            if (param == 'serviceline') {
+                var value = $('#ServicelineList').val();
+                $('#ServicelineList option').each(function () {
+                    $('#MappedServicelineList').append(this);
+                });
+            }
+
+            if (param == 'rvbranch') {
+                var value = $('#rvbranchList').val();
+                $('#rvbranchList option').each(function () {
+                    $('#MappedrvbranchList').append(this);
+                });
+            }
+
+            if (param == 'clickrestrict') {
+                var value = $('#clickrestrictList').val();
+                $('#clickrestrictList option').each(function () {
+                    $('#MappedclickrestrictList').append(this);
+                });
+            }
+        }
+
+        function SetAllLeft(param) {
+            if (param == 'country') {
+                var value = $('#CountryList').val();
+                $('#CountryList option').each(function () {
+                    $('#DefCountryList').append(this);
+                });
+            }
+            if (param == 'city') {
+                var value = $('#CityList').val();
+                $('#CityList option').each(function () {
+                    $('#DefCityList').append(this);
+                });
+            }
+            if (param == 'comp') {
+                var value = $('#CompList').val();
+                $('#CompList option').each(function () {
+                    $('#DefCompList').append(this);
+                });
+            }
+
+            if (param == 'role') {
+                var value = $('#RoleList').val();
+                $('#RoleList option').each(function () {
+                    $('#DefRoleList').append(this);
+                });
+            }
+
+            if (param == 'buss') {
+                var value = $('#BussList').val();
+                $('#BussList option').each(function () {
+                    $('#DefBussList').append(this);
+                });
+                //$('.rmc').addClass('hide');
+                //value = $('#RMCList').val();
+                //$('#RMCList option').each(function () {
+                //    $('#DefRMCList').append(this);
+                //});
+            }
+
+            if (param == 'warehouse') {
+                var value = $('#MappedWarehouseList').val();
+                $('#MappedWarehouseList option').each(function () {
+                    $('#WarehouseList').append(this);
+                });
+            }
+
+            if (param == 'report') {
+                var value = $('#MappedReportList').val();
+                $('#MappedReportList option').each(function () {
+                    $('#ReportList').append(this);
+                });
+            }
+
+            if (param == 'serviceline') {
+                var value = $('#MappedServicelineList').val();
+                $('#MappedServicelineList option').each(function () {
+                    $('#ServicelineList').append(this);
+                });
+            }
+
+            if (param == 'rvbranch') {
+                var value = $('#MappedrvbranchList').val();
+                $('#MappedrvbranchList option').each(function () {
+                    $('#rvbranchList').append(this);
+                });
+            }
+
+            if (param == 'clickrestrict') {
+                var value = $('#MappedclickrestrictList').val();
+                $('#MappedclickrestrictList option').each(function () {
+                    $('#clickrestrictList').append(this);
+                });
+            }
+        }
+
+        function MappingPopUp(LoginId, type) {
+            $('#mdlLocationListing').modal();
+            var route = '@Url.Action("GetLocationList", "User")?LoginId=' + LoginId + '&type=' + type;
+            $('#mdlcontLocationListing').load(route, function () { });
+        }
+
+        $("#modaldetails").submit(function () {
+            data = [];
+            $("#CountryList").find("option").each(function () {
+                data.push($(this).attr("value"));
+            });
+            $("#CountryList").val(data);
+
+            data.length = 0;
+            $("#RoleList").find("option").each(function () {
+                data.push($(this).attr("value"));
+            });
+            $("#RoleList").val(data);
+
+            data.length = 0;
+            $("#CompList").find("option").each(function () {
+                data.push($(this).attr("value"));
+            });
+            $("#CompList").val(data);
+
+            data.length = 0;
+            $("#CityList").find("option").each(function () {
+                data.push($(this).attr("value"));
+            });
+            $("#CityList").val(data);
+
+            data.length = 0;
+            $("#RMCList").find("option").each(function () {
+                data.push($(this).attr("value"));
+            });
+            $("#RMCList").val(data);
+
+            data.length = 0;
+            $("#BussList").find("option").each(function () {
+                data.push($(this).attr("value"));
+            });
+            $("#BussList").val(data);
+
+            data.length = 0;
+            $("#MappedWarehouseList").find("option").each(function () {
+                data.push($(this).attr("value"));
+            });
+            $("#MappedWarehouseList").val(data);
+
+            data.length = 0;
+            $("#MappedReportList").find("option").each(function () {
+                data.push($(this).attr("value"));
+            });
+            $("#MappedReportList").val(data);
+
+            data.length = 0;
+            $("#MappedServicelineList").find("option").each(function () {
+                data.push($(this).attr("value"));
+            });
+            $("#MappedServicelineList").val(data);
+
+            data.length = 0;
+            $("#MappedrvbranchList").find("option").each(function () {
+                data.push($(this).attr("value"));
+            });
+            $("#MappedrvbranchList").val(data);
+
+            data.length = 0;
+            $("#MappedclickrestrictList").find("option").each(function () {
+                data.push($(this).attr("value"));
+            });
+            $("#MappedclickrestrictList").val(data);
+
+        });
+
+        var pageurl = "@Url.Action("Index", "User")?page=1";
+
+        function PagedOnCompleteBinds() {
+
+            $(document).ready(function () {
+                $('select').select2();
+
+                $('#CopyFromLoginID').select2({
+                    dropdownParent: $('#CopyUserRightsModal')
+                });
+                $('#CopyToLoginID').select2({
+                    dropdownParent: $('#CopyUserRightsModal')
+                });
+
+                $('.grid-header-title a').on('click', function (e) {
+                    e.preventDefault();
+                    var sturl = "@Url.Action("Index", "User")" + $(this).attr('href');
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('#mgrid .pagination li a').on('click', function (e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    var sturl = $('#mgrid .sorted.grid-header-title a').attr('href');
+                    if (typeof sturl != 'undefined') {
+                        var gdir = url("?grid-dir", sturl);
+                        sturl = sturl.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0 ? 1 : 0));
+                        sturl = sturl.replace('?', '&');
+                    }
+
+                    var sturl2 = $(this).attr('href');
+                    if (sturl2 == undefined) {
+                        sturl2 = "@Url.Action("Index", "User")?page=" + parseInt($(this).html());
+                    }
+                    if (sturl) {
+                        sturl = sturl2 + sturl.replace(/page=\d+/i, "");
+                    }
+                    else {
+                        sturl = sturl2;
+                    }
+
+                    pageurl = sturl;
+
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('form.frmRWDelete').on('submit', function (e) {
+                    e.preventDefault();
+                    $frmRWDelete = this;
+                    swal({
+                        title: "Are you sure?",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Delete",
+                        cancelButtonText: "No",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                        function (isConfirm) {
+                            if (isConfirm) {
+                                $('#mgrid').mask("Loading...");
+                                $($frmRWDelete).ajaxSubmit({
+                                    success: function (data) {
+                                        if (data.Success) {
+                                            toastr.success("User deleted successfully.");
+                                            $('#mgrid .pagination li.active a').trigger('click');
+                                        } else if (!data.Success) {
+                                            swal({
+                                                text: "User Delete Failed.",
+                                                type: "error"
+                                            });
+                                        }
+                                        $('#mgrid').unmask();
+                                    },
+                                    complete: function () {
+                                        $('#mgrid').unmask();
+                                    }
+                                });
+                            } else {
+                                swal("", "User Delete Cancelled.", "error");
+                            }
+                        });
+                });
+
+                $('.lnkExportToExcel').on('click', function () {
+                    var url = '@Url.Action("ExportToExcel", "User", new { })';
+                    window.location.href = url;
+                });
+            });
+        }
+
+        function PagedOnComplete(obj)
+        {
+            $('#mgrid table').unmask();
+            PagedOnCompleteBinds();
+        }
+
+        $(document).ready(function () {
+            PagedOnCompleteBinds();
+
+            $('body').on('hidden.bs.modal', '.modal', function () {
+                $(this).removeData('bs.modal');
+            });
+
+            pageGrids.mainGrid.onRowSelect(function (e) {
+                console.log($('#pnlGridTopActions #btnEdit, #pnlGridTopActions #btnDelete').length)
+                $('#pnlGridTopActions #btnEdit, #pnlGridTopActions #btnDelete').removeAttr('disabled');
+                $('#pnlGridTopActions #btnEdit').on('click', function (ev) {
+                    ev.preventDefault();
+                    $('#mgrid tr.grid-row.grid-row-selected').find('.btnEdit').click();
+                });
+                $('#pnlGridTopActions #btnDelete').on('click', function (ev) {
+                    ev.preventDefault();
+                    $('#mgrid tr.grid-row.grid-row-selected').find('.btnDelete').click();
+                });
+            });
+
+            $('form#CustomFilter').on('submit', function (e) {
+                e.preventDefault();
+                $(this).ajaxSubmit({
+                    target: '#mgrid',
+                    success: function () {
+                        PagedOnCompleteBinds();
+                    }
+                });
+            });
+
+            $('#btnReset').on('click', function (e) {
+                e.preventDefault();
+                $('form#CustomFilter').find("input[type=text], textarea").val("");
+                $('form#CustomFilter').submit();
+            });
+        });
+
+        $("body").on("click", "#RestAttempt,#RestLastLogin,#RestPassword", function (e) {
+            e.preventDefault();
+            //Loop through the Table rows and build a JSON array.
+            var Users = new Array();
+            $("#mgrid table TBODY TR").each(function () {
+                var row = $(this);
+                if (row.find('input[name="IsCheck"]').prop('checked')) {
+                    var User = {};
+                    User.UserID = row.find('input[name="IsCheck"]').attr('data-id');
+                    Users.push(User);
+                }
+            });
+
+            if (Users.length > 0) {
+                if ($(this).attr('id') == "RestPassword" && Users.length > 1) {
+                    alert('Select only one user at time');
+                    return false;
+                }
+
+                var URL = "";
+                var Text = $(this).prop('value');
+                if ($(this).attr('id') == "RestPassword") {
+                    URL = '@Url.Action("RestPassword", "User")';
+                }
+
+                if ($(this).attr('id') == "RestLastLogin") {
+                    URL = '@Url.Action("RestLastLogin", "User")';
+                }
+
+                if ($(this).attr('id') == "RestAttempt") {
+                    URL = '@Url.Action("RestAttempt", "User")';
+                }
+
+                if (URL != "") {
+                    $.ajax({
+                        type: "POST",
+                        url: URL,
+                        data: JSON.stringify(Users),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (r) {
+                            if (r.Success) {
+                                swal({
+                                    title: Text,
+                                    text: r.Message,
+                                    type: "success",
+                                    confirmButtonText: "OK"
+                                }, function (isConfirm) {
+                                    if (isConfirm) {
+                                        //window.location.href = "//stackoverflow.com";
+                                        if (pageurl != "") {
+                                            $('form#CustomFilter').attr('action', pageurl).submit();
+                                        }
+                                        else {
+                                            window.location.reload();
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                alert(r.Message);
+                            }
+                        }
+                    });
+                }
+            }
+            else {
+                alert('select atleast one user to perform action');
+            }
+        });
+
+        function CopyUserRights() {
+            var CopyFromLoginID = $("#CopyFromLoginID").val();
+            var CopyToLoginID = $("#CopyToLoginID").val();
+            var OverwriteAppend = $("#OverwriteAppend:checked").val()
+
+            if (CopyFromLoginID == 0) {
+                alert('Please select copy from login id.');
+                return false;
+            }
+            if (CopyToLoginID == 0) {
+                alert('Please select copy to login id.');
+                return false;
+            }
+            if (CopyFromLoginID == CopyToLoginID) {
+                alert('Please select different copy from and copy to login id.');
+                return false;
+            }
+
+            var jsonData = "{CopyFromLoginID:'" + CopyFromLoginID + "',CopyToLoginID:'" + CopyToLoginID + "',OverwriteAppend:'" + OverwriteAppend + "'}";
+
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("CopyUserRights", "User")",
+                data: jsonData,
+                async: false,
+                success: function (data) {
+                    alert(data.Message);
+                    $("#CopyUserRightsModal").modal('hide');
+                    $("#CopyFromLoginID").val('').trigger('change');
+                    $("#CopyToLoginID").val('').trigger('change');
+                    $("#OverwriteAppend[value='O']").prop('checked', true);
+                },
+                failure: function () {
+                    alert('error occured');
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert('error occured');
+                }
+            });
+        }
+    </script>
+}

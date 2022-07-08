@@ -1,0 +1,229 @@
+﻿@model RELOCBS.Entities.StorageBill
+
+<style type="text/css">
+    .tdNone {
+        display: none;
+    }
+
+    input.Text-50 {
+        max-width: 50px;
+    }
+
+    input.Text-100 {
+        max-width: 100px;
+    }
+
+    input.Text-150 {
+        max-width: 150px;
+    }
+
+    .toggleDisplay {
+        display: none;
+    }
+
+</style>
+
+     @Html.HiddenFor(model => model.ProcessRowIndex)   
+    <div class="ibox row col-sm-12 m-b-lg">
+        <div class="table-responsive">
+            <table class="table table-striped border" id="DetailTable">
+                <thead>
+                    <tr>
+                        <th class="toggleDisplay">Unit</th>
+                        <th class="toggleDisplay">Volume</th>
+                        <th>Sr. No.</th>
+                        @if (!string.IsNullOrWhiteSpace(Model.RevenueBr) && Model.RevenueBr.ToString().ToUpper() != "QATAR")
+                        {
+                            <th>SacCode</th>
+                            <th>POS</th>
+                        }
+                        <th>Costhead</th>
+                        <th>Description</th>
+                        <th>BillStartDate</th>
+                        <th>BillToDate</th>
+                        <th>Invoice Amt</th>
+                        <th>Billable Amt</th>
+                        <th>Conv. Rate</th>
+                        <th>Conv. Amt</th>
+                        <th>Tax %</th>
+                        @if (Model.TaxType == "IGST")
+                        {
+                            <th>IGST Amt</th>
+                        }
+                        @if (Model.TaxType == "CGST")
+                        {
+                            <th>CGST Amt</th>
+                            <th>SGST Amt</th>
+                        }
+                        @if (Model.TaxType == "VAT")
+                        {
+                            <th>VAT Amt</th>
+                        }
+                        <th>Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.DetailList.Count; i++)
+                    {
+                        string Desc = !string.IsNullOrWhiteSpace(Model.DetailList[i].Description) ? "<p>" + Model.DetailList[i].Description.Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>" : "";
+
+                        if (Model.TaxType == "IGST")
+                        {
+                            Model.DetailList[i].IGST = (decimal)(Model.DetailList[i].ActualAmount * Model.DetailList[i].Tax_Percent / 100);
+                            Model.DetailList[i].Total = (decimal)Model.DetailList[i].ActualAmount + Model.DetailList[i].IGST;
+                        }
+                        if (Model.TaxType == "CGST")
+                        {
+                            Model.DetailList[i].CGST = (decimal)(Model.DetailList[i].ActualAmount * (Model.DetailList[i].Tax_Percent / 2) / 100);
+                            Model.DetailList[i].SGST = (decimal)(Model.DetailList[i].ActualAmount * (Model.DetailList[i].Tax_Percent / 2) / 100);
+                            Model.DetailList[i].Total = (decimal)Model.DetailList[i].ActualAmount + Model.DetailList[i].CGST + Model.DetailList[i].SGST;
+                        }
+                        if (Model.TaxType == "VAT")
+                        {
+                            Model.DetailList[i].VAT = (decimal)(Model.DetailList[i].ActualAmount * Model.DetailList[i].Tax_Percent / 100);
+                            Model.DetailList[i].Total = (decimal)Model.DetailList[i].ActualAmount + Model.DetailList[i].VAT;
+                        }
+
+                        if (Model.DetailList[i].TaxType == "NIL")
+                        {
+                            Model.DetailList[i].Total = (decimal)Model.DetailList[i].ConvAmount;
+                        }
+
+                        Model.DetailList[i].ConvRate = Convert.ToDecimal(Model.DetailList[i].ConvRate);
+                        Model.DetailList[i].ConvAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DetailList[i].ConvAmount));
+                        Model.DetailList[i].IGST = Convert.ToDecimal(String.Format("{0:0.00}", Model.DetailList[i].IGST));
+                        Model.DetailList[i].CGST = Convert.ToDecimal(String.Format("{0:0.00}", Model.DetailList[i].CGST));
+                        Model.DetailList[i].SGST = Convert.ToDecimal(String.Format("{0:0.00}", Model.DetailList[i].SGST));
+                        Model.DetailList[i].VAT = Convert.ToDecimal(String.Format("{0:0.00}", Model.DetailList[i].VAT));
+                        Model.DetailList[i].Total = Convert.ToDecimal(String.Format("{0:0.00}", Model.DetailList[i].Total));
+                        Model.DetailList[i].Amount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DetailList[i].Amount));
+
+
+                    <tr>
+                        <td class="VolumeUnit toggleDisplay" style="width: 5%;">
+                            <span>@Html.Raw(Model.DetailList[i].VolumeUnit)</span>
+                            @Html.HiddenFor(a => Model.DetailList[i].VolumeUnit, new { @class = "TblVolumeUnit" })
+                            @Html.HiddenFor(a => Model.DetailList[i].BillDetailId)
+                        </td>
+                        <td class="VolumeWt toggleDisplay" style="width: 5%;">
+                            <span>@Html.Raw(Model.DetailList[i].VolumeWt)</span>
+                            @Html.HiddenFor(a => Model.DetailList[i].VolumeWt, new { @class = "TblVolumeWt" })
+                        </td>
+                        <td style="width: 5%;">@Html.DropDownListFor(x => Model.DetailList[i].BillItemSeqID, new SelectList((System.Collections.IEnumerable)ViewData["Sequence"], "Value", "Text", Model.DetailList[i].BillItemSeqID), new { @class = "Seq" })</td>
+                        @if (!string.IsNullOrWhiteSpace(Model.RevenueBr) && Model.RevenueBr.ToString().ToUpper() != "QATAR")
+                        {
+                            <td style="width: 5%;"><span>@Model.DetailList[i].SacCode</span>@Html.HiddenFor(x => Model.DetailList[i].SacCode, new { @class = "SacCode" })</td>
+                            <td style="width: 5%;"><span>@Model.DetailList[i].POSID</span>@Html.HiddenFor(x => Model.DetailList[i].POSID, new { @class = "POSID" })</td>
+                        }
+                        <td class="StorageType" style="width: 10%;">
+                            <span class="TblCostHeadLbl">@Html.Raw(Model.DetailList[i].CostHead)</span>
+                            @Html.HiddenFor(a => Model.DetailList[i].CostHead, new { @class = "TblCostHead" })
+                            @Html.HiddenFor(a => Model.DetailList[i].CostHeadID, new { @class = "TblCostHeadId" })
+                            @Html.HiddenFor(a => Model.DetailList[i].TaxType, new { @class = "TblTaxType" })
+                        </td>
+                        <td style="width: 25%;">
+                            @Html.HiddenFor(a => Model.DetailList[i].Description, new { @class = "Description" })
+                            @Html.TextArea("taDescription", Desc, new { @class = "td-amtwidth form-control input-xs clearfix taDescription" })
+                        </td>
+                        <td class="BillStartDate" style="width:10%;">
+                            <span class="TblBillStartDateLbl">@Html.Raw(Model.DetailList[i].BillStartDate != null ? Convert.ToDateTime(Model.DetailList[i].BillStartDate).ToString("dd-MMM-yyyy") : null)</span>
+                            @Html.HiddenFor(a => Model.DetailList[i].BillStartDate, new { @class = "TblBillStartDate" })
+                        </td>
+                        <td class="BillToDate" style="width: 5%;">
+                            @Html.TextBoxFor(a => Model.DetailList[i].BillToDate, new { @class = "form-control input-sm TblDateFrom Text-100 datetimepicker" })
+                        </td>
+                        <td class="Amount" style="width:7%;">
+                            <span class="TblAmountLbl">@Html.Raw(Model.DetailList[i].Amount)</span>
+                            @Html.HiddenFor(a => Model.DetailList[i].Amount, new { @class = "TblAmount" })
+                        </td>
+                        <td class="ActualAmount" style="width:7%;">
+                            @Html.TextBoxFor(a => Model.DetailList[i].ActualAmount, new { @class = "form-control input-sm TblActualAmount Text-100", onblur = "CalGrossTotal(this);" })
+                            @Html.HiddenFor(a => Model.DetailList[i].ActualAmount, new { @class = "TblHfvActualAmount" })
+                        </td>
+                        <td style="width: 5%;"><span>@Model.DetailList[i].ConvRate</span>@Html.HiddenFor(x => Model.DetailList[i].ConvRate, new { @class = "ConvRate" })</td>
+                        <td style="width: 5%;"><span>@Model.DetailList[i].ConvAmount</span>@Html.HiddenFor(x => Model.DetailList[i].ConvAmount, new { @class = "ConvAmount" })</td>
+                        <td class="Tax_Percent" style="width: 5%;">
+                            @Html.TextBoxFor(a => Model.DetailList[i].Tax_Percent, new { @class = "form-control input-sm Text-50 TblTax_Percent", @readonly = "readonly" })
+                        </td>
+                        @if (Model.DetailList[i].TaxType == "IGST")
+                        {
+                            <td class="IGST" style="width: 5%;">
+                                @Html.TextBoxFor(a => Model.DetailList[i].IGST, new { @class = "form-control input-sm Text-100 TblIGST", @readonly = "readonly" })
+                            </td>
+                        }
+                        @if (Model.DetailList[i].TaxType == "CGST")
+                        {
+                            <td class="CGST" style="width: 5%;">
+                                @Html.TextBoxFor(a => Model.DetailList[i].CGST, new { @class = "form-control input-sm clearfix Text-100 TblCGST", @readonly = "readonly" })
+                            </td>
+                            <td class="SGST" style="width: 5%;">
+                                @Html.TextBoxFor(a => Model.DetailList[i].SGST, new { @class = "form-control input-sm clearfix Text-100 TblSGST", @readonly = "readonly" })
+                            </td>
+                        }
+                        @if (Model.DetailList[i].TaxType == "VAT")
+                        {
+                            <td class="VAT" style="width: 5%;">
+                                @Html.TextBoxFor(a => Model.DetailList[i].VAT, new { @class = "form-control input-sm clearfix Text-100 TblVAT", @readonly = "readonly" })
+                            </td>
+                        }
+                        <td class="Total" style="width:7%;">
+                            @Html.TextBoxFor(a => Model.DetailList[i].Total, new { @class = "form-control input-sm clearfix TblTotal Text-100", @readonly = "readonly" })
+                        </td>
+                        <td style="width: 5%;">
+
+                            @if (Model.DetailList[i].CostHeadID > 0 && Model.DetailList[i].CostHeadID <= 3)
+                            {
+                                <input type="submit" name="SubmitInvoice" value="Process" class="btnProcess btn btn-xs btn-primary m-n pad-top-none" onclick="BtnProcess(this)" />
+                            }
+                            else
+                            {
+                                <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash m-n pad-top-none" onclick="Remove(this)"></button>
+                            }
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="1"></td>
+                        @if (!string.IsNullOrWhiteSpace(Model.RevenueBr) && Model.RevenueBr.ToString().ToUpper() != "QATAR")
+                        {
+                            <td colspan="2"></td>
+                        }
+                        @if (Model.BillType == 'I')
+                        {
+                            <td colspan="5"></td>
+                            <td style="width: 10%;">
+                                @Html.TextBox("BillItems._FinalAmount", "", new { @class = "td-amtwidth form-control input-sm Text-100", @readonly = "readonly" })
+                            </td>
+                        }
+                        else
+                        {
+                            <td colspan="5"></td>
+                        }
+                        @*<td style="width: 10%;">
+            @Html.TextBox("BillItems._FinalAuditedAmount", "", new { @class = "td-amtwidth form-control input-sm clearfix", @readonly = "readonly" })
+        </td>*@
+                        @if (Model.TaxType == "NIL")
+                        {
+                            <td colspan="3"></td>
+                        }
+                        @if (Model.TaxType == "IGST" || Model.TaxType == "VAT")
+                        {
+                            <td colspan="4"></td>
+                        }
+                        @if (Model.TaxType == "CGST")
+                        {
+                            <td colspan="5"></td>
+                        }
+                        <td>
+                            @Html.TextBox("BlillItem_FinalTotalAmount", "", new { @class = "td-amtwidth form-control input-sm clearfix Text-100", @readonly = "readonly" })
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+

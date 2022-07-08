@@ -1,0 +1,452 @@
+﻿@model IEnumerable<RELOCBS.Entities.HistoryRate>
+
+@using PagedList;
+@using PagedList.Mvc;
+
+@{
+
+    var PageList = (StaticPagedList<RELOCBS.Entities.HistoryRate>)ViewData["PagedList"];
+
+    ViewBag.Title = "History Rates List";
+    WebGrid grid = new WebGrid(source: Model, canPage: false, canSort: false);
+    List<SelectListItem> List = new List<SelectListItem>
+{
+new SelectListItem { Selected = false, Text = "AgentName", Value = "AgentName"},
+
+};
+}
+
+
+@{
+    var gridColumns = new List<WebGridColumn>();
+
+    gridColumns.Add(grid.Column(header: "Mode", format: (item) => item.ModeName));
+
+    ///Origin
+    if (Context.Request.QueryString["ComponentID"].ToString() == "1")
+    {
+        gridColumns.Add(grid.Column(header: "FromCity", format: (item) => item.CityName_1));
+        gridColumns.Add(grid.Column(header: "ExitPort", format: (item) => item.PortName_1));
+
+        List.Add(new SelectListItem { Selected = false, Text = "FromCity", Value = "FromCity" });
+        List.Add(new SelectListItem { Selected = false, Text = "ExitPort", Value = "ExitPort" });
+    }
+    //Freight
+    if (Context.Request.QueryString["ComponentID"].ToString() == "2")
+    {
+        gridColumns.Add(grid.Column(header: "ExitPort", format: (item) => item.PortName_1));
+        gridColumns.Add(grid.Column(header: "EntryPort", format: (item) => item.PortName_2));
+
+        List.Add(new SelectListItem { Selected = false, Text = "ExitPort", Value = "ExitPort" });
+        List.Add(new SelectListItem { Selected = false, Text = "EntryPort", Value = "EntryPort" });
+    }
+    //  Destination
+    if (Context.Request.QueryString["ComponentID"].ToString() == "3")
+    {
+        gridColumns.Add(grid.Column(header: "EntryPort", format: (item) => item.PortName_2));
+        gridColumns.Add(grid.Column(header: "ToCity", format: (item) => item.CityName_2));
+
+        List.Add(new SelectListItem { Selected = false, Text = "EntryPort", Value = "EntryPort" });
+        List.Add(new SelectListItem { Selected = false, Text = "ToCity", Value = "ToCity" });
+    }
+    //  Door to Door
+    if (Context.Request.QueryString["ComponentID"].ToString() == "4")
+    {
+        gridColumns.Add(grid.Column(header: "FromCity", format: (item) => item.CityName_1));
+        gridColumns.Add(grid.Column(header: "ToCity", format: (item) => item.CityName_2));
+
+        List.Add(new SelectListItem { Selected = false, Text = "FromCity", Value = "FromCity" });
+        List.Add(new SelectListItem { Selected = false, Text = "ToCity", Value = "ToCity" });
+    }
+
+    var ComboList = new SelectList(
+    List, "Value", "Text", 1);
+
+    gridColumns.Add(grid.Column("AgentName", "AgentName"));
+    //gridColumns.Add(grid.Column("AgentName", "AgentName"));
+    gridColumns.Add(grid.Column("RateCurr", "RateCurr"));
+    gridColumns.Add(grid.Column("ConvRate", "ConvRate"));
+
+    gridColumns.Add(grid.Column(header: "Rate Applicable From", format: (item) => string.Format("{0:dd-MMM-yyyy}", item.EffectiveFrom)));
+    gridColumns.Add(grid.Column(header: "Rate Applicable To", format: (item) => string.Format("{0:dd-MMM-yyyy}", item.EffectiveTo)));
+
+    //gridColumns.Add(grid.Column(header: "OrgRMCAgentEffectDateID", columnName: "OrgRMCAgentEffectDateID", style: "display:none"));
+    gridColumns.Add(grid.Column(columnName: "Isactive", header: "Active", format: @<text>
+
+
+    @if (item.IsActive == true)
+    {
+        <i class="fa fa-check text-navy"></i>
+        <input type="hidden" id="Active" name="Active" value="1" />
+
+    }
+    else
+    {
+        <i class="icon-remove text-red-dark"></i>
+        <input type="hidden" id="Active" name="Active" value="0" />
+    }
+
+    </text>));
+gridColumns.Add(grid.Column("",
+       header: "",
+       style: "webgrid-action",
+       format: @<text>
+    @*@Html.ActionLink("Delete", "DeleteCost", "Cost", new { tripId = item.CityName_2 }, new { @class = "delete" })*@
+
+    @if (item.IsActive == true)
+    {
+
+        <form method="post" action="@Url.Action("Delete/" +item.OrgRMCAgentEffectDateID, "Cost")" class="frmRWDelete" title="Delete Cost">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="OrgRMCAgentEffectDateID" name="OrgRMCAgentEffectDateID" value="@item.OrgRMCAgentEffectDateID" />
+            <button type="submit" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5"></button>
+        </form>
+    }
+    else
+    {
+        <span><input type="hidden" id="OrgRMCAgentEffectDateID" name="OrgRMCAgentEffectDateID" value="@item.OrgRMCAgentEffectDateID" /></span>
+    }
+    </text>
+    ));
+
+var SubGridColumns = new List<WebGridColumn>();
+
+SubGridColumns.Add(grid.Column("WeightFrom", "WeightFrom"));
+SubGridColumns.Add(grid.Column("WeightTo", "WeightTo"));
+SubGridColumns.Add(grid.Column("RateItemVal1", "RateItemVal1"));
+SubGridColumns.Add(grid.Column("RateItemVal2", "RateItemVal2"));
+SubGridColumns.Add(grid.Column("RateItemVal3", "RateItemVal3"));
+SubGridColumns.Add(grid.Column("RateItemVal4", "RateItemVal4"));
+SubGridColumns.Add(grid.Column("RateItemVal5", "RateItemVal5"));
+SubGridColumns.Add(grid.Column("RateItemVal6", "RateItemVal6"));
+SubGridColumns.Add(grid.Column("RateItemVal7", "RateItemVal7"));
+SubGridColumns.Add(grid.Column("RateItemVal8", "RateItemVal8"));
+
+gridColumns.Add(grid.Column(format: (item) =>
+{
+WebGrid subGrid = new WebGrid(source: item.rates, canPage: false);
+return subGrid.Table(
+        tableStyle: "table table-responsive table-bordered SubTble",
+        htmlAttributes: new { id = "subT" },
+                        columns: subGrid.Columns(
+                            SubGridColumns.ToArray()
+                            )
+                        );
+}));
+
+}
+
+
+<style type="text/css">
+
+    .SubTble a:link {
+        color: black;
+        font-weight: bold;
+    }
+
+    th, td {
+        padding: 5px;
+    }
+
+    th {
+        background-color: rgb(248, 248, 248);
+    }
+
+    #gridT, #gridT tr {
+        border: 1px solid #0D857B;
+    }
+
+    .SubTble, .SubTble tr {
+        border: 1px solid #f3f3f3;
+    }
+
+    .SubTble {
+        margin: 0px 0px 0px 10px;
+        padding: 5px;
+        width: 95%;
+    }
+
+    .SubTble th {
+        font-size: 14px;
+    }
+
+    .hoverEff {
+        cursor: pointer;
+    }
+
+        .hoverEff:hover {
+            background-color: rgb(248, 242, 242);
+        }
+
+    .expands {
+        background-image: url(../Images/expand.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        width: 100px;
+    }
+
+    .collapses {
+        background-image: url(../Images/collapse.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        width: 100px;
+    }
+
+    .SubTble > tbody > tr:first-child > td {
+        vertical-align: top;
+        background-color: #F5F5F6;
+        font-weight: bold;
+    }
+</style>
+
+<div class="row m-t-sm m-b-sm">
+    <div class="col-md-4 form-group">
+        <label>Search By</label>
+        @Html.DropDownList("SearchDropdown", ComboList, new { @class = "form-control input-sm" })
+    </div>
+    <div class="col-md-4 form-group">
+        <label>&nbsp;</label>
+        @Html.TextBox("SearchKey", null, new { @class = "form-control input-sm", @placeholder = "Search.." })
+    </div>
+    <div class="col-md-4 form-group">
+        <label>Active</label>
+        <select id='ddlActive' name='ddlActive' class="form-control input-sm">
+            <option value='-1' selected>All</option>
+            <option value='1'>Yes</option>
+            <option value='0'>No</option>
+        </select>
+    </div>
+
+</div>
+
+@using (Html.BeginForm())
+{
+
+    <div id="main" style="padding:5px; background-color:white;">
+        @grid.Table(
+         tableStyle: "table table-responsive table-bordered",
+         htmlAttributes: new { id = "gridT", width = "700px" },
+         columns: grid.Columns(
+
+             gridColumns.ToArray()
+             //grid.Column("AgentName", "AgentName"),
+             ////grid.Column(header:"Order Date",format:(item)=> string.Format("{0:dd-MM-yyyy}",item.order.OrderDate)),
+             //grid.Column(header: "EffectiveFrom", format: (item) => string.Format("{0:dd-MMM-yyyy}", item.EffectiveFrom)),
+             //grid.Column("Isactive", "active"),
+
+             //grid.Column(format:(item)=>{
+             //    WebGrid subGrid = new WebGrid(source: item.rates);
+             //    return subGrid.GetHtml(
+             //        htmlAttributes: new { id="subT" },
+             //        columns:subGrid.Columns(
+
+             //                subGrid.Column("WeightFrom", "WeightFrom"),
+             //                subGrid.Column("WeightTo", "WeightTo"),
+             //                subGrid.Column("RateItemVal1", "RateItemVal1"),
+             //                subGrid.Column("RateItemVal2", "RateItemVal2"),
+             //                subGrid.Column("RateItemVal3", "RateItemVal3"),
+             //                subGrid.Column("RateItemVal4", "RateItemVal4"),
+             //                subGrid.Column("RateItemVal5", "RateItemVal5"),
+             //                subGrid.Column("RateItemVal6", "RateItemVal6")
+             //            )
+             //        );
+             //})
+             )
+         )
+    </div>
+
+
+    <div class="clearfix pnl-pagination">
+        <div class="pull-right">
+            @*@Html.PagedListPager((IPagedList)Model, page => Url.Action("HistoryRates", new { page, }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "main", OnComplete = "PagedOnComplete" }))*@
+
+            @Html.PagedListPager((IPagedList)PageList, page => Url.Action("HistoryRates", new { page, ComponentID = ViewBag.ComponentID, RMCID = ViewBag.RMCID, AgentID = ViewBag.AgentID, City1 = ViewBag.City1, City2 = ViewBag.City2, Port1 = ViewBag.Port1, Port2 = ViewBag.Port2, RevnOrCost= ViewBag.RevnOrCost }))
+            @if (Model.Count() == 0)
+            {
+                <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+            }
+        </div>
+    </div>
+}
+
+    @section Scripts{
+
+        <script type="text/javascript">
+
+            $('#ddlActive').on('change', function () {
+
+                var $input = $('#SearchKey');
+                var $Active = $('#ddlActive');
+                SearchfilterRow($input, $Active);
+
+            });
+
+            $(document).ready(function () {
+
+                $('#SearchKey').keyup(function (e) {
+
+                    /* Ignore tab key */
+                    var code = e.keyCode || e.which;
+                    if (code == '9') return;
+                    /* Useful DOM data and selectors */
+                    var $input = $(this);
+                    var $Active = $('#ddlActive');
+                    SearchfilterRow($input,$Active);
+
+                });
+
+            });
+
+
+            function SearchfilterRow($input, $Active) {
+
+                var inputContent = $input.val().toLowerCase();
+                var $rows = $('#gridT tbody tr');
+                if (inputContent.length > 3) {
+
+                    var $table = $('#gridT');
+                    var column = 0;
+                    $table.find('thead th').each(function ($index) {
+                        if ($(this).html().trim().toUpperCase() == $('#SearchDropdown').val().toUpperCase()) {
+                            column = $index;
+                        }
+                    });
+
+                    /* Dirtiest filter function ever ;) */
+                    var $filteredRows = $rows.filter(function () {
+                        var value = $(this).find('td').eq(column).text().toLowerCase();
+                        return value.indexOf(inputContent) === -1;
+                    });
+
+
+
+
+                    /* Clean previous no-result if exist */
+                    $table.find('tbody .no-result').remove();
+                    /* Show all rows, hide filtered ones (never do that outside of a demo ! xD) */
+                    $rows.show();
+                    $filteredRows.hide();
+
+
+
+
+                    //$filteredRows.filter(function () {
+                    //    return $(this).css('display') == 'table-row';
+                    //}).hide();
+
+                    /* Prepend no-result row if all rows are filtered */
+                    if ($filteredRows.length === $rows.length) {
+                        $table.find('tbody').prepend($('<tr class="no-result text-center"><td colspan="' + $table.find('.filters th').length + '">No result found</td></tr>'));
+                    }
+
+                    //$("#main #gridT > tbody > tr td.expands").each(function (i, el) {
+                    //    $(this).toggleClass("expands collapses");
+                    //    $(this).parent().closest("tr").next().slideToggle(100);
+                    //});
+
+                }
+                else {
+
+                    $rows.show();
+                    $("#main #gridT > tbody > tr td.collapses").each(function (i, el) {
+                        //$(this).toggleClass("expands collapses");
+                        $(this).parent().closest("tr").next().slideUp(100);
+                    });
+
+                }
+
+                if ($Active.val() != "-1") {
+                    var $Activerows = "";
+                    $Activerows = $rows.filter(function () {
+                        var value = $(this).find('#Active').val();
+                        return value != $Active.val();
+                    });
+                    $Activerows.hide();
+                }
+            }
+
+            $(document).ready(function () {
+
+                var size = $("#main #gridT > thead > tr >th").size(); // get total column
+                $("#main #gridT > thead > tr >th").last().remove(); // remove last column
+                $("#main #gridT > thead > tr").prepend("<th></th>"); // add one column at first for collapsible column
+                $("#main #gridT > tbody > tr").each(function (i, el) {
+                    $(this).prepend(
+                        $("<td></td>")
+                            .addClass("expands")
+                            .addClass("hoverEff")
+                            .attr('title', "click for show/hide")
+                            .attr('style', "width:100px;")
+                    );
+
+                    //Now get sub table from last column and add this to the next new added row
+                    var table = $("table", this).parent().html();
+                    //add new row with this subtable
+                    $(this).after("<tr><td></td><td style='padding:5px; margin:0px;' colspan='" + (size - 1) + "'>" + table + "</td></tr>");
+                    $("table", this).parent().remove();
+                    // ADD CLICK EVENT FOR MAKE COLLAPSIBLE
+                    $(".hoverEff", this).on('click', function () {
+
+                        $(this).parent().closest("tr").next().slideToggle(100);
+                        $(this).toggleClass("expands collapses");
+                        var contentEl = $(this).parent().closest("tr").next().find("td:eq(1)");
+                        if ($(this).hasClass('expands')) {
+
+                            if (contentEl.find('#subT') == null || contentEl.find('#subT tbody tr').length <= 1) {
+
+                                contentEl.html("<i class='fa fa-spinner fa-pulse fa-2x fa-fw'></i>");
+                                var urlParams = new URLSearchParams(window.location.search);
+                                var url = '@Url.Action("SubHistoryRates",new {
+                                    ComponentID = "-1", RMCID = "-2",AgentID = "-3", City1 = "-4",City2 = "-5",
+                                    Port1 = "-6",Port2 ="-7",RevnOrCost ="-8", OrgRMCAgentEffectDateID = "-9"
+                                })';
+
+                                url = url.replace("-1", urlParams.get('ComponentID'));
+                                url = url.replace("-2", urlParams.get('RMCID'));
+                                url = url.replace("-3", urlParams.get('AgentID'));
+                                url = url.replace("-4", urlParams.get('City1'));
+                                url = url.replace("-5", urlParams.get('City2'));
+                                url = url.replace("-6", urlParams.get('Port1'));
+                                url = url.replace("-7", urlParams.get('Port2'));
+                                url = url.replace("-8", urlParams.get('RevnOrCost'));
+                                url = url.replace("-9", $(this).parent().closest("tr").find('#OrgRMCAgentEffectDateID').val());
+
+                                url = url.replace(/&amp;/g, "&");
+
+                                $.get(url).done(function (data) {
+                                    var result = data;
+                                    contentEl.html(result);
+                                    contentEl.find('#subT > thead').toggle();
+                                }).fail(function (data) {
+                                    result = "No info found.";
+                                    contentEl.html(result);
+                                });
+                            }
+                            else {
+                                contentEl.find('#subT tbody tr').removeAttr("style");
+                            }
+
+                        }
+
+                    });
+                });
+
+                //by default make all subgrid in collapse mode
+                $("#main #gridT > tbody > tr td.expands").each(function (i, el) {
+                    $(this).toggleClass("expands collapses");
+                    $(this).parent().closest("tr").next().slideToggle(100);
+                });
+
+
+                $('#main #gridT a').on("click", function (e) {
+                    e.preventDefault();
+                })
+
+                $('#subT > thead').toggle();
+                //$('#subT').find("tr:first").css("background-color", "#F5F5F6").css("font-weight", "bold");
+                //$("#subT > tr:first").css("background-color", "#F5F5F6").css("font-weight", "bold");
+            });
+        </script>
+
+
+    }

@@ -1,0 +1,76 @@
+﻿@using RELOCBS.Common;
+
+@model List<RELOCBS.Entities.JobDocument>
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">
+        &times;
+    </button>
+    <h4 class="modal-title">Job Documents</h4>
+</div>
+<div class="modal-body">
+    <div class="row">
+        <div class="table-responsive">
+            <table class="table table-striped fixed_header">
+                <thead class="ibox-title">
+                    <tr>
+                        <th>Document Type</th>
+                        <th>Document Name</th>
+                        <th>Description</th>
+                        <th>File Name</th>
+                        <th>Uploaded By</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ var ListCount = Model.Count; }
+
+                    @for (int i = 0; i < ListCount; i++)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(model => Model[i].DocType)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(model => Model[i].DocName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(model => Model[i].DocDescription)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(model => Model[i].FileName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(model => Model[i].UploadBy)
+                            </td>
+                            <td>
+                                @using (Html.BeginForm("JobDocDownload", "MoveManage", null, FormMethod.Post, new { id = "DownloadForm", target = "_blank" }))
+                                {
+                                    @Html.AntiForgeryToken();
+                                    @Html.Hidden("id", Model[i].FileID, new { @class = "FileID" })
+                                    <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-download" aria-hidden="true"></i></button>
+                                }
+                            </td>
+                            <td>
+                                @if (CommonService.IsViewFileButton(@Model[i].FileName))
+                                {
+                                    using (Html.BeginForm("ViewDocument", "DMS", new { id = @Model[i].FileID }, FormMethod.Post, new { id = "ViewForm", target = "_blank" }))
+                                    {
+                                        @Html.AntiForgeryToken();
+                                        @Html.Hidden("FileID", Model[i].FileID, new { @class = "FileID" })
+                                        <button type="submit" name="View" value="View" class="btn btn-primary btn-sm"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal" value="Close">Close</button>
+</div>

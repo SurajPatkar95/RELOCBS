@@ -1,0 +1,212 @@
+﻿@model RELOCBS.Entities.MoveManageViewModel
+
+@using RELOCBS.Extensions;
+@using RELOCBS.Utility;
+
+@{
+    Layout = null;
+
+    bool IsLoggedInUser = false;
+    if (UserSession.GetUserSession()?.LoginID > 0)
+    {
+        IsLoggedInUser = true;
+    }
+
+    string ButtonText = "Submit";
+    if (IsLoggedInUser && Model.ShipperFeedback.ShipperFeedbackID == null)
+    {
+        ButtonText = "Send Email";
+    }
+    else if (IsLoggedInUser && Model.ShipperFeedback.ShipperFeedbackID != null)
+    {
+        ButtonText = "Resend Email";
+    }
+
+    bool IsDisableControls = IsLoggedInUser || Model.ShipperFeedback.IsFeedbackSubmitted ? true : false;
+    string CursorType = IsDisableControls ? "not-allowed" : "pointer";
+}
+
+@using (Html.BeginForm("AddEditShipperFeedback", "MoveManage", null, FormMethod.Post, new { enctype = "multipart/form-data", @id = "formShipperFeedback", @name = "formShipperFeedback" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(false, "")
+    @Html.HiddenFor(m => m.MoveID, new { @id = "MoveID" })
+    @Html.HiddenFor(m => m.SurveyID, new { @id = "SurveyID" })
+    @Html.HiddenFor(m => m.ShipperFeedback.ShipperFeedbackID, new { @id = "ShipperFeedbackID" })
+    @Html.HiddenFor(m => m.ShipperFeedback.SFTemplateID, new { @id = "SFTemplateID" })
+    @Html.HiddenFor(m => m.ShipperFeedback.SFQuestionIDListHidden, new { @id = "SFQuestionIDListHidden" })
+
+    <div class="m-l-sm pad-none">
+        <div class="row">
+            @if (IsLoggedInUser)
+            {
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label>Email To</label>
+                        @Html.TextBoxFor(m => m.ShipperFeedback.EmailTo, new { @class = "form-control input-sm", @id = "ShipperFeedbackEmailTo" })
+                        @Html.ValidationMessageFor(m => m.ShipperFeedback.EmailTo, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label>Job No</label>
+                        <br />
+                        @Model.ShipperFeedback.JobNo
+                    </div>
+                </div>
+            }
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Latest Feedback Link Sent By</label>
+                    <br />
+                    @Model.ShipperFeedback.FeedbackLinkSentBy
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Latest Feedback Link Sent On</label>
+                    @if (Model.ShipperFeedback.FeedbackLinkSentDate != null)
+                    {
+                        string FeedbackLinkSentDate = ((DateTime)Model.ShipperFeedback.FeedbackLinkSentDate).ToString("dd-MMM-yyyy hh:mm tt");
+                        <br />
+                        @FeedbackLinkSentDate
+                    }
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Latest Feedback Submitted On</label>
+                    @if (Model.ShipperFeedback.FeedbackSubmittedDate != null)
+                    {
+                        string FeedbackSubmittedDate = ((DateTime)Model.ShipperFeedback.FeedbackSubmittedDate).ToString("dd-MMM-yyyy hh:mm tt");
+                        <br />
+                        @FeedbackSubmittedDate
+                    }
+                </div>
+            </div>
+        </div>        
+        <div class="row col-md-6 col-sm-6">
+            <table class="table-responsive" id="tableSFQuestions" style="display: inline-table;height: auto;">
+                <tbody>
+                    @for (int i = 0; i < Model.ShipperFeedback.SFQuestions.Count; i++)
+                    {
+                        string AnswerType = Model.ShipperFeedback.SFQuestions[i].AnswerType.ToString().ToLower();
+                        string ClassName = string.Empty;
+                        <tr class="trQuestions">
+                            <td>
+                                <div class="row m-l-md m-t-sm divQuestion">
+                                    @Html.HiddenFor(m => m.ShipperFeedback.SFQuestions[i].SFQuestionID, new { @class = "SFQuestionID" })
+                                    @Html.HiddenFor(m => m.ShipperFeedback.SFQuestions[i].SrNo, new { @class = "SrNo" })
+                                    <b>
+                                        @if (IsLoggedInUser)
+                                        {
+                                            @Html.CheckBoxFor(m => m.ShipperFeedback.SFQuestions[i].IsQuestionChecked, new { @class = "IsQuestionChecked" })
+                                        }
+                                        @((i + 1).ToString()). @Model.ShipperFeedback.SFQuestions[i].QuestionText
+                                    </b>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="trAnswers @AnswerType">
+                            <td>
+                                <div class="row m-l-md m-t-sm divAnswer">
+                                    @Html.HiddenFor(m => m.ShipperFeedback.SFQuestions[i].SFQuestionID, new { @class = "SFQuestionID" })
+                                    @if (AnswerType == "textbox")
+                                    {
+                                        ClassName = "form-control input-sm " + AnswerType + " SFAnswerTextBox_" + Convert.ToString(Model.ShipperFeedback.SFQuestions[i].SFQuestionID);
+                                        @Html.TextBoxFor(m => m.ShipperFeedback.SFQuestions[i].AnswerText, new { @placeholder = "", @class = ClassName, @style = "cursor: " + CursorType + ";" }).DisableControlIf(() => IsDisableControls)
+                                        @Html.ValidationMessageFor(m => m.ShipperFeedback.SFQuestions[i].AnswerText, null, new { @class = "text-danger" })
+                                    }
+                                    else if (AnswerType == "textarea")
+                                    {
+                                        ClassName = "form-control input-sm " + AnswerType + " SFAnswerTextArea_" + Convert.ToString(Model.ShipperFeedback.SFQuestions[i].SFQuestionID);
+                                        @Html.TextAreaFor(m => m.ShipperFeedback.SFQuestions[i].AnswerText, new { @class = ClassName, @rows = 3, @style = "height: auto;cursor: " + CursorType + ";" }).DisableControlIf(() => IsDisableControls)
+                                        @Html.ValidationMessageFor(m => m.ShipperFeedback.SFQuestions[i].AnswerText, null, new { @class = "text-danger" })
+                                    }
+                                    else if (AnswerType == "date")
+                                    {
+                                        ClassName = "form-control input-sm datepicker " + AnswerType + " SFAnswerDate_" + Convert.ToString(Model.ShipperFeedback.SFQuestions[i].SFQuestionID);
+                                        @Html.TextBoxFor(m => m.ShipperFeedback.SFQuestions[i].AnswerText, new { @class = ClassName, @style = "cursor: " + CursorType + ";" }).DisableControlIf(() => IsDisableControls)
+                                    }
+                                    else if (AnswerType == "dropdownlist")
+                                    {
+                                        ClassName = "form-control input-sm" + (IsDisableControls ? " " : " enableselect ") + AnswerType + " SFAnswerDropdownList_" + Convert.ToString(Model.ShipperFeedback.SFQuestions[i].SFQuestionID);
+                                        @Html.DropDownListFor(m => m.ShipperFeedback.SFQuestions[i].SFAnswerOptionID, new SelectList((System.Collections.IEnumerable)Model.ShipperFeedback.SFQuestions[i].SFAnswerOption, "Value", "Text", Model.ShipperFeedback.SFQuestions[i].SFAnswerOptionID), "Select One",
+                                       new { @class = ClassName, @style = "cursor: " + CursorType + ";" }).DisableIf(() => IsDisableControls)
+                                        @Html.ValidationMessageFor(m => m.ShipperFeedback.SFQuestions[i].SFAnswerOptionID, null, new { @class = "text-danger" })
+                                    }
+                                    else if (AnswerType == "yesno" || AnswerType == "yesnoother")
+                                    {
+                                        ClassName = AnswerType + " SFAnswerYesNo_" + Convert.ToString(Model.ShipperFeedback.SFQuestions[i].SFQuestionID);
+                                        <ul class="list-group">
+                                            @if ((!IsDisableControls) || (IsDisableControls && Model.ShipperFeedback.SFQuestions[i].SFAnswerOptionID == 1))
+                                            {
+                                                <li class="list-group-item">
+                                                    @Html.RadioButtonFor(m => m.ShipperFeedback.SFQuestions[i].SFAnswerOptionID, 1, new { @class = ClassName, @style = "cursor: " + CursorType + ";" }).DisableControlIf(() => IsDisableControls) Yes
+                                                </li>
+                                            }
+                                            @if ((!IsDisableControls) || (IsDisableControls && Model.ShipperFeedback.SFQuestions[i].SFAnswerOptionID == 0))
+                                            {
+                                                <li class="list-group-item">
+                                                    @Html.RadioButtonFor(m => m.ShipperFeedback.SFQuestions[i].SFAnswerOptionID, 0, new { @class = ClassName, @style = "cursor: " + CursorType + ";" }).DisableControlIf(() => IsDisableControls) No
+                                                </li>
+                                            }
+                                        </ul>
+                                        if (AnswerType == "yesnoother")
+                                        {
+                                            ClassName = "form-control input-sm " + AnswerType + " SFAnswerYesNoOtherTextBox_" + Convert.ToString(Model.ShipperFeedback.SFQuestions[i].SFQuestionID);
+                                            @Html.TextBoxFor(m => m.ShipperFeedback.SFQuestions[i].AnswerText, new { @placeholder = "", @class = ClassName, @style = "cursor: " + CursorType + ";" }).DisableControlIf(() => IsDisableControls)
+                                            @Html.ValidationMessageFor(m => m.ShipperFeedback.SFQuestions[i].AnswerText, null, new { @class = "text-danger" })
+                                        }
+                                    }
+                                    else if (AnswerType == "radiobutton" || AnswerType == "checkbox")
+                                    {
+                                        <ul class="list-group">
+                                            @for (int j = 0; j < Model.ShipperFeedback.SFQuestions[i].SFAnswerOption.Count; j++)
+                                            {
+                                                if ((!IsDisableControls) || (IsDisableControls && Model.ShipperFeedback.SFQuestions[i].SFAnswerOption[j].IsAnswerChecked))
+                                                {
+                                                    <li class="list-group-item">
+                                                        @if (AnswerType == "radiobutton")
+                                                        {
+                                                            ClassName = AnswerType + " SFAnswerRadioButton_" + Convert.ToString(Model.ShipperFeedback.SFQuestions[i].SFQuestionID);
+                                                            @Html.RadioButtonFor(m => m.ShipperFeedback.SFQuestions[i].SFAnswerOptionID, Model.ShipperFeedback.SFQuestions[i].SFAnswerOption[j].SFAnswerOptionID,
+                                                           new { @class = ClassName, @style = "cursor: " + CursorType + ";" }).DisableControlIf(() => IsDisableControls)
+                                                        }
+                                                        //testing pending for checkbox
+                                                        @*else if (AnswerType == "checkbox")
+                                                            {
+                                                                ClassName = AnswerType + " SFAnswerCheckBox_" + Convert.ToString(Model.ShipperFeedback.SFQuestions[i].SFQuestionID);
+                                                                @Html.CheckBoxFor(m => Model.ShipperFeedback.SFQuestions[i].SFAnswerOption[j].IsAnswerChecked, new { @class = ClassName, @style = "cursor: " + CursorType + ";", data_id = Model.ShipperFeedback.SFQuestions[i].SFAnswerOption[j].SFAnswerOptionID }).DisableControlIf(() => IsDisableControls)
+                                                            }*@
+                                                        @Model.ShipperFeedback.SFQuestions[i].SFAnswerOption[j].AnswerText
+
+                                                        @if (!string.IsNullOrWhiteSpace(Model.ShipperFeedback.SFQuestions[i].SFAnswerOption[j].ImageUrl))
+                                                        {
+                                                            <img src="@Url.Content(Model.ShipperFeedback.SFQuestions[i].SFAnswerOption[j].ImageUrl)" style="height:20px;cursor: @CursorType;" onclick="ImageUrlClick(this,'@AnswerType')" />
+                                                        }
+                                                    </li>
+                                                }
+                                            }
+                                            @Html.ValidationMessageFor(m => m.ShipperFeedback.SFQuestions[i].SFAnswerOptionID, null, new { @class = "text-danger" })
+                                        </ul>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12">
+                <div class="form-group clearfix text-center">
+                    <input type="submit" id="btnSaveShipperFeedback" name="SaveButton" value="@ButtonText" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin">
+                </div>
+            </div>
+        </div>
+    </div>
+}

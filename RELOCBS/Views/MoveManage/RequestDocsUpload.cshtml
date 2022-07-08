@@ -1,0 +1,136 @@
+﻿@model RELOCBS.Entities.MoveManageViewModel
+
+@using RELOCBS.Extensions;
+
+@{
+    ViewBag.Title = "Request Docs Upload";
+    Layout = "~/Views/Shared/_LayoutLogin.cshtml";
+}
+
+@Styles.Render("~/Content/bootstrap-selectcss")
+
+<style>
+    .bg-light-silver {
+        background-color: #e1e1e1;
+    }
+</style>
+
+<div class="ibox-content grey-bg">
+    <div class="row">
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <strong>Job No.:</strong> &nbsp;<strong>@Model.JobNo</strong>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6 col-md-6">
+            <div class="form-group">
+                <label>Note : Please upload documents for each row individually.</label>
+            </div>
+        </div>
+    </div>
+    <div class="bg-light-silver">
+        <div class="ibox-content">
+            @using (Html.BeginForm("RequestDocsUpload", "MoveManage", new { MoveID = @Model.MoveID }, FormMethod.Post, new { enctype = "multipart/form-data", id = "formRequestDocsUpload" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true)
+
+                @Html.HiddenFor(m => m.MoveID, new { @id = "MoveID" })
+                @Html.HiddenFor(m => m.RequestDocsGroupID, new { @id = "RequestDocsGroupID" })
+                @Html.HiddenFor(m => m.RowID, new { @id = "RowID" })
+
+                for (int i = 0; i < Model.RequestDocsUploadList.Count; i++)
+                {
+                    <div class="row">
+                        @Html.Hidden("RowNo", i.ToString(), new { @class = "RowNo" })
+                        @Html.HiddenFor(m => m.RequestDocsUploadList[i].JobDocTypeId, new { @class = "JobDocTypeId" })
+                        <div class="col-sm-2 col-md-2">
+                            <div class="form-group">
+                                <label>Document Type</label>
+                                @Html.HiddenFor(m => m.RequestDocsUploadList[i].DocTypeID, new { @class = "DocTypeID", @id = "DocTypeID" })
+                                @Html.TextBoxFor(m => m.RequestDocsUploadList[i].DocTypeText, new { @class = "form-control input-sm", @id = "DocTypeText", @readonly = "readonly" })
+                            </div>
+                        </div>
+                        <div class="col-sm-2 col-md-2">
+                            <div class="form-group">
+                                <label>Document Name</label>
+                                @Html.HiddenFor(m => m.RequestDocsUploadList[i].DocNameID, new { @class = "DocNameID", @id = "DocNameID" })
+                                @Html.TextBoxFor(m => m.RequestDocsUploadList[i].DocNameText, new { @class = "form-control input-sm", @id = "DocNameText", @readonly = "readonly" })
+                            </div>
+                        </div>
+                        <div class="col-sm-2 col-md-2">
+                            <div class="form-group">
+                                <label>Description</label>
+                                @Html.TextBoxFor(m => m.RequestDocsUploadList[i].DocDescription, new { @class = "form-control input-sm clearfix", @id = "DocDescription", @readonly = "readonly" })
+                            </div>
+                        </div>
+                        @if (Model.RequestDocsUploadList[i].FileName != null)
+                        {
+                            <div class="col-sm-2 col-md-2">
+                                <div class="form-group">
+                                    <label>File Name</label>
+                                    @Html.TextBoxFor(m => m.RequestDocsUploadList[i].FileName, new { @class = "form-control input-sm clearfix", @id = "FileName", @readonly = "readonly" })
+                                </div>
+                            </div>
+                            <div class="col-sm-2 col-md-2">
+                                <div class="form-group">
+                                    <label>Remarks</label>
+                                    @Html.TextBoxFor(m => m.RequestDocsUploadList[i].Remarks, new { @class = "form-control input-sm clearfix", @id = "Remarks", @readonly = "readonly" })
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="col-sm-2 col-md-2">
+                                <div class="form-group">
+                                    <label>File Upload</label>
+                                    @Html.TextBoxFor(m => m.RequestDocsUploadList[i].ExtFile, new { @class = "inputfile inputfile-4 form-control file", @id = "file", @accept = ".xls,.xlsx,.doc,.docx,.jpg,.jpeg,.png,.pdf,.ppt,.pptx,.csv", @type = "file", @multiple = "multiple" })
+                                    @Html.ValidationMessageFor(m => m.RequestDocsUploadList[i].ExtFile, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-sm-2 col-md-2">
+                                <div class="form-group">
+                                    <label>Remarks</label>
+                                    @Html.TextBoxFor(m => m.RequestDocsUploadList[i].Remarks, new { @class = "form-control input-sm clearfix", @id = "Remarks" })
+                                </div>
+                            </div>
+                            <div class="col-sm-2 col-md-2">
+                                <div class="form-group">
+                                    <button type="submit" name="Save" value="Upload Doc" class="cancel btn btn-primary btn-sm filter-custom-margin" onclick="UploadRequestDocs(this);"><i class="fa fa-upload"></i></button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+        });
+
+        function UploadRequestDocs(button) {
+            var row = $(button).closest(".row");
+            $("#RowID").val(row.find('.RowNo').val());
+
+            if (row.find(".file").val() == "") {
+                swal({ title: "Error!", text: "Please select file.", type: "error" });
+                event.preventDefault();
+            }
+        }
+    </script>
+
+    @Styles.Render("~/Content/custom")
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+    <link type="text/css" href="~/Content/bootstrap-datetimepicker.min.css" />
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+    @Scripts.Render("~/bundles/SubCostHead")
+}

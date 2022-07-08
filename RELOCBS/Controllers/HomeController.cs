@@ -1,14 +1,17 @@
 ﻿using RELOCBS.CustomAttributes;
 using RELOCBS.Entities;
+using RELOCBS.Utility;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.UI;
 
 namespace RELOCBS.Controllers
 {
+    [OutputCache(Location = OutputCacheLocation.None)]
     [CheckSessionTimeOut]
     public class HomeController : BaseController
     {
@@ -17,7 +20,10 @@ namespace RELOCBS.Controllers
         [AuthorizeUser]
         public ActionResult Index()
         {
-            return View();
+            session.Set<string>("PageSession", "");
+            
+            return RedirectToActionPermanent("Index", "Dashboard",new { UserID = UserSession.GetUserSession().EmpID });
+            //return View();
         }
 
         public ActionResult PanelLead(DashboardFilter model = null)
@@ -39,8 +45,6 @@ namespace RELOCBS.Controllers
                 ViewData["DashLead"] = null;
             }
             return Request.IsAjaxRequest() ? (ActionResult)PartialView("_PanelLead", model) : View("_PanelLead", model);
-
-
         }
 
         public ActionResult PanelPricing(DashboardFilter model = null)
@@ -91,7 +95,30 @@ namespace RELOCBS.Controllers
 
         }
 
-        public ActionResult PanelMoveManagement(DashboardFilter model = null)
+		public ActionResult PanelFollowUp(DashboardFilter model = null)
+		{
+			if (model == null)
+			{
+				model = new DashboardFilter();
+			}
+
+			//model.LoggedinUserID = _commonServices.WorkContext.CurrentUser.UserID;
+			model.ForPanel = "FollowUp";
+
+			try
+			{
+				//ViewData["SurveyData"] = _spService.GetDashboardData(model).Tables[0];
+			}
+			catch (Exception ex)
+			{
+				ViewData["FollowUpData"] = null;
+			}
+
+			return Request.IsAjaxRequest() ? (ActionResult)PartialView("_PanelFollowUp", model) : View("_PanelFollowUp", model);
+
+		}
+
+		public ActionResult PanelMoveManagement(DashboardFilter model = null)
         {
 
             if (model == null)

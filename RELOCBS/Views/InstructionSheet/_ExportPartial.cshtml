@@ -1,0 +1,243 @@
+﻿@model RELOCBS.Entities.InstructionSheet
+<div class="">
+    <div class="col-md-1 hide">@Html.RadioButtonFor(model => model.ComponentTypeID, "1", new { Checked = "checked" })<span>Origin</span></div>
+    <div class="row row-no-gutters">
+        <fieldset class="col-sm-6 border m-r-5">
+            <legend>Origin Address</legend>
+            <div class="form-group row">
+                <label for="OriginAddrs" class="col-sm-2 col-form-label">Address1</label>
+                <div class="col-sm-10">
+                    @Html.TextAreaFor(a => a.OrgAdd1, new { @class = "form-control input-sm", rows = "3", placeholder = "Address 1", title = "OriginAddrs1", @id = "OriginAddrs1" })
+                    @Html.ValidationMessageFor(a => a.OrgAdd1, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="OriginAddrs" class="col-sm-2 col-form-label">Address2</label>
+                <div class="col-sm-10">
+                    @Html.TextAreaFor(a => a.OrgAdd2, new { @class = "form-control input-sm", rows = "3", placeholder = "Address 2", title = "OriginAddrs2", @id = "OriginAddrs2" })
+                    @Html.ValidationMessageFor(a => a.OrgAdd2, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="DestCityDropDown" class="col-sm-2 col-form-label">City</label>
+                <div class="col-sm-7">
+                    @Html.DropDownListFor(a => a.OrgCityID, new SelectList((System.Collections.IEnumerable)Enumerable.Empty<SelectListItem>(), "Value", "Text", ViewData["DestCityID"]), "--Select One--", new { @class = "form-control enableselect", id = "OrgCityDropDown", title = "OrgCityDropDown" })
+                    @Html.ValidationMessageFor(a => a.OrgCityID, "", new { @class = "text-danger" })
+                </div>
+                <label for="" class="col-sm-1 col-form-label">Pincode</label>
+                <div class="col-sm-2">
+                    @Html.TextBoxFor(a => a.OrgPincode, new { @class = "form-control input-sm", placeholder = "Pincode", title = "OrgPincode", @id = "OrgPincode", onkeypress = "return OnlyInteger(this, event);" })
+                    @Html.ValidationMessageFor(a => a.OrgPincode, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="OrgEmail" class="col-sm-1 col-form-label">Email</label>
+                <div class="col-sm-7">
+                    @Html.TextBoxFor(a => a.OrgEmail, new { @class = "form-control input-sm", placeholder = "Email", title = "OrgEmail", @id = "OrgEmail" })
+                </div>
+                <label for="OrgMobile" class="col-sm-1 col-form-label">Mobile</label>
+                <div class="col-sm-3">
+                    @Html.TextBoxFor(a => a.OrgMobile, new { @class = "form-control input-sm", placeholder = "Mobile", title = "OrgMobile", @id = "OrgMobile" })
+                    @Html.ValidationMessageFor(a => a.OrgMobile, "", new { @class = "text-danger" })
+                </div>
+            </div>
+             @*<div class="form-group row">
+              <label for="OrgPhone" class="col-sm-2 col-form-label">Phone</label>
+             <div class="col-sm-4">
+                 @Html.TextBoxFor(a => a.OrgPhone, new { @class = "form-control input-sm", placeholder = "Origin Phone", title = "OrgPhone", @id = "OrgPhone" })
+                 @Html.ValidationMessageFor(a => a.OrgPhone, "", new { @class = "text-danger" })
+             </div>
+             </div>
+             <div class="form-group row">                    
+             </div>*@
+        </fieldset>
+        <fieldset class="col-sm-6 border m-r-5">
+            <legend>&nbsp;&nbsp;</legend>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Shipper</label>
+                <div class="col-sm-10">
+                    @Html.EditorFor(model => model.Shipper, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+                    @Html.ValidationMessageFor(model => model.Shipper, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Corporate</label>
+                <div class="col-sm-10">
+                    @Html.DropDownListFor(model => model.CorporateID, new SelectList((System.Collections.IEnumerable)ViewData["CorporateList"], "Value", "Text"), "", new { id = "CorporateDropdown", @class = "form-control input-sm clearfix", @disabled = "disabled" })
+                    @Html.HiddenFor(m => m.CorporateID)
+                    @Html.ValidationMessageFor(model => model.CorporateID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Unit</label>
+                <div class="col-sm-3">
+                    @Html.DropDownListFor(model => model.WeightUnitID, new SelectList((System.Collections.IEnumerable)ViewData["WeightUnitList"], "Value", "Text"), "--Select Wt/Vol Unit--", new { @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.WeightUnitID, "", new { @class = "text-danger" })
+                </div>
+                <label class="col-sm-1 col-form-label">Wt/Vol</label>
+                <div class="col-sm-2">
+                    @Html.EditorFor(model => model.WeightUnitFrom, new { htmlAttributes = new { @class = "form-control input-sm clearfix WeightFrom", onkeypress = "return OnlyDouble(this, event);", onchange = "WeightCopy(this)" } })
+                    @Html.ValidationMessageFor(model => model.WeightUnitFrom, "", new { @class = "text-danger" })
+                </div>
+                <label class="col-sm-1 col-form-label hide">To</label>
+                <div class="col-sm-2 hide">
+                    @Html.EditorFor(model => model.WeightUnitTo, new { htmlAttributes = new { @class = "form-control input-sm clearfix WeightTo", onkeypress = "return OnlyDouble(this, event);" } })
+                    @Html.ValidationMessageFor(model => model.WeightUnitTo, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </fieldset>
+    </div>
+    <div class="row row-no-gutters">
+        <div class="col-md-8 form-group">
+            <div class="row">
+                <label> Instructions</label>
+                @Html.ListBoxFor(m => m.SelectedMultiInstructionsId, Model.Instructions, new { @class = "form-control input-sm clearfix multipleselect", @multiple = "multiple" })
+                @*@Html.DropDownListFor(model => Model.Instructions, Model.Instructions, new { id = "InstructionsDropdown", @class = "form-control input-sm clearfix multipleselect hide"})*@
+            </div>
+            <div class="hide">
+                <table class="table table-responsive">
+                    @for (int i = 0; i < Model.questions.Count; i++)
+                    {
+                        var modalID = "popover_content_" + Convert.ToString(Model.questions[i].QuestionID);
+                        var hide = Model.questions[i].hide;
+                        <tr class="@modalID @hide">
+                            <td>
+                                @Html.DisplayFor(m => m.questions[i].Questions)
+                                @Html.HiddenFor(m => m.questions[i].Questions)
+                                @Html.HiddenFor(m => m.questions[i].QuestionID)
+                            </td>
+                            @*@if (Model.questions[i].subQuestions != null && Model.questions[i].subQuestions.Count > 0)
+                                {
+                                    for (int j = 0; j < Model.questions[i].subQuestions.Count; j++)
+                                    {
+                                        <td>
+                                            @Html.DisplayFor(m => m.questions[i].subQuestions[j].SubQuestions)
+                                            @Html.HiddenFor(m => m.questions[i].subQuestions[j].SubQuestions)
+                                            @Html.HiddenFor(m => m.questions[i].subQuestions[j].QuestionID)
+                                            @Html.HiddenFor(m => m.questions[i].subQuestions[j].SubQuestionID)
+                                        </td>
+                                        <td>
+                                            @Html.HiddenFor(m => m.questions[i].subQuestions[j].AnswerType)
+
+                                            @if (Model.questions[i].subQuestions[j].AnswerType.ToString().ToUpper() == "TEXT")
+                                            {
+                                                @Html.TextBoxFor(m => m.questions[i].subQuestions[j].AnswerText, new { @class = "form-control input-sm clearfix Answer", placeholder = "" })
+                                            }
+                                            @if (Model.questions[i].subQuestions[j].AnswerType.ToString().ToUpper() == "DATE")
+                                            {
+                                                @Html.TextBoxFor(m => m.questions[i].subQuestions[j].AnswerDate, new { @class = "form-control input-sm clearfix Answer datetimepicker", placeholder = "" })
+                                            }
+                                            @if (Model.questions[i].subQuestions[j].AnswerType.ToString().ToUpper() == "LIST")
+                                            {
+                                                @Html.DropDownListFor(m => m.questions[i].subQuestions[j].IDtoRefer, new SelectList((System.Collections.IEnumerable)Model.questions[i].subQuestions[j].AnswerDropdown, "Value", "Text", Model.questions[i].subQuestions[j].IDtoRefer), "--Select One--", new { @class = "form-control input-sm clearfix Answer" })
+                                            }
+                                        </td>
+                                    }
+                                }*@
+                        </tr>
+                    }
+                </table>
+            </div>
+            <div class="pop-content">
+                <table id="tblInstructions" class="table table-responsive">
+                    <tbody>
+                        @for (int i = 0; i < Model.questions.Count; i++)
+                        {
+                            var modalID = "popover_content_" + Html.Raw(Model.questions[i].QuestionID);
+                            var hide = Html.Raw(Model.questions[i].hide);
+
+                            <tr id="@modalID" class="@modalID @hide">
+                            <td class="col-md-6">
+                                    @Html.HiddenFor(m => m.questions[i].hide, new { @class = "QHide" })
+                                <div>
+                                    <i class="fa fa-circle-o" aria-hidden="true"></i> &nbsp;
+                                    @Html.DisplayFor(m => m.questions[i].Questions)
+                                    @Html.HiddenFor(m => m.questions[i].Questions)
+                                    @Html.HiddenFor(m => m.questions[i].QuestionID)
+                                    @Html.HiddenFor(m => Model.questions[i].IsSubItem, new { @class = "SubItem" })
+                                </div>
+                                </td>
+
+                            @if (Model.questions[i].IsSubItem == true)
+                            {
+                                if (Model.questions[i].subQuestions != null && Model.questions[i].subQuestions.Count > 0)
+                                {
+                                    for (int j = 0; j < Model.questions[i].subQuestions.Count; j++)
+                                    {
+                                        <td class="col-md-3">
+                                            <div>
+                                                @Html.DisplayFor(m => m.questions[i].subQuestions[j].SubQuestions)
+                                                @Html.HiddenFor(m => m.questions[i].subQuestions[j].SubQuestions)
+                                                @Html.HiddenFor(m => m.questions[i].subQuestions[j].QuestionID)
+                                                @Html.HiddenFor(m => m.questions[i].subQuestions[j].SubQuestionID)
+                                            </div>
+                                        </td>
+                                        <td class="col-md-3">
+                                            @{var css = "row subcontent";}
+                                            <div class="@css">
+                                                @Html.HiddenFor(m => m.questions[i].subQuestions[j].AnswerType)
+
+                                                @if (Model.questions[i].subQuestions[j].AnswerType.ToString().ToUpper() == "TEXT")
+                                                {
+                                                    @Html.TextBoxFor(m => m.questions[i].subQuestions[j].AnswerText, new { @class = "form-control input-sm clearfix Answer", placeholder = "" })
+                                                }
+                                                @if (Model.questions[i].subQuestions[j].AnswerType.ToString().ToUpper() == "DATE")
+                                                {
+                                                    @Html.TextBoxFor(m => m.questions[i].subQuestions[j].AnswerDate, new { @class = "form-control input-sm clearfix Answer datetimepicker", placeholder = "" })
+                                                }
+                                                @if (Model.questions[i].subQuestions[j].AnswerType.ToString().ToUpper() == "LIST")
+                                                {
+                                                    @Html.DropDownListFor(m => m.questions[i].subQuestions[j].IDtoRefer, new SelectList((System.Collections.IEnumerable)Model.questions[i].subQuestions[j].AnswerDropdown, "Value", "Text", Model.questions[i].subQuestions[j].IDtoRefer), "--Select One--", new { @class = "form-control input-sm clearfix Answer" })
+                                                }
+                                            </div>
+                                        </td>
+                                    }
+
+                                }
+
+                            }
+                            else
+                                {
+                                <td class="col-md-3"></td>
+                                <td class="col-md-3"></td>
+                            }
+                        </tr>
+
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="table-responsive">
+                <table id="tblLablePrint" class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>No. Of Labels</th>
+                            <th>Label Start From</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.modeLables.Count; i++)
+                        {
+                            <tr>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.modeLables[i].ModeName, new { @class = "form-control input-sm clearfix TblModeName", @readonly = "readonly" })
+                                    @Html.HiddenFor(model => Model.modeLables[i].ModeID, new { @class = "TblModeID" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.modeLables[i].NoOfLables, new { @class = "form-control input-sm clearfix TblNoOfLables" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.modeLables[i].LabelStartFrom, new { @class = "form-control input-sm clearfix TblLabelStartFrom" })
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+

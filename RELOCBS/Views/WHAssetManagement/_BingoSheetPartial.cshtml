@@ -1,0 +1,96 @@
+﻿@model RELOCBS.Entities.WHAssetMaster
+
+@using System.Data;
+
+@{
+    int MaxColCount = 11;//0 Based Index - Showing 12 columns in a row
+}
+
+<style>
+    .tdX {
+        color: red;
+    }
+
+    .tdOut {
+        color: goldenrod;
+    }
+
+    .tdNotMapped {
+        color: blue;
+    }
+
+    .tdDefault {
+        color: black;
+    }
+</style>
+
+@if (Model.BingoSheetDataSet != null && Model.BingoSheetDataSet.Tables.Count > 0)
+{
+    DataTable BingoSheetDt = Model.BingoSheetDataSet.Tables[0];
+
+    <div id="divBingoSheet" class="m-t-md fixTableHead">
+        <table class="table table-bordered table-responsive table-hover white-bg tblBingoSheet" id="tblBingoSheet">
+            <thead>
+                <tr>
+                    <th colspan="@(MaxColCount + 1)" class="text-center">Bingo Chart</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (BingoSheetDt.Rows.Count > 0)
+                {
+                    int MaxRowCount = (int)Math.Ceiling(Convert.ToDouble(BingoSheetDt.Rows.Count) / Convert.ToDouble(MaxColCount));
+
+                    int intCurTableRow = 0;
+
+                    for (int intCurRow = 0; intCurRow < MaxRowCount; intCurRow++)
+                    {
+                        int intCurCol = 0;
+                        <tr>
+                            @for (; intCurTableRow < BingoSheetDt.Rows.Count; intCurTableRow++)
+                            {
+                                string BoxID = Convert.ToString(BingoSheetDt.Rows[intCurTableRow][0]);
+                                string BoxLoc = Convert.ToString(BingoSheetDt.Rows[intCurTableRow][1]);
+                                DateTime? DateOfTrans = BingoSheetDt.Rows[intCurTableRow][2] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(BingoSheetDt.Rows[intCurTableRow][2]);
+                                string DateOfTransString = "";
+
+                                if (DateOfTrans != null)
+                                {
+                                    DateOfTransString = ((DateTime)DateOfTrans).ToString("dd-MMM-yyyy");
+                                }
+
+                                string ClassName = BoxLoc == "X" ? "BoxNotPresent" : "";
+
+                                switch (BoxLoc.ToUpper())
+                                {
+                                    case "X":
+                                        ClassName = "tdX";
+                                        break;
+                                    case "OUT":
+                                        ClassName = "tdOut";
+                                        break;
+                                    case "NOT MAPPED":
+                                        ClassName = "tdNotMapped";
+                                        break;
+                                    default:
+                                        ClassName = "tdDefault";
+                                        break;
+                                }
+
+                                <td class="@ClassName">
+                                    @BoxID<br />@BoxLoc<br />@DateOfTransString
+                                </td>
+
+                                intCurCol++;
+                                if (intCurCol > MaxColCount)
+                                {
+                                    intCurTableRow++;
+                                    break;
+                                }
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+}

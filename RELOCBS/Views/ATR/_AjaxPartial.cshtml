@@ -1,0 +1,111 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using RELOCBS.Common;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model StaticPagedList<RELOCBS.Entities.ATRPointGrid>
+
+@{
+    
+    string _PageID = "73";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+    bool hasViewAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.VIEW);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+columns.Add(o => o.ATRPointId)
+.Titled("ATRPointID")
+.Css("col-md-1")
+.SetWidth(2)
+.SortInitialDirection(GridMvc.Sorting.GridSortDirection.Descending);
+
+columns.Add(o => o.CategoryName)
+.Css("col-md-2")
+.Titled("Category")
+.SetWidth(2);
+
+columns.Add(o => o.IssueHeading)
+.Css("col-md-2")
+.Titled("IssueHeading")
+.SetWidth(10);
+
+//columns.Add(o => o.IssueDescription)
+//.Css("col-md-1")
+//.Titled("IssueDescription")
+//.SetWidth(10);
+
+columns.Add(o => o.IssuedMonth)
+.Css("col-md-2")
+.Titled("Month Of Issue")
+.SetWidth(10);
+
+//columns.Add(o => o.RiskName)
+//.Css("col-md-1")
+//.Titled("Risk")
+//.SetWidth(10);
+
+columns.Add(o => o.ResponsibleDepartment)
+.Css("col-md-2")
+.Titled("Department")
+.SetWidth(10);
+columns.Add(o => o.FirstPersonResponsible)
+.Css("col-md-2")
+.Titled("First Responsible")
+.SetWidth(10);
+//columns.Add(o => o.SecondPersonResponsible)
+//.Css("col-md-2")
+//.Titled("Second Responsible")
+//.SetWidth(10);
+
+columns.Add(o => o.ComplianceStatus)
+.Css("col-md-2")
+.Titled("ComplianceStatus")
+.SetWidth(10);
+
+//columns.Add(o => o.AuditeeStatus)
+//.Css("col-md-2")
+//.Titled("AuditeeStatus")
+//.SetWidth(10);
+
+columns.Add(o => o.CreatedDate).Format("{0:dd-MMM-yyyy HH:mm}")
+.Css("col-md-3")
+.Titled("LastModifiedDate")
+.SetWidth(10);
+columns.Add(o => o.CreatedBy)
+.Css("col-md-3")
+.Titled("LastModifiedBy")
+.SetWidth(10);
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("Actions")
+.RenderValueAs(d =>
+@<span>
+  @if (hasEditAccess)
+   {
+      <a href="@Url.Action("Create", "ATR",new { id =d.ATRPointId })" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" data-toggle="modal" data-target="#mdlAddEdit" data-cache="false" title="Edit"></a>
+   }
+  
+  @if (hasViewAccess)
+   {
+      <a href="@Url.Action("MngtResponse", "ATR",new {id =d.ATRPointId})" class="btnResponse btn btn-xs btn-primary pull-left" data-toggle="modal" data-target="#myModal" data-cache="false" title="Response">Response</a>
+   }
+</span>
+);
+}).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>

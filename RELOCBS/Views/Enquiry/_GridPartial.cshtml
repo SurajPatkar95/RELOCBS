@@ -1,0 +1,118 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using RELOCBS.Common;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model StaticPagedList<RELOCBS.Entities.Enquiry>
+
+@{
+    string param = "EnqID=ParamValue0";
+    string _PageID = "8";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+columns.Add(o => o.EnqID)
+    .Titled("Enquiry Id")
+    .Css("col-md-1 hide")
+    .SetWidth(2)
+    .SortInitialDirection(GridMvc.Sorting.GridSortDirection.Descending);
+columns.Add(o => o.EnqNo)
+.Titled("Enquiry No")
+.Css("col-md-1")
+.SetWidth(2);
+
+columns.Add(o => o.EnqDate).Format("{0:dd-MMM-yyyy}")
+.Css("col-md-1")
+.Titled("Enquiry Date")
+.SetWidth(10);
+
+columns.Add(o => o.ShipperFName)
+.Css("col-md-3")
+.Titled("Shipper Name")
+.SetWidth(10);
+//columns.Add(o => o.BussLineName)
+//.Css("col-md-1")
+//.Titled("Bussiness Line Name")
+//.SetWidth(10);
+
+
+
+columns.Add(o => o.AgentName)
+.Titled("Client").Css("col-md-3")
+.SetWidth(10);
+
+columns.Add(o => o.ClientDetails.Account)
+.Titled("Corporate").Css("col-md-3")
+.SetWidth(10);
+
+//columns.Add(o => o.FollowupDate)
+//.Css("col-md-3")
+//.Titled("Followup Date")
+//.SetWidth(10);
+
+
+
+
+//columns.Add(o => o.Phone1)
+//.Css("col-md-3")
+//.Titled("Phone")
+//.SetWidth(10);
+
+columns.Add(o => o.EnqStatus)
+.Css("col-md-3")
+.Titled("Enq Status")
+.SetWidth(10);
+
+
+
+columns.Add(o => o.RevenueBr)
+.Css("col-md-3")
+.Titled("Revenue Branch")
+.SetWidth(10);
+
+
+
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("Actions")
+.RenderValueAs(d =>
+@<span>
+    @if (hasEditAccess)
+                {
+        <a href="@Url.Action("Create", "Enquiry",new { Key = CommonService.GenerateQueryString(param, new string[] {d.EnqID.ToString()})})" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" data-target="#mdlAddEdit" data-cache="false" title="Edit Enquiry"></a>
+                }
+
+    @if (hasDeleteAccess)
+                {
+        /*<div class="pull-left">
+            <form method="post" action="@Url.Action("Delete/" + d.SurveyId, "Survey")" class="frmRWDelete" title="Delete City">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="SurveryID" value="@d.SurveyId" />
+                <button type="submit" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5"></button>
+            </form>
+        </div>*/
+                }
+
+
+</span>
+);
+
+        }).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>

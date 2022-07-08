@@ -30,7 +30,7 @@ namespace RELOCBS.Entities
 
         [RegularExpression(@"^[a-zA-Z().''/\s-]*$", ErrorMessage = "Please enter alphabets only.")]
         [Display(Name = "Country Code")]
-        [Required(ErrorMessage = "Please enter country Code.")]
+        //[Required(ErrorMessage = "Please enter country Code.")]
         public string CountryCode { get; set; }
 
         [RegularExpression(@"^[a-zA-Z().''/\s-]*$", ErrorMessage = "Please enter alphabets only.")]
@@ -38,9 +38,9 @@ namespace RELOCBS.Entities
         [Required(ErrorMessage = "Please enter country.")]
         public string CountryName { get; set; }
 
-        public int ContinentID { get; set; }
-
         [Required(ErrorMessage = "Please enter continent.")]
+        public int ContinentID { get; set; }
+        
         public string Continent { get; set; }
         
         public bool isActive { get; set; }

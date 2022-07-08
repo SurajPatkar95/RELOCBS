@@ -1,0 +1,265 @@
+﻿@model RELOCBS.Entities.SFAccount
+
+@{
+    ViewBag.Title = "Create Agent";
+
+    if (Model.AgentOrCorp == "C")
+    {
+        ViewBag.Title = "Create Corporate";
+    }
+    else if (Model.AgentOrCorp == "R")
+    {
+        ViewBag.Title = "Create RMC Agent";
+    }
+
+    string AgentNameLable =  "Agent Name";
+
+    if (Model.AgentOrCorp == "C")
+    {
+        AgentNameLable = "Corporate Name";
+    }
+    else if (Model.AgentOrCorp == "R")
+    {
+        ViewBag.Title = "RMC Agent Name";
+    }
+}
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+
+@using (Html.BeginForm("Create", "SalesforceAccount", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.AgentOrCorp)
+    
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-sm-12">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.HiddenFor(model => model.TempAgentID)
+                @Html.HiddenFor(model => model.SFAccountID)
+
+                <div class="form-group row">
+                    <label class="control-label col-md-3 col-md-offset-2">Short Name</label>
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.AgentshortName, new { htmlAttributes = new { @class = "form-control input-sm requiredlabel" } })
+                        @Html.ValidationMessageFor(model => model.AgentshortName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label class="control-label col-md-3 col-md-offset-2">@AgentNameLable</label>
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.AgentName, new { htmlAttributes = new { @class = "form-control input-sm requiredlabel", @readonly = "readonly" } })
+                        @Html.ValidationMessageFor(model => model.AgentName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.AgentGroupNameID, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.AgentGroupNameID, new SelectList((System.Collections.IEnumerable)ViewData["AgentGroup"], "Value", "Text"), "--Select AgentGroup--", new { @class = "form-control input-sm clearfix enableselect" })
+                        @Html.ValidationMessageFor(model => model.AgentGroupNameID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                @*<div class="form-group row">
+            @Html.LabelFor(model => model.BusinessLineName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+            <div class="col-md-5">
+                @Html.DropDownListFor(model => model.BusinessLineID, new SelectList((System.Collections.IEnumerable)ViewData["BusinessLine"], "Value", "Text"), "--Select BusinessLine--", new { @class = "form-control input-sm clearfix" })
+                @Html.ValidationMessageFor(model => model.BusinessLineID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group row">
+            @Html.LabelFor(model => model.AgentOrCorp, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+            <div class="col-md-5">
+                @Html.DropDownListFor(model => model.AgentOrCorp, new[] { new SelectListItem { Text = "Agent", Value = "A" }, new SelectListItem { Text = "Corporate", Value = "C" } }, "--Select Type--", new { @class = "form-control input-sm clearfix" })
+                @Html.ValidationMessageFor(model => model.AgentOrCorp, "", new { @class = "text-danger" })
+            </div>
+        </div>*@
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.CompName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.CompID, new SelectList((System.Collections.IEnumerable)ViewData["Company"], "Value", "Text"), "--Select Company--", new { @class = "form-control input-sm clearfix", @disabled = "@disabled" })
+                        @Html.HiddenFor(model => model.CompID)
+                        @Html.ValidationMessageFor(model => model.CompID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Address1, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Address1, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Address1, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Address2, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Address2, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.CityName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.CityId, new SelectList((System.Collections.IEnumerable)ViewData["City"], "Value", "Text"), "--Select City--", new { @class = "form-control input-sm clearfix", @disabled = "disabled" })
+                        @Html.HiddenFor(model => model.CityId)
+                        @Html.ValidationMessageFor(model => model.CityId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.PINCode, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.PINCode, new { htmlAttributes = new { @class = "form-control input-sm", @readonly = "readonly" } })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.EmailID, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.EmailID, new { htmlAttributes = new { @class = "form-control input-sm", @readonly = "readonly" } })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.ContactPerson, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.ContactPerson, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.ContactPerson, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.ContactPhone, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.ContactPhone, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.ContactPhone, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.GSTNO, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.GSTNO, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.GSTNO, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.VATNo, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.VATNo, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.VATNo, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Fin_AccountCode, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Fin_AccountCode, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Fin_AccountCode, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                @if (Model.AgentOrCorp.ToUpper() == "A")
+                {
+                    <div class="form-group row">
+                        <div class="col-md-offset-2">
+                            <div class="col-md-5">
+                                @Html.CheckBox("IsUseForRMC", Model.ShowForRmc ?? false, new { htmlAttributes = new { @class = "form-control input-sm" } }) UseForRMC
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="form-group row">
+                        <div class="col-md-offset-2">
+                            <div class="col-md-5">
+                                @Html.CheckBox("issez", Model.IsSez ?? false, new { htmlAttributes = new { @class = "form-control input-sm" } }) SEZ
+                            </div>
+                            <div class="col-md-5">
+                                @Html.CheckBox("isonlyIGST", Model.IsOnlyIGST ?? false, new { htmlAttributes = new { @class = "form-control input-sm" } }) OnlyIGST
+                            </div>
+                        </div>
+                    </div>
+                }
+                <div class="form-group row">
+                    <div class="col-md-offset-2">
+                        <div class="col-md-5">
+                            @Html.CheckBoxFor(model => model.Isactive, new { htmlAttributes = new { @class = "form-control input-sm" } }) Active
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Approve" class="btn btn-primary btn-sm" id="btnCreate" />
+        </div>
+    </div>
+}
+
+<script>
+    $(document).ready(function () {
+        $("[data-val-required]").each(function () {
+            $("label[for=" + this.id + "]").addClass("requiredlabel")
+        });
+
+        $('.enableselect').select2();
+
+        @*var CityID = '@Model.CityId';
+        AjaxFillDropDown('select#CityId', "@Url.Action("GetCityList", "SalesforceAccount")");
+        if (CityID != null && parseInt(CityID) > 0) {
+            AjaxFillDropDown('select#CityId', "@Url.Action("GetCityList", "SalesforceAccount")", CityID);
+        }*@
+    });
+</script>
+<script>
+    $(document).ready(function () {
+
+        $("input").attr("autocomplete", "off");
+        
+        var form = $("#mdlAddEdit form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+
+        $('#mdlAddEdit').on('shown.bs.modal', function () {
+            
+        });
+
+        $('#btnCreate').on('click', function (e) {
+            e.preventDefault();
+            swal({
+                title: "Are you sure?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Approve",
+                cancelButtonText: "Cancel",
+                closeOnConfirm: true,
+                closeOnCancel: true
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        $('#mdlAddEdit form').submit();
+                    } else {
+                        swal("", "SalesforceAccount Submit Cancelled.", "error");
+                    }
+                });
+            
+        });
+        $('#mdlAddEdit form').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+
+            $('#mdlAddEdit .modal-content').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '#mdlAddEdit .modal-content',
+                success: function (data) {
+                    $('#mdlAddEdit .modal-content').html(data.Result);
+                    if (data.Success) {
+                        $('#mgrid .pagination li.active a').trigger('click');
+                        toastr.success("SF Account Converted successfully.");
+                        $('#mdlAddEdit').modal('hide');
+                    }
+                    $('#mdlAddEdit .modal-content').unmask();
+                }
+            });
+        });
+    });
+</script>

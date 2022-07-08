@@ -1,0 +1,105 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using RELOCBS.Common;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model StaticPagedList<RELOCBS.Entities.PJR_DJR>
+
+@{
+    string param = "MoveID=ParamValue0&ComponentID=ParamValue1&PJRDJRID=ParamValue2&JobType=ParamValue3";
+    string _PageID = "20";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+columns.Add(o => o.PJR_DJR_ID)
+.Titled("PJR/DJR No.")
+.Css("col-md-1")
+.SetWidth(2)
+.SortInitialDirection(GridMvc.Sorting.GridSortDirection.Descending);
+
+columns.Add(o => o.JobNo)
+.Css("col-md-2")
+.Titled("Job No.")
+.SetWidth(10);
+
+columns.Add(o => o.ReportType)
+.Css("col-md-1")
+.Titled("Report Type")
+.SetWidth(10);
+
+columns.Add(o => o.Shipper)
+.Css("col-md-3")
+.Titled("Shipper Name")
+.SetWidth(10);
+
+columns.Add(o => o.PackStartDate)
+.Css("col-md-2")
+.Titled("Pack/Delivery Start On").Format("{0:dd-MMM-yyyy}")
+.SetWidth(10);
+columns.Add(o => o.PackCompletionDate).Format("{0:dd-MMM-yyyy}")
+.Css("col-md-2")
+.Titled("Pack/Delivery Complete On")
+.SetWidth(10);
+//columns.Add(o => o.CreatedBy)
+//.Titled("Created By").Css("col-md-3")
+//.SetWidth(10);
+columns.Add(o => o.Status)
+.Css("col-md-2")
+.Titled("Status")
+.SetWidth(10);
+
+columns.Add(o => o.CreatedDate).Format("{0:dd-MMM-yyyy HH:mm}")
+.Css("col-md-3")
+.Titled("Entry Date")
+.SetWidth(10);
+
+
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("Actions")
+.RenderValueAs(d =>
+@<span>
+    @if (hasEditAccess)
+    {
+        <a href="@Url.Action("Create", "JobReport",new { Key = CommonService.GenerateQueryString(param, new string[] {d.MoveID.ToString(),d.RateComponentID.ToString(),!string.IsNullOrWhiteSpace(Convert.ToString(d.PJR_DJR_ID)) ? Convert.ToString(d.PJR_DJR_ID) : "-1",Convert.ToString(d.JobType) })})" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" target="_blank" title="Edit Report"></a>
+    }
+
+    @if (hasEditAccess)
+    {
+        <a href="@Url.Action("GetJobReport", "JobReport",new { Key = CommonService.GenerateQueryString(param, new string[] {d.MoveID.ToString(),d.RateComponentID.ToString(),!string.IsNullOrWhiteSpace(Convert.ToString(d.PJR_DJR_ID)) ? Convert.ToString(d.PJR_DJR_ID) : "-1",Convert.ToString(d.JobType)})})" class="btnView btn btn-xs btn-primary glyphicon glyphicon-print pull-left" target="_blank" title="View Report"></a>
+    }
+
+    @*@if (hasDeleteAccess)
+    {
+        <div class="pull-left">
+            <form method = "post" action="@Url.Action("Delete/" + d.PJR_DJR_ID, "JobReport")" class="frmRWDelete" title="Delete Report">
+                @Html.AntiForgeryToken()
+                <input type = "hidden" name="PJR_DJR_ID" value="@d.PJR_DJR_ID" />
+                <button type = "submit" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5"></button>
+            </form>
+        </div>
+     }*@
+
+
+</span>
+);
+
+        }).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>

@@ -1,0 +1,105 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model StaticPagedList<RELOCBS.Entities.SurveyData>
+
+@{
+
+    string _PageID = "9";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+
+columns.Add(o => o.EnqId)
+    .Titled("Enq.No")
+    .Css("col-md-2 hide");
+
+columns.Add(o => o.EnqDetailId)
+.Titled("Shp.No")
+.Css("col-md-2 EnqDetailId hide");
+
+columns.Add(o => o.EnqNo)
+.Titled("Enq. No")
+.Css("col-md-2");
+
+columns.Add(o => o.EnqshpID)
+.Titled("Shp.No")
+.Css("col-md-2");
+
+columns.Add(o => o.SurveyId)
+.Titled("Survey No")
+.Css("col-md-2");
+
+columns.Add(o => o.ShipperName)
+.Css("col-md-3")
+.Titled("Shipper")
+.SetWidth(10);
+
+columns.Add(o => o.Mode)
+.Css("col-md-2")
+.Titled("Mode");
+
+columns.Add(o => o.ServiceLine)
+.Titled("Service Line")
+.Css("col-md-2");
+
+columns.Add(o => o.GoodsDesc)
+.Titled("Goods Description")
+.Css("col-md-2");
+
+columns.Add(o => o.ApproveStatus)
+.Titled("Approve Status").Css("col-md-2");
+
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("Actions")
+.RenderValueAs(d =>
+@<span>
+    @if (hasEditAccess)
+    {
+        if (d.SurveyId <= 0)
+        {
+            //Int32 IsEdit = Convert.ToInt32(d.IsEditVisible); //
+            <a class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" onclick="OnEdit_Click(@d.EnqDetailId,'@d.IsEditVisible.ToString()','@d.SurveyConductedByName','@d.CompletedStatus')" title="Edit Survey"></a>// href="@Url.Action("Create","Survey",new { EnqDetailID = d.EnqDetailId })" 
+        }
+        else
+        {
+            <a href="@Url.Action("Create","Survey",new { EnqDetailID = d.EnqDetailId })" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-eye-open pull-left" title="Edit Survey"></a>//href="@Url.Action("Create","Survey",new { EnqDetailID = d.EnqDetailId })"
+        }
+    }
+
+</span>
+);
+
+            columns.Add().
+Encoded(false).Sanitized(false).Sortable(true).Css("col-md-2").RenderValueAs(d =>
+@<span>
+    @if (hasAddAccess && hasEditAccess && d.CompletedStatus == "Yes")
+                {
+        <a href="@Url.Action("Create", "Cost", new { SurveyID = d.SurveyId })" class="btnEdit btn btn-xs btn-default pull-left" title="Cost">Apply Estimate</a>
+                }
+</span>
+);
+
+        }).Sortable()
+
+
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>

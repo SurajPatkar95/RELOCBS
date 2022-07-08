@@ -1,0 +1,87 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.Common;
+
+@{
+    ViewBag.Title = "WOS Customer";
+
+    string _PageID = "78";
+    string param = "CustServMapMasterID=ParamValue0";
+
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+{
+    @Html.AntiForgeryToken();
+
+    <div class="m-t-sm">
+        <div class="row">
+            <div class="form-group col-md-3 col-sm-3 filter-custom-margin">
+                <div class="clearfix">
+                    <label>Customer Name</label>
+                    @Html.TextBox("CustomerName", null, new { @class = "form-control input-sm", id = "CustomerName", title = "Customer Name", @tooltip = "Customer Name", @placeholder = "Customer Name" })
+                </div>
+            </div>
+            <div class="form-group col-md-2 col-sm-2">
+                <div class="clearfix">
+                    <input type="submit" id="btnSearch" name="Search" class="btn btn-default btn-sm m-l-n" value="Search" />
+                </div>
+            </div>
+            <div class="form-group col-md-1 col-sm-1 pull-right">
+                <div class="clearfix">
+                    <a id="btnAddCustServMap" name="AddCustServMap" class="btn btn-primary btn-sm m-r-sm pull-right" value="Add Cust Serv Map" formnovalidate="formnovalidate" href="@Url.Action("Create", "WOSCustomer", new { Key = CommonService.GenerateQueryString(param, new string[] { "0" }) })" title="Add Cust Serv Map">Add Cust Serv Map</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div id="mgrid">
+    @Html.Partial("_GridPartial")
+</div>
+
+@section Scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+    <script type="text/javascript">
+        $(document).ready(function () {
+            OnCompleteBindPage();
+            $('form#CustomFilter').on('submit', function (e) {
+                e.preventDefault();
+                $(this).ajaxSubmit({
+                    target: '#mgrid',
+                    success: function () {
+                        OnCompleteBindPage();
+                    }
+                });
+            });
+        });
+        function OnCompleteBindPage() {
+            $('.grid-header-title a').on('click', function (e) {
+                e.preventDefault();
+                var url1 = "@Url.Action("Index", "WOSCustomer")" + $(this).attr('href');
+                $('form#CustomFilter').attr('action', url1).submit();
+            });
+            $('#mgrid .pagination li a').on('click', function (e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                var url1 = $('#mgrid .sorted.grid-header-title a').attr('href');
+                if (typeof url1 != 'undefined') {
+                    var gdir = url("?grid-dir", url1);
+                    var gcol = url("?grid-column", url1);
+                    url1 = url1.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0) ? 1 : 0);
+                    url1 = url1.replace('?', '&');
+                }
+
+                var url2 = $(this).attr('href');
+                if (url2 == undefined) {
+                    url2 = "@Url.Action("Index", "WOSCustomer")?page=" + parseInt($(this).html());
+                }
+                url1 = url2 + url1.replace(/page=\d+/i, "");
+                $('form#CustomFilter').attr('action', url1).submit();
+            });
+        }
+    </script>
+}

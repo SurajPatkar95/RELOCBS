@@ -1,0 +1,225 @@
+﻿@using RELOCBS.Utility;
+@using System.Data;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model RELOCBS.Entities.CostViewModel
+
+@{
+    ViewBag.Title = "Cost";
+
+    string _PageID = "7";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+}
+
+
+@Html.AntiForgeryToken()
+
+<div class="container">
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(a => a.SurveyID)
+    @Html.HiddenFor(a => a.RateCompRateWtID)
+    @Html.HiddenFor(a => a.RateCompRateWtBatchID)
+    @Html.HiddenFor(a => a.HFVCostList)
+
+    <div class="row">
+        @if (Model.SurveyID != null && Model.SurveyID > 0)
+        {
+            <div class="col-sm-2 col-md-3 ">
+                <div class="form-group">
+                    <strong>Survey No. : </strong>&nbsp;<strong>@Model.SurveyID </strong>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    <strong>Enq. No / Shp. No : </strong> &nbsp;<strong>@Model.EnqID / @Model.EnqDetailID</strong>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="col-sm-5 col-md-7">
+                <div class="form-group">
+                    <label> </label>
+                </div>
+            </div>
+        }
+        <div class="col-sm-2 col-md-5">
+            <div class="form-group">
+                <input type="button" id="btnClearFields" class="btn btn-default m-t-sm m-b-sm  m-r-sm btn-sm  pull-right hidden" value="Clear Data" />
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-sm-2 col-md-3">
+            <div class="form-group">
+                <label><strong>RMC : </strong></label>
+                <label>@Model.RMCName</label>
+
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-3">
+            <div class="form-group">
+                <label><strong>Business Line : </strong></label>
+                <label>@Model.BusinessLineName</label>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-3">
+            <div class="form-group">
+                <label><strong>Goods Description : </strong></label>
+                <label>@Model.GoodsDescriptionName</label>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-3">
+            <div class="form-group">
+                <label><strong>Mode : </strong></label>
+                <label>@Model.ModeName</label>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="col-sm-2 col-md-3">
+            <div class="form-group">
+                <label><strong>From City : </strong></label>
+                <label>@Model.FromLocationName</label>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-3">
+            <div class="form-group">
+                <label><strong>Exit Port : </strong></label>
+                <label>@Model.ExitPointName</label>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-3">
+            <div class="form-group">
+                <label><strong>Entry Port : </strong></label>
+                <label>@Model.EntryPointName</label>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-3">
+            <div class="form-group">
+                <label><strong>To City : </strong></label>
+                <label>@Model.ToLocationName</label>
+            </div>
+        </div>
+    </div>
+    <div class="row no-gutters">
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label><strong>Weight/Volume : </strong></label>
+                <label>@Model.WeightUnitName</label>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label><strong>Weight From : </strong></label>
+                <label>@Model.WeightUnitFrom</label>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label><strong>Weight To : </strong></label>
+                <label>@Model.WeightUnitTo</label>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label><strong>Shipping Lines : </strong></label>
+                <label>@Model.ShipingLineName</label>
+            </div>
+        </div>
+    </div>
+    <div class="row no-gutters">
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>Net Base Estimate</label>
+                <input type="number" class="form-control input-sm" id="txtNetEstimateDetail" placeholder="NetEstimate" disabled />
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <label>Org.Estimate</label>
+            <input type="number" class="form-control input-sm" id="txtOriginEstimateDetail" placeholder="Origin Estimate" disabled />
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <label>Frg.Estimate</label>
+            <input type="number" class="form-control input-sm" id="txtFrightEstimateDetail" placeholder="Freight Estimate" disabled />
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <label>Dest.Estimate</label>
+            <input type="number" class="form-control input-sm" id="txtDestinationEstimateDetail" placeholder="Destination Estimate" disabled />
+        </div>
+
+    </div>
+</div>
+<div>
+    <div class="row" id="divCostHeadDetail">
+        @try
+        {
+
+                <div class="col-sm-12">
+                    <div class="table-responsive" id="pnl-rates">
+                        <table class="table table-striped fixedModal_header" id="CostHeadtableDetail">
+                            <thead class="ibox-title">
+                                <tr>
+                                    <th>Agent</th>
+                                    <th>Rate Componet</th>
+                                    <th>CostHead</th>
+                                    <th>Base Currency</th>
+                                    <th>Rate Currency</th>
+                                    <th>Conv. Rate</th>
+                                    <th>Est. Rate Curr.</th>
+                                    <th>Est. Base Curr.</th>
+                                    <th style="width:250px">Transit Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (RELOCBS.Entities.CostHeadDetail row in Model.CostHeadList)
+                                {
+                                <tr>
+                                    <td class="Agent">
+                                        @row.AgentName
+                                    </td>
+                                    <td class="tdRateComponent">
+                                        @row.RateComponentName
+                                    </td>
+                                    <td class="tdCostHead">
+                                        @row.CostHeadName
+                                    </td>
+                                    <td class="tdBaseCurrencyRate">
+                                        @row.BaseCurrencyRateName
+                                    </td>
+                                    <td class="tdRateCurrency">
+                                        @row.RateCurrencyName
+                                    </td>
+                                    <td class="tdConversionRate">
+                                        @row.ConversionRate
+                                    </td>
+                                    <td class="tdAmount">
+                                        @row.Amount
+                                    </td>
+                                    <td class="tdBaseEstimate"></td>
+                                    <td>
+                                        From : @row.TransitTimeFrom
+                                        To :@row.TransitTimeTo
+                                    </td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                </div>
+            
+        }
+        catch { }
+    </div>
+</div>

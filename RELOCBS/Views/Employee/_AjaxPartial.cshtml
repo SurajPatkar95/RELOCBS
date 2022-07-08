@@ -1,0 +1,90 @@
+﻿
+@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+@{
+    IEnumerable<RELOCBS.Entities.Employee> EmpList = (IEnumerable<RELOCBS.Entities.Employee>)TempData["EmpList"];
+    TempData.Keep("EmpList");
+    string _PageID = "21";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+@Html.Grid(EmpList).Named("mainGrid").Columns(columns =>
+{
+
+columns.Add(o => o.CardEmpCode)
+    .Titled("Employee Code")
+    .Css("col-md-3")
+    .SetWidth(2)
+    .SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+
+columns.Add(o => o.EmpName)
+.Titled("Employee Name").Css("col-md-3")
+.SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+
+columns.Add(o => o.Designation)
+    .Css("col-md-3")
+    .Titled("Designation")
+    .SetWidth(10);
+
+columns.Add(o => o.IsActive)
+    .Titled("Active").Css("col-md-1")
+    .Encoded(false)
+    .Sanitized(false)
+    .RenderValueAs(d =>
+    @<span>
+        @if (d.IsActive == true)
+        {
+            <i class="fa fa-check text-navy"></i>
+        }
+        else
+        {
+            <i class="fa fa-close text-red-dark" title="Click to Active"></i> 
+        }
+    </span>
+    );
+
+columns.Add()
+    .Encoded(false)
+    .Sanitized(false)
+    .Sortable(true)
+    .Css("col-md-2").Titled("Actions")
+    .RenderValueAs(d =>
+    @<span>
+        @if (hasEditAccess)
+        {
+            <a href="@Url.Action("Edit/" + d.EmpID, "Employee")" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" data-toggle="modal" data-cache="false" data-target="#mdlAddEdit" title="Edit"  onclick="EmpPopUp(this)"></a>
+        }
+
+        @if (hasEditAccess && d.ShowWarehoueMap)
+        {
+            <a href="@Url.Action("UpdateWarehouseMapping/" + d.EmpID, "Employee")" class="btnWHMapping btn btn-xs btn-default m-l-md pull-left" data-toggle="modal" data-cache="false" data-target="#mdlAddEdit" title="WHM-apping"  onclick="EmpPopUp(this)"><i class="fas fa-warehouse" aria-hidden="true"></i></a>
+        }
+
+        @*@if (d.IsActive == true && hasDeleteAccess)
+        {
+            <div class="pull-left">
+                <form method="post" action="@Url.Action("Delete/" + d.EmpID, "City")" class="frmRWDelete" title="Delete City">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="CityID" value="@d.EmpID" />
+                    <button type="submit" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5"></button>
+                </form>
+            </div>
+        }*@
+    </span>
+    );
+}).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)EmpList, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (EmpList.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>
+

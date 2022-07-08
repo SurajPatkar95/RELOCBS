@@ -1,0 +1,140 @@
+﻿@model RELOCBS.Entities.RMCPricing
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox">
+            <div class="ibox-heading">
+                <div class="ibox-title">
+                    <h5>@Model.CurrentShipmentModeName</h5>
+                    <span class="pull-right m-l-sm"><a class="btn btn-sm btn-primary lnk-pricecombination" id="lnk-dtr">Save Combination</a></span>
+                    <span class="pull-right m-l-sm"><a class="btn btn-sm btn-default lnk-amendrates" id="lnk-ar">Amend Rates</a></span>
+                    @*<a href="@Url.Action("MovePricingDetails/" + 31, "Move")" data-target="#mdlMovePricedData" data-toggle="modal">@I18N("Move Priced At")</a>*@
+                    <a id="DownloadSFR" href="@Url.Action("DownloadFinalPricing/" + Model.LeadID, "Lead")" data-target="#mdlPricingDownload" data-toggle="modal" class="pull-right" style="display: none;"><span class="text-blue-dark"><i class="fa fa-check-circle m-r-xs"></i>Download Pricing</span></a>
+                </div>
+            </div>
+            <div id="mdlMovePricedData" class="modal modal-pagefit-100" >
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+
+                    </div>
+                </div>
+            </div>
+            <div class="ibox-content">
+                <div class="row">
+                    <div class="col-sm-12">
+                        @Html.HiddenFor(model => model.CombinationNo)
+                        <div class="pnlslim" style="width: 100%; height: 300px; overflow: scroll; max-height: none; min-height: 0px; max-width: 100%; min-width: 0px;">
+                            <table class="table table-striped table-sm" id="tbl-pricingcombinations" style="width: 2000px; height: 300px; overflow: scroll; max-height: 1800px; min-height: 0px; max-width: 100%; min-width: 0px;">
+                                <thead style="width:auto">
+                                    @{
+                                        if (Model.PricingCombinations != null && Model.PricingCombinations.Rows.Count > 0)
+                                        {
+                                            <tr style="width:auto">
+                                                <th style="width: 200px"><small>Slab</small></th>
+                                                @*<th class="col-sm-1"><small>SFR</small></th>
+                                                    <th class="col-sm-1"><small>Trans Time</small></th>
+                                                    <th class="col-sm-1"><small>GP</small></th>*@
+                                                @for (int i = 0; i < Model.AgentCombination.Rows.Count; i++)
+                                                {
+                                                    <th class="combination dtc" style="width: 1000px">
+                                                        <span><input type="radio" id="dt_col_@i" class="rd_combo" name="rd_combo" onclick="setCombinationNo(this)" /></span>
+                                                        <span>
+                                                            <small>
+
+                                                                @if (!Model.IsRoad)
+                                                                {
+                                                                    <font color="red">OA-</font><span class="OA">@Html.Raw(Model.AgentCombination.Rows[i]["OrigAgent"])</span>
+                                                                    <br /><font color="red">&emsp;&nbsp;&nbsp;DA-</font><label class="DA">@Html.Raw(Model.AgentCombination.Rows[i]["DestAgent"])</label>
+<br /><font color="green">&emsp;&nbsp;&nbsp;Sea&emsp;</font><font color="red">OP-</font>@Model.AgentCombination.Rows[i]["OrigPortSea"]
+<font color="red">&emsp;&nbsp;&nbsp;DP-</font>@Model.AgentCombination.Rows[i]["DestPortSea"]
+<br /><font color="green">&emsp;&nbsp;&nbsp;Air&emsp;</font><font color="red">OP-</font>@Model.AgentCombination.Rows[i]["OrigPortAir"]
+<font color="red">&emsp;&nbsp;&nbsp;DP-</font>@Model.AgentCombination.Rows[i]["DestPortAir"]
+}
+else
+{
+<font color="red">Agent-</font><span class="OA">@Model.AgentCombination.Rows[i]["OrigAgent"]</span>
+}
+@*<br />&emsp;<font color="red">Transit time</font> - @Model.AgentCombination.Rows[i]["TransitTime"]*@
+                                                            </small>
+                                                        </span>
+
+                                                        <input type = "hidden" name="UniqueId" class="UniqueId" value="@Model.AgentCombination.Rows[i]["UniqId2"]" />
+@*<input type="hidden" name="OrgVendorID" class="OrgVendorID" value="@itm.OrgVendorID" id="originVendorID_@itm.CombinationRowNo" />
+    <input type="hidden" name="DestVendorID" class="DestVendorID" value="@itm.DestVendorID" id="destinationVendorID_@itm.CombinationRowNo" />*@
+</th>
+                                                    //break;
+                                                }
+                                            </tr>
+                                        }
+                                    }
+                                </thead>
+                                <tbody>
+                                    @{
+                                        if (Model.PricingCombinations != null && Model.PricingCombinations.Rows.Count > 0)
+                                        {
+                                            for (int i = 0; i < Model.PricingCombinations.Rows.Count; i++)
+                                            {
+                                    <tr class="dtr">
+                                        @for (int j = 0; j < Model.PricingCombinations.Columns.Count; j++)
+                                        {
+
+                                            if (Model.PricingCombinations.Rows[i][j].ToString().Contains('~'))
+                                            {
+                                                string Cost = (Model.PricingCombinations.Rows[i][j].ToString()).Split('~')[0];
+                                                string TransitTime = (Model.PricingCombinations.Rows[i][j].ToString()).Split('~')[1];
+                                                string SFR = (Model.PricingCombinations.Rows[i][j].ToString()).Split('~')[2];
+                                                string GPPER = (Model.PricingCombinations.Rows[i][j].ToString()).Split('~')[3];
+                                                <td style="padding-left:20px">
+                                                    <span>
+                                                        <small>Cost @Cost</small>
+                                                        <br />
+                                                        <small>TransitTime @TransitTime</small>
+                                                        <br />
+                                                        <small>SFR @SFR</small> / <small>GP% @GPPER</small>
+                                                    </span>
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td>
+                                                    <span>
+                                                        <small>
+                                                            @Model.PricingCombinations.Rows[i][j].ToString()</small>
+                                                        </span>
+                                                </td>
+
+                                                            }
+
+
+
+                                                            }
+</tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <p class='alert alert-warning'>"No data found..."</p>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function setCombinationNo(rd) {
+        debugger;
+        $('#CombinationNo').val($(rd).parent().siblings("input[type=hidden]").val());
+        $('#origin').html('Origin Agent:' +$(rd).parent().next('span').find('.OA').html());
+        $('#destination').html('Destination Agent:' + $(rd).parent().next('span').find('.DA').html());
+        //console.log($('#CombinationNo').val());
+        //alert($(rd));
+
+    }
+</script>

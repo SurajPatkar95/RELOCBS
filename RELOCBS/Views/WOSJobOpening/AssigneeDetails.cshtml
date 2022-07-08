@@ -1,0 +1,1521 @@
+﻿@model RELOCBS.Entities.Assignee
+
+@using RELOCBS.Utility;
+@using PagedList;
+@using RELOCBS.Common;
+@using RELOCBS.Extensions;
+
+@{
+    ViewBag.Title = "AssigneeDetails";
+
+    string EMPorAssingee = "A";
+
+    if (UserSession.GetUserSession()?.LoginID > 0)
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+        EMPorAssingee = "E";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_LayoutNonLogin.cshtml";
+    }
+    var TransfereeId = Model.TransfereeId;
+    Int64 WOSMoveID = Model.WOSMoveID ?? 0;
+    Int64 CityID = Model.CityID ?? 0;
+    string City = Model.City ?? "";
+    int intCount = 1;
+
+    int NoOfChildren = Model.ChildDetailsList.Count();
+}
+
+<style>
+    .Gridbody {
+        height: 250px;
+        display: block;
+        overflow-x: auto;
+    }
+
+        .Gridbody tbody {
+            overflow-y: auto;
+            height: 200px;
+        }
+
+    hr {
+        border: none;
+        border-left: 1px solid hsla(200, 10%, 50%,100);
+        min-height: 50px;
+        width: 1px;
+    }
+
+    .col-sm-1.vdivide {
+        width: 1px;
+    }
+
+    .tdHide {
+        display: none;
+    }
+
+    .bg {
+        border-left: 3px solid red;
+    }
+
+    #tableChildDetails {
+        counter-reset: serial-number;
+    }
+
+        #tableChildDetails > tbody > tr > td:first-child:before {
+            counter-increment: serial-number;
+            content: counter(serial-number);
+        }
+</style>
+
+@using (@Html.BeginForm("AssigneeDetails", "WOSJobOpening", new { GridList = "" }, FormMethod.Post, new { @name = "formAssigneeDetails", @id = "formAssigneeDetails", enctype = "multipart/form-data" }))
+{
+    @Html.ValidationSummary(false, "")
+
+    @Html.HiddenFor(m => m.WOSMoveID, new { @id = "WOSMoveID" })
+    @Html.HiddenFor(m => m.MoveID, new { @id = "MoveID" })
+    @Html.HiddenFor(m => m.TransfereeId, new { @id = "TransfereeId" })
+    @Html.HiddenFor(m => m.ChildDetailsListHidden, new { @id = "ChildDetailsListHidden" })
+
+    <div class="row m-t-sm">
+        @if (Model.TransfereeId > 0 && !Model.IsFinalSubmit)
+        {
+            <input type="submit" id="btnFinalSubmit" name="SaveButton" class="btn btn-sm btn-primary m-r-md pull-right" value="Final Submit" />
+        }
+        <input type="submit" id="btnSave" name="SaveButton" class="btn btn-sm btn-primary m-r-md pull-right" value="Save" />
+    </div>
+    <div class="row">
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label>Move Id : </label>@Model.WOSMoveID
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label>Job Id : </label>@Model.WOSJobID
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-3">
+            <div class="form-group">
+                <label>Assignee Name: </label>@(Model.FirstName + " " + Model.LastName)
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 col-sm-12 well well-sm">
+        <div class="row">
+            <div class="tabs-container" id="tabTransferee">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a href="#Dashboard" aria-controls="Dashboard" role="tab" data-toggle="tab" aria-expanded="true"><span class="t">Dashboard</span></a></li>
+                    <li role="presentation"><a href="#AssigneeDetails" aria-controls="AssigneeDetails" role="tab" data-toggle="tab" aria-expanded="true"><span class="t">Assignee Details</span></a></li>
+                    <li role="presentation"><a href="#PartnerDetails" aria-controls="PartnerDetails" role="tab" data-toggle="tab" aria-expanded="false"><span class="t">Partner Details</span></a></li>
+                    <li role="presentation"><a href="#FamilyDetails" aria-controls="FamilyDetails" role="tab" data-toggle="tab" aria-expanded="false"><span class="t">Family Details</span></a></li>
+                    @*<li role="presentation"><a href="#SchoolInformation" aria-controls="SchoolInformation" role="tab" data-toggle="tab" aria-expanded="false"><span class="t">School Information</span></a></li>*@
+                    <li role="presentation"><a href="#ArrivalAndHousingPreference" aria-controls="ArrivalAndHousingPreference" role="tab" data-toggle="tab" aria-expanded="false"><span class="t">Arrival And Housing Preference</span></a></li>
+                    <li role="presentation"><a href="#AdditionalInformation" aria-controls="AdditionalInformation" role="tab" data-toggle="tab" aria-expanded="false"><span class="t">Additional Information</span></a></li>
+                    <li role="presentation"><a href="#DMS" aria-controls="DMS" role="tab" data-toggle="tab" aria-expanded="false"><span class="t">DMS (External)</span></a></li>
+                </ul>
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane tab-panecontainer active" id="Dashboard">
+                        <div class="row tab-panecontainer">
+                            <div id="dvTaskPartial" class="col-md-6 container">
+                                <h3 class="text-center">Relocation Journey</h3>
+                                @Html.Partial("_TaskPartial", (List<RELOCBS.Entities.TaskDetails>)Model.TaskDetailsList)
+                            </div>
+                            <div class="col-md-6 container">
+                                <h3 class="text-center">Chat Box</h3>
+                                <div class="messaging">
+                                    <div class="inbox_msg">
+                                        <div class="mesgs">
+                                            <div id="dvChatPartial" class="msg_history">
+                                                @Html.Partial("_ChatPartial", (StaticPagedList<RELOCBS.Entities.ChatDetails>)ViewBag.ChatDetailsList)
+                                            </div>
+                                            <div class="type_msg">
+                                                <div class="input_msg_write">
+                                                    <input type="text" class="write_msg" id="txtMessage" placeholder="Type a message" />
+                                                    <button id="txtSendMessage" class="msg_send_btn" type="button" onclick="SendMessage();"><i class="fa fa-send" aria-hidden="true"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div role="tabPanel" class="tab-pane tab-panecontainer" id="AssigneeDetails">
+                        <div class="row tab-panecontainer">
+                            <fieldset class="col-md-12 border m-n">
+                                <legend>Assignee Details</legend>
+                                <div class="m-t-sm m-n pad-none">
+                                    <div class="row">
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Title</label>
+                                                @Html.DropDownListFor(m => m.AssigneeTitleId, new SelectList((System.Collections.IEnumerable)ViewData["TitleList"], "Value", "Text", ViewData["TitleList"]), "Select One", new { @class = "form-control", @id = "AssigneeTitle", @title = "Assignee Title" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label class="requiredlabel">Last Name</label>
+                                                @Html.TextBoxFor(m => m.LastName, new { @class = "form-control input-sm", placeholder = "Last Name", @title = "Last Name", @id = "LastName" })
+                                                @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>First Name</label>
+                                                @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control input-sm", placeholder = "First Name", @title = "First Name", @id = "FirstName" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Middle Name</label>
+                                                @Html.TextBoxFor(m => m.MiddleName, new { @class = "form-control input-sm", placeholder = "Middle Name", @title = "Middle Name", @id = "MiddleName" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Maiden Name</label>
+                                                @Html.TextBoxFor(m => m.MaidenName, new { @class = "form-control input-sm", placeholder = "Maiden Name", @title = "Maiden Name", @id = "MaidenName" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Gender</label>
+                                                @Html.DropDownListFor(m => m.GenderId, new SelectList((System.Collections.IEnumerable)ViewData["GenderList"], "Value", "Text", ViewData["GenderList"]), "Select One", new { @class = "form-control", @id = "GenderId", @title = "Gender" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Birthdate</label>
+                                                @Html.TextBoxFor(m => m.BirthDate, new { @placeholder = "Birthdate", @tooltip = "Birthdate", @class = "form-control input-sm datepicker onkeydtp", @title = "Birthdate", @id = "Birthdate" })
+                                                <span class="input-group-addon" style="display: none">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label class="requiredlabel">Email Id</label>
+                                                @Html.TextBoxFor(m => m.EmailId, new { @class = "form-control input-sm", placeholder = "Email Id", @title = "Email Id", @id = "EmailId" })
+                                                @Html.ValidationMessageFor(m => m.EmailId, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Languages</label>
+                                                @Html.TextBoxFor(m => m.Languages, new { @class = "form-control input-sm", placeholder = "Languages", @title = "Languages", @id = "Languages" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Religion</label>
+                                                @Html.TextBoxFor(m => m.Religion, new { @class = "form-control input-sm", placeholder = "Religion", @title = "Religion", @id = "Religion" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1 col-sm-1">
+                                            <div class="form-group">
+                                                <label>Smoker</label>
+                                                <div>@Html.CheckBoxFor(m => m.IsSmoker, new { @class = "", @id = "IsSmoker" })</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Assignee Ref</label>
+                                                @Html.TextBoxFor(m => m.AssigneeRef, new { @class = "form-control input-sm", placeholder = "Transferee Ref", @title = "Transferee Ref", @id = "TransfereeRef" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>Address 1</label>
+                                                @Html.TextBoxFor(m => m.Address1, new { @class = "form-control input-sm", placeholder = "Address 1", @title = "Address 1", @id = "Address1" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>Address 2</label>
+                                                @Html.TextBoxFor(m => m.Address2, new { @class = "form-control input-sm", placeholder = "Address 2", @title = "Address 2", @id = "Address2" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>City</label>
+                                                @Html.DropDownListFor(m => m.CityID, new List<SelectListItem>(), new { @class = "form-control enableselect", @title = "City", @id = "CityID" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>PIN Code</label>
+                                                @Html.TextBoxFor(m => m.PINCode, new { @class = "form-control input-sm", placeholder = "PIN Code", @title = "PIN Code", @id = "PINCode" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @*<div class="row">
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Passport No</label>
+                                                    @Html.TextBoxFor(m => m.PassportNo, new { @class = "form-control input-sm", placeholder = "Passport No", @title = "Passport No", @id = "PassportNo" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Passport Issued By</label>
+                                                    @Html.TextBoxFor(m => m.PassportIssuedBy, new { @class = "form-control input-sm", placeholder = "Passport Issued By", @title = "Passport Issued By", @id = "PassportIssuedBy" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Passport Issue Date</label>
+                                                    @Html.EditorFor(m => m.PassportIssueDate, new { htmlAttributes = new { @placeholder = "Passport Issue Date", @tooltip = "Passport Issue Date", @class = "form-control input-sm datepicker onkeydtp", @title = "Passport Issue Date", @id = "PassportIssueDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Passport Expiry Date</label>
+                                                    @Html.EditorFor(m => m.PassportExpiryDate, new { htmlAttributes = new { @placeholder = "Passport Expiry Date", @tooltip = "Passport Expiry Date", @class = "form-control input-sm datepicker onkeydtp", @title = "Passport Expiry Date", @id = "PassportExpiryDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Nationality</label>
+                                                    @Html.DropDownListFor(m => m.CountryId_Nationality, new SelectList((System.Collections.IEnumerable)ViewData["CountryList"], "Value", "Text", ViewData["CountryList"]), "Select One", new { @class = "form-control", @id = "NationalityID", @title = "Nationality ID" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Other Nationality</label>
+                                                    @Html.DropDownListFor(m => m.CountryId_OtherNationality, new SelectList((System.Collections.IEnumerable)ViewData["CountryList"], "Value", "Text", ViewData["CountryList"]), "Select One", new { @class = "form-control", @id = "OtherNationalityID", @title = "Other Nationality ID" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Place Of Birth</label>
+                                                    @Html.TextBoxFor(m => m.PlaceOfBirth, new { @class = "form-control input-sm", placeholder = "Place Of Birth", @title = "Place Of Birth", @id = "PlaceOfBirth" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Country Of Birth</label>
+                                                    @Html.DropDownListFor(m => m.CountryId_CountryOfBirth, new SelectList((System.Collections.IEnumerable)ViewData["CountryList"], "Value", "Text", ViewData["CountryList"]), "Select One", new { @class = "form-control", @id = "CountryOfBirthID", @title = "Country Of Birth ID" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>License Number</label>
+                                                    @Html.TextBoxFor(m => m.DrivingLicenseNumber, new { @class = "form-control input-sm", placeholder = "License Number", @title = "License Number", @id = "LicenseNumber" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Driving License Issuing Country</label>
+                                                    @Html.DropDownListFor(m => m.CountryId_DrivingLicenseIssuedBy, new SelectList((System.Collections.IEnumerable)ViewData["CountryList"], "Value", "Text", ViewData["CountryList"]), "Select One", new { @class = "form-control", @id = "DrivingLicenseIssuingCountryID", @title = "Driving License Issuing Country ID" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Driving License Issue Date</label>
+                                                    @Html.EditorFor(m => m.DrivingLicenseIssueDate, new { htmlAttributes = new { @placeholder = "Driving License Issue Date", @tooltip = "Driving License Issue Date", @class = "form-control input-sm datepicker onkeydtp", @title = "Driving License Issue Date", @id = "DrivingLicenseIssueDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Driving License Expiry Date</label>
+                                                    @Html.EditorFor(m => m.DrivingLicenseExpiryDate, new { htmlAttributes = new { @placeholder = "Driving License Expiry Date", @tooltip = "Driving License Expiry Date", @class = "form-control input-sm datepicker onkeydtp", @title = "Driving License Expiry Date", @id = "DrivingLicenseExpiryDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Identity Card No</label>
+                                                    @Html.TextBoxFor(m => m.IDCardNo, new { @class = "form-control input-sm", placeholder = "Identity Card No", @title = "Identity Card No", @id = "IdentityCardNo" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Identity Card Issued By</label>
+                                                    @Html.TextBoxFor(m => m.IDCardIssuedBy, new { @class = "form-control input-sm", placeholder = "Identity Card Issued By", @title = "Identity Card Issued By", @id = "IdentityCardIssuedBy" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Identity Card Issue Date</label>
+                                                    @Html.EditorFor(m => m.IDCardIssueDate, new { htmlAttributes = new { @placeholder = "Identity Card Issue Date", @tooltip = "Identity Card Issue Date", @class = "form-control input-sm datepicker onkeydtp", @title = "Identity Card Issue Date", @id = "IdentityCardIssueDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Identity Card Expiry Date</label>
+                                                    @Html.EditorFor(m => m.IDCardExpiryDate, new { htmlAttributes = new { @placeholder = "Identity Card Expiry Date", @tooltip = "Identity Card Expiry Date", @class = "form-control input-sm datepicker onkeydtp", @title = "Identity Card Expiry Date", @id = "IdentityCardExpiryDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>SSN</label>
+                                                    @Html.TextBoxFor(m => m.SSN, new { @class = "form-control input-sm", placeholder = "SSN", @title = "SSN", @id = "SSN" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>VAT No</label>
+                                                    @Html.TextBoxFor(m => m.VAT, new { @class = "form-control input-sm", placeholder = "VAT No", @title = "VAT No", @id = "VATNo" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Transferee Work Reference</label>
+                                                    @Html.TextBoxFor(m => m.TransfereeWorkReference, new { @class = "form-control input-sm", placeholder = "Transferee Work Reference", @title = "Transferee Work Reference", @id = "TransfereeWorkReference" })
+                                                </div>
+                                            </div>
+                                        </div>*@
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane tab-panecontainer" id="PartnerDetails">
+                        <div class="row tab-panecontainer">
+                            <fieldset class="col-md-12 border m-n">
+                                <legend>Partner Details</legend>
+                                <div class="m-t-sm m-n pad-none">
+                                    <div class="row">
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Title</label>
+                                                @Html.DropDownListFor(m => m.Title_Partner, new SelectList((System.Collections.IEnumerable)ViewData["TitleList"], "Value", "Text", ViewData["TitleList"]), "Select One", new { @class = "form-control", @id = "Title_Partner", @title = "Partner Title" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Last Name</label>
+                                                @Html.TextBoxFor(m => m.LastName_Partner, new { @class = "form-control input-sm", placeholder = "Last Name", @title = "Last Name", @id = "LastName_Partner" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>First Name</label>
+                                                @Html.TextBoxFor(m => m.FirstName_Partner, new { @class = "form-control input-sm", placeholder = "First Name", @title = "First Name", @id = "FirstName_Partner" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Middle Name</label>
+                                                @Html.TextBoxFor(m => m.MiddleName_Partner, new { @class = "form-control input-sm", placeholder = "Middle Name", @title = "Middle Name", @id = "MiddleName_Partner" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Maiden Name</label>
+                                                @Html.TextBoxFor(m => m.MaidenName_Partner, new { @class = "form-control input-sm", placeholder = "Maiden Name", @title = "Maiden Name", @id = "MaidenName_Partner" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Gender</label>
+                                                @Html.DropDownListFor(m => m.GenderId_Partner, new SelectList((System.Collections.IEnumerable)ViewData["GenderList"], "Value", "Text", ViewData["GenderList"]), "Select One", new { @class = "form-control", @id = "GenderId_Partner", @title = "Gender" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Birthdate</label>
+                                                @Html.TextBoxFor(m => m.BirthDate_Partner, new { @placeholder = "Birthdate", @tooltip = "Birthdate", @class = "form-control input-sm datepicker onkeydtp", @title = "Birthdate", @id = "BirthDate_Partner" })
+                                                <span class="input-group-addon" style="display: none">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>Email Id</label>
+                                                @Html.TextBoxFor(m => m.EmailId_Partner, new { @class = "form-control input-sm", placeholder = "Email Id", @title = "Email Id", @id = "EmailId_Partner" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Languages</label>
+                                                @Html.TextBoxFor(m => m.Languages_Partner, new { @class = "form-control input-sm", placeholder = "Languages", @title = "Languages", @id = "Languages_Partner" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Religion</label>
+                                                @Html.TextBoxFor(m => m.Religion_Partner, new { @class = "form-control input-sm", placeholder = "Religion", @title = "Religion", @id = "Religion_Partner" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1 col-sm-1">
+                                            <div class="form-group">
+                                                <label>Smoker</label>
+                                                <div>@Html.CheckBoxFor(m => m.IsSmoker_Partner, new { @class = "", @id = "IsSmoker_Partner" })</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Occupation</label>
+                                                @Html.TextBoxFor(m => m.Occupation_Partner, new { @class = "form-control input-sm", placeholder = "Occupation", @title = "Occupation", @id = "Occupation_Partner" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @*<div class="row">
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Passport No</label>
+                                                    @Html.TextBoxFor(m => m.PassportNo_Partner, new { @class = "form-control input-sm", placeholder = "Passport No", @title = "Passport No", @id = "PartnerPassportNo" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Passport Issued By</label>
+                                                    @Html.TextBoxFor(m => m.PassportIssuedBy_Partner, new { @class = "form-control input-sm", placeholder = "Passport Issued By", @title = "Passport Issued By", @id = "PartnerPassportIssuedBy" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Passport Issue Date</label>
+                                                    @Html.EditorFor(m => m.PassportIssueDate_Partner, new { htmlAttributes = new { @placeholder = "Passport Issue Date", @tooltip = "Passport Issue Date", @class = "form-control input-sm datepicker onkeydtp", @title = "Passport Issue Date", @id = "PartnerPassportIssueDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Passport Expiry Date</label>
+                                                    @Html.EditorFor(m => m.PassportExpiryDate_Partner, new { htmlAttributes = new { @placeholder = "Passport Expiry Date", @tooltip = "Passport Expiry Date", @class = "form-control input-sm datepicker onkeydtp", @title = "Passport Expiry Date", @id = "PartnerPassportExpiryDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Nationality</label>
+                                                    @Html.DropDownListFor(m => m.CountryId_Nationality_Partner, new SelectList((System.Collections.IEnumerable)ViewData["CountryList"], "Value", "Text", ViewData["CountryList"]), "Select One", new { @class = "form-control", @id = "PartnerNationalityID", @title = "Nationality ID" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Other Nationality</label>
+                                                    @Html.DropDownListFor(m => m.CountryId_OtherNationality_Partner, new SelectList((System.Collections.IEnumerable)ViewData["CountryList"], "Value", "Text", ViewData["CountryList"]), "Select One", new { @class = "form-control", @id = "PartnerOtherNationalityID", @title = "Other Nationality ID" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Place Of Birth</label>
+                                                    @Html.TextBoxFor(m => m.PlaceOfBirth_Partner, new { @class = "form-control input-sm", placeholder = "Place Of Birth", @title = "Place Of Birth", @id = "PartnerPlaceOfBirth" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Country Of Birth</label>
+                                                    @Html.DropDownListFor(m => m.CountryId_CountryOfBirth_Partner, new SelectList((System.Collections.IEnumerable)ViewData["CountryList"], "Value", "Text", ViewData["CountryList"]), "Select One", new { @class = "form-control", @id = "PartnerCountryOfBirthID", @title = "Country Of Birth ID" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>License Number</label>
+                                                    @Html.TextBoxFor(m => m.DrivingLicenseNumber_Partner, new { @class = "form-control input-sm", placeholder = "License Number", @title = "License Number", @id = "PartnerLicenseNumber" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Driving License Issuing Country</label>
+                                                    @Html.DropDownListFor(m => m.CountryId_DrivingLicenseIssuedBy_Partner, new SelectList((System.Collections.IEnumerable)ViewData["CountryList"], "Value", "Text", ViewData["CountryList"]), "Select One", new { @class = "form-control", @id = "PartnerDrivingLicenseIssuingCountryID", @title = "Driving License Issuing Country ID" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Driving License Issue Date</label>
+                                                    @Html.EditorFor(m => m.DrivingLicenseIssueDate_Partner, new { htmlAttributes = new { @placeholder = "Driving License Issue Date", @tooltip = "Driving License Issue Date", @class = "form-control input-sm datepicker onkeydtp", @title = "Driving License Issue Date", @id = "PartnerDrivingLicenseIssueDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Driving License Expiry Date</label>
+                                                    @Html.EditorFor(m => m.DrivingLicenseExpiryDate_Partner, new { htmlAttributes = new { @placeholder = "Driving License Expiry Date", @tooltip = "Driving License Expiry Date", @class = "form-control input-sm datepicker onkeydtp", @title = "Driving License Expiry Date", @id = "PartnerDrivingLicenseExpiryDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Identity Card No</label>
+                                                    @Html.TextBoxFor(m => m.IDCardNo_Partner, new { @class = "form-control input-sm", placeholder = "Identity Card No", @title = "Identity Card No", @id = "PartnerIdentityCardNo" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Identity Card Issued By</label>
+                                                    @Html.TextBoxFor(m => m.IDCardIssuedBy_Partner, new { @class = "form-control input-sm", placeholder = "Identity Card Issued By", @title = "Identity Card Issued By", @id = "PartnerIdentityCardIssuedBy" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Identity Card Issue Date</label>
+                                                    @Html.EditorFor(m => m.IDCardIssueDate_Partner, new { htmlAttributes = new { @placeholder = "Identity Card Issue Date", @tooltip = "Identity Card Issue Date", @class = "form-control input-sm datepicker onkeydtp", @title = "Identity Card Issue Date", @id = "PartnerIdentityCardIssueDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Identity Card Expiry Date</label>
+                                                    @Html.EditorFor(m => m.IDCardExpiryDate_Partner, new { htmlAttributes = new { @placeholder = "Identity Card Expiry Date", @tooltip = "Identity Card Expiry Date", @class = "form-control input-sm datepicker onkeydtp", @title = "Identity Card Expiry Date", @id = "PartnerIdentityCardExpiryDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>SSN</label>
+                                                    @Html.TextBoxFor(m => m.SSN_Partner, new { @class = "form-control input-sm", placeholder = "SSN", @title = "SSN", @id = "PartnerSSN" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>VAT No</label>
+                                                    @Html.TextBoxFor(m => m.VAT_Partner, new { @class = "form-control input-sm", placeholder = "VAT No", @title = "VAT No", @id = "PartnerVATNo" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Privacy Agreement Acceptance Date</label>
+                                                    @Html.TextBoxFor(m => m.PrivacyAgreementAcceptanceDate, new { @class = "form-control input-sm", placeholder = "Transferee Work Reference", @title = "Transferee Work Reference", @id = "PrivacyAgreementAcceptanceDate" })
+                                                </div>
+                                            </div>
+                                        </div>*@
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane tab-panecontainer" id="FamilyDetails">
+                        <div class="row tab-panecontainer">
+                            <fieldset class="col-md-12 border m-n">
+                                <legend>Family Details</legend>
+                                <div class="m-t-sm m-n pad-none">
+                                    <div class="row">
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Marital Status</label>
+                                                @Html.DropDownListFor(m => m.MaritalStatusId, new SelectList((System.Collections.IEnumerable)ViewData["MaritalStatusList"], "Value", "Text", ViewData["MaritalStatusList"]), "Select One", new { @class = "form-control", @id = "MaritalStatusId", @title = "Marital Status" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Marriage Date</label>
+                                                @Html.TextBoxFor(m => m.MarriageDate, new { @placeholder = "Marriage Date", @tooltip = "Marriage Date", @class = "form-control input-sm datepicker onkeydtp", @title = "Marriage Date", @id = "MarriageDate" })
+                                                <span class="input-group-addon" style="display: none">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>Original Certificate Available</label>
+                                                <div>@Html.CheckBoxFor(m => m.IsMarriageCertAvailable, new { @class = "", @id = "IsMarriageCertAvailable" })</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Dependents besides children</label>
+                                                @Html.TextBoxFor(m => m.FamilyDetails, new { @class = "form-control input-sm", placeholder = "Dependents Besides Children", @title = "Dependents Besides Children", @id = "FamilyDetails" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>All family members will move at the same time</label>
+                                                <div>@Html.CheckBoxFor(m => m.IsMovingTogether, new { @class = "", @id = "IsMovingTogether" })</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4 col-sm-4">
+                                            <div class="form-group">
+                                                <label>Home Country Relative Contact Details</label>
+                                                @Html.TextAreaFor(m => m.NextOfKinDetails, new { @class = "form-control input-sm", placeholder = "Contact Details For Relative In Home Country", @title = "Contact Details For Relative In Home Country", @id = "NextOfKinDetails", @style = "height:50px;" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Pets relocating?</label>
+                                                <div>@Html.CheckBoxFor(m => m.IsPetsMoving, new { @class = "", @id = "IsPetsMoving" })</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>Pets that will be moving with you</label>
+                                                @Html.TextBoxFor(m => m.PetsDescription, new { @class = "form-control input-sm", placeholder = "Pets that will be moving with you", @title = "Pets Description", @id = "PetsDescription" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label>In your family, are there any special health problems which concern you with regard to your move? If yes, please specify :</label>
+                                                @Html.TextBoxFor(m => m.SpecialHealthProblem, new { @class = "form-control input-sm", placeholder = "Special Health Problem", @title = "SpecialHealthProblem", @id = "SpecialHealthProblem" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <fieldset class="col-md-12 border m-n">
+                                <legend>Child Details</legend>
+                                <div class="m-t-sm m-n pad-none">
+                                    <div class="row">
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>No Of Children</label>
+                                                @Html.TextBoxFor(m => m.NoOfChildren, new { @class = "form-control input-sm", placeholder = "No Of Children", @title = "NoOfChildren", @id = "NoOfChildren", @onkeypress = "return OnlyInteger(this, event);" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Child Name</label>
+                                                @Html.TextBox("ChildName", null, new { @class = "form-control input-sm", @id = "ChildName", @placeholder = "Child Name", @title = "Child Name" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1 col-sm-1">
+                                            <div class="form-group">
+                                                <label>Child Age</label>
+                                                @Html.TextBox("ChildAge", null, new { @class = "form-control input-sm", @id = "ChildAge", @placeholder = "Child Age", @title = "Child Age", @onkeypress = "return OnlyInteger(this, event);" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>School Type</label>
+                                                @Html.DropDownList("SchoolTypeId", new SelectList((System.Collections.IEnumerable)ViewData["SchoolTypeList"], "Value", "Text", ViewData["SchoolTypeList"]), "Select One", new { @class = "form-control", @id = "SchoolTypeId", @title = "School Type" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>Specific School Details</label>
+                                                @Html.TextBox("SpecificSchoolDetails", null, new { @class = "form-control input-sm", @id = "SpecificSchoolDetails", @placeholder = "Specific School Details", @title = "Specific School Details" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>Special School Requirements</label>
+                                                @Html.TextBox("SpecialSchoolRequirements", null, new { @class = "form-control input-sm", @id = "SpecialSchoolRequirements", @placeholder = "Special School Requirements", @title = "Special School Requirements" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 col-sm-12">
+                                            <div class="form-group clearfix text-center">
+                                                <input type="button" id="btnAddChild" name="Add Child" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Add Child Details" onclick="AddChild();" formnovalidate="formnovalidate" />
+                                                <input type="button" id="btnClearChild" name="Clear" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Cancel" onclick="ClearChildControls();" formnovalidate="formnovalidate" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12 col-md-12" style="overflow-x: auto;">
+                                            <table id="tableChildDetails" class="table table-bordered table-responsive table-hover" style="display: inline-table;height: auto;">
+                                                <thead class="ibox-title">
+                                                    <tr>
+                                                        <th class="tdSequence">Sr. No.</th>
+                                                        <th class="tdChildName">Child Name</th>
+                                                        <th class="tdChildAge">Child Age</th>
+                                                        <th class="tdSchoolType">School Type</th>
+                                                        <th class="tdSpecificSchoolDetails">Specific School Details</th>
+                                                        <th class="tdSpecialSchoolRequirements">Special School Requirements</th>
+                                                        <th class="tdAction">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @for (int i = 0; i < Model.ChildDetailsList.Count; i++)
+                                                    {
+                                                        <tr>
+                                                            <td class="tdSequence">
+                                                                <input type="hidden" class="tdChildDetailsId" name="ChildDetailsId" id="@("ChildDetailsId_" + intCount)" value="@Model.ChildDetailsList[i].ChildDetailsId" />
+                                                                <input type="hidden" class="tdSchoolTypeId" name="SchoolTypeId" id="@("SchoolTypeId_" + intCount)" value="@Model.ChildDetailsList[i].SchoolTypeId" />
+                                                            </td>
+                                                            <td class="tdChildName">@Model.ChildDetailsList[i].ChildName</td>
+                                                            <td class="tdChildAge">@Model.ChildDetailsList[i].ChildAge</td>
+                                                            <td class="tdSchoolType">@Model.ChildDetailsList[i].SchoolType</td>
+                                                            <td class="tdSpecificSchoolDetails">@Model.ChildDetailsList[i].SpecificSchoolDetails</td>
+                                                            <td class="tdSpecialSchoolRequirements">@Model.ChildDetailsList[i].SpecialSchoolRequirements</td>
+                                                            <td class="tdAction">
+                                                                <button type="button" value="Edit Child" class="btnEditChild btn btn-sm btn-primary pull-left" onclick="EditChild(this);"><i class="glyphicon glyphicon-pencil"></i></button>
+                                                                <button type="button" value="Delete Child" class="btnDeleteChild btn btn-sm btn-danger pull-left" onclick="DeleteChild(this);"><i class="glyphicon glyphicon-trash"></i></button>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                    @*<div role="tabpanel" class="tab-pane tab-panecontainer" id="SchoolInformation">
+                            <div class="row tab-panecontainer">
+                                <fieldset class="col-md-12 border m-n">
+                                    <legend>School Information</legend>
+                                    <div class="m-t-sm m-n pad-none">
+                                        <div class="row">
+                                            <div class="col-md-6 col-sm-6">
+                                                <div class="form-group">
+                                                    <label>What type of school would you like your children to attend?</label>
+                                                    @Html.DropDownListFor(m => m.SchoolTypeId, new SelectList((System.Collections.IEnumerable)ViewData["SchoolTypeList"], "Value", "Text", ViewData["MaritalStatusList"]), "Select One", new { @class = "form-control", @id = "SchoolTypeId", @title = "SchoolTypeId" })
+                                                    <label class="requiredlabel">Note : American and International schools are not established in every location in India</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-sm-6">
+                                                <div class="form-group">
+                                                    <label>Is there a specific school, which you would prefer? Please specify</label>
+                                                    @Html.TextBoxFor(m => m.SpecificSchoolDetails, new { @class = "form-control input-sm", placeholder = "Specific School Details", @title = "SpecificSchoolDetails", @id = "SpecificSchoolDetails" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 col-sm-6">
+                                                <div class="form-group">
+                                                    <label>Does your child have any special needs or school requirements (disabilities, etc.)?</label>
+                                                    @Html.TextBoxFor(m => m.SpecialSchoolRequirements, new { @class = "form-control input-sm", placeholder = "Special School Requirements", @title = "SpecialSchoolRequirements", @id = "SpecialSchoolRequirements" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>*@
+                    <div role="tabpanel" class="tab-pane tab-panecontainer" id="ArrivalAndHousingPreference">
+                        <div class="row tab-panecontainer">
+                            <fieldset class="col-md-12 border m-n">
+                                <legend>Arrival And Housing Preference</legend>
+                                <div class="m-t-sm m-n pad-none">
+                                    <div class="row">
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>Date of pre-view or home finding visit</label>
+                                                @Html.TextBoxFor(m => m.HomeFindingVisitDate, new { @placeholder = "Home Finding Visit Date", @tooltip = "Home Finding Visit Date", @class = "form-control input-sm datepicker onkeydtp", @title = "HomeFindingVisitDate", @id = "HomeFindingVisitDate" })
+                                                <span class="input-group-addon" style="display: none">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 col-sm-4">
+                                            <div class="form-group">
+                                                <label>What date (s) will you be available for destination services?</label>
+                                                @Html.TextBoxFor(m => m.DestinationServicesDates, new { @class = "form-control input-sm", placeholder = "Destination Services Dates", @title = "DestinationServicesDates", @id = "DestinationServicesDates" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Arrival Date</label>
+                                                @Html.TextBoxFor(m => m.ArrivalDate, new { @placeholder = "Arrival Date", @tooltip = "Arrival Date", @class = "form-control input-sm datepicker onkeydtp", @title = "ArrivalDate", @id = "ArrivalDate" })
+                                                <span class="input-group-addon" style="display: none">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        @*<div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Arrival Time</label>
+                                                    @Html.EditorFor(m => m.ArrivalTime, new { htmlAttributes = new { @placeholder = "Arrival Time", @tooltip = "Arrival Time", @class = "form-control input-sm timepicker-hour onkeydtp", @title = "ArrivalTime", @id = "ArrivalTime" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                </div>
+                                            </div>*@
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>Hotel Name</label>
+                                                @Html.TextBoxFor(m => m.HotelName, new { @class = "form-control input-sm", placeholder = "Hotel Name", @title = "Hotel Name", @id = "HotelName" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Hotel Contact No</label>
+                                                @Html.TextBoxFor(m => m.HotelContactNo, new { @class = "form-control input-sm", placeholder = "Hotel Contact No", @title = "Hotel Contact No", @id = "HotelContactNo" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>House On</label>
+                                                <div class="radio">
+                                                    <label>@Html.RadioButtonFor(model => model.RentOrPurchase, "Rent")Rent</label>
+                                                    <label>@Html.RadioButtonFor(model => model.RentOrPurchase, "Purchase")Purchase</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Currency</label>
+                                                @Html.DropDownListFor(m => m.CurrencyId, new SelectList((System.Collections.IEnumerable)ViewData["CurrencyList"], "Value", "Text", ViewData["CurrencyList"]), "Select One", new { @class = "form-control", @id = "CurrencyId", @title = "CurrencyId" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>Allowance Per Month</label>
+                                                @Html.TextBoxFor(m => m.AllowancePerMonth, new { @class = "form-control input-sm", placeholder = "Allowance Per Month", @title = "AllowancePerMonth", @id = "AllowancePerMonth", onkeypress = "return OnlyDouble(this, event, 2);" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4 col-sm-4">
+                                            <div class="form-group">
+                                                <label>House</label>@Html.CheckBoxFor(m => m.IsHouse, new { @class = "", @id = "IsHouse" })
+                                                <label>Apartment</label>@Html.CheckBoxFor(m => m.IsApartment, new { @class = "", @id = "IsApartment" })
+                                                <div>
+                                                    <label>Other Housing Preference</label>
+                                                    @Html.TextBoxFor(m => m.OtherHousingPreference, new { @class = "input-sm", placeholder = "Other Housing Preference", @title = "OtherHousingPreference", @id = "OtherHousingPreference" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                @Html.CheckBoxFor(m => m.IsAllowanceIncludesUtilities, new { @class = "", @id = "IsAllowanceIncludesUtilities" })
+                                                <label>Allowance includes utilities?</label>
+                                                @Html.TextBoxFor(m => m.AllowancePerMonthWithUtilities, new { @class = "form-control input-sm", placeholder = "Allowance Per Month With Utilities", @title = "AllowancePerMonthWithUtilities", @id = "AllowancePerMonthWithUtilities", onkeypress = "return OnlyDouble(this, event, 2);" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 col-sm-4">
+                                            <div class="form-group">
+                                                <label>House Preference</label>
+                                                <div class="radio">
+                                                    <label>@Html.RadioButtonFor(model => model.FurnishedOrUnfurnished, "Furnished")Furnished</label>
+                                                    <label>@Html.RadioButtonFor(model => model.FurnishedOrUnfurnished, "Semi-Furnished")Semi - Furnished</label>
+                                                    <label>@Html.RadioButtonFor(model => model.FurnishedOrUnfurnished, "Unfurnished")Unfurnished</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                @Html.CheckBoxFor(m => m.IsAllowanceIncludesFurniture, new { @class = "", @id = "IsAllowanceIncludesFurniture" })
+                                                <label>Allowance includes Furniture?</label>
+                                                @Html.TextBoxFor(m => m.AllowancePerMonthWithFurniture, new { @class = "form-control input-sm", placeholder = "Allowance Per Month With Furniture", @title = "AllowancePerMonthWithFurniture", @id = "AllowancePerMonthWithFurniture", onkeypress = "return OnlyDouble(this, event, 2);" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Essential Features</label>
+                                                @Html.TextBoxFor(m => m.EssentialFeatures, new { @class = "form-control input-sm", placeholder = "Essential Features", @title = "EssentialFeatures", @id = "EssentialFeatures" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>No Of Bedrooms</label>
+                                                @Html.TextBoxFor(m => m.NoOfBedrooms, new { @class = "form-control input-sm", placeholder = "No Of Bedrooms", @title = "NoOfBedrooms", @id = "NoOfBedrooms", onkeypress = "return OnlyInteger(this, event);" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>No Of Bathrooms</label>
+                                                @Html.TextBoxFor(m => m.NoOfBathrooms, new { @class = "form-control input-sm", placeholder = "No Of Bathrooms", @title = "NoOfBathrooms", @id = "NoOfBathrooms", onkeypress = "return OnlyInteger(this, event);" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>No Of Living Rooms</label>
+                                                @Html.TextBoxFor(m => m.NoOfLivingRooms, new { @class = "form-control input-sm", placeholder = "No Of Living Rooms", @title = "NoOfLivingRooms", @id = "NoOfLivingRooms", onkeypress = "return OnlyInteger(this, event);" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>No Of Dining Rooms</label>
+                                                @Html.TextBoxFor(m => m.NoOfDiningRooms, new { @class = "form-control input-sm", placeholder = "No Of Dining Rooms", @title = "NoOfDiningRooms", @id = "NoOfDiningRooms", onkeypress = "return OnlyInteger(this, event);" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane tab-panecontainer" id="AdditionalInformation">
+                        <div class="row tab-panecontainer">
+                            <fieldset class="col-md-12 border m-n">
+                                <legend>Additional Information</legend>
+                                <div class="m-t-sm m-n pad-none">
+                                    <div class="row">
+                                        <div class="col-md-4 col-sm-4">
+                                            <div class="form-group">
+                                                <label>Do you have any preferred communities, which you would like to view?</label>
+                                                <div>@Html.CheckBoxFor(m => m.IsPreferredCommunities, new { @id = "IsPreferredCommunities" })</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>If yes, please list locations</label>
+                                                @Html.TextBoxFor(m => m.PreferredCommunitiesDetails, new { @class = "form-control input-sm", placeholder = "Preferred Communities Details", @title = "PreferredCommunitiesDetails", @id = "PreferredCommunitiesDetails" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Location</label>
+                                                @Html.DropDownListFor(m => m.LocationId, new SelectList((System.Collections.IEnumerable)ViewData["LocationList"], "Value", "Text", ViewData["LocationList"]), "Select One", new { @class = "form-control", @id = "LocationId", @title = "LocationId" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>Maximum commuting time to the office</label>
+                                                @Html.TextBoxFor(m => m.MaxCommutingTime, new { @class = "form-control input-sm", placeholder = "Max Commuting Time", @title = "MaxCommutingTime", @id = "MaxCommutingTime" })
+                                                <div class="radio">
+                                                    <label>@Html.RadioButtonFor(model => model.ByCarOrPublicTransport, "Car")By Car</label>
+                                                    <label>@Html.RadioButtonFor(model => model.ByCarOrPublicTransport, "PublicTransport")By Public Transport</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @*<div class="col-md-3 col-sm-3">
+                                                <div class="form-group">
+                                                    <div class="radio">
+                                                        <label>@Html.RadioButtonFor(model => model.ByCarOrPublicTransport, "Car")By Car</label>
+                                                        <label>@Html.RadioButtonFor(model => model.ByCarOrPublicTransport, "PublicTransport")By Public Transport</label>
+                                                    </div>
+                                                </div>
+                                            </div>*@
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4 col-sm-4">
+                                            <div class="form-group">
+                                                <label>What should be within easy reach of the property</label>
+                                                @Html.TextBoxFor(m => m.WithinEasyReachOfTheProperty, new { @class = "form-control input-sm", placeholder = "", @title = "WithinEasyReachOfTheProperty", @id = "WithinEasyReachOfTheProperty" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>Do you have a current driver’s license?</label>
+                                                <div>@Html.CheckBoxFor(m => m.IsDriversLicenseAvailable, new { @id = "IsDriversLicenseAvailable" })</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label>Country of Issue</label>
+                                                @Html.DropDownListFor(m => m.CountryId_DrivingLicenseIssuedBy, new SelectList((System.Collections.IEnumerable)ViewData["CountryList"], "Value", "Text", ViewData["LocationList"]), "Select One", new { @class = "form-control", @id = "CountryId_DrivingLicenseIssuedBy", @title = "CountryId_DrivingLicenseIssuedBy" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>Vehicles To</label>
+                                                <div class="radio">
+                                                    <label>@Html.RadioButtonFor(model => model.VehiclesImportLeasePurchase, "Import")Import</label>
+                                                    <label>@Html.RadioButtonFor(model => model.VehiclesImportLeasePurchase, "Lease")Lease</label>
+                                                    <label>@Html.RadioButtonFor(model => model.VehiclesImportLeasePurchase, "Purchase")Purchase</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>No Of Vehicles</label>
+                                                @Html.TextBoxFor(m => m.NoOfVehicles, new { @class = "form-control input-sm", placeholder = "No Of Vehicles", @title = "NoOfVehicles", @id = "NoOfVehicles", onkeypress = "return OnlyInteger(this, event);" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3">
+                                            <div class="form-group">
+                                                <label>Type Of Vehicles</label>
+                                                @Html.TextBoxFor(m => m.TypeOfVehicles, new { @class = "form-control input-sm", placeholder = "Type Of Vehicles", @title = "TypeOfVehicles", @id = "TypeOfVehicles" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane tab-panecontainer" id="DMS">
+                        <div class="row tab-panecontainer">
+                            <fieldset class="col-md-12 border m-n">
+                                <legend>DMS</legend>
+                                <div class="m-t-sm m-n pad-none">
+                                    <div class="ibox-content" id="dvDMS">
+                                        @*@Html.HiddenFor(m => m.RequestDocsGroupID, new { @id = "RequestDocsGroupID" })
+                                            @Html.HiddenFor(m => m.RowID, new { @id = "RowID" })
+                                            <div class="row">
+                                                <div class="col-sm-6 col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Note : Please upload documents for each row individually.</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <table id="DocTable" class="table table-bordered table-responsive table-hover" style="width: 100%;">
+                                                <thead class="ibox-title">
+                                                    <tr>
+                                                        <th class="hide">Sr. No.</th>
+                                                        <th id="DocType">Document Type</th>
+                                                        <th id="nm">Document Name</th>
+                                                        <th>Description</th>
+                                                        <th>File Name</th>
+                                                        <th>Remarks</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @for (int i = 0; i < Model.WOSJobDocUploadList.Count; i++)
+                                                    {
+                                                        <tr>
+                                                            <td class="hide">
+                                                                @Html.Hidden("RowNo", i.ToString(), new { @class = "RowNo" })
+                                                                @Html.HiddenFor(m => m.WOSJobDocUploadList[i].JobDocTypeId, new { @class = "JobDocTypeId" })
+                                                                @Html.HiddenFor(m => m.WOSJobDocUploadList[i].FileID, new { @class = "FileID" })
+                                                            </td>
+                                                            <td>
+                                                                @Html.DisplayFor(m => m.WOSJobDocUploadList[i].DocTypeText)
+                                                                @Html.HiddenFor(m => m.WOSJobDocUploadList[i].DocTypeID, new { @class = "DocTypeID", @id = "DocTypeID" })
+                                                            </td>
+                                                            <td>
+                                                                @Html.DisplayFor(m => m.WOSJobDocUploadList[i].DocNameText)
+                                                                @Html.HiddenFor(m => m.WOSJobDocUploadList[i].DocNameID, new { @class = "DocNameID", @id = "DocNameID" })
+                                                            </td>
+                                                            <td>
+                                                                @Html.DisplayFor(m => m.WOSJobDocUploadList[i].DocDescription)
+                                                            </td>
+                                                            <td>
+                                                                @Html.DisplayFor(m => m.WOSJobDocUploadList[i].FileName)
+                                                            </td>
+                                                            <td>
+                                                                @Html.TextBoxFor(m => m.WOSJobDocUploadList[i].Remarks, new { @class = "form-control input-sm clearfix", @id = "Remarks" }).DisableIf(() => Model.WOSJobDocUploadList[i].FileID != null)
+                                                            </td>
+                                                            <td>
+                                                                @if (Model.WOSJobDocUploadList[i].FileID != null)
+                                                                {
+                                                                    using (Html.BeginForm("JobDocDownload", "WOSJobOpening", null, FormMethod.Post, new { id = "DownloadForm", target = "_blank", @class = "inline" }))
+                                                                    {
+                                                                        @Html.AntiForgeryToken()
+                                                                        @Html.Hidden("id", Model.WOSJobDocUploadList[i].FileID, new { @class = "FileID" })
+                                                                        <button type="submit" name="Download" value="Download" class="btn btn-primary btn-sm m-n"><i class="fa fa-download" aria-hidden="true"></i></button>
+                                                                    }
+                                                                    if (CommonService.IsViewFileButton(Model.WOSJobDocUploadList[i].FileName))
+                                                                    {
+                                                                        using (Html.BeginForm("ViewDocument", "DMS", new { id = @Model.WOSJobDocUploadList[i].FileID }, FormMethod.Post, new { id = "ViewForm", target = "_blank", @class = "inline" }))
+                                                                        {
+                                                                            @Html.AntiForgeryToken()
+                                                                            @Html.Hidden("FileID", Model.WOSJobDocUploadList[i].FileID, new { @class = "FileID" })
+                                                                            <button type="submit" name="View" value="View" class="btn btn-primary btn-sm m-n"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                                                                        }
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    @Html.TextBoxFor(m => m.WOSJobDocUploadList[i].ExtFile, new { @class = "inputfile inputfile-4 file inline", @id = "file", @accept = ".xls,.xlsx,.doc,.docx,.jpg,.jpeg,.png,.pdf,.ppt,.pptx,.csv", @type = "file", @multiple = "multiple" })
+                                                                    <button type="submit" name="Save" value="Upload Doc" class="btnUploadRequestDocs btn btn-primary btn-sm inline"><i class="fa fa-upload"></i></button>
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>*@
+
+                                        @Html.HiddenFor(m => m.RequestDocsGroupID, new { @id = "RequestDocsGroupID" })
+                                        @Html.HiddenFor(m => m.RowID, new { @id = "RowID" })
+                                        <div class="row">
+                                            <div class="col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <label>Note : Please upload documents for each row individually.</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @for (int i = 0; i < Model.WOSJobDocUploadList.Count; i++)
+                                        {
+                                            <div class="row">
+                                                @Html.Hidden("RowNo", i.ToString(), new { @class = "RowNo" })
+                                                @Html.HiddenFor(m => m.WOSJobDocUploadList[i].JobDocTypeId, new { @class = "JobDocTypeId" })
+                                                <div class="col-sm-2 col-md-2 hide">
+                                                    <div class="form-group">
+                                                        <label>Document Type</label>
+                                                        @Html.HiddenFor(m => m.WOSJobDocUploadList[i].DocTypeID, new { @class = "DocTypeID", @id = "DocTypeID" })
+                                                        @Html.TextBoxFor(m => m.WOSJobDocUploadList[i].DocTypeText, new { @class = "form-control input-sm", @id = "DocTypeText", @readonly = "readonly" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-3 col-md-3">
+                                                    <div class="form-group">
+                                                        <label>Document Name</label>
+                                                        @Html.HiddenFor(m => m.WOSJobDocUploadList[i].DocNameID, new { @class = "DocNameID", @id = "DocNameID" })
+                                                        @Html.TextBoxFor(m => m.WOSJobDocUploadList[i].DocNameText, new { @class = "form-control input-sm", @id = "DocNameText", @readonly = "readonly" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-2 col-md-2">
+                                                    <div class="form-group">
+                                                        <label>Description</label>
+                                                        @Html.TextBoxFor(m => m.WOSJobDocUploadList[i].DocDescription, new { @class = "form-control input-sm clearfix", @id = "DocDescription", @readonly = "readonly" })
+                                                    </div>
+                                                </div>
+                                                @if (Model.WOSJobDocUploadList[i].FileID != null)
+                                                {
+                                                    <div class="col-sm-3 col-md-3">
+                                                        <div class="form-group">
+                                                            <label>File Name</label>
+                                                            @Html.TextBoxFor(m => m.WOSJobDocUploadList[i].FileName, new { @class = "form-control input-sm clearfix", @id = "FileName", @readonly = "readonly" })
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-2 col-md-2">
+                                                        <div class="form-group">
+                                                            <label>Remarks</label>
+                                                            @Html.TextBoxFor(m => m.WOSJobDocUploadList[i].Remarks, new { @class = "form-control input-sm clearfix", @id = "Remarks", @readonly = "readonly" })
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-2 col-md-2">
+                                                        <div class="form-group">
+                                                            <a href="@Url.Action("JobDocDownload", "WOSJobOpening", new { FileID = Model.WOSJobDocUploadList[i].FileID.ToString() })" class="btnDownload btn btn-sm btn-primary filter-custom-margin fa fa-download" title="Download"></a>
+                                                        </div>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="col-sm-3 col-md-3">
+                                                        <div class="form-group">
+                                                            <label>File Upload (Max Size: 20MB)</label>
+                                                            @Html.TextBoxFor(m => m.WOSJobDocUploadList[i].ExtFile, new { @class = "inputfile inputfile-4 form-control file", @id = "file", @accept = ".xls,.xlsx,.doc,.docx,.jpg,.jpeg,.png,.pdf,.ppt,.pptx,.csv", @type = "file", @multiple = "multiple", @title = "Max Size: 20MB" })
+                                                            @Html.ValidationMessageFor(m => m.WOSJobDocUploadList[i].ExtFile, "", new { @class = "text-danger" })
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-2 col-md-2">
+                                                        <div class="form-group">
+                                                            <label>Remarks</label>
+                                                            @Html.TextBoxFor(m => m.WOSJobDocUploadList[i].Remarks, new { @class = "form-control input-sm clearfix", @id = "Remarks" })
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-2 col-md-2">
+                                                        <div class="form-group">
+                                                            <button type="submit" name="Save" value="Upload Doc" id="btnUploadRequestDocs" class="btnUploadRequestDocs btn btn-primary btn-sm filter-custom-margin"><i class="fa fa-upload"></i></button>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts
+{
+    <script type="text/javascript">
+        var rowIndex = 0;
+        $(document).ready(function () {
+            $("form").validate().settings.ignore = ":hidden";
+
+            $('.datepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            setInterval(function () {
+                var url = "@Url.Action("AssigneeDetails", "WOSJobOpening", new { Key = CommonService.GenerateQueryString("WOSMoveID=ParamValue0", new string[] { WOSMoveID.ToString() }) })";
+                if ($("#Dashboard").hasClass("active"))
+                    $("#dvChatPartial").load(url, function () {
+                        BindChatPartialScript();
+                    });
+            }, 5000);
+
+            $(".btnUploadRequestDocs").on("click", function (e) {
+                var row = $(this).closest(".row");
+                $("#RowID").val(row.find('.RowNo').val());
+
+                if (row.find(".file").val() == "") {
+                    swal({ title: "Error!", text: "Please select file.", type: "error" });
+                    e.preventDefault();
+                    return;
+                }
+                e.preventDefault();
+                var url = "@Url.Action("RequestDocsUpload", "WOSJobOpening")";
+                $('form').attr('action', url).submit();
+            });
+
+            $("#NoOfChildren").val(@NoOfChildren);
+
+            //Bind City Dropdown
+            AjaxFillDropDown('#CityID', "@Url.Action("GetCityList", "WOSJobOpening")");
+            if (@CityID > 0) {
+                var newOption = new Option("@City", @CityID, true, true);
+                $("#CityID").append(newOption).trigger('change');
+            }
+
+            if ("@Model.IsFinalSubmit.ToString().ToUpper()" == "TRUE" && "@EMPorAssingee" == "A") {
+                $("form :input").prop("disabled", true);
+
+                $("#WOSMoveID").prop("disabled", false);
+                $("#MoveID").prop("disabled", false);
+                $(".type_msg :input").prop("disabled", false);
+                $("#dvDMS :input").prop("disabled", false);
+
+                if ($("#CityID").data('select2')) {
+                    $("#CityID").select2('destroy');
+                }
+            }
+
+            BindChatPartialScript();
+
+            $("#txtMessage").keydown(function (event) {
+                if (event.which == 13) {
+                    SendMessage();
+                }
+            });
+
+            $('#formAssigneeDetails').submit(function () {
+                SetHiddenFieldValue();
+            });
+        });
+        function AddChild() {
+            if (!ValidateChildDetails())
+                return false;
+
+            var ChildDetailsId = 0;
+            var rowId = 1;
+
+            var Table = $("#tableChildDetails")[0];
+            if ($("#btnAddChild").val() != 'Add Child Details') {
+                ChildDetailsId = $("tr", Table).eq(rowIndex).find('.tdChildDetailsId').val();
+                rowId = rowIndex;
+            }
+            else {
+                rowId = $("#tableChildDetails tbody")[0].rows.length + 1;
+            }
+
+            var ChildName = $("#ChildName").val().trim();
+            var ChildAge = $("#ChildAge").val().trim();
+            var SchoolTypeId = parseInt($("#SchoolTypeId").val());
+            var SchoolType = $("#SchoolTypeId option:selected").text().trim();
+            var SpecificSchoolDetails = $("#SpecificSchoolDetails").val().trim();
+            var SpecialSchoolRequirements = $("#SpecialSchoolRequirements").val().trim();
+
+            var tbody = $("#tableChildDetails > tbody")[0];
+
+            var tdChildDetails = '<input type="hidden" class="tdChildDetailsId" name="ChildDetailsId" id="ChildDetailsId_' + (rowId) + '" value="' + ChildDetailsId + '" />' +
+                '<input type="hidden" class="tdSchoolTypeId" name="SchoolTypeId" id="SchoolTypeId_' + (rowId) + '" value="' + SchoolTypeId + '" />';
+
+            var row;
+
+            //Add row
+            if (rowIndex != 0) {
+                Table.deleteRow(rowIndex);
+                row = tbody.insertRow(rowIndex - 1);
+            }
+            else {
+                row = tbody.insertRow(-1);
+            }
+
+            //Add cell values
+            var cell = $(row.insertCell(-1));
+            cell.html(tdChildDetails);
+            cell.addClass("tdSequence");
+
+            cell = $(row.insertCell(-1));
+            cell.html(ChildName);
+            cell.addClass("tdChildName");
+
+            cell = $(row.insertCell(-1));
+            cell.html(ChildAge);
+            cell.addClass("tdChildAge");
+
+            cell = $(row.insertCell(-1));
+            cell.html(SchoolType);
+            cell.addClass("tdSchoolType");
+
+            cell = $(row.insertCell(-1));
+            cell.html(SpecificSchoolDetails);
+            cell.addClass("tdSpecificSchoolDetails");
+
+            cell = $(row.insertCell(-1));
+            cell.html(SpecialSchoolRequirements);
+            cell.addClass("tdSpecialSchoolRequirements");
+
+            cell = $(row.insertCell(-1));
+            var btnEdit = $("<button><i class=\"glyphicon glyphicon-pencil\"></i></button>");
+            btnEdit.attr("type", "button");
+            btnEdit.attr("onclick", "EditChild(this);");
+            btnEdit.attr("class", "btnEditChild btn btn-sm btn-primary pull-left");
+
+            var btnDelete = $("<button><i class=\"glyphicon glyphicon-trash\"></i></button>");
+            btnDelete.attr("type", "button");
+            btnDelete.attr("onclick", "DeleteChild(this);");
+            btnDelete.attr("class", "btnDeleteChild btn btn-sm btn-danger pull-left");
+            cell.append(btnEdit).append(btnDelete);
+
+            //Clear the controls
+            ClearChildControls();
+
+            $("#btnAddChild").val('Add Child Details');
+            $("#tableChildDetails").show();
+        }
+        function ClearChildControls() {
+            $("#ChildName").val('');
+            $("#ChildAge").val('');
+            $("#SchoolTypeId").val('');
+            $("#SpecificSchoolDetails").val('');
+            $("#SpecialSchoolRequirements").val('');
+
+            //remove class if edit is clicked
+            $("#tableChildDetails tbody tr").each(function () {
+                $(this).removeClass('bg')
+            });
+
+            rowIndex = 0;
+            $("#btnAddChild").val('Add Child Details');
+            $("#btnSave").prop("disabled", false);
+            $("#btnFinalSubmit").prop("disabled", false);
+        }
+        function ValidateChildDetails() {
+            var ChildName = $("#ChildName").val().trim();
+            var ChildAge = $("#ChildAge").val().trim();
+
+            if (ChildName == "") {
+                swal({ title: "Error!", text: "Please enter child name.", type: "error" });
+                return false;
+            }
+            if (ChildAge == "") {
+                swal({ title: "Error!", text: "Please enter child age.", type: "error" });
+                return false;
+            }
+            if (ChildAge <= 0) {
+                swal({ title: "Error!", text: "Please enter valid age.", type: "error" });
+                return false;
+            }
+            return true;
+        }
+        function EditChild(button) {
+            //Determine the reference of the row using the button.
+            var row = $(button).closest("tr");
+            $("#ChildName").val(row.find('.tdChildName').text().trim());
+            $("#ChildAge").val(row.find('.tdChildAge').text().trim());
+            $("#SchoolTypeId").val(row.find('.tdSchoolTypeId').val());
+            $("#SpecificSchoolDetails").val(row.find('.tdSpecificSchoolDetails').text().trim());
+            $("#SpecialSchoolRequirements").val(row.find('.tdSpecialSchoolRequirements').text().trim());
+
+            row.closest('table').find('tr').each(function () { $(this).removeClass('bg') });
+            row.addClass('bg');
+            rowIndex = row[0].rowIndex;
+            $("#btnAddChild").val('Update Child Details');
+            $("#btnSave").prop("disabled", true);
+            $("#btnFinalSubmit").prop("disabled", true);
+        }
+        function DeleteChild(button) {
+            //Determine the reference of the row using the button
+            var row = $(button).closest("tr");
+            var rowNo = row[0].rowIndex;
+            if (confirm("Do you want to delete row " + rowNo + " ?")) {
+                //Get the reference of the table
+                var table = $("#tableChildDetails")[0];
+                //Delete the table row using row index.
+                table.deleteRow(row[0].rowIndex);
+                ClearDebitNote();
+                if ($("#tableChildDetails tbody")[0].rows.length == 0) {
+                    $("#tableChildDetails").hide();
+                }
+            }
+        }
+        function SetHiddenFieldValue() {
+            var arrData = [];
+            $("#tableChildDetails tbody tr").each(function () {
+                var ChildDetailsId = $(this).find('.tdChildDetailsId').val();
+                var ChildName = $(this).find('.tdChildName').text().trim();
+                var ChildAge = $(this).find('.tdChildAge').text();
+                var SchoolTypeId = $(this).find('.tdSchoolTypeId').val();
+                var SpecificSchoolDetails = $(this).find('.tdSpecificSchoolDetails').text().trim();
+                var SpecialSchoolRequirements = $(this).find('.tdSpecialSchoolRequirements').text().trim();
+
+                var rowData = {
+                    ChildDetailsId: ChildDetailsId
+                }
+                if (ChildName !== null) rowData.ChildName = ChildName;
+                if (ChildAge !== null) rowData.ChildAge = ChildAge;
+                if (SchoolTypeId !== null) rowData.SchoolTypeId = SchoolTypeId;
+                if (SpecificSchoolDetails !== null) rowData.SpecificSchoolDetails = SpecificSchoolDetails;
+                if (SpecialSchoolRequirements !== null) rowData.SpecialSchoolRequirements = SpecialSchoolRequirements;
+
+                arrData.push(rowData);
+            });
+            $("#ChildDetailsListHidden").val(JSON.stringify({ 'ChildDetail': arrData }));
+        }
+        function SendMessage() {
+            try {
+                $("#txtSendMessage").prop("disabled", true);
+                var WOSMoveID = parseInt($("#WOSMoveID").val().trim());
+                var EMPorAssingee = '@(UserSession.GetUserSession()?.LoginID > 0 ? "E" : "A")';
+                var ChatMsg = $("#txtMessage").val().replace(/\\/g, "\\\\").replace(/\'/g, "\\'").trim();
+                if (ChatMsg != "") {
+                    $.ajax({
+                        type: "post",
+                        dataType: "json",
+                        contentType: "application/json; charset=utf-8",
+                        url: "@Url.Action("SendMessage", "WOSJobOpening")",
+                        data: "{WOSMoveID:'" + WOSMoveID + "',EMPorAssingee:'" + EMPorAssingee + "',ChatMsg:'" + ChatMsg + "'}",
+                        async: false,
+                        success: function (data) {
+                            if (data.result == true) {
+                                $("#txtMessage").val('');
+                                var url = "@Url.Action("AssigneeDetails", "WOSJobOpening", new { Key = CommonService.GenerateQueryString("WOSMoveID=ParamValue0", new string[] { WOSMoveID.ToString() }) })";
+                                $("#dvChatPartial").load(url, function () {
+                                    BindChatPartialScript();
+                                });
+                            }
+                        },
+                        failure: function () {
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                        }
+                    });
+                }
+            }
+            catch (e) {
+            }
+            finally {
+                $("#txtSendMessage").prop("disabled", false);
+            }
+        }
+        function BindChatPartialScript() {
+            $(".msg_history").scrollTop($(".msg_history")[0].scrollHeight);
+        }
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+}

@@ -1,0 +1,117 @@
+﻿@model RELOCBS.Entities.WOSJobOpening
+
+@using RELOCBS.Extensions;
+
+@{
+    Layout = null;
+
+    string ServiceName = string.Empty;
+
+    string CostCurrLabel = string.IsNullOrEmpty(Model.WOSCustomer.CostCurrency) ? "Cost" : "Cost (" + Model.WOSCustomer.CostCurrency + ")";
+    string RevCurrLabel = string.IsNullOrEmpty(Model.WOSCustomer.RevenueCurrency) ? "Rev. Amount" : "Rev. Amount (" + Model.WOSCustomer.RevenueCurrency + ")";
+    string UnbillCurrLabel = string.IsNullOrEmpty(Model.WOSCustomer.RevenueCurrency) ? "Unbill" : "Unbill (" + Model.WOSCustomer.RevenueCurrency + ")";
+}
+
+<div class="row">
+    <div class="col-md-2 col-sm-2">
+        <div class="form-group">
+            <label class="requiredlabel">Cost Currency</label>
+            @Html.DropDownListFor(m => m.WOSCustomer.CostCurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["CurrencyList"], "Value", "Text", ViewData["CurrencyList"]), "Select One", new { @class = "form-control input-sm enableselect", @id = "CostCurrencyID", @title = "Cost Currency" })
+            @Html.HiddenFor(m => m.WOSCustomer.CostCurrencyID)
+            @Html.ValidationMessageFor(m => m.WOSCustomer.CostCurrencyID, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-2">
+        <div class="form-group">
+            <label class="requiredlabel">Revenue Currency</label>
+            @Html.DropDownListFor(m => m.WOSCustomer.RevenueCurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["CurrencyList"], "Value", "Text", ViewData["CurrencyList"]), "Select One", new { @class = "form-control input-sm enableselect", @id = "RevenueCurrencyID", @title = "Revenue Currency" })
+            @Html.HiddenFor(m => m.WOSCustomer.RevenueCurrencyID)
+            @Html.ValidationMessageFor(m => m.WOSCustomer.RevenueCurrencyID, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-2 pull-right">
+        <div class="form-group">
+            <input type="button" id="btnCostSheetForJob" class="btn btn-primary btn-sm filter-custom-margin" value="Get Cost Sheet For Job" onclick="GetCostSheetForJob()" />
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-2 col-sm-2 hide">
+        <div class="form-group">
+            <label>Audit Fee</label>
+            @Html.TextBoxFor(m => m.WOSCustomer.AuditFee, new { @class = "form-control input-sm", @placeholder = "Audit Fee", @title = "Audit Fee", @id = "AuditFee", onkeypress = "return OnlyDouble(this, event, 2);" })
+            @Html.HiddenFor(m => m.WOSCustomer.AuditFee)
+            @Html.ValidationMessageFor(m => m.WOSCustomer.AuditFee, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-2 hide">
+        <div class="form-group">
+            <label>Admin Fee</label>
+            @Html.TextBoxFor(m => m.WOSCustomer.AdminFee, new { @class = "form-control input-sm", @placeholder = "Admin Fee", @title = "Admin Fee", @id = "AdminFee", onkeypress = "return OnlyDouble(this, event, 2);" })
+            @Html.HiddenFor(m => m.WOSCustomer.AdminFee)
+            @Html.ValidationMessageFor(m => m.WOSCustomer.AdminFee, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-2">
+        <div class="form-group">
+            <label>Bill Commission %</label>
+            @Html.TextBoxFor(m => m.WOSCustomer.BillCommissionPercent, new { @class = "form-control input-sm", @placeholder = "Bill Commission Percent", @title = "Bill Commission Percent", @id = "BillCommissionPercent", onkeypress = "return OnlyDouble(this, event, 2);" })
+            @Html.HiddenFor(m => m.WOSCustomer.BillCommissionPercent)
+            @Html.ValidationMessageFor(m => m.WOSCustomer.BillCommissionPercent, "", new { @class = "text-danger" })
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12 col-md-12">
+        <table class="table table-bordered table-responsive table-hover" id="tableCostSheet" style="width: 100%;">
+            <thead class="ibox-title">
+                <tr>
+                    <th>Sr. No</th>
+                    <th class="hide">GroupID</th>
+                    <th class="hide">Service Name</th>
+                    <th>Sub Service Name</th>
+                    <th>Mast. Cost</th>
+                    <th>Mast. Rev. Amount</th>
+                    <th>@CostCurrLabel</th>
+                    <th>@RevCurrLabel</th>
+                    <th>@UnbillCurrLabel</th>
+                    <th>To Bill</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.WOSCustomer.WOSSubServiceList.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            @Html.CheckBoxFor(m => m.WOSCustomer.WOSSubServiceList[i].IsChecked, new { @class = "checkbox-margins tdIsChecked" })
+                            @Html.HiddenFor(m => m.WOSCustomer.WOSSubServiceList[i].SubServiceMastID, new { @class = "tdSubServiceMastID" })
+                            @Html.HiddenFor(m => m.WOSCustomer.WOSSubServiceList[i].SubServiceName, new { @class = "tdSubServiceName" })
+                            @Html.HiddenFor(m => m.WOSCustomer.WOSSubServiceList[i].UnbilledAmount, new { @class = "tdUnbilledAmount" })
+                        </td>
+                        <td class="hide">@(Model.WOSCustomer.WOSSubServiceList[i].ServiceMastID.ToString() + "_" + @Model.WOSCustomer.WOSSubServiceList[i].SrNo.ToString())</td>
+                        <td class="hide">@Model.WOSCustomer.WOSSubServiceList[i].ServiceName</td>
+                        <td>@Model.WOSCustomer.WOSSubServiceList[i].SubServiceName</td>
+                        <td>@Html.TextBoxFor(m => m.WOSCustomer.WOSSubServiceList[i].MastCostAmount, null, new { @placeholder = "", @class = "form-control input-sm tdMastCostAmount", @onkeypress = "return OnlyDouble(this, event);", @oncopy = "return false", @onpaste = "return false", @readonly = "readonly" })</td>
+                        <td>@Html.TextBoxFor(m => m.WOSCustomer.WOSSubServiceList[i].MastRevenueAmount, null, new { @placeholder = "", @class = "form-control input-sm tdMastRevenueAmount", @onkeypress = "return OnlyDouble(this, event);", @oncopy = "return false", @onpaste = "return false", @readonly = "readonly" })</td>
+                        <td>@Html.TextBoxFor(m => m.WOSCustomer.WOSSubServiceList[i].BillCostAmount, null, new { @placeholder = "", @class = "form-control input-sm tdBillCostAmount", @onkeypress = "return OnlyDouble(this, event);", @onblur = "return EditSum();" }).DisableIf(() => Model.WOSCustomer.WOSSubServiceList[i].IsChecked == false || Model.IsCostSheetApproved == true || Model.IsCSSentToApprove == true)</td>
+                        <td>@Html.TextBoxFor(m => m.WOSCustomer.WOSSubServiceList[i].BillRevenueAmount, null, new { @placeholder = "", @class = "form-control input-sm tdBillRevenueAmount", @onkeypress = "return OnlyDouble(this, event);", @onblur = "return EditSum();" }).DisableIf(() => Model.WOSCustomer.WOSSubServiceList[i].IsChecked == false || Model.IsCostSheetApproved == true || Model.IsCSSentToApprove == true)</td>
+                        <td>@Model.WOSCustomer.WOSSubServiceList[i].UnbilledAmount</td>
+                        <td>@Html.CheckBoxFor(m => m.WOSCustomer.WOSSubServiceList[i].ToBill, new { @class = "checkbox-margins tdToBill" }).DisableControlIf(() => Model.WOSCustomer.WOSSubServiceList[i].IsChecked == false || Model.WOSCustomer.WOSSubServiceList[i].UnbilledAmount == 0 || Model.IsCostSheetApproved != true)</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot class="ibox-title">
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td><strong>Total @CostCurrLabel : <span class="SumCost">@string.Format("{0:0.00}", Model.WOSCustomer.WOSSubServiceList.Sum(r => r.BillCostAmount))</span></strong></td>
+                    <td><strong>Total @RevCurrLabel : <span class="SumRevenue">@string.Format("{0:0.00}", Model.WOSCustomer.WOSSubServiceList.Sum(r => r.BillRevenueAmount))</span></strong></td>
+                    <td><strong>Total @UnbillCurrLabel : <span class="SumUnbilled">@string.Format("{0:0.00}", Model.WOSCustomer.WOSSubServiceList.Sum(r => r.UnbilledAmount))</span></strong></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,682 @@
+﻿@model RELOCBS.Entities.ActivityAllocationModel
+@using RELOCBS.Extensions;
+
+@{
+
+   bool FromRequestApproval = ViewBag.FromRequestApproval!=null ? ViewBag.FromRequestApproval : false;
+
+}
+
+<style>
+    .bg {
+        border-left: 5px solid red;
+    }
+</style>
+<div class="m-t-sm m-l-sm m-r-sm">
+
+    @if(!FromRequestApproval)
+    {
+    <div class="row no-gutters">
+        @Html.Hidden("EditRowIndex", "-1")
+        <div class="col-sm-2 col-md-2 form-group no-padding-r">
+            <label>Purpose</label>
+            @Html.DropDownList("PurposeID", new SelectList((System.Collections.IEnumerable)ViewData["PurposeList"], "Value", "Text"), "--Select Purpose--", new { id = "PurposeDropdown", @class = "form-control input-sm clearfix enableselect" })
+            @*@Html.ValidationMessageFor(model => model.jobVehicle.PurposeID, "", new { @class = "text-danger" })*@
+        </div>
+        <div class="col-sm-1 col-md-1 form-group no-padding-r">
+            <label>Movement</label>
+            @Html.DropDownList("VehicleMovement", new SelectList((System.Collections.IEnumerable)ViewData["VehicleMovementList"], "Value", "Text"), new { @class = "form-control input-sm clearfix" })
+        </div>
+        <div class="col-sm-1 col-md-1 form-group no-padding-r">
+            <label>VehicleType</label>
+            @Html.DropDownList("VehicleType", new SelectList((System.Collections.IEnumerable)ViewData["OwnershipTypeList"], "Value", "Text"), new { id = "VehicleTypeDropdown", @class = "form-control input-sm clearfix", @onchange = "DrpVehicleType_change(this)" })
+        </div>
+        <div class="col-sm-2 col-md-2 form-group no-padding-r">
+            <label>Vehicle</label>
+            @Html.DropDownList("VehicleID", new SelectList((System.Collections.IEnumerable)ViewData["VehicleList"], "Value", "Text"), "--Select One--", new { id = "VehicleDropdown", @class = "form-control input-sm clearfix enableselect", @onchange = "DrpVehicleNo_change(this)" })
+            @Html.TextBox("AVehicleNo", null, new { id = "AVehicleNo", @class = "form-control input-sm clearfix AVehicleNo hide" })
+        </div>
+        <div class="col-sm-2 col-md-2 form-group no-padding-r">
+            <label>Supplier</label>
+            @Html.DropDownList("VehicleSupplier", new SelectList((System.Collections.IEnumerable)ViewData["VendorList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm clearfix enableselect" })
+        </div>
+        <div class="col-sm-2 col-md-2 form-group no-padding-r">
+            <label>Dimension</label>
+            @Html.DropDownList("VehicleDimension", new SelectList((System.Collections.IEnumerable)ViewData["VehicleDimensionList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm clearfix" })
+        </div>
+        <div class="col-sm-1 col-md-1 form-group no-padding-r">
+            <label>From Loc.</label>
+            @Html.TextBox("AFromLoc", null, new { @class = "form-control input-sm clearfix AFromLoc" })
+        </div>
+        <div class="col-sm-1 col-md-1 form-group no-padding-r">
+            <label>To Loc.</label>
+            @Html.TextBox("AToLoc", null, new { @class = "form-control input-sm clearfix AToLoc" })
+        </div>
+    </div>
+    <div class="row no-gutters">
+			<div class="col-sm-1 col-md-1 form-group no-padding-r">
+				<label>Driver Type</label>
+				@Html.DropDownList("DriverType", new SelectList((System.Collections.IEnumerable)ViewData["OwnershipTypeList"], "Value", "Text"), new { id = "DriverTypeDropdown", @class = "form-control input-sm clearfix", @onchange = "DrpDriverType_change(this)" })
+			</div>
+			<div class="col-sm-2 col-md-2 form-group no-padding-r">
+				<label>Driver</label>
+				@Html.DropDownList("DriverID", new SelectList((System.Collections.IEnumerable)ViewData["DriverList"], "Value", "Text"), "--Select One--", new { id = "DriverDropdown", @class = "form-control input-sm clearfix enableselect" })
+				@Html.TextBox("ADriver", null, new { id = "ADriver", @class = "form-control input-sm clearfix ADriver hide" })
+				@*@Html.ValidationMessageFor(model => model.jobVehicle.DriverID, "", new { @class = "text-danger" })*@
+			</div>
+        <div class="col-sm-1 col-md-1 form-group no-padding-r">
+            <label>From Date</label>
+            @Html.TextBox("FromDate", null, new { id = "VFromDate", @class = "form-control input-sm clearfix VFromDate datetimepicker" })
+            @*@Html.ValidationMessageFor(model => model.jobVehicle.FromDate, "", new { @class = "text-danger" })*@
+        </div>
+        <div class="col-sm-1 col-md-1 form-group no-padding-r">
+            <label>To Date</label>
+            @Html.TextBox("ToDate", null, new { id = "VToDate", @class = "form-control input-sm clearfix VToDate datetimepicker" })
+            @*@Html.ValidationMessageFor(model => model.jobVehicle.ToDate, "", new { @class = "text-danger" })*@
+        </div>
+		<div class="col-sm-2 col-md-2 form-group no-padding-r">
+				<label>Reason</label>
+				@Html.DropDownList("VehicleReason", new SelectList((System.Collections.IEnumerable)ViewData["VehicleReasonList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm clearfix" })
+			</div>
+		 <div class="col-sm-2 col-md-2 form-group no-padding-r">
+            <label>Remark</label>
+            @Html.TextBox("VehicleRemark", null, new { id = "VehicleRemark", @class = "form-control input-sm clearfix VehicleRemark" })
+        </div>
+        <div class="col-sm-1 col-md-1 form-group no-padding-r">
+            <label>Apprx.Cost</label>
+            @Html.TextBox("VehicleCost", null, new { @class = "form-control input-sm clearfix VehicleCost", id= "VehicleCost" })
+        </div>
+        <div class="col-sm-1 col-md-1 form-group no-padding-r">
+            <label>Vol.(CFT)</label>
+            @Html.TextBox("AVolCFT", null, new { @class = "form-control input-sm clearfix AVolCFT" })
+        </div>
+        <div class="col-sm-1 col-md-1 form-group no-padding-r">
+            <div class="clearfix">
+                <input type="button" id="btnAdd" value="Add" class="btn btn-primary btn-sm filter-custom-margin btnAddVehicle" onclick="AddVehicle()"/>
+                <button type="button" id="btnCancelEdit" value="Cancel" title="Cancel" class="btn btn-danger btn-sm filter-custom-margin m-l-sm hide" onclick="CancelEditVehicle()"><i class="fas fa-times-circle"></i></button>
+            </div>
+        </div>
+    </div>
+	
+    }
+    <div class="row">
+        <div class="table-responsive">
+            <table id="tblVehicle" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Purpose</th>
+                        <th>Movement</th>
+                        <th>Vehicle Type</th>
+                        <th>Vehicle No.</th>
+                        <th>Supplier</th>
+                        <th>Dimensions</th>
+                        <th>FromLoc.</th>
+                        <th>ToLoc.</th>
+                        <th>Driver Type</th>
+                        <th>Driver</th>
+                        <th>From Date</th>
+                        <th>To Date</th>
+                        <th>Reason</th>
+                        <th>Remark</th>
+                        <th>Apprx.Cost</th>
+                        <th>Vol.(CFT)</th>
+                        <th>Approval Remark</th>
+                        <th class="thRound cw30 thRoundLast">&nbsp;</th>
+                        <th class="thRound cw30 thRoundLast">&nbsp;</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.jobVehicleList.Count; i++)
+                    {
+                        var V_PJR_Status = Model.jobVehicleList[i].PJR_Status;
+                        Model.jobVehicleList[i].rowIndex = i;
+                        <tr>
+                            <td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].Purpose, new { @class = "form-control input-sm clearfix PurposeList", @title = Model.jobVehicleList[i].Purpose, @readonly = "readonly" })
+                                @Html.HiddenFor(model => Model.jobVehicleList[i].V_ID, new { @class = "V_ID" })
+                                @Html.HiddenFor(model => Model.jobVehicleList[i].PurposeID, new { @class = "VPurpose" })
+                                @Html.HiddenFor(model => Model.jobVehicleList[i].PJR_Status, new { @class = "V_PJR_Status" })
+                                @Html.HiddenFor(model => Model.jobVehicleList[i].Approve_Status, new { @class = "V_Approve_Status" })
+                                @Html.HiddenFor(model => Model.jobVehicleList[i].Approve_StatusId, new { @class = "V_Approve_StatusId" })
+                                @Html.HiddenFor(model => Model.jobVehicleList[i].rowIndex,new {@class= "Vehicle_rowIndex" })
+                            </td>
+							<td>
+							    @Html.TextBoxFor(model => Model.jobVehicleList[i].MovementName, new { @class = "form-control input-sm clearfix MovementList", @title = Model.jobVehicleList[i].MovementName, @readonly = "readonly" })
+                                @Html.HiddenFor(model => Model.jobVehicleList[i].MovementID, new { @class = "MovementID" })
+							</td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].VehicleType, new { @class = "form-control input-sm clearfix VehicleTypeList", @title = Model.jobVehicleList[i].VehicleType, @readonly = "readonly" })
+                                @Html.HiddenFor(model => Model.jobVehicleList[i].VehicleTypeID, new { @class = "VehicleType" })
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].VehicleNo, new { @class = "form-control input-sm clearfix VehicleList", @title = Model.jobVehicleList[i].VehicleNo, @readonly = "readonly" })
+                                @Html.HiddenFor(model => Model.jobVehicleList[i].VehicleID, new { @class = "Vehicle" })
+                            </td>
+							<td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].SupplierName, new { @class = "form-control input-sm clearfix SupplierList", @title = Model.jobVehicleList[i].SupplierName, @readonly = "readonly" })
+                                @Html.HiddenFor(model => Model.jobVehicleList[i].SupplierID, new { @class = "SupplierID" })
+                            </td>
+							<td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].DimensionName, new { @class = "form-control input-sm clearfix DimensionList", @title = Model.jobVehicleList[i].DimensionName, @readonly = "readonly" })
+                                @Html.HiddenFor(model => Model.jobVehicleList[i].DimensionID, new { @class = "DimensionID" })
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].FromLocation, new { @class = "form-control input-sm clearfix V_FromLocation", @title = Model.jobVehicleList[i].FromLocation }).DisableIf(() => Model.jobVehicleList[i].PJR_Status == 1 || (Model.jobVehicleList[i].VehicleTypeID.Trim() == "H" && Model.jobVehicleList[i].Approve_StatusId > 1))
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].ToLocation, new { @class = "form-control input-sm clearfix V_ToLocation", @title = Model.jobVehicleList[i].ToLocation }).DisableIf(() => Model.jobVehicleList[i].PJR_Status == 1 || (Model.jobVehicleList[i].VehicleTypeID.Trim() == "H" && Model.jobVehicleList[i].Approve_StatusId > 1))
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].DriverType, new { @class = "form-control input-sm clearfix DriverTypeList", @title = Model.jobVehicleList[i].DriverType, @readonly = "readonly" })
+                                @Html.HiddenFor(model => Model.jobVehicleList[i].DriverTypeID, new { @class = "DriverType" })
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].Driver, new { @class = "form-control input-sm clearfix DriverList" ,@title = Model.jobVehicleList[i].Driver, @readonly="readonly" })
+                                @Html.HiddenFor(model => Model.jobVehicleList[i].DriverID, new { @class = "VDriver" })
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].FromDate, new { @class = "form-control input-sm clearfix VehicleFromDate datetimepicker onkeydtp", @title= Model.jobVehicleList[i].FromDate }).DisableIf(() => Model.jobVehicleList[i].PJR_Status == 1 || (Model.jobVehicleList[i].VehicleTypeID.Trim() == "H" && Model.jobVehicleList[i].Approve_StatusId > 1))
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].ToDate, new { @class = "form-control input-sm clearfix VehicleToDate datetimepicker onkeydtp", @title = Model.jobVehicleList[i].ToDate }).DisableIf(() => Model.jobVehicleList[i].PJR_Status == 1 || (Model.jobVehicleList[i].VehicleTypeID.Trim() == "H" && Model.jobVehicleList[i].Approve_StatusId > 1))
+                            </td>
+							<td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].ReasonName, new { @class = "form-control input-sm clearfix VReasonList" ,@title = Model.jobVehicleList[i].ReasonName, @readonly="readonly" })
+                                @Html.HiddenFor(model => Model.jobVehicleList[i].ReasonID, new { @class = "VReasonID" })
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].V_Remark, new { @class = "form-control input-sm clearfix V_Remark", @title = Model.jobVehicleList[i].V_Remark }).DisableIf(() => Model.jobVehicleList[i].PJR_Status == 1 || (Model.jobVehicleList[i].VehicleTypeID.Trim() == "H" && Model.jobVehicleList[i].Approve_StatusId > 1))
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].V_Cost, new { @class = "form-control input-sm clearfix V_Cost" }).DisableIf(() => Model.jobVehicleList[i].PJR_Status == 1 || (Model.jobVehicleList[i].VehicleTypeID.Trim() == "H" && Model.jobVehicleList[i].Approve_StatusId > 1))
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].VolumeCFT, new { @class = "form-control input-sm clearfix V_VolumeCFT", @title = Model.jobVehicleList[i].VolumeCFT }).DisableIf(() => Model.jobVehicleList[i].PJR_Status == 1 || (Model.jobVehicleList[i].VehicleTypeID.Trim() == "H" && Model.jobVehicleList[i].Approve_StatusId > 1))
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.jobVehicleList[i].Approve_Remark, new { @class = "form-control input-sm clearfix VApprove_Remark",@readonly="readonly", @title = Model.jobVehicleList[i].Approve_Remark })
+                            </td>
+                            <td>
+                                @if (Model.jobVehicleList[i].PJR_Status == 0 && Model.jobVehicleList[i].VehicleTypeID.Trim() == "H")
+                                {
+                                    if (!string.IsNullOrWhiteSpace(Model.jobVehicleList[i].Approve_Status))
+                                    {
+                                        if (Model.jobVehicleList[i].Approve_StatusId==1)
+                                        {
+                                            <button type="button" class="btnSentApproval btn btn-sm btn-primary pull-left" data-id="@Model.jobVehicleList[i].V_ID" data-approveStatus="@Model.jobVehicleList[i].Approve_StatusId">@Model.jobVehicleList[i].Approve_Status</button>
+                                        }
+                                        else
+                                        {
+                                            var bntApprovalDisabled = !Model.jobVehicleList[i].IsApprover ? "disabled" : "";
+                                            <button type="button" data-toggle="modal" href="#myModal2" class="btnApproval btn btn-sm btn-primary pull-left" @bntApprovalDisabled data-id="@Model.jobVehicleList[i].V_ID" data-approveStatus="@Model.jobVehicleList[i].Approve_StatusId">@Model.jobVehicleList[i].Approve_Status</button>
+                                        }
+                                    }
+                                }
+                            </td>
+                            <td>
+                                @if ((Model.jobVehicleList[i].VehicleTypeID.Trim() != "H" && Model.jobVehicleList[i].PJR_Status == 0) || (Model.jobVehicleList[i].VehicleTypeID.Trim() == "H" && Model.jobVehicleList[i].Approve_StatusId != null && Model.jobVehicleList[i].Approve_StatusId == 1))
+                                //@if(Model.jobVehicleList[i].PJR_Status == 0)
+                                {
+                                    if (!FromRequestApproval)
+                                    {
+                                        <button type="button" value="Edit" class="btnEdit btn btn-xs btn-primary pull-left" onclick="EditVehicle(this)"><i class="glyphicon glyphicon-pencil"></i></button>
+                                        <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash pull-right" onclick="RemoveVehicle(this)" />
+
+                                    }
+                                }
+                            </td>
+                        </tr>
+
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal" id="myModal2" @*tabindex="-1" role="dialog" aria-hidden="true"*@>
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Approval for Hired Vehicle</h4>
+                    <button type="button"  class="btnCloseApproval close"  aria-hidden="true">×</button>
+                </div>
+                <div class="container"></div>
+                <div class="modal-body">
+                    @Html.HiddenFor(model=> model.hireVehileApproval.V_ID,new { @class = " HFV_VID" })
+                    <div class="row">
+                        <div class="form-group col-md-6 col-sm-6">
+                            <label class="radio-inline">
+                                @Html.RadioButtonFor(model => Model.hireVehileApproval.IsApproved, "1",new { @id ="rbHVApprove" ,@class= "rbApproval" }) Approve
+                            </label>
+                            <label class="radio-inline">
+                                @Html.RadioButtonFor(model => Model.hireVehileApproval.IsApproved, "0", new { @id = "rbHVReject", @class = "rbApproval" }) Reject
+                            </label>
+                        </div>
+                   </div>
+                    <div class="row">
+                        <div class="col-md-2"><label>Remark</label></div>
+                        <div class="col-sm-8 col-md-8">
+                            @Html.TextBoxFor(model=> Model.hireVehileApproval.Remark, null, new {  @class = "form-control input-sm clearfix HiredVehicleApproveRemark" })
+                        </div>
+                    </div>
+                 </div>
+                <div class="modal-footer m-t-sm">
+                    <a href="#" class="btn btn-default btnCloseApproval">Close</a>
+                    @{ var formAction = FromRequestApproval ? "form=CreateActivityAllocation" : ""; }
+                    <button type="submit" name="submit" id="btnApprovalSave" @formAction  value="ApprovalSave" data-loading-text="Loading..." class="btn btn-primary btnApprove">Save</button>
+                </div>
+            </div>
+        </div>
+</div>
+
+<div id="sendForApproval" class="hidden">
+    @Html.HiddenFor(model => model.hireVehileSendForApprove.V_ID)
+    @Html.HiddenFor(model => model.hireVehileSendForApprove.Remark)
+    @Html.HiddenFor(model => model.hireVehileSendForApprove.Cost)
+    <button type="submit" name="submit" value="SendForApproval" id="btnSendForApproval" class="btn btn-sm btn-primary pull-left" />
+</div>
+<script type="text/javascript">
+
+    function DrpVehicleType_change(sender) {
+
+        $('#VehicleSupplier').prop('disabled', false);
+        $('#VehicleDimension').prop('disabled', false);
+        $('#VehicleSupplier').val(null).trigger('change');
+        $('#VehicleDimension').val(null).trigger('change');
+
+        if ($('#VehicleTypeDropdown').val() == "O") {
+
+            $('#VehicleDropdown').select2().next().show();
+            $('#VehicleDropdown').val(null).trigger('change');
+            $('#AVehicleNo').addClass('hide');
+
+            $("#VehicleSupplier").select2('destroy');
+            $('#VehicleSupplier').prop('disabled', true);
+            $('#VehicleDimension').prop('disabled', true);
+
+        }
+        else {
+
+            $('#VehicleDropdown').select2().next().hide();
+            $('#AVehicleNo').removeClass('hide');
+            $("#VehicleSupplier").select2();
+
+        }
+    }
+
+    function DrpDriverType_change(sender) {
+
+        if ($('#DriverTypeDropdown').val()=="O") {
+
+            $('#DriverDropdown').select2().next().show();
+            $('#ADriver').addClass('hide');
+        }
+        else {
+
+            $('#DriverDropdown').select2().next().hide();
+            $('#ADriver').removeClass('hide');
+        }
+    }
+
+    function ClearVehicle() {
+
+        $('#EditRowIndex').val('-1');
+        $("#PurposeDropdown").val('').trigger('change');
+        $("#DriverDropdown").val('').trigger('change');
+        $("#VehicleDropdown").val('').trigger('change');
+        $(".VFromDate").val('');
+        $(".VToDate").val('');
+        $(".AVehicleNo").val('');
+        //$(".VehicleRemark").val('');
+        $(".VehicleCost").val('');
+        $(".AVolCFT").val('');
+        $(".VehicleSupplier").val('').trigger('change');
+        $(".VehicleDimension").val('');
+
+        $('.btnAddVehicle').attr('value', 'Add');
+        if (!$('#btnCancelEdit').hasClass('hide')) {
+            $('#btnCancelEdit').addClass('hide');
+        }
+        $('input[type=submit]').removeAttr("disabled");
+        $('#tblVehicle > TBODY > tr').each(function () { $(this).removeClass('bg') });
+    }
+
+    function RemoveVehicle(sender) {
+        
+        //Determine the reference of the Row using the Button.
+        var row = $(sender).closest("TR");
+        var name = $("TD", row).find('.VehicleList').text().trim();
+        if (confirm("Do you want to delete: " + name.trim())) {
+            //Get the reference of the Table.
+            var table = $("#tblVehicle")[0];
+
+            //Delete the Table row using it's Index.
+            table.deleteRow(row[0].rowIndex);
+
+        }
+
+        return false;
+    }
+
+    function EditVehicle(sender) {
+
+        var row = $(sender).closest("TR");
+        $('#EditRowIndex').val(row.find('.Vehicle_rowIndex').val());
+        $('#PurposeDropdown').val(row.find('.VPurpose').val()).trigger('change');
+        $('#VehicleMovement').val(row.find('.MovementID').val());
+        debugger;
+        $('#VehicleTypeDropdown').val(row.find('.VehicleType').val().trim()).trigger('change');
+        
+        $('#VehicleDropdown').val(row.find('.Vehicle').val()).trigger('change');
+        $('#AVehicleNo').val(row.find('.VehicleList').val());
+        $('#VehicleSupplier').val(row.find('.SupplierID').val()).trigger('change');
+        $('#VehicleDimension').val(row.find('.DimensionID').val());
+
+        $('#AFromLoc').val(row.find('.V_FromLocation').val());
+        $('#AToLoc').val(row.find('.V_ToLocation').val());
+        debugger;
+        $('#DriverTypeDropdown').val(row.find('.DriverType').val().trim()).trigger('change');
+        
+        $('#ADriver').val(row.find('.DriverList').val());
+        $('#DriverDropdown').val(row.find('.VDriver').val()).trigger('change');
+        
+        $('#VFromDate').val(row.find('.VehicleFromDate').val());
+        $('#VToDate').val(row.find('.VehicleToDate').val());
+        $('#VehicleReason').val(row.find('.VReasonID').val());
+        $('#VehicleRemark').val(row.find('.V_Remark').val());
+        
+        $(".VehicleCost").val(row.find('.V_Cost').val());
+        $(".AVolCFT").val(row.find('.V_VolumeCFT').val());
+
+        row.closest('table').find('tr').each(function () { $(this).removeClass('bg') });
+        row.addClass('bg');
+        rowIndex = row[0].rowIndex;
+        $('.btnAddVehicle').attr('value', 'Update');
+        if ($('#btnCancelEdit').hasClass('hide')) {
+            $('#btnCancelEdit').removeClass('hide');
+        }
+        $('input[type=submit]').attr("disabled", "disabled");
+
+        return false;
+    }
+
+    function CancelEditVehicle() {
+
+        ClearVehicle();
+    }
+
+    function checkVehicleExists(Vehicle, purpose, FromDate, ToDate, DriverText) {
+
+        var result = false;
+
+        $("#tblVehicle > TBODY > tr").each(function () {
+
+            if ($(this).find('.VehicleList').val() === Vehicle && $(this).find('.DriverList').val() === DriverText  && dateRangeOverlaps($(this).find('.VehicleFromDate').val(), $(this).find('.VehicleToDate').val(), FromDate, ToDate)) {
+                result = true;
+                return false;
+            }
+        });
+
+        return result;
+
+    }
+
+
+    function AddVehicle() {
+
+            var VehicleType = $("#VehicleTypeDropdown option:selected");
+            var Vehicle = $("#VehicleDropdown option:selected");
+            var txtVehicle = $("#AVehicleNo");
+            var DriverType = $("#DriverTypeDropdown option:selected");
+            var txtDriver = $("#ADriver");
+            var Driver = $("#DriverDropdown option:selected");
+            var purpose = $("#PurposeDropdown option:selected");
+            var FromDate = $("#VFromDate").val();
+            var ToDate = $("#VToDate").val();
+            let VehicleRemark = $("#VehicleRemark").val();
+            let VehicleCost = $("#VehicleCost").val();
+            let FromLocation = $("#AFromLoc").val();
+            let ToLocation = $("#AToLoc").val();
+            let VolumeCFT = $("#AVolCFT").val();
+
+            var vehicleText  = VehicleType.val() == "O" ? Vehicle.text() : txtVehicle.val();
+            var vehicleValue = VehicleType.val() == "O" ? Vehicle.val() : "";
+            var DriverText  =DriverType.val() == "O" ? Driver.text() : txtDriver.val();
+            var DriverValue =DriverType.val() == "O" ? Driver.val() : "";
+
+			let VehicleMovement = $("#VehicleMovement option:selected");
+			let VehicleSupplier = $("#VehicleSupplier option:selected");
+			let VehicleDimension = $("#VehicleDimension option:selected");
+			let VehicleReason = $("#VehicleReason option:selected");
+            let EditRowIndex = $("#EditRowIndex").val();
+
+        if (((VehicleType.val() == "O" && Vehicle.val() > 0) || (VehicleType.val() == "H" && vehicleText != null && vehicleText != "")) && ((DriverType.val() == "O" && Driver.val() > 0) || (DriverType.val() == "H" && DriverText != null && DriverText != "")) && parseInt(purpose.val()) > 0) {
+
+            if (VehicleType.val() == "H" && (VehicleReason.val() == null || VehicleReason.val() == ""))
+                return alert('Reason required for Hired Vehicle');
+
+            if (VehicleType.val() == "H" && (VehicleCost == null || VehicleCost == "" || Number.isNaN(Number.parseFloat(VehicleCost))))
+                return alert('Cost required for Hired Vehicle');
+
+            if (VehicleReason.text() == "Others" && (VehicleRemark == ""))
+                return alert('Remark is required');
+
+            if (VehicleMovement.text() == "LTD" && (FromLocation == "" || ToLocation == ""))
+                return alert('From Location and To Location required');
+
+            if (VolumeCFT == "")
+                return alert('Volume (CFT) required');
+
+
+            if (parseInt($('#EditRowIndex').val()) >= 0) {
+
+                debugger;
+                var tbl = $("#tblVehicle > TBODY");
+                var rows = $('tr', tbl);
+                var editRow = rows.eq(parseInt(EditRowIndex));
+                //var editRow = $("#tblCredits > TBODY")[0].rows[EditRowIndex];
+                editRow.find('.VPurpose').val(purpose.val());
+                editRow.find('.PurposeList').val(purpose.text());
+
+                editRow.find('.MovementID').val(VehicleMovement.val());
+                editRow.find('.MovementList').val(VehicleMovement.text());
+
+                editRow.find('.VehicleType').val(VehicleType.val());
+                editRow.find('.VehicleTypeList').val(VehicleType.text());
+
+                editRow.find('.Vehicle').val(vehicleValue);
+                editRow.find('.VehicleList').val(vehicleText);
+
+                editRow.find('.SupplierID').val(VehicleSupplier.val());
+                editRow.find('.SupplierList').val(VehicleSupplier.text());
+
+                editRow.find('.DimensionID').val(VehicleDimension.val());
+                editRow.find('.DimensionList').val(VehicleDimension.text());
+
+                editRow.find('.V_FromLocation').val(FromLocation);
+                editRow.find('.V_ToLocation').val(ToLocation);
+
+                editRow.find('.DriverType').val(DriverType.val());
+                editRow.find('.DriverTypeList').val(DriverType.text());
+
+                editRow.find('.VDriver').val(DriverValue);
+                editRow.find('.DriverList').val(DriverText);
+
+                editRow.find('.VehicleFromDate').val(FromDate);
+                editRow.find('.VehicleToDate').val(ToDate);
+
+                editRow.find('.VReasonID').val(VehicleReason.val());
+                editRow.find('.VReasonList').val(VehicleReason.text());
+
+                editRow.find('.V_Remark').val(VehicleRemark);
+                editRow.find('.V_Cost').val(VehicleCost);
+                editRow.find('.V_VolumeCFT').val(VolumeCFT);
+
+                ClearVehicle();
+                $("#VehicleReason").val('');
+                $("#VehicleRemark").val('');
+                $("#AFromLoc").val('');
+                $("#AToLoc").val('');
+            }
+            else {
+
+
+                if (!checkVehicleExists(vehicleText, purpose.val(), FromDate, ToDate, DriverText)) {
+
+                    var tBody = $("#tblVehicle > TBODY")[0];
+                    var rowCount = $('#tblVehicle > TBODY > tr').length;
+                    var row = tBody.insertRow(-1);
+                    row.className = "package-row";
+                    var cell = $(row.insertCell(-1));
+                    var td = '<input readonly="readonly" class="form-control input-sm clearfix PurposeList" id="jobVehicleList_' + rowCount + '__Purpose" name="jobVehicleList[' + rowCount + '].Purpose" type="text" value="' + purpose.text() + '">'
+                        + '<input class="VPurpose" data-val="true" data-val-number="The field PurposeID must be a number." data-val-required="The PurposeID field is required." id="jobVehicleList_' + rowCount + '__PurposeID" name="jobVehicleList[' + rowCount + '].PurposeID" type="hidden" value="' + parseInt(purpose.val()) + '" autocomplete="off">';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+
+                    td = '<input readonly="readonly" class="form-control input-sm clearfix MovementList" id="jobVehicleList_' + rowCount + '__MovementName" name="jobVehicleList[' + rowCount + '].MovementName" type="text" value="' + VehicleMovement.text() + '">'
+                        + '<input class = "MovementID" data-val="true" data-val-number="The field MovementID must be a number." data-val-required="The MovementID field is required." id="jobVehicleList_' + rowCount + '__MovementID" name="jobVehicleList[' + rowCount + '].MovementID" type="hidden" value="' + (VehicleMovement.val()) + '" autocomplete="off">';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+
+                    td = '<input readonly="readonly" class="form-control input-sm clearfix VehicleTypeList" id="jobVehicleList_' + rowCount + '__VehicleType" name="jobVehicleList[' + rowCount + '].VehicleType" type="text" value="' + VehicleType.text() + '">'
+                        + '<input class = "VehicleType" data-val="true" data-val-number="The field VehicleTypeID must be a number." data-val-required="The VehicleTypeID field is required." id="jobVehicleList_' + rowCount + '__VehicleTypeID" name="jobVehicleList[' + rowCount + '].VehicleTypeID" type="hidden" value="' + (VehicleType.val()) + '" autocomplete="off">';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+
+                    td = '<input readonly="readonly" class="form-control input-sm clearfix VehicleList" id="jobVehicleList_' + rowCount + '__VehicleNo" name="jobVehicleList[' + rowCount + '].VehicleNo" type="text" value="' + vehicleText + '">'
+                        + '<input class = "Vehicle" data-val="true" data-val-number="The field VehicleID must be a number." data-val-required="The VehicleID field is required." id="jobVehicleList_' + rowCount + '__VehicleID" name="jobVehicleList[' + rowCount + '].VehicleID" type="hidden" value="' + vehicleValue + '" autocomplete="off">';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+
+                    td = '<input readonly="readonly" class="form-control input-sm clearfix SupplierList" id="jobVehicleList_' + rowCount + '__SupplierName" name="jobVehicleList[' + rowCount + '].SupplierName" type="text" value="' + VehicleSupplier.text() + '">'
+                        + '<input class = "SupplierID" data-val="true" data-val-number="The field SupplierID  must be a number." data-val-required="The SupplierID field is required." id="jobVehicleList_' + rowCount + '__SupplierID" name="jobVehicleList[' + rowCount + '].SupplierID" type="hidden" value="' + VehicleSupplier.val() + '" autocomplete="off">';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+
+                    td = '<input readonly="readonly" class="form-control input-sm clearfix DimensionList" id="jobVehicleList_' + rowCount + '__DimensionName" name="jobVehicleList[' + rowCount + '].DimensionName" type="text" value="' + VehicleDimension.text() + '">'
+                        + '<input class = "DimensionID" data-val="true" data-val-number="The field DimensionID must be a number." data-val-required="The DimensionID field is required." id="jobVehicleList_' + rowCount + '__DimensionID" name="jobVehicleList[' + rowCount + '].DimensionID" type="hidden" value="' + VehicleDimension.val() + '" autocomplete="off">';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix V_FromLocation" id="jobVehicleList_' + rowCount + '__FromLocation" name="jobVehicleList[' + rowCount + '].FromLocation" type="text" value="' + FromLocation + '">';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix V_ToLocation" id="jobVehicleList_' + rowCount + '__ToLocation" name="jobVehicleList[' + rowCount + '].ToLocation" type="text" value="' + ToLocation + '">';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+
+                    td = '<input readonly="readonly" class="form-control input-sm clearfix DriverTypeList" id="jobVehicleList_' + rowCount + '__DriverType" name="jobVehicleList[' + rowCount + '].DriverType" type="text" value="' + DriverType.text() + '">'
+                        + '<input class = "DriverType" data-val="true" data-val-number="The field DriverTypeID must be a number." data-val-required="The DriverTypeID field is required." id="jobVehicleList_' + rowCount + '__DriverTypeID" name="jobVehicleList[' + rowCount + '].DriverTypeID" type="hidden" value="' + (DriverType.val()) + '" autocomplete="off">';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+
+                    td = '<input readonly="readonly" class="form-control input-sm clearfix DriverList" id="jobVehicleList_' + rowCount + '__Driver" name="jobVehicleList[' + rowCount + '].Driver" type="text" value="' + DriverText + '">'
+                        + '<input class = "VDriver" data-val="true" data-val-number="The field DriveriD must be a number." data-val-required="The DriverID field is required." id="jobVehicleList_' + rowCount + '__DriverID" name="jobVehicleList[' + rowCount + '].DriverID" type="hidden" value="' + DriverValue + '" autocomplete="off">';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+
+                    td = '<input class="form-control input-sm clearfix VehicleFromDate datetimepicker onkeydtp" data-val="true" data-val-date="The field FromDate must be a date." id="jobVehicleList_' + rowCount + '__FromDate" name="jobVehicleList[' + rowCount + '].FromDate" type="text" value="' + FromDate + '">'
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix VehicleToDate datetimepicker onkeydtp" data-val="true" data-val-date="The field ToDate must be a date." id="jobVehicleList_' + rowCount + '__ToDate" name="jobVehicleList[' + rowCount + '].ToDate" type="text" value="' + ToDate + '">';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+
+                    td = '<input readonly="readonly" class="form-control input-sm clearfix VReasonList" id="jobVehicleList_' + rowCount + '__ReasonName" name="jobVehicleList[' + rowCount + '].ReasonName" type="text" value="' + VehicleReason.text() + '">'
+                        + '<input class = "VReasonID" data-val="true" data-val-number="The field ReasonID must be a number." data-val-required="The ReasonID field is required." id="jobVehicleList_' + rowCount + '__ReasonID" name="jobVehicleList[' + rowCount + '].ReasonID" type="hidden" value="' + VehicleReason.val() + '" autocomplete="off">';
+                    cell.append(td);
+
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix V_Remark" id="jobVehicleList_' + rowCount + '__V_Remark" name="jobVehicleList[' + rowCount + '].V_Remark" type="text"  value="' + VehicleRemark + '">';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix V_Cost"  id="jobVehicleList_' + rowCount + '__V_Cost" name="jobVehicleList[' + rowCount + '].V_Cost" type="text"  value="' + VehicleCost + '">';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix V_VolumeCFT" id="jobVehicleList_' + rowCount + '__VolumeCFT" name="jobVehicleList[' + rowCount + '].VolumeCFT" type="text" value="' + VolumeCFT + '">';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix VApprove_Remark"  id="jobVehicleList_' + rowCount + '__Approve_Remark" name="jobVehicleList[' + rowCount + '].Approve_Remark" type="text" readonly>';
+                    cell.append(td);
+
+                    var emptyTd = "&nbsp;";
+                    cell = $(row.insertCell(-1));
+                    cell.append(emptyTd);
+
+                    var tdEditRemove = '<button type="button" value="Edit" class="btnEdit btn btn-xs btn-primary pull-left" onclick="EditVehicle(this)"><i class="glyphicon glyphicon-pencil"></i></button>'
+                        + '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-right" onclick="RemoveVehicle(this)" />'
+                    cell = $(row.insertCell(-1));
+                    cell.append(tdEditRemove);
+
+                    
+                }
+                else {
+
+                    alert('Vehicle already exists in list');
+                    return false;
+
+                }
+
+                
+                    //
+            }
+
+            DatePickerClass();
+            DrpVehicleType_change(null);
+            DrpDriverType_change(null);
+
+        }
+        else {
+                alert('Purpose,Vehicle,Driver is required');
+                return false;
+            }
+        
+            return false;
+
+    }
+
+    function DrpVehicleNo_change(sender) {
+
+        var VehicleNo = $('#VehicleDropdown option:selected').val();
+        if (parseInt(VehicleNo) > 0) {
+
+            $.get('@Url.Action("GetVehicle","JobAllocation")',{ VehicleNo: VehicleNo },
+                function (data) {
+                    debugger;
+                    if (data!=null) {
+
+                        $('#VehicleSupplier').val(data.Supplier);//.trigger("change");
+                        $('#VehicleDimension').val(data.Dimension);
+                        //$('#VehicleSupplier')..prop('disabled', true);
+                        //$('#VehicleDimension')..prop('disabled', true);
+                    }
+
+                }
+            );
+
+        }
+        else {
+            $('#VehicleSupplier').val("").trigger("change");
+            $('#VehicleDimension').val("");
+        }
+
+    }
+
+</script>

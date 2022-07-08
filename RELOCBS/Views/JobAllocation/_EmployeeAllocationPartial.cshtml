@@ -1,0 +1,71 @@
+﻿@model RELOCBS.Entities.EmployeeAllocation
+
+@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+@{
+
+    string _PageID = "18";
+    //bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasViewAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.VIEW);
+    //bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    //bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@if (hasViewAccess)
+{
+
+    if (Model.existingAllocation.Count > 0 || Model.leaves.Count > 0)
+    {
+        <div class="container" data-toggle='table' data-height='150'>
+
+            @if (Model.existingAllocation.Count > 0)
+            {
+                <div class="table-responsive">
+                    <h4>Allocation</h4>
+                    @Html.Grid(Model.existingAllocation).Named("mainGrid1").Columns(columns =>
+                       {
+                           columns.Add(o => o.JobNo)
+                               .Titled("JobNo")
+                               .Css("col-md-3")
+                               .SetWidth(2);
+                           columns.Add(o => o.EmpName)
+                               .Titled("Name")
+                               .Css("col-md-3")
+                               .SetWidth(2);
+                           columns.Add(o => o.EffectiveFrom)
+                           .Titled("From Date")
+                           .Css("col-md-3")
+                           .SetWidth(2);
+                           columns.Add(o => o.EffectiveTo)
+                               .Titled("To Date")
+                               .Css("col-md-1");
+                       }).Sortable(false)
+                </div>
+            }
+
+            @if (Model.leaves.Count > 0)
+            {
+                <div class="table-responsive">
+                    <h4>Holidays</h4>
+                    @Html.Grid(Model.leaves).Named("mainGrid2").Columns(columns =>
+                       {
+                           columns.Add(o => o.EmpName)
+                               .Titled("Name")
+                               .Css("col-md-3")
+                               .SetWidth(2);
+                           columns.Add(o => o.FromDate)
+                           .Titled("From Date")
+                           .Css("col-md-3")
+                           .SetWidth(2);
+                           columns.Add(o => o.ToDate)
+                               .Titled("To Date")
+                               .Css("col-md-1");
+                       }).Sortable(false)
+                </div>
+            }
+        </div>
+    }
+}

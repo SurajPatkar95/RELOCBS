@@ -1,0 +1,238 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html;
+@using RELOCBS.Common;
+
+@model StaticPagedList<RELOCBS.Entities.JobInstGrid>
+
+@{
+
+    string _PageID = "18";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+    var SelectedJobType = ViewData["SelectedJobType"]!=null ? Convert.ToInt16(ViewData["SelectedJobType"]) : 1;
+
+    WebGrid grid = new WebGrid(source: Model, canSort: false, canPage: false);
+}
+
+<style type="text/css">
+
+    .subT a:link {
+        color: black;
+        font-weight: bold;
+    }
+
+    th, td {
+        padding: 5px;
+    }
+
+    th {
+        background-color: rgb(248, 248, 248);
+    }
+
+    #gridT, #gridT tr {
+        border: 1px solid #0D857B;
+    }
+
+    .subT, .subT tr {
+        border: 1px solid #f3f3f3;
+    }
+
+    .subT {
+        margin: 0px 0px 0px 10px;
+        padding: 5px;
+        width: 95%;
+    }
+
+        .subT th {
+            font-size: 14px;
+        }
+
+    .hoverEff {
+        cursor: pointer;
+    }
+
+        .hoverEff:hover {
+            background-color: rgb(248, 242, 242);
+        }
+
+    .expands {
+        background-image: url(./Images/expand.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        width: 100px;
+    }
+
+    .collapses {
+        background-image: url(./Images/collapse.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        width: 100px;
+    }
+</style>
+
+@{
+    var gridColumns = new List<WebGridColumn>();
+
+    gridColumns.Add(grid.Column("JobNo", "JobNo"));
+    gridColumns.Add(grid.Column("JobOpenDate", "JobOpenDate"));
+
+    if (SelectedJobType==1)
+    {
+        gridColumns.Add(grid.Column("Mode", "Mode"));
+        gridColumns.Add(grid.Column("ServiceLine", "ServiceLine"));
+        gridColumns.Add(grid.Column("RateComponentName", "RateComponent"));
+        gridColumns.Add(grid.Column("Shipper", "Shipper"));
+        gridColumns.Add(grid.Column("Corporate", "Corporate"));
+        gridColumns.Add(grid.Column("Client", "Client"));
+    }
+    else
+    {
+        gridColumns.Add(grid.Column("RevenueBranch", "RevenueBranch"));
+        gridColumns.Add(grid.Column("HandlingBranch", "HandlingBranch"));
+        gridColumns.Add(grid.Column("BusinessLine", "BusinessLine"));
+    }
+    gridColumns.Add(grid.Column("JobReport_Status", "JobReportStatus"));
+
+    gridColumns.Add(grid.Column(null, "JobReport",
+        format: @<text>
+
+    @if (!string.IsNullOrWhiteSpace(item.PJR_AddEdit) && (item.PJR_AddEdit == "A" || item.PJR_AddEdit == "E"))
+    {
+        var ButtonText = "Create";
+
+        if (item.PJR_AddEdit == "E")
+        {
+            ButtonText = "Edit";
+        }
+
+        @*<form action="@Url.Action("Create", "JobReport", new { Key = CommonService.GenerateQueryString("MoveID=ParamValue0&ComponentID=ParamValue1", new string[] { Convert.ToString(item.MoveID),Convert.ToString(item.RateComponentID) })})" method="get">
+                <input type="submit" value="@ButtonText" class="btnJobReport btn btn-sm btn-default pull-left" title="JobReport" />
+            </form>*@
+        <a href="@Url.Action("Create", "JobReport", new { Key = CommonService.GenerateQueryString("MoveID=ParamValue0&ComponentID=ParamValue1&PJRDJRID=ParamValue2&JobType=ParamValue3", new string[] { Convert.ToString(item.MoveID),Convert.ToString(item.RateComponentID) , string.IsNullOrWhiteSpace(Convert.ToString(item.PJR_DJR_ID)) ? "-1"  : Convert.ToString(item.PJR_DJR_ID),Convert.ToString(SelectedJobType)   })})" class="btnJobReport btn btn-sm btn-default pull-left" title="JobReport">
+            @ButtonText
+        </a>
+    }
+        </text>
+        ));
+    if (SelectedJobType == 1)
+    {
+        gridColumns.Add(grid.Column(null, "SurveySheet", format: @<text>
+        @Html.ActionLink("SurveySheet", "GetSurveyReport", "JobAllocation", new { EnqDetailID = item.EnqDetailID, SurveyID = item.SurveyID }, new { @class = "btn btn-sm btn-primary", @target = "_blank" })     
+        </text>));
+    }
+
+    gridColumns.Add(grid.Column(null,"JobDoc",format : @<text>
+        @Html.ActionLink("Job Doc", "GetJobDocumentsList","JobAllocation", new { MoveID = item.MoveID }, new {@class="btn btn-sm btn-primary JobDocModal",  @data_toggle = "modal", @data_target = "#JobDocumentModal"})     
+        </text>));
+
+    var SubGridColumns = new List<WebGridColumn>();
+    SubGridColumns.Add(grid.Column(null, null, format: @<text>
+
+
+    @if (item.BatchID != null && item.BatchID > 0)
+    {
+        <input type="checkbox" name="chkRow" value="@item.InstID" disabled="disabled" />
+    }
+    else
+    {
+        <input type="checkbox" name="chkRow" value="@item.InstID" />
+    }
+
+        </text>));
+
+ SubGridColumns.Add(grid.Column("", header: "Inst.No.",
+ format:@<text>
+    <span>
+        @if (item.InstID != null && item.InstID > 0)
+        {
+            <a href="@Url.Action("GetInstructionSheet", "JobAllocation", new { MoveID = item.MoveID,InstID = item.InstID,JobType =SelectedJobType })" class="btnInstructionView" data-target="#InstructionModal" data-cache="false" title="View Instruction Sheet" onclick="ShowInstruction(this)"><span class="text-primary"> @item.InstID </span></a>
+        }
+        <input type="hidden" id="WarehouseID" name="WarehouseID" value="@item.WarehouseID" />
+        <input type="hidden" id="RateComponentID" name="RateComponentID" value="@item.RateComponentID" />
+    </span>
+</text>
+));
+
+ //SubGridColumns.Add(grid.Column("InstID", "Inst.No."));
+ SubGridColumns.Add(grid.Column("InstDate", "Inst.Date", format: (item) => string.Format("{0:dd-MMM-yyyy}", item.InstDate)));
+ //SubGridColumns.Add(grid.Column("InstType", "Inst.Type"));
+ //SubGridColumns.Add(grid.Column("ExpectedBeginDateTime", "ExpectedBeginDateTime"));
+ SubGridColumns.Add(grid.Column("BranchName", "Branch"));
+ SubGridColumns.Add(grid.Column("WarehouseName", "Warehouse"));
+ SubGridColumns.Add(grid.Column("Inst_Status", "Status"));
+ //SubGridColumns.Add(grid.Column("CreatedBy", "CreatedBy"));
+ //SubGridColumns.Add(grid.Column("CreatedDate", "CreatedDate", format: (item) => string.Format("{0:dd-MMM-yyyy}", item.EffectiveFrom)));
+ //SubGridColumns.Add(grid.Column("ModifiedBy", "LastModifiedBy"));
+ //SubGridColumns.Add(grid.Column("ModifiedDate", "LastModifiedDate", format: (item) => string.Format("{0:dd-MMM-yyyy}", item.EffectiveFrom)));
+
+ SubGridColumns.Add(grid.Column("", header: "Print",
+              format:@<text>
+    <span>
+        @if (item.InstID != null && item.InstID > 0)
+        {
+                    string ControllerName = item.MoveID > 0 ? "InstructionSheet" : "WarehouseJob";
+                    <a href="@Url.Action("GetInstructionSheetPrint", ControllerName, new { MoveID = item.MoveID,InstID = item.InstID })" class="btn btn-primary btn-sm View m-n" title="Print Instruction Sheet" target="_blank"><i class='glyphicon glyphicon-print'></i></a>
+        }
+    </span>
+  </text>
+ ));
+
+if (hasEditAccess)
+{
+    @*@Html.ActionLink("Edit", "Create", "JobAllocation", new { MoveID = item.MoveID, InstID = item.InstID }, new { @class = "btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" })*@
+    //SubGridColumns.Add(grid.Column("Edit", "Edit", style: "btnEdit"));
+    SubGridColumns.Add(grid.Column("", header: "", style: "webgrid-action",
+     format:@<text>
+    <span>
+        @if (item.BatchID != null && item.BatchID > 0)
+        {
+            <a href="@Url.Action("JobDiary", "JobAllocation", new { BatchID = item.BatchID, InstID = item.InstID, YT = 1,JobType=SelectedJobType })" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" title="Edit Allocation" onclick='Grid_OnEdit(this)'></a>
+        }
+    </span>
+    </text>
+    ));
+
+}
+
+SubGridColumns.Add(grid.Column("InstID", null, style: "InstID hide"));
+SubGridColumns.Add(grid.Column("MoveID", null, style: "MoveID hide"));
+
+
+gridColumns.Add(grid.Column(format: (item) =>
+{
+    WebGrid subGrid = new WebGrid(source: item.instructionSheetGrids, canPage: false);
+    return subGrid.Table(
+tableStyle: "table table-responsive table-bordered table-condensed subT",
+htmlAttributes: new { id = "subT" },
+columns: subGrid.Columns(
+SubGridColumns.ToArray()
+)
+);
+}));
+
+}
+
+
+
+
+@grid.Table(
+        tableStyle: "table table-responsive table-bordered table-condensed",
+        htmlAttributes: new {id="gridT", width="700px" },
+        columns:grid.Columns(gridColumns.ToArray())
+
+)
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>

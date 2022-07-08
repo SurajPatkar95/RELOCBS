@@ -1,0 +1,266 @@
+﻿@model RELOCBS.Entities.ActivityAllocationModel
+
+<style type="text/css">
+    .modal .popover, .modal .tooltip {
+        /*z-index: 100000000;*/
+        max-width: 100%;
+        max-height: 280px;
+        overflow: auto;
+    }
+
+    .table-scroll {
+        /*width:100%; */
+        display: block;
+        empty-cells: show;
+        /* Decoration */
+        border-spacing: 0;
+        /*border: 1px solid;*/
+    }
+
+        .table-scroll thead {
+            background-color: #f1f1f1;
+            position: relative;
+            display: block;
+            width: 100%;
+            overflow-y: scroll;
+            overflow: hidden;
+        }
+
+        .table-scroll tfoot {
+            background-color: #f1f1f1;
+            position: relative;
+            display: block;
+            width: 100%;
+            overflow-y: scroll;
+            overflow: hidden;
+        }
+
+        .table-scroll tbody {
+            /* Position */
+            display: block;
+            position: relative;
+            width: 100%;
+            overflow-y: scroll;
+            /* Decoration */
+            border-top: 1px solid rgba(0,0,0,0.2);
+        }
+
+        .table-scroll tr {
+            width: 100%;
+            display: flex;
+        }
+
+        .table-scroll td, .table-scroll th {
+            flex-basis: 100%;
+            flex-grow: 2;
+            display: block;
+            padding: 1rem;
+            text-align: left;
+        }
+
+        /* Other options */
+
+        .table-scroll.small-first-col td:first-child,
+        .table-scroll.small-first-col th:first-child {
+            flex-basis: 20%;
+            flex-grow: 1;
+        }
+
+        .table-scroll tbody tr:nth-child(2n) {
+            background-color: rgba(130,130,170,0.1);
+        }
+
+    .body-half-screen {
+        max-height: 30vh;
+    }
+</style>
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <h4 class="modal-title" id="myModalLabel">Add/Edit Activity Allocation</h4>
+</div>
+
+@using (Html.BeginForm("CreateActivityAllocation", "JobAllocation", new { JobType = Model.JobType }, FormMethod.Post, new { enctype = "multipart/form-data", id = "CreateActivityAllocation", name = "CreateActivityAllocation" }))
+{
+    <div class="modal-body" style="overflow-y:auto; height:480px">
+        <div id="frmEmp">
+            @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(a => a.BatchID)
+            @Html.HiddenFor(a => a.ACT_Status)
+            @Html.HiddenFor(a => a.ACT_StatusID)
+            @Html.HiddenFor(a => a.CancelRemark, new { @id = "txtCancelRemark" })
+
+            @Html.HiddenFor(m => m.HVMaterialUsed)
+            @Html.HiddenFor(m => m.HVCrewMembers)
+            @Html.HiddenFor(m => m.HVDocList)
+            @Html.HiddenFor(m => m.HVServices)
+            @Html.HiddenFor(m => m.HVVehicles)
+            @Html.HiddenFor(m => m.RateComponentID)
+            @Html.HiddenFor(m => m.BranchID)
+            @Html.HiddenFor(m => m.JobType)
+
+            @if (Model.ActivityIds != null)
+            {
+                for (int i = 0; i < Model.ActivityIds.Count; i++)
+                {
+                    @Html.HiddenFor(a => Model.ActivityIds[i])
+                }
+            }
+
+            @if (Model.InstIds != null)
+            {
+                for (int i = 0; i < Model.InstIds.Count; i++)
+                {
+                    @Html.HiddenFor(a => Model.InstIds[i])
+                }
+            }
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="form-group row">
+                        <label class="col-md-2 col-form-label">Job No.:</label>
+                        <div class="col-md-10 text-left">
+                            @Html.Raw(Model.JobNo)
+                            @Html.HiddenFor(model => model.JobNo)
+                        </div>
+                    </div>
+                </div>
+                @if(Model.JobType==1)
+                { 
+                    <div class="col-md-5">
+                        <div class="form-group row">
+                            <label class="col-md-2 col-form-label">Shipper:</label>
+                            <div class="col-md-10 text-left">
+                                @Html.Raw(Model.ShipperName)
+                                @Html.HiddenFor(model => model.ShipperName)
+                            </div>
+                        </div>
+                    </div>
+                }
+                <div class="col-md-2">
+                    <div class="form-group row">
+                        <label class="col-md-3 col-form-label">Status:</label>
+                        <div class="col-md-9 text-left">
+                            @Html.Raw(Model.ACT_Status)
+                            @Html.HiddenFor(model => model.ACT_Status)
+                            @Html.HiddenFor(model => model.TabIndex)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row tabs-container">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="@(Model.TabIndex == 0 ? "active" : "") tab-0" onclick="tabClick(0)"><a href="#CrewAllocation" aria-controls="CrewAllocation" role="tab" data-toggle="tab" aria-expanded="true">Crew Allocation</a></li>
+                    <li role="presentation" class="@(Model.TabIndex == 1 ? "active" : "") tab-1" onclick="tabClick(1)"><a href="#AdditionalService" aria-controls="AdditionalService" role="tab" data-toggle="tab" aria-expanded="true">Additional Services</a></li>
+                    <li role="presentation" class="@(Model.TabIndex == 2 ? "active" : "") tab-2" onclick="tabClick(2)"><a href="#VehicleAllocation" aria-controls="VehicleAllocation" role="tab" data-toggle="tab" aria-expanded="true">Vehicle Allocation</a></li>
+                    <li role="presentation" class="@(Model.TabIndex == 3 ? "active" : "") tab-3" onclick="tabClick(3)"><a href="#MaterialRequest" aria-controls="MaterialRequest" role="tab" data-toggle="tab" aria-expanded="true">Material Request</a></li>
+                    @if (Model.BatchID != null && Model.BatchID > 0)
+                    {
+                        <li role="presentation" class="@(Model.TabIndex == 4 ? "active" : "") tab-4" onclick="tabClick(4)"><a href="#DocumentUpload" aria-controls="DocumentUpload" role="tab" data-toggle="tab" aria-expanded="true">Document Upload</a></li>
+                    }
+                </ul>
+                <div class="tab-content">
+                    <div role="tabpanel" class="@(Model.TabIndex == 0 ? "tab-pane active" : "tab-pane")" id="CrewAllocation">
+                        @{ Html.RenderPartial("_CrewAllocation", Model); }
+                    </div>
+                    <div role="tabpanel" class="@(Model.TabIndex == 1 ? "tab-pane active" : "tab-pane")" id="AdditionalService">
+                        @{ Html.RenderPartial("_AdditionalService", Model); }
+                    </div>
+                    <div role="tabpanel" class="@(Model.TabIndex == 2 ? "tab-pane active" : "tab-pane")" id="VehicleAllocation">
+                        @{ Html.RenderPartial("_VehicleAllocation", Model); }
+                    </div>
+                    <div role="tabpanel" class="@(Model.TabIndex == 3 ? "tab-pane active" : "tab-pane")" id="MaterialRequest">
+                        @{ Html.RenderPartial("_MaterialRequest", Model); }
+                    </div>
+                    @if (Model.BatchID != null && Model.BatchID > 0)
+                    {
+                        <div role="tabpanel" class="@(Model.TabIndex == 4 ? "tab-pane active" : "tab-pane")" id="DocumentUpload">
+                            @Html.Partial("DocUpload", Model)
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+              </div>
+                            <div class="modal-footer row">
+
+                                @if (Model.BatchID > 0)
+                                {
+                                <div id = "DivCancel" class="col-md-7 row">
+                                @* show Cancel Remark if status other than Completed  *@
+                                    @if(Model.ACT_StatusID != 5)
+                                    {
+                                        <div class="col-md-3">
+                                            <label>Cancel Remark :</label>
+                                        </div>
+                                        <div class="col-md-7">
+                                            @Html.TextBoxFor(model => model.CancelRemark, null, new { @class = "form-control input-sm clearfix CancelRemark", @placeholder = "Cancel Remark ", @title = "Cancel Remark" })
+                                        </div>
+                                     }
+                                    @* show Cancel button if status is not Completed Or Rejected *@
+                                    @if(Model.ACT_StatusID != 5 && Model.ACT_StatusID != 6)
+                                    {
+                                        <div class="col-md-2">
+                                            <input type = "submit" name="submit" value="Canceled" data-loading-text="Loading..." class="btn btn-primary btnSubmit" />
+                                        </div>
+                                    }
+                                </div>
+                                }
+                                <div class="col-md-5 pull-right">
+                                    @Html.HiddenFor(model => model.submit, null)
+
+                                    @if (Model.BatchID > 0)
+                                    {
+                                        @*show Digital Inventory Send to Supervisor button *@
+                                            if (Model.RateComponentID == 1)
+                                            {
+
+                                                string DisableSupervisor = Model.PackInventID != null ? "disabled" : "";
+                                               <input type="submit" name="submit" value="Send to Supervisor" data-loading-text="Loading..." class="btn btn-primary btnSubmit btnSendToSupervisor @DisableSupervisor" />
+                                        }
+
+                                        @* show complete button if status is not Completed Or Rejected *@
+                                        if (Model.ACT_StatusID != 5 && Model.ACT_StatusID != 6)
+                                        {
+                                            <input type="submit" name="submit" value="Completed" data-loading-text="Loading..." class="btn btn-primary btnSubmit" />
+                                        }
+                                    }
+
+                                    @if (Model.ACT_StatusID != 5 && Model.ACT_StatusID != 6)
+                                    {
+                                        <input type="submit" name="submit" value="Save" data-loading-text="Loading..." class="btn btn-primary btnSubmit" />
+                                    }
+                                    <button type="button" name="close" class="btn btn-default" data-dismiss="modal">Close</button>
+                                </div>
+    </div>
+}
+
+<!--below all Div required.do not remove button download,View & delete form are appended in this div--->
+<div class="DocDeleteForm"></div>
+<div class="DocDownloadDoc"></div>
+<div class="DocViewDoc"></div>
+
+<script type="text/javascript">
+    function tabClick(index) {
+
+        $('#TabIndex').val(index);
+
+
+        if (('@Model.PackInventID' == null || '@Model.PackInventID' == '') && '@Model.RateComponentID' =='1') {
+
+            if (index == 0) {
+
+                $('.btnSendToSupervisor').show();
+            }
+            else {
+
+                $('.btnSendToSupervisor').hide();
+            }
+
+        }
+        return false;
+    }
+    
+</script>

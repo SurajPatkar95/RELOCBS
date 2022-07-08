@@ -1,0 +1,512 @@
+﻿@model RELOCBS.Entities.FundTranfer
+@using System.Security.Policy
+@using GridMvc.Html
+@using PagedList.Mvc;
+@using PagedList;
+@using RELOCBS.Utility;
+
+@{
+
+    ViewBag.Title = "Transfer To FA";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    //string _PageID = "9";
+    //bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    //bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    //bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+    HtmlString htmlString = string.IsNullOrEmpty(ViewBag.htmlString) ? null : new HtmlString(ViewBag.htmlString);
+
+
+    if (!string.IsNullOrEmpty(ViewBag.htmlString))
+    {
+        string htmlString1 = string.IsNullOrEmpty(ViewBag.htmlString) ? null : ViewBag.htmlString;
+        htmlString1 = "<p>" + htmlString1.Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>";
+
+
+        if (htmlString1.Contains("</p><p><br></p><p>"))
+        {
+            htmlString1 = htmlString1.Substring(0, htmlString1.LastIndexOf("</p><p><br></p><p>"));
+        }
+        htmlString = new HtmlString(htmlString1);
+
+
+
+
+    }
+    //
+
+    //string Desc = "<p>" + (desc).Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>";
+
+    //string htmlString = string.IsNullOrEmpty(ViewBag.htmlString)?null: ViewBag.htmlString;
+    int Sercount = Model.ServiceLineId == null ? 0 : ((System.Collections.Generic.List<SelectListItem>)ViewData["ServiceLineList"]).Count() == Model.ServiceLineId.Length ? 0 : Model.ServiceLineId.Length;
+    int Revcount = Model.RevenueBranchId == null ? 0 : ((System.Collections.Generic.List<SelectListItem>)ViewData["RevenueBranchList"]).Count() == Model.RevenueBranchId.Length ? 0 : Model.RevenueBranchId.Length;
+    //int Sercount = Model.ServiceLineId == null ? 0:Model.ServiceLineId.Length >0 ?Model.ServiceLineId.Length:0;
+    //int Revcount = Model.RevenueBranchId == null ? 0 : Model.RevenueBranchId.Length > 0 ? Model.RevenueBranchId.Length : 0;
+
+    var ServiceLine = Convert.ToString(Model.ServiceLineId);
+    var REvenueBranch = Convert.ToString(Model.RevenueBranchId);
+    if (Sercount > 0)
+    {
+        ServiceLine = String.Join(",", Model.ServiceLineId);
+    }
+    if (Revcount > 0)
+    {
+        REvenueBranch = String.Join(",", Model.RevenueBranchId);
+    }
+}
+<style>
+    /* select menu */
+    #order {
+        padding: 0 0 0 0;
+        border-right: 0;
+    }
+
+    .select-style {
+        width: 100%; /*95px;*/
+        padding: 0;
+        margin: 0;
+        display: inline-block;
+        vertical-align: middle;
+        background: url("http://grumbletum.com/places/arrowdown.gif") no-repeat 100% 40%;
+    }
+
+        .select-style select {
+            font-weight: bold;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            background-color: transparent;
+            background-image: none;
+            border: none;
+            box-shadow: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+    .grid-mvc {
+        height: 1500px;
+        overflow: auto;
+    }
+</style>
+
+<div class="col-md-12 no-padding m-t-sm">
+    @*<div class="pnl-gridtop clearfix">*@
+    <div class="clearfix pnl-filter">
+        @using (Html.BeginForm(null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+        {
+
+
+            @Html.AntiForgeryToken()
+        <div class="m-t-sm">
+            <div class="row">
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <label>From Date</label>
+                        <div class="input-group input-group-sm date" id="dtp_FromDate">
+                            @Html.EditorFor(m => m.FromDate, new { htmlAttributes = new { @placeholder = "From Date", @tooltip = "From Date", @class = "form-control input-sm datetimepicker", title = "From Date", id = "FromDate" } })
+                            <span class="input-group-addon" style="display: none">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <label>To Date</label>
+                        <div class="input-group input-group-sm date" id="dtp_ToDate">
+                            @Html.EditorFor(m => m.ToDate, new { htmlAttributes = new { @placeholder = "To Date", @tooltip = "To Date", @class = "form-control input-sm datetimepicker", title = "To Date", id = "ToDate" } })
+                            <span class="input-group-addon" style="display: none">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <label>Bill No</label>
+                        <div class="input-group">
+                            @Html.EditorFor(m => m.BillNo, new { htmlAttributes = new { @placeholder = "Bill No", @tooltip = "Bill No", @class = "form-control input-sm ", title = "Bill No", id = "BillNo" } })
+                            @*@Html.DropDownList("EnqId", new SelectList((System.Collections.IEnumerable)ViewData["EnquiryList"], "Value", "Text", ViewData["ContainerList"]), "Select One", new { @class = "form-control", id = "EnqID", title = "EnqID" })*@
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <div class="input-group">
+                            @Html.DropDownListFor(m => m.SearchFor, (List<SelectListItem>)ViewData["SearchFor"], "--Select--", new { @class = "form-control input-sm" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Service Line</label>
+                        @Html.DropDownListFor(model => model.ServiceLineId, new MultiSelectList((System.Collections.IEnumerable)ViewData["ServiceLineList"], "Value", "Text", Model.ServiceLineId), new { @class = "form-control input-sm multipleselect ServiceLineId", @multiple = "multiple" })
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Revenue Br.</label>
+                        @Html.ListBoxFor(model => model.RevenueBranchId, new MultiSelectList((System.Collections.IEnumerable)ViewData["RevenueBranchList"], "Value", "Text", Model.RevenueBranchId), new { @class = "form-control input-sm multipleselect RevenueBranchId", @multiple = "multiple" })
+                    </div>
+                </div>
+                <div class="form-group col-sm-1 col-md-1">
+                    <div class="clearfix">
+                        <input type="submit" id="btnSearch" name="Search" class="btn btn-default btn-sm m-r-sm pull-right" value="Search" />
+                    </div>
+                </div>
+                <div class="form-group col-sm-1 col-md-1">
+                    <div class="clearfix">
+
+                        <input type="submit" id="btnExport" name="Export" class="btn btn-default btn-sm m-r-sm pull-right glyphicon glyphicon-export" disabled value="Export" form="FormExport" />
+                    </div>
+                </div>
+                <div class="form-group col-sm-1 col-md-1">
+                    <div class="clearfix">
+
+                        Total Records: @Model.InvGrid.Count()
+                    </div>
+                </div>
+            </div>
+
+            
+
+        </div>
+        }
+
+    </div>
+    @using (Html.BeginForm("Export", "FundTransfer", FormMethod.Post, new { @id = "FormExport" }))
+    {
+
+
+        <div id="mgrid">
+            <div class="table-responsive" id="pnl-rates" style="height: 380px">
+
+                <table class="Gridbody table table-striped border" id="CostHeadtable">
+                    <thead class="ibox-title">
+                        <tr>
+                            <th>Job No</th>
+                            <th>Bill No</th>
+                            <th style="width:100px">Bill Date</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                            @*<th>Account</th>*@
+                            <th>Account Code</th>
+                            @*<th>FA Client Code</th>*@
+                            <th>FA Code</th>
+                            <th>Check All<input type="checkbox" id="chkCheckAll" /></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @for (int i = 0; i < Model.InvGrid.Count; i++)
+                        {
+
+                            object AccCodeReadonly = new { @class = "AccountCode" };
+                            object ExportCss = "";
+
+                            if (Model.InvGrid[i].BillTo != "Shipper" || Model.SearchFor == "Exported")
+                            {
+                                AccCodeReadonly = new { @class = "AccountCode", @readonly = true };
+                            }
+                            if (string.IsNullOrEmpty(Model.InvGrid[i].AccountCode))
+                            {
+                                ExportCss = "disabled";
+                            }
+                            <tr>
+                                <td>@Html.HiddenFor(m => Model.InvGrid[i].InvOrCredit)@Html.HiddenFor(m => Model.InvGrid[i].CBSRefID)@Model.InvGrid[i].Project</td>
+                                <td>@Html.HiddenFor(m => Model.InvGrid[i].BillNo) @Model.InvGrid[i].BillNo</td>
+                                <td>
+                                    @if (Model.InvGrid[i].BillDate != null)
+                                    {@(((DateTime)Model.InvGrid[i].BillDate).ToString("dd-MMM-yyyy"))}
+                                </td>
+                                <td>@Model.InvGrid[i].Value</td>
+                                <td>@Model.InvGrid[i].Description</td>
+                                @*<td>@Model.InvGrid[i].Account</td>*@
+                                <td>
+                                    @Html.TextBoxFor(m => Model.InvGrid[i].AccountCode, AccCodeReadonly)
+                                </td>
+                                <td>@Model.InvGrid[i].FACode</td>
+                                <td><input type="checkbox" class="chkList" @ExportCss /> @Html.HiddenFor(m => Model.InvGrid[i].IsExport, new { @class = "IsExport" })</td>
+                            </tr>
+
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.multipleselect').multiselect({
+                includeSelectAllOption: true,
+                enableFiltering: true,
+                filterPlaceholder: 'Search',
+                maxHeight: 200,
+                buttonWidth: '250px'
+            });
+            $('#btnExport').attr('disabled', 'disabled');
+            if ('@Sercount' <=0) {
+                $('select.ServiceLineId').find("option").each(function () {
+
+                    $(this).prop('selected', true);
+                    $("select.ServiceLineId").multiselect('selectAll', false);
+                    $("select.ServiceLineId").multiselect('updateButtonText');    
+                });
+                
+                    
+            }
+            else {
+                $('select.ServiceLineId').find("option").each(function () {
+                    $("select.ServiceLineId").multiselect('updateButtonText');
+                });
+                var data = '@ServiceLine';
+                if (data != 'null') {
+                    //data = data.replace(/&quot;/g, '');
+                    
+                    var valArr = data.split(",");
+                    var i = 0, size = valArr.length;
+                    for (i; i < size; i++) {
+                        debugger;
+                        //alert(valArr[i].toString());
+                        $('select.ServiceLineId').multiselect('select', valArr[i]);
+                    }
+                }
+            }
+            
+            if (parseInt('@Revcount') <= 0) {
+                $('select.RevenueBranchId').find("option").each(function () {
+                    $(this).prop('selected', true);
+                    $("select.RevenueBranchId").multiselect('selectAll', false);
+                    $("select.RevenueBranchId").multiselect('updateButtonText');
+                 });
+            }
+            else {
+                $('select.RevenueBranchId').find("option").each(function () {
+                    $("select.RevenueBranchId").multiselect('updateButtonText');
+                    $("select.RevenueBranchId").multiselect('selectAll', true);
+                });
+                
+                var data = '@REvenueBranch';
+                if (data != 'null') {
+                    //data = data.replace(/&quot;/g, '');
+                    
+                    var valArr = data.split(",");
+                    var i = 0, size = valArr.length;
+                    for (i; i < size; i++) {
+                        debugger;
+                        //alert(valArr[i].toString());
+                        $('select.RevenueBranchId').multiselect('select', valArr[i]);
+                    }
+                }
+                
+            }
+
+            $('#FromDate,#ToDate,#TentDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            //PagedOnCompleteBinds();
+
+            $('body').on('hidden.bs.modal', '.modal', function () {
+                $(this).removeData('bs.modal');
+            });
+
+            //pageGrids.mainGrid.onRowSelect(function (e) {
+            //    console.log($('#pnlGridTopActions #btnEdit, #pnlGridTopActions #btnDelete').length)
+            //    $('#pnlGridTopActions #btnEdit, #pnlGridTopActions #btnDelete').removeAttr('disabled');
+            //    $('#pnlGridTopActions #btnEdit').on('click', function (ev) {
+            //        ev.preventDefault();
+            //        $('#mgrid tr.grid-row.grid-row-selected').find('.btnEdit').click();
+            //    });
+            //    $('#pnlGridTopActions #btnDelete').on('click', function (ev) {
+            //        ev.preventDefault();
+            //        $('#mgrid tr.grid-row.grid-row-selected').find('.btnDelete').click();
+            //    });
+            //});
+
+            //$('form#CustomFilter').on('submit', function (e) {
+            //    e.preventDefault();
+            //    $(this).ajaxSubmit({
+            //        target: '#mgrid',
+            //        success: function () {
+            //            PagedOnCompleteBinds();
+            //        }
+            //    });
+            //});
+
+            if ('@htmlString' != undefined && '@htmlString') {
+                var ua = window.navigator.userAgent;
+                    var msie = ua.indexOf("MSIE ");
+
+                    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer
+                    {
+                        txtArea1.document.open("txt/html", "replace");
+                        txtArea1.document.write('@htmlString');
+                        txtArea1.document.close();
+                        txtArea1.focus();
+                        sa = txtArea1.document.execCommand("SaveAs", true, "CostSheet.xls");
+                    }
+                    else                 //other browser not tested on IE 11
+                        sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent('@htmlString'));
+
+                return (sa);
+            }
+        });
+
+        /////search form data
+        function PagedOnCompleteBinds() {
+            $(document).ready(function () {
+                $('select').select2();
+                $('.grid-header-title a').on('click', function (e)
+                {
+                    e.preventDefault();
+                    var sturl = "@Url.Action("Index", "Enquiry")" + $(this).attr('href');
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('#mgrid .pagination li a').on('click', function (e) {
+                    e.preventDefault();
+
+                    e.stopImmediatePropagation();
+                    var sturl = $('#mgrid .sorted.grid-header-title a').attr('href');
+                    if (typeof sturl != 'undefined') {
+                        var gdir = url("?grid-dir", sturl);
+                        var gcol = url("?grid-column", sturl);
+                        sturl = sturl.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0) ? 1 : 0);
+                        sturl = sturl.replace('?', '&');
+                    }
+
+                    var sturl2 = $(this).attr('href');
+                    if (sturl2 == undefined) {
+                        sturl2 = "@Url.Action("Index", "Enquiry")?page=" + parseInt($(this).html());
+                    }
+                    sturl = sturl2 + sturl.replace(/page=\d+/i, "");
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('form.frmRWDelete').on('submit', function (e) {
+                    e.preventDefault();
+                    $frmRWDelete = this;
+                    swal({
+                        title: "Are you sure you want to delete this record?",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Delete",
+                        cancelButtonText: "No",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                        function (isConfirm) {
+                            if (isConfirm) {
+                                $('#mgrid').mask("Loading...");
+                                $($frmRWDelete).ajaxSubmit({
+                                    success: function (data) {
+                                        if (data.Success) {
+                                            toastr.success("Survey deleted successfully.");
+                                            $('#mgrid .pagination li.active a').trigger('click');
+                                        } else if (!data.Success) {
+                                            swal({
+                                                text: "Survey Delete Failed.",
+                                                type: "error"
+                                            });
+                                        }
+                                        $('#mgrid').unmask();
+                                    },
+                                    complete: function () {
+                                        $('#mgrid').unmask();
+                                    }
+                                });
+                            } else {
+                                swal("", "Survey Delete Cancelled.", "error");
+                            }
+                        });
+                });
+                $('.lnkExportToExcel').on('click', function () {
+                    var url = '@Url.Action("ExportToExcel", "Survey", new { })';
+                    window.location.href = url;
+                });
+            });
+        }
+
+        function PagedOnComplete(obj) {
+            $('#mgrid table').unmask();
+            PagedOnCompleteBinds();
+        }
+
+        $('.chkList').click(function ()
+        {
+            
+            var Ischeck = $(this).is(':checked');
+            $(this).siblings('.IsExport').val(Ischeck);
+            $('#CostHeadtable tbody tr').each(function () {
+                
+                if ($(this).find('.chkList').is(':checked')) {
+                    Ischeck = true;
+                }
+            });
+
+            if (Ischeck) {
+                $('#btnExport').removeAttr('disabled');
+            }
+            else {
+                
+                $('#btnExport').attr('disabled', 'disabled');
+            }
+        });
+
+        $('#chkCheckAll').click(function () {
+            
+            var Ischeck = $(this).is(':checked');
+            var IscheckInd = true;
+            $('#CostHeadtable tbody tr').each(function ()
+            {
+                //var Ischeck = $(this).is(':checked');
+                if (!$(this).find('.chkList').is(':disabled')) {
+                    
+                    if (Ischeck) {
+                        //$(this).find('.chkList').attr('checked', Ischeck);
+                        
+                        if (!$(this).find('.chkList').is(':checked')) {
+                            $(this).find('.chkList').click();
+                            $(this).find('.IsExport').val($(this).find('.chkList').is(':checked'));
+                        }
+                        $('#btnExport').removeAttr('disabled');
+                        IscheckInd = !$(this).is(':checked');
+                    }
+                    else {
+                        $(this).find('.chkList').removeAttr('checked');
+                        $(this).find('.IsExport').val($(this).find('.chkList').is(':checked'));
+                        $('#btnExport').attr('disabled', 'disabled');
+                        IscheckInd = !$(this).is(':checked');
+                    }
+                }
+                
+            });
+
+            //if (IscheckInd) {
+            //    $('#btnExport').attr('disabled', 'disabled')
+            //}
+            //else {
+            //    $('#btnExport').removeAttr('disabled')
+            //}
+        });
+
+
+    </script>
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+}

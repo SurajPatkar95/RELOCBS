@@ -1,19 +1,66 @@
-﻿<!DOCTYPE html>
+﻿@using RELOCBS.Utility
+@{
+}
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @RenderSection("metatags", false)
     <title>[@ViewBag.SiteTitleShort] @ViewBag.Title</title>
     <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,900" rel="stylesheet">
+    @*<script src='https://kit.fontawesome.com/a076d05399.js'></script>*@
+    <script defer src='~/Scripts/a076d05399.js'></script>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
     @Styles.Render("~/Content/custom")
+    <style>
+        #overlay {
+            background: #ffffff;
+            color: #666666;
+            position: fixed;
+            height: 100%;
+            width: 100%;
+            z-index: 5000;
+            top: 0;
+            left: 0;
+            float: left;
+            text-align: center;
+            padding-top: 25%;
+            opacity: .80;
+        }
 
+        /*button {
+            margin: 40px;
+            padding: 5px 20px;
+            cursor: pointer;
+        }*/
+
+        .spinner {
+            margin: 0 auto;
+            height: 64px;
+            width: 64px;
+            animation: rotate 0.8s infinite linear;
+            border: 5px solid firebrick;
+            border-right-color: transparent;
+            border-radius: 50%;
+        }
+
+        #hideMe {
+            -webkit-animation: cssAnimation 5s forwards;
+            animation: cssAnimation 5s forwards;
+        }
+    </style>
 </head>
 <body class="mini-navbar">
+    <div id="overlay">
+        <div class="spinner"></div>
+        <br />
+        <font color="firebrick"><b>Please Wait...</b></font>
+    </div>
     <div id="wrapper">
         @Html.Action("NavLeft", "Navigation")
-        <div id="page-wrapper" class="gray-bg">
+        <div id="page-wrapper" class="gray-bg" @*style="background: linear-gradient(#fcb413, #fdefb2);"*@>
 
             @Html.Action("NavTop", "Navigation")
 
@@ -21,13 +68,14 @@
                 @*@Html.Partial("_Notifications")*@
 
                 @RenderBody()
-
                 <div class="footer">
                     <footer>
                         <p>&copy; @ViewBag.Copyright</p>
                     </footer>
                 </div>
+
             </div>
+
         </div>
     </div>
     <div id="mdlEmailSetting" class="modal fade modal-pagefit-80 in">
@@ -37,8 +85,11 @@
             </div>
         </div>
     </div>
+
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+
+    @Scripts.Render("~/bundles/jqueryval")
 
     @*@Styles.Render("~/Content/icheckcss")
         @Scripts.Render("~/bundles/icheck")*@
@@ -49,42 +100,94 @@
     @Scripts.Render("~/bundles/bgiframe")
 
     @Scripts.Render("~/bundles/custom")
+
     @RenderSection("scripts", required: false)
+
+    @{ Html.RenderPartial("_Toastr"); }
+
+    @{ Html.RenderPartial("_UserFeedbackModal"); }
+
     <script>
         $(document).ready(function () {
+            //$('#overlay').fadeIn().delay(2000).fadeOut();
             $("input").attr("autocomplete", "off");
-        });
 
-    $(document).ready(function () {
-        $('#pnl-todolist .ibox-content').slimScroll({
-            height: '200px'
-        });
-        $('a#lnkUpdateTodoCall').webuiPopover({ cache: false, animation: 'fade', placement: 'bottom-left', delay: 500, html: true, dismissible: false});
+            $.validator.methods.date = function (value, element) {
+                return this.optional(element) || moment(value, "DD-MMM-YYYY", true).isValid() || moment(value, "DD-MMM-YYYY HH:mm", true).isValid();
+            }
 
-        $('form.frmUpdateTodo').on('submit', function (e) {
-            e.preventDefault();
-            var todoid = $(this).closest('.pnlUpdateTodoCall').attr('id');
-            todoid = todoid.replace('pnlUpdateTodoCall-', '');
-            $('.webui-popover.in .webui-popover-content .pnlUpdateTodoCall').mask("Loading...");
-            $(this).ajaxSubmit({
-                target: '.webui-popover.in .webui-popover-content',
-                success: function (data) {
-                    if (data.Success) {
-                        toastr.success("Task completed successfully.");
-                        $('#pnl-todolist .todoitm-' + todoid).remove();
-                    } else if (!data.Success) {
-                        toastr.error("Task completion failed. Please try again.");
-                    }
-                    $('.webui-popover.in .webui-popover-content .pnlUpdateTodoCall').unmask();
-                    $('.webui-popover.in').remove();
-                },
-                complete: function () {
-                    $('.webui-popover.in .webui-popover-content .pnlUpdateTodoCall').unmask();
-                }
+            $(".onkeydtp").on('keypress paste', function (e) {
+                e.preventDefault();
+                return false;
             });
+
+            
         });
-    });
+
+        $('.Navigation').on('click', function () {
+
+        });
+
+        $(document).ready(function () {
+            $('#pnl-todolist .ibox-content').slimScroll({
+                height: '200px'
+            });
+            $('a#lnkUpdateTodoCall').webuiPopover({ cache: false, animation: 'fade', placement: 'bottom-left', delay: 500, html: true, dismissible: false });
+
+            $('form.frmUpdateTodo').on('submit', function (e) {
+                e.preventDefault();
+                var todoid = $(this).closest('.pnlUpdateTodoCall').attr('id');
+                todoid = todoid.replace('pnlUpdateTodoCall-', '');
+                $('.webui-popover.in .webui-popover-content .pnlUpdateTodoCall').mask("Loading...");
+                $(this).ajaxSubmit({
+                    target: '.webui-popover.in .webui-popover-content',
+                    success: function (data) {
+                        if (data.Success) {
+                            toastr.success("Task completed successfully.");
+                            $('#pnl-todolist .todoitm-' + todoid).remove();
+                        } else if (!data.Success) {
+                            toastr.error("Task completion failed. Please try again.");
+                        }
+                        $('.webui-popover.in .webui-popover-content .pnlUpdateTodoCall').unmask();
+                        $('.webui-popover.in').remove();
+                    },
+                    complete: function () {
+                        $('.webui-popover.in .webui-popover-content .pnlUpdateTodoCall').unmask();
+                    }
+                });
+            });
+
+            
+
+        });
+
+        
+        ///On window load call the user feedaback Modal if feedaback is not filled
+        window.addEventListener("load", function () {
+
+            /////User feedback Status check
+            if ("@UserSession.GetUserSession().UserFeedbackStatus" != "" && "@UserSession.GetUserSession().UserFeedbackStatus" == "N") {
+
+                //setTimeout(LoadUserfeedbackModal, 100);
+                LoadUserfeedbackModal();
+
+                
+            }
+        });
+
+        function LoadUserfeedbackModal() {
+
+            $('#frmFeedbackContent').load('@Url.Action("Create", "UserFeedback")', function (response, status, xhr) {
+
+                    $('#UserFeedbackModal').modal({
+                        backdrop: 'static'
+                    });
+                });
+        }
+
     </script>
+    <script src="~/scripts/ajaxglobalerrorhandler.js"></script>
     <script src="~/Scripts/Plugins/dotdotdot/table2excel.js"></script>
+    
 </body>
 </html>

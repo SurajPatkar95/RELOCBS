@@ -1,0 +1,1334 @@
+﻿@using RELOCBS.Utility;
+
+@using RELOCBS.Models;
+
+@model RELOCBS.Entities.GMMSRateUpload
+@{
+    ViewBag.Title = "ImportRateUpload";
+    string ShortDateFormatDatePickerJs = "DD/MM/YYYY";
+    string _PageID = "16";
+    UserInformationModel user = UserSession.GetUserSession();
+
+    bool ShowBTR = user.CompanyName.Contains("BTR") && !user.BussinessLine.Equals("NON RMC-BUSINESS", StringComparison.OrdinalIgnoreCase);
+    bool IsRmc = !user.BussinessLine.Equals("NON RMC-BUSINESS", StringComparison.OrdinalIgnoreCase);
+
+    string CompanyName = user.CompanyName.ToLower();
+    string IsShowSpecialTHC = (Model.THCdtTable != null && Model.THCdtTable.Rows.Count > 0 && CompanyName.Equals("btr")) ? "" : "hide";
+
+}
+
+<div class="modal fade" id="CostUploadFormat" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <h4 class="modal-title" id="myModalLabel">Select Upload Format Type</h4>
+            </div>
+            <div class="modal-body">
+
+                @if (ShowBTR)
+                {
+                    <label class="radio-inline">
+                        <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="BTR" checked="checked"> BTR
+                    </label>
+                }
+                else
+                {
+                    <label class="radio-inline">
+                        <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="WRITER" checked="checked"> Writer
+                    </label>
+                }
+            </div>
+            <div class="modal-footer m-t-none">
+                <div class="row">
+                    <div class="col-md-10">
+                        <button type="button" id="btnUploadFormat" class="btn btn-primary pull-right">Ok</button>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-default pull-right" data-dismiss="modal">Close</button>
+                        
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@using (Html.BeginForm("CostUpload", "Cost", new { id = (int?)Model.LeadID }, FormMethod.Post, new { enctype = "multipart/form-data", id = "frmimportLaneRate" }))
+{
+
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+<div class="ibox-content">
+    <div class="">
+        <div class="col-sm-7 col-md-7">
+        </div>
+        <div class="col-sm-5 col-md-5">
+            <div class="form-group">
+                <input type="submit" id="BtnSave" name="SubmitRate" formaction=@Url.Action("SaveUploadRates") formmethod="post" class="btn btn-primary m-t-sm m-b-sm pull-right m-r-sm btn-sm BtnSave" value="Save Rates" formnovalidate="formnovalidate" />
+                <input type="button" id="BtnCompareRate" name="CompareRate" formtarget="_blank" class="btn btn-success m-t-sm m-b-sm pull-right m-r-sm btn-sm BtnSave" value="Compare Rates" formnovalidate="formnovalidate" onclick="GetCompareRates();" />
+                <input type="button" id="BtnHistoryRate" name="HistoryRate" formtarget="_blank" class="btn btn-success m-t-sm m-b-sm pull-right m-r-sm btn-sm BtnSave" value="History Rates" formnovalidate="formnovalidate" onclick="ShowPopup();" />
+                @Html.ActionLink("Accessorial Services", "AccessorialServices", "Cost", null, new { @id = "lnkCityRates", target = "_blank", @class = "m-t-sm m-b-sm pull-right m-r-sm btn-sm" })
+                <input type="button" id="BtnHistoryTHC" name="BtnHistoryTHC" formtarget="_blank" class="btn btn-success m-t-sm m-b-sm pull-right m-r-sm btn-sm @IsShowSpecialTHC" value="Special THC History" formnovalidate="formnovalidate" onclick="HistoryTHCShow();" />
+            </div>
+        </div>
+    </div>
+    <div class="row m-t-n-xxs">
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                @Html.LabelFor(model => model.RMCID, htmlAttributes: new { @class = "control-label" })
+                @Html.DropDownListFor(model => model.RMCID, new SelectList((System.Collections.IEnumerable)ViewData["RMC"], "Value", "Text"), "--Select RMC--", new { id = "RMCDropdown", @class = "form-control input-sm clearfix sampleValidate" })
+                @Html.ValidationMessageFor(model => model.RMCID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                @Html.LabelFor(model => model.CostOrRevenueSelected, htmlAttributes: new { @class = "control-label" })
+                <div class="radio">
+                    <label>@Html.RadioButtonFor(model => model.CostOrRevenueSelected, "Cost") Cost</label>
+                    <label>@Html.RadioButtonFor(model => model.CostOrRevenueSelected, "Revenue") Revenue</label>
+                </div>
+                @Html.ValidationMessageFor(model => model.CostOrRevenueSelected, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-sm-1 col-md-1">
+            <div class="form-group">
+                @Html.LabelFor(model => model.BusinessLineID, htmlAttributes: new { @class = "control-label" })
+
+                @Html.HiddenFor(model => model.BusinessLineID, new { @class = "form-control", id = "BusinessLineDropdown" })
+                @Html.TextBoxFor(model => model.BusinessLineName, new { @class = "form-control", title = "Bussiness Line", @readonly = "true" })
+                @*@Html.DropDownListFor(model => model.BusinessLineID, new SelectList((System.Collections.IEnumerable)ViewData["BusinessLine"], "Value", "Text"),  new { id = "BusinessLineDropdown", @class = "form-control input-sm clearfix" })*@
+                @Html.ValidationMessageFor(model => model.BusinessLineID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                @Html.LabelFor(model => model.GoodsDescriptionID, htmlAttributes: new { @class = "control-label" })
+                @Html.HiddenFor(model => model.GoodsDescriptionID, new { @class = "form-control", id = "GoodsDescriptionDropdown" })
+                @Html.TextBoxFor(model => model.GoodsDescription, new { @class = "form-control", title = "Goods Desc", @readonly = "true" })
+                @*@Html.DropDownListFor(model => model.GoodsDescriptionID, new SelectList((System.Collections.IEnumerable)ViewData["GoodsDescription"], "Value", "Text"), new { id = "GoodsDescriptionDropdown", @class = "form-control input-sm clearfix" })*@
+                @Html.ValidationMessageFor(model => model.GoodsDescriptionID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                @Html.LabelFor(model => model.RateComponentID, htmlAttributes: new { @class = "control-label" })
+                @Html.DropDownListFor(model => model.RateComponentID, new SelectList((System.Collections.IEnumerable)ViewData["RateComponent"], "Value", "Text"), "--Select Rate Component--", new { id = "RateComponentDropdown", @class = "form-control input-sm clearfix" })
+                @Html.ValidationMessageFor(model => model.RateComponentID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                @Html.LabelFor(model => model.AgentID, htmlAttributes: new { @class = "control-label" })
+                @Html.DropDownListFor(model => model.AgentID, new SelectList((System.Collections.IEnumerable)ViewData["Agent"], "Value", "Text"), "--Select Agent--", new { id = "AgentDropdown", @class = "form-control input-sm clearfix enableselect" })
+                @Html.ValidationMessageFor(model => model.AgentID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+    </div>
+    <div class="row">
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>Base Currency</label>
+                @{
+                    object baseCurrDisabled = new { id = "BaseCurrencyRateDropdown", @class = "form-control input-sm clearfix BaseCurrency CommBaseCurr" };
+                    if (IsRmc)
+                    {
+                        baseCurrDisabled = new { id = "BaseCurrencyRateDropdown", @class = "form-control input-sm clearfix BaseCurrency CommBaseCurr", @disabled = "disabled" };
+                    }
+                }
+                @Html.DropDownListFor(model => model.BaseCurrencyRateID, new SelectList((System.Collections.IEnumerable)ViewData["BaseCurrencyRate"], "Value", "Text"), "--Select BaseCurrency Rate--", baseCurrDisabled)
+                @Html.HiddenFor(model => model.BaseCurrencyRateID, new { @class = "BaseCurrency" })
+                @Html.ValidationMessageFor(model => model.BaseCurrencyRateID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>Rate Currency</label>
+                @Html.DropDownListFor(model => model.RateCurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["RateCurrency"], "Value", "Text"), "--Select Rate Currency--", new { id = "RateCurrencyDropdown", @class = "form-control input-sm clearfix CommRateCurr" })
+                @Html.ValidationMessageFor(model => model.RateCurrencyID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>Conversion Rate</label>
+                @Html.EditorFor(model => model.ConversionRate, new { htmlAttributes = new { @class = "form-control input-sm clearfix CommConvRate", id = "txtConversionRate" } })
+                @Html.ValidationMessageFor(model => model.ConversionRate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-sm-3 form-group">
+            @*<input type="file" id="FileUpload" name="file" class="inputfile inputfile-4 center-block m-t-md form-control" accept=".xls,.xlsx"> required data-val="true" data-val-required="please select a file"*@
+            @Html.TextBoxFor(model => model.file, new { type = "file", @class = "inputfile inputfile-4 center-block m-t-md form-control", accept = ".xls,.xlsx" })
+            @Html.ValidationMessageFor(model => model.file, "", new { @class = "text-danger" })
+        </div>
+        <div class="col-sm-1 form-group">
+            <input type="submit" id="btnCostUpload" name="SubmitRate" formaction=@Url.Action("CostUpload") formmethod="post" class="btn btn-default btn-sm m-t-md pull-right UploadDestinationRate" value="Upload File" title="Click to upload file" /> @*formnovalidate="formnovalidate"*@
+        </div>
+        <div class="col-sm-2 form-group m-t-md">
+            <div class="row divTHC m-b-sm @IsShowSpecialTHC">
+                @Html.ActionLink("Special THC", null, null, new { @id = "lnkSpecialTHC", @class = "btn btn-default btn-sm" })
+            </div>
+            <div class="row">
+                @Html.ActionLink("Sample Format Download", null, null, new { @id = "lnkDownloadFormat" })
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row m-t-n m-b-sm">
+        <div class="col-sm-12 m-b-n">
+            <table class="table table-bordered table-responsive table-hover" id="tblServiceMode">
+                <tr>
+                    <td>
+                        <a href="#" id="ClearSelection"><span class="fa fa-eraser" style="font-size:20px;color:black"></span></a>
+                    </td>
+                    <th>Mode</th>
+                    <th>From City</th>
+                    <th>Exit Port</th>
+                    <th>Entry Port</th>
+                    <th>To City</th>
+                    <th>TransitTime From</th>
+                    <th>TransitTime To</th>
+                    <th style="display:none">Copy To</th>
+                </tr>
+                @for (var i = 0; i < Model.ServiceModeList.Count(); i++)
+                {
+                    <tr data-id="@Model.ServiceModeList[i].ModeID">
+                        <td>
+                            @{
+                                bool Modechecked = false;
+
+                                if (!string.IsNullOrWhiteSpace(Model.ModeSelect) && Model.ModeSelect.ToUpper() == Model.ServiceModeList[i].ModeName.ToUpper())
+                                {
+                                    Modechecked = true;
+                                }
+                            }
+
+                            @Html.RadioButtonFor(model => Model.ModeSelect, Model.ServiceModeList[i].ModeName, Modechecked ? new { @checked = "checked" } : null)
+                        </td>
+                        <td>
+                            @Html.HiddenFor(x => Model.ServiceModeList[i].ModeID, new { @class = "Mode" })
+                            @Html.HiddenFor(x => Model.ServiceModeList[i].ModeName, new { @class = "ModeName" })
+                            @Html.DropDownListFor(x => Model.ServiceModeList[i].ModeID, new SelectList((System.Collections.IEnumerable)ViewData["Mode"], "Value", "Text", Model.ServiceModeList[i].ModeID), "--Select Mode--", new { id = "ModeDropdown", @class = "form-control input-sm clearfix", @disabled = "disabled" })
+                        </td>
+                        <td>
+
+                            @Html.DropDownListFor(x => Model.ServiceModeList[i].FromCityID, new List<SelectListItem>(), new { @class = "form-control input-sm clearfix enableselect tdFromCity" })
+                            @Html.HiddenFor(x => Model.ServiceModeList[i].FromCityID, new { @class = "FromCity", id = "HFFCITY", name = "HFFCITY" })
+                        </td>
+                        <td>
+                            @{
+                                System.Collections.IEnumerable PortList = (System.Collections.IEnumerable)ViewData["PortList"];
+
+                                if (Model.ServiceModeList[i].ModeName.ToUpper() == "SEA")
+                                {
+                                    PortList = (System.Collections.IEnumerable)ViewData["SeaPortList"];
+                                }
+
+                                if (Model.ServiceModeList[i].ModeName.ToUpper() == "AIR")
+                                {
+                                    PortList = (System.Collections.IEnumerable)ViewData["AirPortList"];
+                                }
+                            }
+
+                            @Html.DropDownListFor(x => Model.ServiceModeList[i].ExitPortID, new SelectList(PortList, "Value", "Text", Model.ServiceModeList[i].ExitPortID), "--Select Exit Port--", new { id = "ExitPortDropdown", @class = "form-control input-sm clearfix enableselect tdExitPort" })
+                        </td>
+                        <td>
+                            @Html.DropDownListFor(x => Model.ServiceModeList[i].EntryPortID, new SelectList(PortList, "Value", "Text", Model.ServiceModeList[i].EntryPortID), "--Select Entry Port--", new { id = "EntryPortDropdown", @class = "form-control input-sm clearfix enableselect tdEntryPort" })
+                        </td>
+                        <td>
+
+                            @Html.DropDownListFor(x => Model.ServiceModeList[i].ToCityID, new List<SelectListItem>(), new { @class = "form-control input-sm clearfix enableselect tdToCity" })
+                            @Html.HiddenFor(x => Model.ServiceModeList[i].ToCityID, new { @class = "ToCity", id = "HFTCITY", name = "HFTCITY" })
+                        </td>
+                        <td>
+                            @Html.EditorFor(x => Model.ServiceModeList[i].TransitTimeFrom, new { htmlAttributes = new { @class = "form-control input-sm clearfix TimeFrom", onkeypress = "return OnlyInteger(this, event);" } })
+                        </td>
+                        <td>
+                            @Html.EditorFor(x => Model.ServiceModeList[i].TransitTimeTo, new { htmlAttributes = new { @class = "form-control input-sm clearfix TimeTo", onkeypress = "return OnlyInteger(this, event);" } })
+                        </td>
+                        <td style="display:none">
+                            @Html.DropDownList("CopyModeDropdown", new SelectList((System.Collections.IEnumerable)ViewData["Mode"], "Value", "Text").Where(x => x.Value != Model.ServiceModeList[i].ModeID.ToString()), new { id = "CopyModeDropdown", @class = "form-control input-sm clearfix CopyMode", @multiple = "multiple" })
+                        </td>
+                    </tr>
+                }
+
+                @*@foreach (RELOCBS.Entities.TransportModeList row in Model.ServiceModeList)
+                    {
+                        <tr data-id="@row.ModeID">
+                            <td>
+                                @Html.DropDownListFor(a => row.ModeID, new SelectList((System.Collections.IEnumerable)ViewData["Mode"], "Value", "Text", row.ModeID), "--Select Mode--", new { id = "ModeDropdown", @class = "form-control input-sm clearfix", @disabled = "disabled" })
+                                @Html.Hidden("ModeID", row.ModeID, new { @class = "Mode" })
+                            </td>
+                            <td>
+                                @Html.DropDownList("FromCityID", new SelectList((System.Collections.IEnumerable)ViewData["CityList"], "Value", "Text", row.FromCityID), "--Select From City--", new { id = "FromLocationDropdown", @class = "form-control input-sm clearfix enableselect tdFromCity" })
+                            </td>
+                            <td>
+                                @Html.DropDownList("ExitPointID", new SelectList((System.Collections.IEnumerable)ViewData["PortList"], "Value", "Text", row.ExitPortID), "--Select Exit Port--", new { id = "ExitPortDropdown", @class = "form-control input-sm clearfix enableselect tdExitPort" })
+                            </td>
+                            <td>
+                                @Html.DropDownList("EntryPortID", new SelectList((System.Collections.IEnumerable)ViewData["PortList"], "Value", "Text", row.EntryPortID), "--Select Entry Port--", new { id = "EntryPortDropdown", @class = "form-control input-sm clearfix enableselect tdEntryPort" })
+                            </td>
+                            <td>
+                                @Html.DropDownList("ToCityID", new SelectList((System.Collections.IEnumerable)ViewData["CityList"], "Value", "Text", row.ToCityID), "--Select To City--", new { id = "ToLocationDropdown", @class = "form-control input-sm clearfix enableselect tdToCity" })
+                            </td>
+                            <td>
+                                @Html.Editor("TransitTimeFrom", new { htmlAttributes = new { @class = "form-control input-sm clearfix TimeFrom", onkeypress = "return OnlyInteger(this, event);" } })
+                            </td>
+                            <td>
+                                @Html.Editor("TransitTimeTo", new { htmlAttributes = new { @class = "form-control input-sm clearfix TimeTo", onkeypress = "return OnlyInteger(this, event);" } })
+                            </td>
+                            <td>
+                                @Html.DropDownList("CopyModeDropdown", new SelectList((System.Collections.IEnumerable)ViewData["Mode"], "Value", "Text").Where(x => x.Value != row.ModeID.ToString()), new { id = "CopyModeDropdown", @class = "form-control input-sm clearfix CopyMode", @multiple = "multiple" })
+                            </td>
+                        </tr>
+                    }*@
+            </table>
+        </div>
+    </div>
+    @Html.HiddenFor(model => model.SpecialTHCList)
+    <div class="specialTHC @IsShowSpecialTHC">
+        <div class="row">
+            <div class="col-md-2"><label class="control-label">Origin Continent</label></div>
+            <div class="col-md-3">
+                @Html.DropDownList("OrgContinent", new SelectList((System.Collections.IEnumerable)ViewData["Continent"], "Value", "Text"), "--Select Origin Continent--", new { @class = "form-control input-sm clearfix enableselect" })
+            </div>
+            <div class="form-group col-sm-2 col-md-2">
+                <div class="clearfix">
+                    <input type="button" id="btnAddTHC" value="Add" class="btn btn-primary btn-sm" />
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12 m-b-lg">
+                <div class="table-responsive" id="pnl-THC" style="overflow: auto;height: 200px">
+                    <table class="table table-striped" id="SpecialTHCTble">
+                        <thead class="ibox-title">
+                            <tr>
+                                @foreach (System.Data.DataColumn col in Model.THCdtTable.Columns)
+                                {
+                                    //if (col.Caption == "WeightSlab" ||
+                                    //    col.Caption == "OriginRate" ||
+                                    //    col.Caption == "OriginTHC" ||
+                                    //    col.Caption == "LiftVanOriginRate" ||
+                                    //    col.Caption == "LiftVanOriginTHC" ||
+                                    //    col.Caption == "MiscRate")
+                                    if (col.Caption.ToUpper() == "CONTINENTID")
+                                    {
+                                        <th id="@col.Caption" class="hide"> @col.Caption </th>
+                                    }
+                                    else
+                                    {
+                                        <th id="@col.Caption"> @col.Caption </th>
+                                    }
+                                }
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (System.Data.DataRow row in Model.THCdtTable.Rows)
+                            {
+                                <tr>
+                                    @foreach (System.Data.DataColumn col in Model.THCdtTable.Columns)
+                                    {
+
+                                        if (col.ColumnName.ToUpper() == "CONTINENTID")
+                                        {
+
+                                            <td class="@col.Caption hide">
+                                                <input type="hidden" class="form-control input-sm" value="@row[col.ColumnName].ToString()" />
+                                            </td>
+                                        }
+                                        else if (col.ColumnName.ToUpper() == "CONTINENT")
+                                        {
+                                            <td class="@col.Caption">
+                                                <input type="text" class="form-control input-sm" value="@row[col.ColumnName].ToString()" readonly />
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td class="@col.Caption">
+                                                <input type="text" class="form-control input-sm" value="@row[col.ColumnName].ToString()" />
+                                            </td>
+                                        }
+
+                                    }
+                                    <td>
+                                        <button type="button" class="btnDelete btn btn-sm btn-danger fa fa-trash-o marl-5 pull-left" onclick="RemoveTHC(this)"></button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Html.HiddenFor(model => model.CostRateList)
+    <div class="row m-t-n">
+        @try
+        {
+            if (Model.dtTable.Rows.Count > 0)
+            {
+                <div class="row">
+                    <div class="col-sm-12 m-b-lg">
+                        <div class="ibox float-e-margins">
+                            <div class="table-responsive" id="pnl-rates" style="overflow: auto;height: 340px">
+                                <table class="table table-striped" id="RateList">
+                                    <thead class="ibox-title">
+                                        <tr>
+                                            @foreach (System.Data.DataColumn col in Model.dtTable.Columns)
+                                            {
+                                                //if (col.Caption == "WeightSlab" ||
+                                                //    col.Caption == "OriginRate" ||
+                                                //    col.Caption == "OriginTHC" ||
+                                                //    col.Caption == "LiftVanOriginRate" ||
+                                                //    col.Caption == "LiftVanOriginTHC" ||
+                                                //    col.Caption == "MiscRate")
+                                                {
+                                                    <th id="@col.Caption"> @col.Caption </th>
+                                                }
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (System.Data.DataRow row in Model.dtTable.Rows)
+                                        {
+                                            <tr>
+                                                @foreach (System.Data.DataColumn col in Model.dtTable.Columns)
+                                                {
+                                                    if (col.ColumnName.ToUpper() == "WEIGHTSLABFROM" || col.ColumnName.ToUpper() == "WEIGHTSLABTO" || col.ColumnName.ToLower() == "mode")
+                                                    {
+                                                        <td>
+                                                            @row[col.ColumnName]
+                                                        </td>
+                                                    }
+                                                    else
+                                                    //if (col.ColumnName == "OriginRate" ||
+                                                    //                    col.ColumnName == "OriginTHC" ||
+                                                    //                    col.ColumnName == "LiftVanOriginRate" ||
+                                                    //                    col.ColumnName == "LiftVanOriginTHC" ||
+                                                    //                    col.ColumnName == "MiscRate")
+                                                    {
+                                                        <td class="@col.Caption">
+                                                            <input type="text" class="form-control input-sm" value="@row[col.ColumnName].ToString()" />
+                                                        </td>
+                                                    }
+                                                }
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        catch { }
+    </div>
+</div>
+}
+
+@Styles.Render("~/Content/bootstrap-multiselectcss")
+<style>
+    .DisableControl {
+        display: none;
+    }
+
+    .EnableControl {
+        display: block;
+    }
+</style>
+@section Scripts{
+    <script type="text/javascript">
+        function RateComponentChange(Value)
+        {
+
+                //$(".tdFromCity").select2().removeAttr('disabled');
+                //$('.tdToCity').select2().removeAttr('disabled');
+                AjaxFillDropDown('.tdFromCity', "@Url.Action("GetCityList", "Cost")");
+                AjaxFillDropDown('.tdToCity', "@Url.Action("GetCityList", "Cost")");
+                $(".tdExitPort").select2().removeAttr('disabled');
+                $('.tdEntryPort').select2().removeAttr('disabled');
+
+                $('input[name="ModeSelect"]').removeAttr('disabled');
+                $('input[type=number]').removeAttr('disabled');
+
+                debugger
+
+                if (Value == "1") {
+
+                    
+                    if ($('.tdFromCity').hasClass('select2-hidden-accessible')) {
+
+                        $(".tdFromCity").select2('destroy').removeAttr('disabled', 'disabled');
+                    } else {
+
+                        $(".tdFromCity").removeAttr('disabled', 'disabled');
+                    }
+
+                    AjaxFillDropDown('.tdFromCity', "@Url.Action("GetCityList", "Cost")");
+
+                    //$(".tdFromCity").select2().removeAttr('disabled');
+                    $(".tdExitPort").select2().removeAttr('disabled');
+
+                    if ($('.tdEntryPort').hasClass('select2-hidden-accessible')) {
+
+                        $('.tdEntryPort').select2('destroy').attr('disabled', 'disabled');
+                    }
+                    else {
+
+                        $(".tdEntryPort").attr('disabled', 'disabled');
+                    }
+
+                    if ($('.tdToCity').hasClass('select2-hidden-accessible')) {
+
+                        $('.tdToCity').select2('destroy').attr('disabled', 'disabled');
+                    }
+                    else {
+
+                        $(".tdToCity").attr('disabled', 'disabled');
+                    }
+
+
+                }
+                else if (Value == "2") {
+
+                    $(".tdExitPort").select2().removeAttr('disabled');
+                    $(".tdEntryPort").select2().removeAttr('disabled');
+
+                    if ($('.tdFromCity').hasClass('select2-hidden-accessible')) {
+
+                        $(".tdFromCity").select2('destroy').attr('disabled', 'disabled');
+                    }
+                    else {
+
+                        $(".tdFromCity").attr('disabled', 'disabled');
+                    }
+
+                    if ($('.tdToCity').hasClass('select2-hidden-accessible')) {
+
+                        $(".tdToCity").select2('destroy').attr('disabled', 'disabled');
+                    }
+                    else {
+
+                        $(".tdToCity").attr('disabled', 'disabled');
+                    }
+
+                }
+                else if (Value == "3") {
+
+                    $(".tdEntryPort").select2().removeAttr('disabled');
+                    
+                    if ($('.tdToCity').hasClass('select2-hidden-accessible')) {
+
+                        $(".tdToCity").select2('destroy').removeAttr('disabled', 'disabled');
+                    }
+                    else {
+
+                        $(".tdToCity").removeAttr('disabled', 'disabled');
+                    }
+
+                    AjaxFillDropDown('.tdToCity', "@Url.Action("GetCityList", "Cost")");
+
+                    //$(".tdToCity").select2().removeAttr('disabled');
+
+                    if ($('.tdFromCity').hasClass('select2-hidden-accessible')) {
+
+                        $(".tdFromCity").select2('destroy').attr('disabled', 'disabled');
+                    } else {
+
+                        $(".tdFromCity").attr('disabled', 'disabled');
+                    }
+
+                    if ($('.tdExitPort').hasClass('select2-hidden-accessible')) {
+
+                        $(".tdExitPort").select2('destroy').attr('disabled', 'disabled');
+                    } else {
+
+                        $(".tdExitPort").attr('disabled', 'disabled');
+                    }
+
+                }
+                else if (Value == "4") {
+
+                    //$(".tdFromCity").select2().removeAttr('disabled');
+                    //$(".tdToCity").select2().removeAttr('disabled');
+
+
+                    //$(".tdFromCity").removeAttr('disabled');
+                    //$(".tdToCity").removeAttr('disabled');
+
+                    if ($('.tdToCity').hasClass('select2-hidden-accessible')) {
+
+                        $(".tdToCity").select2('destroy').removeAttr('disabled', 'disabled');
+                    }
+                    else {
+
+                        $(".tdToCity").removeAttr('disabled', 'disabled');
+                    }
+                    //$(".tdToCity").select2().removeAttr('disabled');
+
+                    if ($('.tdFromCity').hasClass('select2-hidden-accessible')) {
+
+                        $(".tdFromCity").select2('destroy').removeAttr('disabled', 'disabled');
+                    } else {
+
+                        $(".tdFromCity").removeAttr('disabled', 'disabled');
+                    }
+
+                    AjaxFillDropDown('.tdFromCity', "@Url.Action("GetCityList", "Cost")");
+                    AjaxFillDropDown('.tdToCity', "@Url.Action("GetCityList", "Cost")");
+
+                    if ($('.tdExitPort').hasClass('select2-hidden-accessible')) {
+
+                        $(".tdExitPort").select2('destroy').attr('disabled', 'disabled');
+                    }
+                    else {
+
+                        $(".tdExitPort").attr('disabled', 'disabled');
+                    }
+                    if ($('.tdEntryPort').hasClass('select2-hidden-accessible')) {
+                        $(".tdEntryPort").select2('destroy').attr('disabled', 'disabled');
+                    }
+                    else {
+                        $(".tdEntryPort").attr('disabled', 'disabled');
+                    }
+
+                    $('#tblServiceMode tr[data-id=1],#tblServiceMode tr[data-id=2]').each(function () {
+
+                        let $row = $(this);
+
+                        $row.find('input[type=number]').attr('disabled', 'disabled');
+
+                        $('input[name="ModeSelect"]').attr('checked', false).attr('disabled', 'disabled');
+
+                        if ($row.find('select').hasClass('select2-hidden-accessible')) {
+
+                            $row.find('.select2-hidden-accessible').select2('destroy').attr('disabled', 'disabled')
+                        }
+                        else if ($row.find('select')) {
+                            $row.find('select').attr('disabled', 'disabled');
+                        }
+
+                    });
+
+
+                }
+
+
+                   /////Checked radio button to be shown
+
+
+                /////Checked radio button to be shown
+
+                if (Value != null && Value != "" && Value != "4") {
+                    
+                   $('#tblServiceMode tr[data-id=3] td').each(function () {
+
+                        var row = $(this); //$('#tblServiceMode tr[data-id=3]');
+                        row.find('input[name="ModeSelect"]').attr('checked', false).attr('disabled', 'disabled');
+                        row.find('input[type=number]').attr('disabled', 'disabled');
+                        if (row.find('select').hasClass('select2-hidden-accessible')) {
+                            row.find('select').select2('destroy').attr('disabled', 'disabled');
+                        }
+                        else if (row.find('select')) {
+                        row.find('select').attr('disabled', 'disabled');
+                        }
+
+                    });
+                    //////Disable the Row
+
+                    if ($('input[name="ModeSelect"]:checked').prop('checked')) {
+
+                        
+
+                        if ($('input[name="ModeSelect"]:checked').val().toUpperCase() == 'AIR') {
+
+                            newRow = $("#tblServiceMode tr[data-id=1]");
+                        }
+                        else if ($('input[name="ModeSelect"]:checked').val().toUpperCase() == 'SEA') {
+                            newRow = $("#tblServiceMode tr[data-id=2]");
+                        }
+
+                        newRow.find('input[type=number]').attr('disabled', 'disabled').val('');
+
+                        if (newRow.find('select').hasClass('select2-hidden-accessible')) {
+
+                            newRow.find('.select2-hidden-accessible').select2('destroy').attr('disabled', 'disabled').val('');
+                        }
+                        else if (newRow.find('.tdFromCity,.tdExitPort,.tdEntryPort,.tdToCity')) {
+                            newRow.find('.tdFromCity,.tdExitPort,.tdEntryPort,.tdToCity').each(function () {
+
+                                $(this).attr('disabled', 'disabled').val('');
+                            });
+                        }
+
+                    }
+                    
+                }
+
+            ///Special THC toggle
+
+
+            debugger;
+            if (!$('.specialTHC').hasClass('hide')) {
+
+                $('.specialTHC').addClass('hide');
+                
+            }
+
+            
+
+
+            if (!$('#lnkSpecialTHC').hasClass('hide') && $('#SpecialTHCTble > TBODY > tr').length > 0 && '@CompanyName'=='btr') {
+                
+                $('.specialTHC').removeClass('hide');
+                
+            }
+
+            if (Value == "3" && '@CompanyName'=='btr') {
+
+                if ($('.divTHC').hasClass('hide')) {
+
+                    $('.divTHC').removeClass('hide');
+                }
+
+                if ($('#BtnHistoryTHC').hasClass('hide'))
+                     $('#BtnHistoryTHC').removeClass('hide');
+            }
+            else {
+
+                if (!$('.divTHC').hasClass('hide')) {
+                    $('.divTHC').addClass('hide');
+                }
+
+                if (!$('#BtnHistoryTHC').hasClass('hide'))
+                        $('#BtnHistoryTHC').addClass('hide');
+            }
+
+        }
+
+
+
+
+        $(document).ready(function () {
+            
+            if ($('#RateComponentDropdown option:selected').val() != null && $('#RateComponentDropdown option:selected').val() != "") {
+
+                RateComponentChange($('#RateComponentDropdown option:selected').val());
+                //$('#RateComponentDropdown').trigger('change');
+                //$('input[type=radio][name=ModeSelect]').trigger('change');
+
+                $('#tblServiceMode tbody tr').each(function () {
+
+                    if ($(this).find('#HFFCITY').val()) {
+                        AjaxFillDropDown('#' + $(this).find('.tdFromCity').attr('id'), "@Url.Action("GetCityList", "Cost")", $(this).find('#HFFCITY').val());
+                    }
+                    if ($(this).find('#HFTCITY').val()) {
+                        AjaxFillDropDown('#' + $(this).find('.tdToCity').attr('id'), "@Url.Action("GetCityList", "Cost")", $(this).find('#HFTCITY').val());
+                    }
+                });
+
+            }
+
+            $('#lnkSpecialTHC').click(function (event) {
+
+                $('.specialTHC').removeClass('hide');
+                event.preventDefault();
+            });
+            
+
+            const GetBaseCurrencyByRMC = function (RMCID) {
+
+                if (RMCID) {
+
+                var url = '@Url.Action("GetBaseCurrancyForRMC", "Cost", new { RMCID = "-1" })';
+                url = url.replace("-1", RMCID);
+                    $.get(url, function (data) {
+
+                    $('.BaseCurrency').val(data);
+                    });
+
+                }
+                else {
+
+                    $("#BaseCurrencyRateID").prop("selectedIndex", -1);
+                    $("#RateCurrencyID").prop("selectedIndex", -1);
+                    $('.txtConversionRate').val("0");
+                    $('.BaseCurrency').val("");
+                }
+            }
+
+            $("#RMCDropdown").change(function (event) {
+
+                var $radios = $('input:radio[name=CostOrRevenueSelected]');
+                $radios.prop('checked', false);
+                //$radios.attr('disabled', false);
+
+                ////$(this).val() != null && $(this).val()!="" &&
+                RMC = $(this).val();
+                if (RMC && RMC != "2") {
+                    if ($radios.is(':checked') === false) {
+                        $radios.filter('[value=Cost]').prop('checked', true);
+                        //$radios.attr('disabled', true);
+                    }
+                }
+
+                GetBaseCurrencyByRMC(RMC);
+                event.preventDefault();
+            });
+
+            
+
+            $('#lnkDownloadFormat').click(function (event) {
+
+                var rmc = parseInt($('#RMCDropdown').val());
+                var component = parseInt($('#RateComponentDropdown').val());
+                var CostOrRevenue = $("input[name='CostOrRevenueSelected']:checked").val();
+                rmc = isNaN(rmc) ? 0 : rmc;
+                component = isNaN(component) ? 0 : component;
+
+                if (rmc > 0 && component > 0 && CostOrRevenue) {
+
+                    $('#CostUploadFormat').modal('show');
+                }
+                else {
+                    alert("Please select Rmc, Rate Component & Upload Type.");
+                }
+
+                return false;
+                event.preventDefault();
+            });
+
+            $('#btnUploadFormat').click(function () {
+
+                debugger;
+                var rmc = parseInt($('#RMCDropdown').val());
+                var component = parseInt($('#RateComponentDropdown').val());
+                var CostOrRevenue = $("input[name='CostOrRevenueSelected']:checked").val();
+                rmc = isNaN(rmc) ? 0 : rmc;
+                component = isNaN(component) ? 0 : component;
+                var FileType = $("input[name='inlineRadioOptions']:checked").val();
+                var Mode = "ALL";
+                if (component=="4") {
+                    Mode = "ROAD";
+                }
+                if (component == "1" || component == "2" || component == "3") {
+                    Mode = $("input[name='ModeSelect']:checked").val();
+                    if (!Mode) {
+                        Mode = 'ALL';
+                    }
+                }
+
+                if (rmc > 0 && component > 0 && CostOrRevenue && FileType && Mode) {
+
+                    $('#CostUploadFormat').modal('hide');
+                    var win = window.open('@Url.Action("CostUploadFormat", "Cost")' + "?RMCId=" + rmc + "&ComponentId=" + component + "&CostOrRevenue=" + CostOrRevenue + "&FileType=" + FileType + "&Mode=" + Mode , '_blank', 'width = 300, height = 200');
+                    win.focus();
+                }
+                else {
+                    alert("Please select Rmc, Rate Component,Upload Type & Format Type.");
+                }
+
+                return false;
+                event.preventDefault();
+
+            });
+
+
+            $("#BaseCurrencyRateDropdown, #RateCurrencyDropdown").change(function (event) {
+
+                if ($("#RateCurrencyDropdown").val() == $("#BaseCurrencyRateDropdown").val()) {
+                    $("#txtConversionRate").val("1");
+                }
+                else {
+                    $("#txtConversionRate").val("");
+                }
+
+                event.preventDefault();
+
+            });
+
+            $('#BtnSave').on('click', function (e) {
+
+
+
+
+                var UploadType = $('input:radio[name=CostOrRevenueSelected]:checked').val();
+                var RMC =  $('#RMCDropdown :selected').text();
+                //var frmRWDelete = $(this);
+                //swal({
+                //    title: "Are you sure.you want to upload " + UploadType+"?",
+                //    type: "warning",
+                //    showCancelButton: true,
+                //    confirmButtonColor: "#DD6B55",
+                //    confirmButtonText: "Yes",
+                //    cancelButtonText: "No",
+                //    closeOnConfirm: true,
+                //    closeOnCancel: true
+                //},
+                //    function (isConfirm) {
+                //        if (isConfirm) {
+                //            frmRWDelete.closest("form").submit();
+                //            //$(this).click();
+                //        }
+                //    }
+                //);
+
+                if (confirm("Are you sure you want to upload " + UploadType + " for " + RMC+" ?")) { return true;}
+                else { e.preventDefault(); return false; }
+
+            });
+
+
+            $('#RateComponentDropdown').on('change', function () {
+
+                ClearModeSelection();
+                RateComponentChange($(this).val());
+
+            });
+
+
+
+            $("#ClearSelection").on("click", function (e) {
+
+                ClearModeSelection();
+                RateComponentChange($('#RateComponentDropdown').val());
+                e.preventDefault();
+            })
+
+            function ClearModeSelection() {
+
+
+                $('input[name="ModeSelect"]').attr('checked', false);
+
+                $('.tdFromCity').val('').trigger("change");
+                $('.tdExitPort').val('').trigger("change");
+                $('.tdEntryPort').val('').trigger("change");
+                $('.tdToCity').val('').trigger("change");
+
+
+                $('.TimeFrom').val('');
+                $('.TimeFrom').val('');
+                $('.TimeTo').val('');
+
+                $('.TimeFrom').removeAttr('disabled');
+                $('.TimeTo').removeAttr('disabled');
+            }
+
+            $('input[type=radio][name=ModeSelect]').on('change', function (e) {
+
+                
+                $(this).prop('checked', true);
+                var Row = $(this).closest('table');
+                if ($(this).val().toUpperCase() == 'AIR') {
+
+                    Row = Row.find("tr[data-id=1],tr[data-id=3]");
+
+                }
+                else if ($(this).val().toUpperCase() == 'SEA') {
+                    Row = Row.find("tr[data-id=2],tr[data-id=3]");
+                }
+                else if ($(this).val().toUpperCase() == 'ROAD') {
+                    Row = Row.find("tr[data-id=1],tr[data-id=2]");
+                }
+
+                Row.find('input[type=number]').attr('disabled', 'disabled').val('');
+                
+                if (Row.find('select').hasClass('select2-hidden-accessible')) {
+
+                    Row.find('.select2-hidden-accessible').select2('destroy').attr('disabled', 'disabled').val('');
+                }
+                else if (Row.find('.tdFromCity,.tdExitPort,.tdEntryPort,.tdToCity')) {
+                    Row.find('.tdFromCity,.tdExitPort,.tdEntryPort,.tdToCity').each(function () {
+
+                        if (!$(this).hasClass('select2-hidden-accessible')) {
+
+                            $(this).attr('disabled', 'disabled').val('');
+                        }
+                        
+                    });
+                }
+
+                RateComponentChange($('#RateComponentDropdown').val());
+
+            });
+
+            $("#BtnSave").on("click", function (e) {
+
+               //the table object
+                var tbl = document.getElementById('RateList');
+                if (tbl!=null && tbl.rows.length > 0) {
+
+                    var table = $("#RateList")[0];
+                    $("#CostRateList").val(formToJSON(table));
+
+                    GetSpecialTHCData();
+                }
+                else {
+
+                    alert("please upload file");
+                    e.preventDefault();
+
+                }
+
+            });
+
+            $('#btnCostUpload').on('click', function (e) {
+
+                GetSpecialTHCData();
+            });
+
+            
+
+            $('input[name=CostOrRevenueSelected]').change(function (e) {
+
+
+                if ($(this).val().toUpperCase() == "REVENUE") {
+
+                    $('#AgentDropdown').removeAttr('data-val');
+                    $('#AgentDropdown').rules('remove', 'required');
+                }
+                else {
+
+                    $('#AgentDropdown').attr('data-val', 'true');
+                    $('#AgentDropdown').rules("add", { required :true });
+                }
+
+                e.preventDefault();
+
+            });
+            
+            debugger;
+
+            if ($("input[name=CostOrRevenueSelected]:checked").val() != null && $("input[name=CostOrRevenueSelected]:checked").val()!="") {
+
+                if ($("input[name=CostOrRevenueSelected]:checked").val().toUpperCase() == "REVENUE") {
+
+                    $('#AgentDropdown').removeAttr('data-val');
+                    $('#AgentDropdown').rules('remove', 'required');
+                }
+                else {
+
+                    $('#AgentDropdown').attr('data-val', 'true');
+                    $('#AgentDropdown').rules("add", { required: true });
+                }
+
+            }
+
+            GetSpecialTHCData();
+
+        });
+
+
+        function ShowPopup() {
+
+            const dataObj = getFormData();
+
+            if (dataObj["RateComponentID"] != null && dataObj["RateComponentID"] != "" && dataObj["RMCID"] != null && dataObj["RMCID"] != "" && $('input:radio[name=CostOrRevenueSelected]:checked').val() != null && $('input:radio[name=CostOrRevenueSelected]:checked').val()!="") {
+
+                var UploadType = $('input:radio[name=CostOrRevenueSelected]:checked').val();
+
+                var params = "ComponentID=" + dataObj["RateComponentID"] + "&RMCID=" + dataObj["RMCID"] + "&AgentID=" + dataObj["AgentID"] +
+                    "&City1=" + (dataObj["RateComponentID"] == "4" ? ($('#ServiceModeList_2__FromCityID').val() || "-1") : ($('#ServiceModeList_0__FromCityID').val() || "-1")) +
+                    "&City2=" + (dataObj["RateComponentID"] == "4" ? ($('#ServiceModeList_2__ToCityID').val() || "-1") : ($('#ServiceModeList_0__ToCityID').val() || "-1") ) +
+                    //"&City1=" + ($('#ServiceModeList_0__FromCityID').val() || "-1") +
+                    //"&City2=" + ($('#ServiceModeList_0__ToCityID').val() || "-1") +
+                    "&Port1=" + (dataObj["ServiceModeList[0].ExitPortID"] || "-1") +
+                    "&Port2=" + (dataObj["ServiceModeList[0].EntryPortID"] || "-1") +
+                    "&ExitPortAir=" + (dataObj["ServiceModeList[1].ExitPortID"] || "-1") +
+                    "&EntryPortAir=" + (dataObj["ServiceModeList[1].EntryPortID"] || "-1") +
+                    "&RevnOrCost=" + (UploadType.toUpperCase() == "REVENUE" ? "R" : "C");
+
+                var url = "@Url.Action("HistoryRates", "Cost")" + "?" + params;
+
+
+                return !window.open(url);
+                //window.open(url, '_blank');
+
+            }
+            else {
+                alert('RMC,Rate Component,Upload Type is required');
+            }
+
+            return false;
+
+        }
+
+
+        $('.CommRateCurr').on('change', function () {
+            var Convurl = '@Url.Action("GetConvRate", "cost", new { FromCurrID = "-1", ToCurrID = "-2" })';
+            Convurl = Convurl.replace("-1", $('.CommBaseCurr').val());
+            Convurl = Convurl.replace("-2", $(this).val());
+            //link = Convurl.replace("-3", Batchid);
+            Convurl = Convurl.replace(/&amp;/g, "&");
+
+            AjaxFillConvRate(Convurl, $('.CommConvRate'));
+        });
+
+        
+        function RemoveTHC(button) {
+            //Determine the reference of the Row using the Button.
+            debugger;
+            var row = $(button).closest("TR");
+            var name = $("TD", row).eq(1).find('input').val();
+
+            if (name != null && name.trim() != "") {
+                if (confirm("Do you want to delete: " + name.trim())) {
+                    //Get the reference of the Table.
+                    var table = $("#SpecialTHCTble")[0];
+
+                    //Delete the Table row using it's Index.
+                    table.deleteRow(row[0].rowIndex);
+
+                    GetSpecialTHCData();
+                }
+            }
+        }
+
+        function CheckTHCExist(ContinentID) {
+
+            var result = false;
+
+            $("#SpecialTHCTble > TBODY > tr").each(function () {
+
+                
+                if (parseInt($(this).find('.TblHFOrgContinentID').val()) == ContinentID) {
+                    result = true;
+                    return false;
+                }
+
+            });
+
+            return result;
+        }
+
+        $("body").on("click", "#btnAddTHC", function () {
+
+            var OrgContinent = $("#OrgContinent");
+            var OrgContinentSelected = OrgContinent.val();
+            var OrgContinentText = $("#OrgContinent :selected").text();
+            
+            debugger;
+            if (OrgContinentSelected > 0) {
+
+
+                if (!CheckTHCExist(OrgContinentSelected)) {
+
+
+
+                    var tBody = $("#SpecialTHCTble > TBODY")[0];
+                    var rowCount = $('#SpecialTHCTble > TBODY > tr').length;
+
+                    var tdOrgContinentID = '<input type="hidden" class="TblHFOrgContinentID" name="OrgContinent" id="HFVOrgContinent_' + (rowCount + 1) + '" value="' + OrgContinentSelected + '" />'
+                    var tdOrgContinent = '<input type="text" class="form-control input-sm TblOrgContinent"  name="TblOrgContinent"  value="' + OrgContinentText + '" readonly />';
+                    //var tdHFVRateComp = '<input type="hidden" class="TblHFVRateComp" name="HFVCRateComp" id="HFVRateCompID_' + (rowCount + 1) + '" value="' + RateCompDropdownSelected + '" />';
+                    //var tdHFVCostHead = '<input type="hidden" class="TblHFVCostHead" name="HFVCostHead" id="HFVCostHeadID_' + (rowCount + 1) + '" value="' + CostHeadDropdownSelected + '" />';
+
+                    //Add Row.
+                    var row = tBody.insertRow(-1);
+
+                    //Add ContinentID cell.
+                    var cell = $(row.insertCell(-1));
+                    cell.html(tdOrgContinentID);
+                    cell.addClass("hide");
+
+                    //Add ContinentText cell.
+                    cell = $(row.insertCell(-1));
+                    cell.html(tdOrgContinent);
+
+                    //Add CostHeadText cell.
+
+                    $('#SpecialTHCTble > thead > tr:nth-child(1) th').each(function () {
+                        if ($(this).attr('id') && $(this).attr('id').toLowerCase() != "continent" && $(this).attr('id').toLowerCase() != "continentid") {
+
+                            var tdCaptionClass = $(this).attr('id');
+                            var tdTextSlab = '<input type="text" class="form-control input-sm Tbl' + tdCaptionClass + '"  name="Tbl' + tdCaptionClass + '" id="HFV' + tdCaptionClass + '_' + (rowCount + 1) + '"  onkeypress="return OnlyDouble(this, event);"  />';
+                            cell = $(row.insertCell(-1));
+                            cell.addClass(tdCaptionClass);
+                            cell.html(tdTextSlab);
+                        }
+                    });
+
+                    //Add Button cell.
+                    cell = $(row.insertCell(-1));
+                    var btnRemove = $("<button />");
+                    btnRemove.attr("type", "button");
+                    btnRemove.attr("onclick", "RemoveTHC(this);");
+                    btnRemove.attr("class", "btnDelete btn btn-sm btn-danger fa fa-trash-o marl-5 pull-left");
+                    //btnRemove.val("Remove");
+
+                    cell.append(btnRemove);
+
+                    //Clear the Selection.
+                    $("#OrgContinent").prop("selected", "0");
+                    GetSpecialTHCData();
+                }
+                else {
+
+                    alert('Origin Continent already exists');
+                    return false;
+                }
+            }
+            else {
+                alert('Origin Continent is required');
+                return false;
+            }
+        });
+
+        function GetSpecialTHCData() {
+            debugger;
+            var THCtbl = document.getElementById('SpecialTHCTble');
+            if (THCtbl != null && THCtbl.rows.length > 0) {
+
+                $("#SpecialTHCTble > TBODY > tr > td > input").each(function () {
+                    debugger;
+
+                    if ($(this).val() == null || $(this).val().trim() == "") {
+
+                        $(this).val("0");
+                    }
+                    //$(this).find('input').each(function () {
+
+                    //    debugger;
+                    //});
+                });
+
+                let $tblClone = $("#SpecialTHCTble").clone();
+                const ln = $tblClone.find('thead th').length;
+                $tblClone.find('tr').find('td:eq(' + (ln-1) + '),th:eq(' + (ln-1)+')').remove();
+                var table = $tblClone[0];
+                $("#SpecialTHCList").val(formToJSON(table));
+            }
+        }
+
+        function getFormData() {
+
+            var data = $('#frmimportLaneRate').serializeArray();//JSON.stringify();
+            var dataObj = {};
+
+
+            $(data).each(function (i, field) {
+                dataObj[field.name] = field.value;
+            });
+
+            return dataObj;
+        }
+
+        function HistoryTHCShow() {
+
+            const dataObj = getFormData();
+
+            if (dataObj["RateComponentID"] != null && dataObj["RateComponentID"] == "3" && dataObj["RMCID"] != null && dataObj["RMCID"] != "" && dataObj["AgentID"] != null && dataObj["AgentID"] != "" && $('#ServiceModeList_0__ToCityID').val() != null && $('#ServiceModeList_0__ToCityID').val()!="") {
+                
+                var params = "Component=" + (dataObj["RateComponentID"] || "-1") + "&RMC=" + (dataObj["RMCID"] || "-1") + "&Agent=" + (dataObj["AgentID"] || "-1") +
+                    "&DestCity=" + ($('#ServiceModeList_0__ToCityID').val()  || "-1") +
+                    "&OrgContinent=" + ($('#OrgContinent').val() || "-1");
+                var url = "@Url.Action("THCHistory", "Cost")" + "?" + params;
+                return !window.open(url);
+                //window.open(url, '_blank');
+
+            }
+            else {
+                alert('RMC,Rate Component,Agent,To City is required');
+            }
+
+            return false;
+
+
+        }
+
+        function GetCompareRates() {
+
+            const dataObj = getFormData();
+
+            if (dataObj["RateComponentID"] != null && dataObj["RateComponentID"] != "" && dataObj["RMCID"] != null && dataObj["RMCID"] != "" && $('input:radio[name=CostOrRevenueSelected]:checked').val() != null && $('input:radio[name=CostOrRevenueSelected]:checked').val()!="") {
+
+                let UploadType = $('input:radio[name=CostOrRevenueSelected]:checked').val();
+                UploadType = UploadType ? UploadType : "C";
+
+                if (dataObj["RateComponentID"] ==1) {
+
+                    if (isNaN(parseInt($('#ServiceModeList_0__FromCityID').val())) && isNaN(parseInt($('#ServiceModeList_1__FromCityID').val()))) {
+
+                        alert('From City required');
+                        return;
+                    }
+                }
+                
+                if (dataObj["RateComponentID"] == 3) {
+
+                    if (isNaN(parseInt($('#ServiceModeList_0__ToCityID').val())) && isNaN(parseInt($('#ServiceModeList_1__ToCityID').val()))) {
+
+                        alert('To City required');
+                        return;
+                    }
+                }
+
+                if (dataObj["RateComponentID"] == 2) {
+
+                    let mode = $ ('#ModeSelect').val();
+                    if (mode) {
+                        if (mode == "SEA" && (isNaN(parseInt(dataObj["ServiceModeList[0].ExitPortID"])) || isNaN(parseInt(dataObj["ServiceModeList[0].EntryPortID"])))) {
+
+                            alert('Exit Port & Entry Port required');
+                            return;
+                        }
+
+                        if (mode == "AIR" && isNaN(parseInt(dataObj["ServiceModeList[1].EntryPortID"])) || isNaN(parseInt(dataObj["ServiceModeList[1].ExitPortID"]))) {
+
+                            alert('Exit Port & Entry Port required');
+                            return;
+                        }
+                    }
+                    else if ((isNaN(parseInt(dataObj["ServiceModeList[0].ExitPortID"])) || isNaN(parseInt(dataObj["ServiceModeList[0].EntryPortID"])))) {
+
+                        alert('Exit Port & Entry Port required');
+                        return;
+                    }
+                }
+
+                if (dataObj["RateComponentID"] == 4 ) {
+
+                    if (isNaN(parseInt($('#ServiceModeList_2__FromCityID').val())) || isNaN(parseInt($('#ServiceModeList_2__ToCityID').val()))) {
+
+                        alert('From City and To City required');
+                        return;
+                    }
+                }
+
+                let params = "ComponentID=" + (dataObj["RateComponentID"] || "-1")  + "&RMCID=" + (dataObj["RMCID"] || "-1") + "&AgentID=" + (dataObj["AgentID"] || "-1")  +
+                    "&City1=" + (dataObj["RateComponentID"] == "4" ? ($('#ServiceModeList_2__FromCityID').val() || "-1") : (($('#ServiceModeList_0__FromCityID').val() || $('#ServiceModeList_1__FromCityID').val()) || "-1")) +
+                    "&City2=" + (dataObj["RateComponentID"] == "4" ? ($('#ServiceModeList_2__ToCityID').val() || "-1") : (($('#ServiceModeList_0__ToCityID').val() || $('#ServiceModeList_1__ToCityID').val()) || "-1") ) +
+                    //"&City1=" + ($('#ServiceModeList_0__FromCityID').val() || "-1") +
+                    //"&City2=" + ($('#ServiceModeList_0__ToCityID').val() || "-1") +
+                    "&Port1=" + (dataObj["ServiceModeList[0].ExitPortID"] || "-1") +
+                    "&Port2=" + (dataObj["ServiceModeList[0].EntryPortID"] || "-1") +
+                    "&ExitPortAir=" + (dataObj["ServiceModeList[1].ExitPortID"] || "-1") +
+                    "&EntryPortAir=" + (dataObj["ServiceModeList[1].EntryPortID"] || "-1") +
+                    "&RevnOrCost=" + (UploadType.toUpperCase() == "REVENUE" ? "R" : "C");
+
+                let url = "@Url.Action("RMCCompareRates", "Cost")" + "?" + params;
+                
+                return !window.open(url);
+                //window.open(url, '_blank');
+
+            }
+            else {
+                alert('RMC,Rate Component,Upload Type is required');
+            }
+
+            return false;
+
+        }
+
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+
+}

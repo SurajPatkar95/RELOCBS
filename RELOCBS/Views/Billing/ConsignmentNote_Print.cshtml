@@ -1,0 +1,564 @@
+﻿@model RELOCBS.Entities.Billing
+@{
+    ViewBag.Title = "ConsignmentNote_Print";
+    Layout = null;
+    //Model.TaxType = "IGST";//"VAT";
+
+    //Model.RevenueBr = "Dubai";
+    //string TableCSS = Model.BillID > 0 ? "table table-bordered table-responsive table-hover" : "table table-bordered table-responsive table-hover hide";
+    decimal? AEDAmtSum = 0;
+    decimal? totalAEDAmtSum = 0;
+    string invLabel = Model.BillType == 'I' ? "Invoice" : "Cr. Note";
+    string Number = Model.BillType == 'I' ? Model.InvoiceNo : Model.CreditNoteNo;
+    DateTime? DateValue = Model.BillType == 'I' ? Model.InvoiceDate : Model.CreditNoteDate;
+}
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+
+
+
+
+    <title>Consignment Note</title>
+    @Styles.Render("~/Content/css")
+
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style type="text/css">
+        #tblInvoiceItems tbody td {
+            border: solid;
+            border-width: thin;
+            border-color: lightgray;
+        }
+
+        .ttop {
+            vertical-align: top !important;
+        }
+
+        body {
+        }
+
+        .floatLeft {
+            float: left;
+        }
+
+        .tcenter {
+            text-align: center !important;
+        }
+
+        .boxWraper {
+            border: 1px solid #7b7b7b;
+            display: block;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+            .boxWraper .padding tr td {
+                padding: 3px 6px;
+            }
+
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        tr.border_bottom td {
+            border-bottom: 1pt solid black;
+        }
+
+        .tableData {
+            border: 0 !important;
+            line-height: 16px;
+        }
+
+
+            .tableData tr td {
+                background: #fff;
+                height: 100%;
+                vertical-align: middle;
+                border: 1px solid #e3e7ee;
+            }
+
+        .boxWraper tr th {
+            border: 1px solid #e3e7ee;
+            text-align: center;
+            padding: 3px 6px;
+            background-color:lightgrey;
+        }
+
+
+        .marginLR {
+            margin: 0 auto;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        /*table {
+            border-collapse: separate;
+            border-spacing: 2px;
+        }*/
+
+        table {
+            background-color: transparent;
+        }
+
+        /*table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+        }*/
+
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            color: #808080;
+            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: subpixel-antialiased;
+            background: #fff;
+        }
+
+        .cw100 {
+            width: 100px !important;
+        }
+
+        .cw110 {
+            width: 110px !important;
+        }
+
+        .cw80 {
+            width: 80px !important;
+        }
+
+        .cw120 {
+            width: 120px !important;
+        }
+
+        .cw140 {
+            width: 140px !important;
+        }
+
+        .cw160 {
+            width: 160px !important;
+        }
+
+        .cw130 {
+            width: 140px !important;
+        }
+
+        .tbold {
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            font-weight: 600;
+        }
+
+        .tright {
+            text-align: right !important;
+        }
+
+        label {
+            margin-bottom: 0;
+            color: black;
+        }
+
+        .tcollapse {
+            border-collapse: collapse;
+        }
+
+
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+        .taW {
+            width: 100% !important;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: normal;
+            font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+        }
+
+        .numbertd {
+            text-align: right;
+        }
+
+        table, img, svg {
+            break-inside: avoid;
+        }
+    </style>
+    <style type="text/css">
+        @@media print {
+            .grid-header {
+                background: #eee;
+                font-size: 13px;
+            }
+
+            body {
+                font-family: Serif;
+            }
+
+            h2 {
+                font-size: 20px;
+                text-transform: uppercase;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            h4 {
+                font-size: 13px;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            img {
+                display: inline;
+            }
+        }
+    </style>
+</head>
+<body>
+</body>
+</html>
+
+
+
+
+<div class="col-lg-10 col-sm-10 col-md-10 BillFormat graph-img graph-7" style=" flex-align:center" id="BillFormat">
+    <table class="marginLR" style="width:20cm;">
+        <tbody>
+            <tr>
+                <td>
+                    <table class="taW">
+                        <tbody>
+                            <tr class="Billheading">
+                                <td style="border-bottom:1px solid #7b7b7b;">
+                                    <div class="floatLeft" style="margin-top:34px;">
+
+                                        <input type="hidden" id="hWisId" data-ng-model="hWisIdm" value="5866" autocomplete="off" class="ng-pristine ng-untouched ng-valid ng-not-empty">
+                                    </div>
+                                    <div class="tcenter hidden-print">
+                                        <img src="~/Content/images/logo-icon.png" width="100px" height="100px">
+                                    </div>
+                                    <div class="tcenter">
+                                        <span class="tbold">@Html.Raw(Model.Other.Line1)</span>
+                                        @if (!string.IsNullOrEmpty(Model.Other.Line2))
+                                        {
+                                            <br /><span class="tbold">@Html.Raw(Model.Other.Line2)</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(Model.Other.Line3))
+                                        {
+                                            <br /><span class="tbold">@Html.Raw(Model.Other.Line3)</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(Model.Other.Line4))
+                                        {
+                                            <br /><span class="tbold">@Html.Raw(Model.Other.Line4)</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(Model.Other.Line5))
+                                        {
+                                            <br /><span class="tbold">@Html.Raw(Model.Other.Line5)</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(Model.Other.GSTNoOur))
+                                        {
+                                            <br /><span>GSTIN No.</span> @Html.Raw(Model.Other.GSTNoOur)
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="headermargin">
+                                <td style="height:5px;"></td>
+                            </tr>
+                            <tr style="border:2px solid; padding:5px">
+                                <td>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw100 tbold">Consignment No.</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.JobNo)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw120 tbold">Consignment Date</label> :
+                                                        @*<span class="ng-binding">@Html.Raw(Model.Address1) @Html.Raw(Model.Address2), @Html.Raw(Model.BillToCity), @Html.Raw(Model.PinCode)</span>*@
+                                                        <span class="ng-binding">
+                                                            @if (Model.JobDate != null)
+                                                            {@(((DateTime)Model.JobDate).ToString("dd/MMM/yyyy"))}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw100 tbold">Invoice No.</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.InvoiceNo)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw120 tbold">Invoice Date</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.InvoiceDate)</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="border">
+                                                        <table class="taW tcollapse padding">
+                                                            <thead>
+                                                                <tr><th>Consignee Details</th></tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="cw80 tbold">Name</label> :
+                                                                        @if (Model.BillToID == "Client")
+                                                                        {
+                                                                            <span class="ng-binding">@Html.Raw(Model.Client)</span>
+                                                                        }
+                                                                        else if (Model.BillToID == "Corporate")
+                                                                        {
+                                                                            <span class="ng-binding">@Html.Raw(Model.Account)</span>
+                                                                        }
+                                                                        @if (Model.BillToID == "Shipper")
+                                                                        {
+                                                                            <span class="ng-binding">@Html.Raw(Model.Shipper)</span>
+                                                                        }
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="cw80 tbold">Address</label> :
+                                                                        <span class="ng-binding">@Html.Raw(Model.Address1) @Html.Raw(Model.Address2), @Html.Raw(Model.BillToCity), @Html.Raw(Model.PinCode)</span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="cw80 tbold">GSTIN No.</label> :
+                                                                        <span class="ng-binding">@Html.Raw(Model.GSTNo)</span>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                        </td>
+                                                    <td class="border">
+                                                        <table class="taW tcollapse padding">
+                                                            <thead>
+                                                                <tr><th>Consignor Details</th></tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="cw80 tbold">Name</label> :
+                                                                        @if (Model.BillToID == "Client")
+                                                                        {
+                                                                            <span class="ng-binding">@Html.Raw(Model.Client)</span>
+                                                                        }
+                                                                        else if (Model.BillToID == "Corporate")
+                                                                        {
+                                                                            <span class="ng-binding">@Html.Raw(Model.Account)</span>
+                                                                        }
+                                                                        @if (Model.BillToID == "Shipper")
+                                                                        {
+                                                                            <span class="ng-binding">@Html.Raw(Model.Shipper)</span>
+                                                                        }
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="cw80 tbold">Address</label> :
+                                                                        <span class="ng-binding">@Html.Raw(Model.Address1) @Html.Raw(Model.Address2), @Html.Raw(Model.BillToCity), @Html.Raw(Model.PinCode)</span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="cw80 tbold">GSTIN No.</label> :
+                                                                        <span class="ng-binding">@Html.Raw(Model.GSTNo)</span>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                    </tr>
+                                            </tbody>
+</table>
+                                        
+                                    </div>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw100 tbold">Origin</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.OrgCity)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw100 tbold">Destination</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.DestCity)</span>
+                                                    </td>
+
+                                                </tr>
+                                                <tr>
+                                                    @if (Model.IsVolumeValue)
+                                                    {
+                                                        <td>
+                                                            <label class="cw100 tbold">Volume</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.VolumeValue)</span>
+                                                        </td>
+                                                    }
+                                                    else if (Model.IsGrossVolumeValue)
+                                                    {
+                                                        <td>
+                                                            <label class="cw100 tbold">Volume</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.GrossVolumeValue)</span>
+                                                        </td>
+
+                                                    }
+
+
+                                                    @if (Model.IsWtValue)
+                                                    {
+                                                        <td>
+                                                            <label class="cw100 tbold">Weight</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.WtValue)</span>
+                                                        </td>
+                                                    }
+                                                    else if (Model.IsGrossWtValue)
+                                                    {
+                                                        <td>
+                                                            <label class="cw100 tbold">Weight</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.GrossWtValue)</span>
+                                                        </td>
+                                                    }
+
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw100 tbold">Vehicle No.</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.VehicleNo)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw100 tbold">No of Pkgs.</label> :
+                                                        <span class="ng-binding"> </span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw100 tbold">Value in Rs.</label> :
+                                                        <span class="ng-binding">"As per Invoice"</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <thead>
+                                                <tr><th>Details of goods being transported</th></tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td class="tcenter">
+                                                        <span class="ng-binding">House hold Goods</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="">
+                                                        Note :<br />
+                                                        * We Certify that the Contents of the package(s) handed over to WBSPL and covered by this note<br />
+                                                        are correctly declared and do not contain any item prohibited / restricted for carriage under<br />
+                                                        existing rules and regulations.<br />
+                                                        * Kindly Acknowledge the receipt of goods / consignment on the enclosed warehouse memo.<br />
+                                                    </td>
+                                                </tr>
+                                                <tr style="border:2px solid">
+                                                    <td class="tcenter tbold">
+                                                        Note : This is a computer-generated document. No signature is required
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </td></tr></tbody>
+        </table>
+</div>
+
+<div class="col-sm-1" style="border-radius: 50%;">
+    @*<button onclick="printPage('BillFormat','.Billheading{display:none;} .headermargin{height:150px;}')" style="border-radius: 5%;" class="btn btn-primary btn-sm pull-right m-r-lg m-t-lg" title="Print">Print Format </button>*@
+    <button onclick="printPage('BillFormat',null)" style="border-radius: 5%;" class="btn btn-primary btn-sm pull-right m-r-lg m-t-sm" title="Print">Print</button>
+</div>
+<script type="text/javascript">
+    function printPage(elementId, headerclass) {
+        var divToPrint = document.getElementById('BillFormat');
+
+        var newWin = window.open('', 'Print-Window');
+
+        newWin.document.open();
+        var style = '';
+        //style = style + ' <link href="~/Content/bootstrap.css" rel="stylesheet" />';
+        //style = style + ' <link href="~/Content/style.css" rel="stylesheet" />';
+        //style = style + ' <link href="~/Content/custom.css" rel="stylesheet" />';
+        //style = style + ' <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">';
+        style = '<style type="text/css">#tblInvoiceItems tbody td {border: solid;border-width: thin;border-color: lightgray;} .ttop {vertical-align: top !important;} .text-right { text-align: right; }' +
+            'body {} .floatLeft {float: left;} .tcenter {text-align: center !important;} .boxWraper {border: 1px solid #7b7b7b;display: block;overflow: hidden;margin-bottom: 5px;} .boxWraper.padding tr td {padding: 3px 6px;}' +
+            '.grid-header {background: #eee;font-size: 13px;} tr.border_bottom td {border-bottom: 1pt solid black;} .tableData {border: 0!important;line-height: 16px;} .tableData tr td {background: #fff;height: 100%;vertical-align: middle;border: 1px solid #e3e7ee;}' +
+            '.boxWraper tr th {border: 1px solid #e3e7ee; text-align: center;padding: 3px 6px;;background-color:lightgrey;} .marginLR {margin: 0 auto;} table { border-collapse: collapse;} table {background-color: transparent;}' +
+            'body {padding: 0;margin: 0;font-size: 12px;' +
+            'font-family: Lato, \'Open Sans\', verdana, arialo, "Helvetica Neue", sans-serif;color: #808080;' +
+            ' -webkit-font-smoothing: antialiased;-webkit-font-smoothing: subpixel-antialiased;' +
+            'background: #fff;} .cw100 {width: 100px!important;}.cw110 {width: 110px!important;} .cw80 {width: 80px!important;}.cw120 {width: 120px!important;} .cw140 {width: 140px!important;}' +
+            '.cw160 {width: 160px!important;}.cw130 {width: 140px!important;}' +
+            '.tbold {font-family: Lato, \'Open Sans\', verdana, arialo, "Helvetica Neue", sans-serif;font - weight: 600;}' +
+            '.tright {text - align: right!important;} label {margin-bottom: 0;color: black;} .tcollapse { border-collapse: collapse;} .boxWraper.padding tr td {padding: 3px 6px;}' +
+            '.taW {width: 100% !important;}h4 {font-size: 14px;margin: 6px 0;font-weight: normal;font-family: Lato, verdana, arial, "Helvetica Neue", Helvetica, sans-serif;}' +
+            '.numbertd {text-align: right;} table, img, svg {break-inside: avoid;}' +
+            headerclass +
+            '</style > ';
+        style = style + '<style>@@media print {.grid - header {background: #eee;font-size: 13px;}body {font-family: Serif;} h2 {font-size: 20px;text-transform: uppercase;text-decoration: underline;margin: 6px 0;font-family: Serif;} h4 {font-size: 13px;text-decoration: underline;margin: 6px 0;font-family: Serif;} img {display: inline;}}</style>';
+
+
+
+        newWin.document.write('<html><head>' + style +
+            '</head><body onload="window.print()">' + divToPrint.innerHTML + '</body></html>');
+
+        newWin.document.close();
+
+        setTimeout(function () { newWin.close(); }, 10);
+        //var printContent = document.getElementById(elementId);
+        //var windowUrl = 'about:blank';
+        //var uniqueName = new Date();
+        //var windowName = 'Print' + uniqueName.getTime();
+        //var printWindow = window.open(windowUrl, windowName, 'left=50000,top=50000,width=0,height=0');
+
+        //printWindow.document.write(printContent.innerHTML);
+        //printWindow.document.close();
+        //printWindow.focus();
+        //printWindow.print();
+        //printWindow.close();
+        //newWin.document.close();
+        //setTimeout(function () { printWindow.close(); }, 10);
+    }
+</script>
+

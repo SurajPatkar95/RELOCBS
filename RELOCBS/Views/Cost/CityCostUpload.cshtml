@@ -1,0 +1,134 @@
+﻿@model RELOCBS.Entities.CityCostUpload
+
+@using (Html.BeginForm("CityCostFormat", "Cost", FormMethod.Post, new { enctype = "multipart/form-data", @name = "Filter", @id = "CostFormat" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+    <div class="m-xs">
+        <div class="row">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RMCID, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.RMCID, new SelectList((System.Collections.IEnumerable)ViewData["RMC"], "Value", "Text"), "--Select RMC--", new { id = "RMCCostDropdown", @class = "form-control input-sm clearfix", @onchange = "javascript:RMC_OnChange(this.value);" })
+                    @Html.ValidationMessageFor(model => model.RMCID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3 country">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.CountryID, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.CountryID, new SelectList((System.Collections.IEnumerable)ViewData["CountryList"], "Value", "Text"), "--Select Country--", new { id = "CountryCostDropdown", @class = "form-control input-sm clearfix enableselect CityDrp2" })
+                    @Html.ValidationMessageFor(model => model.CountryID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3 city">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.CityID, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.CityID, new List<SelectListItem>(), "--Select City--", new { id = "CityCostDropdown", @class = "form-control input-sm clearfix enableselect" })
+                    @Html.ValidationMessageFor(model => model.CityID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.AgentID, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.AgentID, new SelectList((System.Collections.IEnumerable)ViewData["Agent"], "Value", "Text"), "--Select Agent--", new { id = "AgentCostDropdown", @class = "form-control input-sm clearfix enableselect" })
+                    @Html.ValidationMessageFor(model => model.AgentID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-1 col-md-1">
+                <div class="clearfix">
+                    <input type="submit" id="BtnUploadSave" name="UploadSave" class="btn btn-primary btn-sm filter-custom-margin pull-right" value="Save" />
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Agent Currency</label>
+                    @Html.DropDownListFor(model => model.BaseCurrencyRateID, new SelectList((System.Collections.IEnumerable)ViewData["BaseCurrencyRate"], "Value", "Text"), "--Select BaseCurrency Rate--", new { id = "BaseCurrRateDropdown", @class = "form-control input-sm clearfix BaseCurrencyRate" })
+                    @Html.ValidationMessageFor(model => model.BaseCurrencyRateID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ConversionRate, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.ConversionRate, new { htmlAttributes = new { @class = "form-control input-sm clearfix ConversionRate", id = "txtConvRate", @onkeypress = "return OnlyDouble(this, event);" } })
+                    @Html.ValidationMessageFor(model => model.ConversionRate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <label>Rate Applicable From</label>
+                <div class="input-group input-group-sm date" id="dtp_SurveyDate">
+                    @Html.EditorFor(a => a.EffectiveFromDate, new { htmlAttributes = new { @placeholder = "Rate Applicable From Date", @tooltip = "Rate Applicable From Date", @class = "form-control input-sm datepicker", title = "Rate Applicable From Date", id = "RateFromDate" } })
+                    <span class="input-group-addon" style="display: none">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+                @Html.ValidationMessageFor(model => model.EffectiveFromDate, "", new { @class = "text-danger" })
+            </div>
+            <div class="col-sm-3 form-group">
+                @*<input type="file" id="file" name="file" class="inputfile inputfile-4 center-block m-t-md form-control" accept=".xls,.xlsx" required data-val="true" data-val-required="please select a file">*@
+                @Html.TextBoxFor(model => model.file, new { type = "file", @class = "inputfile inputfile-4 center-block m-t-md form-control", accept = ".xls,.xlsx" })
+                @Html.ValidationMessageFor(model => model.file, "", new { @class = "text-danger" })
+            </div>
+            <div class="col-sm-1 form-group">
+                <input type="submit" name="SubmitCost" class="btn btn-default btn-sm m-t-md pull-right UploadDestinationRate" value="Upload File" title="Click to upload file" /> @*formnovalidate="formnovalidate"*@
+            </div>
+            <div class="col-sm-2 form-group m-t-md">
+                    @Html.ActionLink("Sample Format Download", "CityCostUploadFormat", "Cost", new { @id = "lnkDownloadFormat" , target = "_blank"})
+            </div>
+        </div>
+
+    </div>
+
+    <div class="m-xs" id="CityCostHeadList">
+        @try
+        {
+            if (Model.CityCostHeadList.Count > 0)
+            {
+                <div class="row">
+                    <div class="col-sm-12 m-b-lg">
+                        <div class="ibox float-e-margins">
+                            <div class="table-responsive" id="pnl-rates" style="overflow: auto;height: 340px">
+                                <table class="table table-striped" id="RateList">
+                                    <thead class="ibox-title">
+                                        <tr>
+                                            <th>Cost Head</th>
+                                            <th>Rate Per Unit</th>
+                                            <th>Amount</th>
+                                            <th>Value in USD</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (var i = 0; i < Model.CityCostHeadList.Count(); i++)
+                                        {
+                                        <tr>
+                                            <td>
+                                                @Html.HiddenFor(x => Model.CityCostHeadList[i].CostHeadID, new { @class = "CostHead" })
+                                                @Html.DropDownListFor(x => Model.CityCostHeadList[i].CostHeadID, new SelectList((System.Collections.IEnumerable)ViewData["CostHead"], "Value", "Text", Model.CityCostHeadList[i].CostHeadID), "--Select Cost Head--", new { id = "CostHeadDropdown", @class = "form-control input-sm clearfix", @disabled = "disabled" })
+                                            </td>
+                                            <td>
+                                                @Html.DropDownListFor(x => Model.CityCostHeadList[i].ServiceIncluded, new SelectList((System.Collections.IEnumerable)ViewData["YESNO"], "Value", "Text", Model.CityCostHeadList[i].ServiceIncluded), "--Select ServiceIncluded--", new { id = "ServiceIncludedDropdown", @class = "form-control input-sm clearfix" })
+                                            </td>
+                                            <td>
+                                                @Html.EditorFor(x => Model.CityCostHeadList[i].Amount, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdAmount", onkeypress = "return OnlyDouble(this, event);" } })
+                                            </td>
+                                            <td>
+                                                @Html.EditorFor(x => Model.CityCostHeadList[i].USDRate, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdUSDRate", onkeypress = "return OnlyDouble(this, event);", @readonly="readonly" } })
+                                            </td>
+
+                                        </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        catch { }
+    </div>
+
+}

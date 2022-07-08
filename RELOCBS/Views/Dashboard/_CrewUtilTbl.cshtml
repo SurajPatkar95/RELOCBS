@@ -1,0 +1,209 @@
+﻿@model RELOCBS.Entities.CrewUtilizationDashboard
+@using System.Data;
+@using RELOCBS.Common;
+
+<style>
+    .TableHeading {
+        border-top: 2px solid #000000;
+        border-right: 2px solid #000000;
+        border-bottom: 1px solid transparent;
+        border-left: 2px solid #000000;
+        overflow: hidden;
+        padding: 0px 3px 0px 3px;
+        vertical-align: bottom;
+        background-color: #ffc000;
+        font-family: Arial;
+        font-size: 10pt;
+        font-weight: normal;
+        text-align: center;
+    }
+
+    .TableColHeading {
+        border-right: 1px solid transparent;
+        border-bottom: 1px solid #000000;
+        border-left: 2px solid #000000;
+        overflow: hidden;
+        padding: 0px 3px 0px 3px;
+        vertical-align: middle;
+        background-color: #000000;
+        font-family: Roboto;
+        font-size: 10pt;
+        font-weight: normal;
+        white-space: normal;
+        word-wrap: break-word;
+        color: #ffffff;
+        text-align: center;
+    }
+
+    .TableFoot {
+        border-right: 1px solid #000000;
+        border-bottom: 2px solid #000000;
+        overflow: hidden;
+        padding: 0px 3px 0px 3px;
+        vertical-align: middle;
+        background-color: #ffc000;
+        font-family: Roboto;
+        font-size: 10pt;
+        font-weight: normal;
+        text-align: center;
+    }
+</style>
+
+@if (Model.data != null && Model.data.Tables.Count > 1)
+{
+    <div id="divEmp" class="m-t-md fixTableHead">
+        <table class="table table-bordered white-bg tblCostSheet" id="tblCostSheet">
+            <tbody>
+                <tr>
+                    @{ var LastUpdatedDate = Model.data.Tables.Count > 1 && Model.data.Tables[2] != null && Model.data.Tables[2].Rows.Count > 0 ? Convert.ToString(Model.data.Tables[2].Rows[0]["LastModifiedDate"]) : ""; }
+                    <td colspan="6" rowspan="1" class="TableHeading">Total</td>
+                    <td colspan="5" rowspan="1" class="TableHeading">Last Updated : @LastUpdatedDate </td>
+                </tr>
+                <tr>
+                    <td class="TableColHeading">Warehouse</td>
+                    <td class="TableColHeading">ON JOB</td>
+                    <td class="TableColHeading">AT PORT</td>
+                    <td class="TableColHeading">IN WH</td>
+                    <td class="TableColHeading">ON LEAVE</td>
+                    <td class="TableColHeading">TOTAL UTILISED</td>
+                    <td class="TableColHeading">AVB EXCL LEAVE</td>
+                    <td class="TableColHeading">IDLE</td>
+                    <td class="TableColHeading">On Job Utilisation</td>
+                    <td class="TableColHeading">wh + port utilisation</td>
+                    <td class="TableColHeading">IDLE %</td>
+                </tr>
+                @if (Model.data.Tables[0] != null)
+                {
+                    foreach (DataRow row in Model.data.Tables[0].Rows)
+                    {
+                        <tr>
+                            @for (int i = 0; i < Model.data.Tables[0].Columns.Count; i++)
+                            {
+
+                                <td>
+                                    @{
+
+                                        var valuePrint = Convert.ToString(row[Model.data.Tables[0].Columns[i].ColumnName]);
+
+                                    }
+                                    @valuePrint
+                                    @if (i > 7)
+                                    {
+                                        Html.Raw("%");
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td class="TableFoot">TOTAL</td>
+                    @for (int i = 1; i < 8; i++)
+                    {
+                        <td class="TableFoot">@Model.data.Tables[0].AsEnumerable().Sum(row => row.Field<decimal>(Model.data.Tables[0].Columns[i].ColumnName))</td>
+                    }
+                    <td class="TableFoot">
+                        @{ decimal Crw_JobPercent = Model.data.Tables[0].Rows.Count > 0 ? (Model.data.Tables[0].AsEnumerable().Sum(row => row.Field<decimal>("Crw_JOB")) / Model.data.Tables[0].AsEnumerable().Sum(row => row.Field<decimal>("AVB_EXCL_LEAVE"))) * 100 : 0; }
+                        @Math.Round(Crw_JobPercent, 2) %
+                    </td>
+                    <td class="TableFoot">
+                        @{ decimal Crw_WHPortPercent = Model.data.Tables[0].Rows.Count > 0 ? ((Model.data.Tables[0].AsEnumerable().Sum(row => row.Field<decimal>("Crw_WH")) + Model.data.Tables[0].AsEnumerable().Sum(row => row.Field<decimal>("Crw_PORT"))) / Model.data.Tables[0].AsEnumerable().Sum(row => row.Field<decimal>("AVB_EXCL_LEAVE"))) * 100 : 0; }
+                        @Math.Round(Crw_WHPortPercent, 2)  %
+                    </td>
+                    <td class="TableFoot">
+                        @{ decimal Crw_IddlePercent = Model.data.Tables[0].Rows.Count > 0 ? (Model.data.Tables[0].AsEnumerable().Sum(row => row.Field<decimal>("IDLE")) / Model.data.Tables[0].AsEnumerable().Sum(row => row.Field<decimal>("AVB_EXCL_LEAVE"))) * 100 : 0; }
+                        @Math.Round(Crw_IddlePercent, 2)  %
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+
+        @{
+            var distinctMonth = Model.data.Tables[1].AsEnumerable()
+                        .Select(row => new
+                        {
+                            years_Name = row.Field<string>("MonthYear")
+                        })
+                        .Distinct();
+
+
+            foreach (var monthYear in distinctMonth)
+            {
+
+                <table class="table table-bordered white-bg tblCostSheet m-t-lg" id="tblCostSheet">
+                    @if (Model.data.Tables[1] != null)
+                    {
+                        <tbody>
+                            <tr>
+                                <td colspan="11" rowspan="1" class="TableHeading">@monthYear.years_Name</td>
+                            </tr>
+                            <tr>
+                                <td class="TableColHeading">Warehouse</td>
+                                <td class="TableColHeading">ON JOB</td>
+                                <td class="TableColHeading">AT PORT</td>
+                                <td class="TableColHeading">IN WH</td>
+                                <td class="TableColHeading">ON LEAVE</td>
+                                <td class="TableColHeading">TOTAL UTILISED</td>
+                                <td class="TableColHeading">AVB EXCL LEAVE</td>
+                                <td class="TableColHeading">IDLE</td>
+                                <td class="TableColHeading">On Job Utilisation</td>
+                                <td class="TableColHeading">wh + port utilisation</td>
+                                <td class="TableColHeading">IDLE %</td>
+                            </tr>
+
+                            @{ var rows = from row in Model.data.Tables[1].AsEnumerable()
+                                           where row.Field<string>("MonthYear") == monthYear.years_Name
+                                           select row;
+                            }
+
+                            @foreach (DataRow row in rows)
+                            {
+                                <tr>
+                                    @for (int i = 3; i < Model.data.Tables[1].Columns.Count; i++)
+                                    {
+
+                                        <td>
+                                            @row[Model.data.Tables[1].Columns[i].ColumnName]
+                                            @if (i > 9)
+                                            {
+                                                Html.Raw("%");
+                                            }
+                                        </td>
+                                    }
+                                </tr>
+                            }
+
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td class="TableFoot">TOTAL</td>
+                                @for (int i = 4; i < 11; i++)
+                                {
+                                    <td class="TableFoot">@rows.Sum(row => row.Field<decimal>(Model.data.Tables[1].Columns[i].ColumnName))</td>
+                                }
+                                <td class="TableFoot">
+                                    @{ decimal crw_MonthJobPercent = rows.Count() > 0 ? (rows.Sum(row => row.Field<decimal>("Crw_JOB")) / rows.Sum(row => row.Field<decimal>("AVB_EXCL_LEAVE"))) * 100 : 0; }
+                                    @Math.Round(crw_MonthJobPercent, 2) %
+                                </td>
+                                <td class="TableFoot">
+                                    @{ decimal crw_MonthWHPortPercent = rows.Count() > 0 ? ((rows.Sum(row => row.Field<decimal>("Crw_WH")) + rows.Sum(row => row.Field<decimal>("Crw_PORT"))) / rows.Sum(row => row.Field<decimal>("AVB_EXCL_LEAVE"))) * 100 : 0; }
+                                    @Math.Round(crw_MonthWHPortPercent, 2) %
+                                </td>
+                                <td class="TableFoot">
+                                    @{ decimal crw_MonthIddlePercent = rows.Count() > 0 ? (rows.Sum(row => row.Field<decimal>("IDLE")) / rows.Sum(row => row.Field<decimal>("AVB_EXCL_LEAVE"))) * 100 : 0; }
+                                    @Math.Round(crw_MonthIddlePercent, 2) %
+                                </td>
+                            </tr>
+                        </tfoot>
+
+                    }
+                </table>
+            }
+
+        }
+
+
+    </div>
+}

@@ -1,0 +1,80 @@
+﻿@model IEnumerable<RELOCBS.Entities.WHJob_InstructionSheet>
+@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using GridMvc.Html;
+@using PagedList;
+@using PagedList.Mvc;
+
+@{
+
+    string _PageID = "57";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+
+columns.Add(o => o.InstID)
+    .Css("col-md-3")
+    .Titled("Inst No.")
+    .SetWidth(10);
+columns.Add(o => o.InstDate)
+    .Css("col-md-3")
+    .Titled("Inst Date")
+    .SetWidth(10);
+
+
+columns.Add(o => o.BranchName)
+.Css("col-md-3")
+.Titled("Branch")
+.SetWidth(10);
+
+columns.Add(o => o.WareHouseName)
+.Css("col-md-3")
+.Titled("Warehouse")
+.SetWidth(10);
+columns.Add(o => o.WeightUnit)
+.Css("col-md-3")
+.Titled("WeightUnit")
+.SetWidth(10);
+columns.Add(o => o.Status)
+.Titled("Status").Css("col-md-1")
+.SetWidth(10);
+columns.Add(o => o.CreatedBy)
+.Css("col-md-3")
+.Titled("CreatedBy")
+.SetWidth(10);
+columns.Add(o => o.ModifiedBy)
+.Css("col-md-3")
+.Titled("LastModifiedBy")
+.SetWidth(10);
+columns.Add(o => o.ModifiedDate)
+.Css("col-md-3")
+.Titled("LastModifiedDate")
+.SetWidth(10);
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("Actions")
+.RenderValueAs(d =>@<span>
+    @if (hasEditAccess)
+    {
+        <a href="@Url.Action("CreateInstruction" , "WarehouseJob",new {JobID = d.JobID ,InstID = d.InstID,JobTypeId=d.JobTypeId})" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" data-toggle="modal" data-target="#mdlAddEdit" data-cache="false" title="Edit Instruction"></a>
+        <a href="@Url.Action("GetInstructionSheetPrint", "WarehouseJob", new { MoveID = d.JobID,InstID = d.InstID })" class="btn btn-primary btn-xs View m-l-sm" title="Print Instruction Sheet" target="_blank"><i class='glyphicon glyphicon-print'></i></a>
+    }
+</span>
+);
+}).Sortable(false)
+
+
+<div class="clearfix pnl-pagination hide">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("GetInstructions", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>

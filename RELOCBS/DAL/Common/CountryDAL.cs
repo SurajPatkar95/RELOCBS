@@ -1,4 +1,5 @@
 ﻿using RELOCBS.App_Code;
+using RELOCBS.Common.ExceptionHandling;
 using RELOCBS.DAL.Repository;
 using RELOCBS.Entities;
 using RELOCBS.Utility;
@@ -26,8 +27,9 @@ namespace RELOCBS.DAL.Common
             }
         }
 
-        public bool Insert(CountryViewModel country)
+        public bool Insert(CountryViewModel country,out string result)
         {
+            result = string.Empty;
             try
             {
                 using (App_Code.CDALSQL conn = new App_Code.CDALSQL(System.Configuration.ConfigurationManager.ConnectionStrings["RELODB"].ToString()))
@@ -35,18 +37,31 @@ namespace RELOCBS.DAL.Common
                     if (conn.Connect())
                     {
 
-                        conn.AddCommand("Comm.ContinentAddEdit", QueryType.Procedure);
-                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_ContinentID", SqlDbType.Int, 0, ParameterDirection.InputOutput, country.CountryName);
-                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_ContinentName", SqlDbType.NVarChar, 50, ParameterDirection.Input, CSubs.PSafeValue(country.Continent));
+                        conn.AddCommand("[Comm].[AddEditCountry]", QueryType.Procedure);
+                        //conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CountryID", SqlDbType.Int, 0, ParameterDirection.InputOutput, country.CountryID);
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CountryCode", SqlDbType.NVarChar, 50, ParameterDirection.Input, CSubs.PSafeValue(country.CountryCode));
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CountryName", SqlDbType.NVarChar, 100, ParameterDirection.Input, CSubs.PSafeValue(country.CountryName));
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_ContinentID", SqlDbType.Int, 0, ParameterDirection.Input, country.Continent);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_IsActive", SqlDbType.Bit, 0, ParameterDirection.Input, country.isActive);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_LOGINID", SqlDbType.Int, 0, ParameterDirection.Input, UserSession.GetUserSession().LoginID);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@RETURNSTATUS", SqlDbType.SmallInt, 0, ParameterDirection.ReturnValue);
-                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_MESSAGE", SqlDbType.NVarChar, 500, ParameterDirection.Output);
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@Out_Message", SqlDbType.NVarChar, 500, ParameterDirection.Output);
                         conn.ExecuteProcedure(ProcedureReturnType.SingleValue);
 
                         if (!conn.IsError)
                         {
+                            int ReturnStatus = Convert.ToInt32(conn.GetParameterValue(ParameterOF.PROCEDURE, "@RETURNSTATUS"));
+                            result = Convert.ToString(conn.GetParameterValue(ParameterOF.PROCEDURE, "@Out_Message"));
 
+                            if (ReturnStatus == 0)
+                            {
+
+                                return true;
+                            }
+                            else
+                            {
+                                return false;
+                            }
                         }
                         else
                             throw new ArgumentException(conn.ErrorMessage);
@@ -59,13 +74,14 @@ namespace RELOCBS.DAL.Common
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw new DataAccessException(Convert.ToString(UserSession.GetUserSession().LoginID), "CountryDAL", "Insert", RELOCBS.Properties.Resources.UnExpectedErrorAtDAL, ex);
             }
             return true;
         }
 
-        public bool Update(CountryViewModel country)
+        public bool Update(CountryViewModel country, out string result)
         {
+            result = string.Empty;
             try
             {
                 using (App_Code.CDALSQL conn = new App_Code.CDALSQL(System.Configuration.ConfigurationManager.ConnectionStrings["RELODB"].ToString()))
@@ -73,18 +89,31 @@ namespace RELOCBS.DAL.Common
                     if (conn.Connect())
                     {
 
-                        conn.AddCommand("Comm.ContinentAddEdit", QueryType.Procedure);
-                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_ContinentID", SqlDbType.Int, 0, ParameterDirection.InputOutput, country.CountryName);
-                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_ContinentName", SqlDbType.NVarChar, 50, ParameterDirection.Input, CSubs.PSafeValue(country.Continent));
+                        conn.AddCommand("[Comm].[AddEditCountry]", QueryType.Procedure);
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CountryID", SqlDbType.Int, 0, ParameterDirection.InputOutput, country.CountryID);
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CountryCode", SqlDbType.NVarChar, 50, ParameterDirection.Input, CSubs.PSafeValue(country.CountryCode));
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CountryName", SqlDbType.NVarChar, 100, ParameterDirection.Input, CSubs.PSafeValue(country.CountryName));
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_ContinentID", SqlDbType.Int, 0, ParameterDirection.Input, country.ContinentID);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_IsActive", SqlDbType.Bit, 0, ParameterDirection.Input, country.isActive);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_LOGINID", SqlDbType.Int, 0, ParameterDirection.Input, UserSession.GetUserSession().LoginID);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@RETURNSTATUS", SqlDbType.SmallInt, 0, ParameterDirection.ReturnValue);
-                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_MESSAGE", SqlDbType.NVarChar, 500, ParameterDirection.Output);
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@Out_Message", SqlDbType.NVarChar, 500, ParameterDirection.Output);
                         conn.ExecuteProcedure(ProcedureReturnType.SingleValue);
 
                         if (!conn.IsError)
                         {
+                            int ReturnStatus = Convert.ToInt32(conn.GetParameterValue(ParameterOF.PROCEDURE, "@RETURNSTATUS"));
+                            result = Convert.ToString(conn.GetParameterValue(ParameterOF.PROCEDURE, "@Out_Message"));
 
+                            if (ReturnStatus == 0)
+                            {
+
+                                return true;
+                            }
+                            else
+                            {
+                                return false;
+                            }
                         }
                         else
                             throw new ArgumentException(conn.ErrorMessage);
@@ -96,7 +125,7 @@ namespace RELOCBS.DAL.Common
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw new DataAccessException(Convert.ToString(UserSession.GetUserSession().LoginID), "CountryDAL", "Update", RELOCBS.Properties.Resources.UnExpectedErrorAtDAL, ex);
             }
 
             return true;
@@ -111,8 +140,8 @@ namespace RELOCBS.DAL.Common
                     if (conn.Connect())
                     {
 
-                        conn.AddCommand("Comm.ContinentDelete", QueryType.Procedure);
-                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CityID", SqlDbType.Int, 0, ParameterDirection.Input, id);
+                        conn.AddCommand("Comm.CountryDelete", QueryType.Procedure);
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CountryID", SqlDbType.Int, 0, ParameterDirection.Input, id);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_LOGINID", SqlDbType.Int, 0, ParameterDirection.Input, UserSession.GetUserSession().LoginID);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@RETURNSTATUS", SqlDbType.SmallInt, 0, ParameterDirection.ReturnValue);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_MESSAGE", SqlDbType.NVarChar, 500, ParameterDirection.Output);
@@ -133,7 +162,7 @@ namespace RELOCBS.DAL.Common
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw new DataAccessException(Convert.ToString(UserSession.GetUserSession().LoginID), "CountryDAL", "DeletedById", RELOCBS.Properties.Resources.UnExpectedErrorAtDAL, ex);
             }
 
 
@@ -152,8 +181,7 @@ namespace RELOCBS.DAL.Common
             }
             catch (Exception ex)
             {
-
-                throw;
+                throw new DataAccessException(Convert.ToString(LoginID), "CountryDAL", "GetDetailById", RELOCBS.Properties.Resources.UnExpectedErrorAtDAL, ex);
             }
 
             return CountryDetailDt;
@@ -185,7 +213,7 @@ namespace RELOCBS.DAL.Common
             var result = (from rw in CSubs.GetDataTable(query).AsEnumerable()
                           select new Country()
                           {
-                              
+                              CountryCode = Convert.ToString(rw["CountryCode"]),
                               CountryID = Convert.ToInt32(rw["CountryID"]),
                               CountryName = Convert.ToString(rw["CountryName"]),
                               ContinentID = Convert.ToInt32(rw["continentID"]),

@@ -1,0 +1,342 @@
+﻿
+@model RELOCBS.Entities.UserLocation
+@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+@{
+
+    string type = ViewBag.Type;
+    string a = type == "All" ? "col-sm-6" : "col-sm-12";
+    string country = type == "All" || type == "Country" ? "row" : "row hide";
+    string comp = type == "All" || type == "Comp" ? a : a + " hide";
+    string role = type == "All" || type == "Role" ? a : a + " hide";
+    string rmc = type == "All" || type == "Rmc" ? "row pad-none" : "row pad-none hide";
+    string warehouse = type == "All" || type == "warehouse" ? a : a + " hide";
+    string Branch =  type == "Branch" ? a : a + " hide"; /*//////type == "All" ||*/
+    string report = /*type == "All" ||*/ type == "report" ? a : a + " hide";
+    string serviceline = /*type == "All" ||*/ type == "serviceline" ? a : a + " hide";
+    string rvbranch = /*type == "All" ||*/ type == "rvbranch" ? a : a + " hide";
+    string clickrestrict = /*type == "All" ||*/ type == "clickrestrict" ? a : a + " hide";
+
+
+    string btnclass = /*type == "All" ? "btn-xs btn-default" :*/ "btn-sm btn-default";
+    string _PageID = "7";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+@Html.HiddenFor(model => model.UserID)
+@Html.HiddenFor(model => model.Type)
+
+    <div class="row pad-none">
+        <div class="@comp">
+            <div class="panel panel-warning">
+                <div class="panel-heading">Comp Mapping</div>
+                <div class="panel-body">
+                    <div class="row col-xs-offset-1">
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBox("DefCompList", (IEnumerable<SelectListItem>)ViewData["DefCompList"], new { @class = "width-100" })
+                            @*</div>*@
+                        </div>
+                        <div class="col-sm-1 pad-none m-n text-center">
+                            <input type="button" value=">" class="@btnclass" style="width:70%;" onclick="SetRight('comp')" />
+                            <input type="button" value=">>" class="@btnclass" style="width:70%;" onclick="SetAllRight('comp')" />
+                            <input type="button" value="<" class="@btnclass" style="width:70%;" onclick="SetLeft('comp')" />
+                            <input type="button" value="<<" class="@btnclass" style="width:70%;" onclick="SetAllLeft('comp')" />
+                        </div>
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBoxFor(model => model.CompList, (IEnumerable<SelectListItem>)ViewData["CompList"], new { @class = "width-100" })
+                            @*@Html.ListBoxFor(model => model.CountryList, (IEnumerable<SelectListItem>)ViewData["CountryList"])*@
+                            @*</div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="@role">
+            <div class="panel panel-warning">
+                <div class="panel-heading">Role Mapping</div>
+                <div class="panel-body">
+                    <div class="row col-xs-offset-1">
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBox("DefRoleList", (IEnumerable<SelectListItem>)ViewData["DefRoleList"], new { @class = "width-100" })
+                            @*</div>*@
+                        </div>
+                        <div class="col-sm-1 pad-none m-n text-center">
+                            <input type="button" value=">" class="@btnclass" style="width:70%;" onclick="SetRight('role')" />
+                            <input type="button" value=">>" class="@btnclass" style="width:70%;" onclick="SetAllRight('role')" />
+                            <input type="button" value="<" class="@btnclass" style="width:70%;" onclick="SetLeft('role')" />
+                            <input type="button" value="<<" class="@btnclass" style="width:70%;" onclick="SetAllLeft('role')" />
+                        </div>
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBoxFor(model => model.RoleList, (IEnumerable<SelectListItem>)ViewData["RoleList"], new { @class = "width-100" })
+                            @*@Html.ListBoxFor(model => model.CountryList, (IEnumerable<SelectListItem>)ViewData["CountryList"])*@
+                            @*</div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="@rmc">
+        <div class="col-sm-12">
+            <div class="panel panel-warning">
+                <div class="panel-heading">Bussiness Mapping</div>
+                <div class="panel-body">
+                    <div class="row col-xs-offset-1">
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBox("DefBussList", (IEnumerable<SelectListItem>)ViewData["DefBussList"], new { @class = "width-100" })
+                            @*</div>*@
+                        </div>
+                        <div class="col-sm-1 pad-none m-n text-center">
+                            <input type="button" value=">" class="@btnclass" style="width:70%;" onclick="SetRight('buss')" />
+                            <input type="button" value=">>" class="@btnclass" style="width:70%;" onclick="SetAllRight('buss')" />
+                            <input type="button" value="<" class="@btnclass" style="width:70%;" onclick="SetLeft('buss')" />
+                            <input type="button" value="<<" class="@btnclass" style="width:70%;" onclick="SetAllLeft('buss')" />
+                        </div>
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBoxFor(model => model.BussList, (IEnumerable<SelectListItem>)ViewData["BussList"], new { @class = "width-100" })
+                            @*@Html.ListBoxFor(model => model.CountryList, (IEnumerable<SelectListItem>)ViewData["CountryList"])*@
+                            @*</div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 hide">
+            <div class="panel panel-warning">
+                <div class="panel-heading">RMC Mapping</div>
+                <div class="panel-body">
+                    <div class="row col-xs-offset-1">
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBox("DefRMCList", (IEnumerable<SelectListItem>)ViewData["DefRMCList"], new { @class = "width-100" })
+                            @*</div>*@
+                        </div>
+                        <div class="col-sm-1 pad-none m-n text-center">
+                            <input type="button" value=">" class="@btnclass" style="width:70%;" onclick="SetRight('rmc')" />
+                            <input type="button" value=">>" class="@btnclass" style="width:70%;" onclick="SetAllRight('rmc')" />
+                            <input type="button" value="<" class="@btnclass" style="width:70%;" onclick="SetLeft('rmc')" />
+                            <input type="button" value="<<" class="@btnclass" style="width:70%;" onclick="SetAllLeft('rmc')" />
+                        </div>
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBoxFor(model => model.RMCList, (IEnumerable<SelectListItem>)ViewData["RMCList"], new { @class = "width-100" })
+                            @*@Html.ListBoxFor(model => model.CountryList, (IEnumerable<SelectListItem>)ViewData["CountryList"])*@
+                            @*</div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row pad-none">
+        <div class="@Branch">
+            <div class="panel panel-warning">
+                <div class="panel-heading">Branch Mapping</div>
+                <div class="panel-body">
+                    <div class="row col-xs-offset-1">
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBox("DefCityList", (IEnumerable<SelectListItem>)ViewData["DefCityList"], new { @class = "width-100" })
+                            @*</div>*@
+                        </div>
+                        <div class="col-sm-1 pad-none m-n text-center">
+                            <input type="button" value=">" class="btn-sm btn-default" style="width:70%;" onclick="SetRight('city')" />
+                            <input type="button" value=">>" class="btn-sm btn-default" style="width:70%;" onclick="SetAllRight('city')" />
+                            <input type="button" value="<" class="btn-sm btn-default" style="width:70%;" onclick="SetLeft('city')" />
+                            <input type="button" value="<<" class="btn-sm btn-default" style="width:70%;" onclick="SetAllLeft('city')" />
+                        </div>
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBoxFor(model => model.CityList, (IEnumerable<SelectListItem>)ViewData["CityList"], new { @class = "width-100" })
+                            @*@Html.ListBoxFor(model => model.CountryList, (IEnumerable<SelectListItem>)ViewData["CountryList"])*@
+                            @*</div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="@warehouse">
+            <div class="panel panel-warning">
+                <div class="panel-heading">Warehouse Mapping</div>
+                <div class="panel-body">
+                    <div class="row col-xs-offset-1">
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBox("WarehouseList", (IEnumerable<SelectListItem>)ViewData["WarehouseList"], new { @class = "width-100" })
+                            @*</div>*@
+                        </div>
+                        <div class="col-sm-1 pad-none m-n text-center">
+                            <input type="button" value=">" class="@btnclass" style="width:70%;" onclick="SetRight('warehouse')" />
+                            <input type="button" value=">>" class="@btnclass" style="width:70%;" onclick="SetAllRight('warehouse')" />
+                            <input type="button" value="<" class="@btnclass" style="width:70%;" onclick="SetLeft('warehouse')" />
+                            <input type="button" value="<<" class="@btnclass" style="width:70%;" onclick="SetAllLeft('warehouse')" />
+                        </div>
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBoxFor(model => model.MappedWarehouseList, (IEnumerable<SelectListItem>)ViewData["MappedWarehouseList"], new { @class = "width-100" })
+                            @*@Html.ListBoxFor(model => model.CountryList, (IEnumerable<SelectListItem>)ViewData["CountryList"])*@
+                            @*</div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row pad-none">
+        <div class="@report">
+            <div class="panel panel-warning">
+                <div class="panel-heading">Report Mapping</div>
+                <div class="panel-body">
+                    <div class="row col-xs-offset-1">
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBox("ReportList", (IEnumerable<SelectListItem>)ViewData["ReportList"], new { @class = "width-100" })
+                            @*</div>*@
+                        </div>
+                        <div class="col-sm-1 pad-none m-n text-center">
+                            <input type="button" value=">" class="@btnclass" style="width:70%;" onclick="SetRight('report')" />
+                            <input type="button" value=">>" class="@btnclass" style="width:70%;" onclick="SetAllRight('report')" />
+                            <input type="button" value="<" class="@btnclass" style="width:70%;" onclick="SetLeft('report')" />
+                            <input type="button" value="<<" class="@btnclass" style="width:70%;" onclick="SetAllLeft('report')" />
+                        </div>
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBoxFor(model => model.MappedReportList, (IEnumerable<SelectListItem>)ViewData["MappedReportList"], new { @class = "width-100" })
+                            @*@Html.ListBoxFor(model => model.CountryList, (IEnumerable<SelectListItem>)ViewData["CountryList"])*@
+                            @*</div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="@serviceline">
+            <div class="panel panel-warning">
+                <div class="panel-heading">Serviceline Mapping</div>
+                <div class="panel-body">
+                    <div class="row col-xs-offset-1">
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBox("ServicelineList", (IEnumerable<SelectListItem>)ViewData["ServicelineList"], new { @class = "width-100" })
+                            @*</div>*@
+                        </div>
+                        <div class="col-sm-1 pad-none m-n text-center">
+                            <input type="button" value=">" class="@btnclass" style="width:70%;" onclick="SetRight('serviceline')" />
+                            <input type="button" value=">>" class="@btnclass" style="width:70%;" onclick="SetAllRight('serviceline')" />
+                            <input type="button" value="<" class="@btnclass" style="width:70%;" onclick="SetLeft('serviceline')" />
+                            <input type="button" value="<<" class="@btnclass" style="width:70%;" onclick="SetAllLeft('serviceline')" />
+                        </div>
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBoxFor(model => model.MappedServicelineList, (IEnumerable<SelectListItem>)ViewData["MappedServicelineList"], new { @class = "width-100" })
+                            @*@Html.ListBoxFor(model => model.CountryList, (IEnumerable<SelectListItem>)ViewData["CountryList"])*@
+                            @*</div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row pad-none">
+        <div class="@rvbranch">
+            <div class="panel panel-warning">
+                <div class="panel-heading">Revenue Branch Mapping</div>
+                <div class="panel-body">
+                    <div class="row col-xs-offset-1">
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBox("rvbranchList", (IEnumerable<SelectListItem>)ViewData["rvbranchList"], new { @class = "width-100" })
+                            @*</div>*@
+                        </div>
+                        <div class="col-sm-1 pad-none m-n text-center">
+                            <input type="button" value=">" class="@btnclass" style="width:70%;" onclick="SetRight('rvbranch')" />
+                            <input type="button" value=">>" class="@btnclass" style="width:70%;" onclick="SetAllRight('rvbranch')" />
+                            <input type="button" value="<" class="@btnclass" style="width:70%;" onclick="SetLeft('rvbranch')" />
+                            <input type="button" value="<<" class="@btnclass" style="width:70%;" onclick="SetAllLeft('rvbranch')" />
+                        </div>
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBoxFor(model => model.MappedrvbranchList, (IEnumerable<SelectListItem>)ViewData["MappedrvbranchList"], new { @class = "width-100" })
+                            @*@Html.ListBoxFor(model => model.CountryList, (IEnumerable<SelectListItem>)ViewData["CountryList"])*@
+                            @*</div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="@clickrestrict">
+            <div class="panel panel-warning">
+                <div class="panel-heading">Click Restriction Mapping</div>
+                <div class="panel-body">
+                    <div class="row col-xs-offset-1">
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBox("clickrestrictList", (IEnumerable<SelectListItem>)ViewData["clickrestrictList"], new { @class = "width-100" })
+                            @*</div>*@
+                        </div>
+                        <div class="col-sm-1 pad-none m-n text-center">
+                            <input type="button" value=">" class="@btnclass" style="width:70%;" onclick="SetRight('clickrestrict')" />
+                            <input type="button" value=">>" class="@btnclass" style="width:70%;" onclick="SetAllRight('clickrestrict')" />
+                            <input type="button" value="<" class="@btnclass" style="width:70%;" onclick="SetLeft('clickrestrict')" />
+                            <input type="button" value="<<" class="@btnclass" style="width:70%;" onclick="SetAllLeft('clickrestrict')" />
+                        </div>
+                        <div class="col-sm-5 pad-none subject-info-box-1">
+                            @*<div class="card" style="width: 18rem;">*@
+                            @Html.ListBoxFor(model => model.MappedclickrestrictList, (IEnumerable<SelectListItem>)ViewData["MappedclickrestrictList"], new { @class = "width-100" })
+                            @*@Html.ListBoxFor(model => model.CountryList, (IEnumerable<SelectListItem>)ViewData["CountryList"])*@
+                            @*</div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div class="row m-xs">
+    <input type="button" class="btn btn-sm btn-default m-l-md pull-right" data-dismiss="modal" value="Cancel" />
+    <input type="submit" class="btn btn-sm btn-primary pull-right" value="Save" form="modaldetails" />
+</div>
+
+<style>
+    select[multiple] {
+        height: 100%;
+    }
+
+    .subject-info-box-1 {
+        height: 200px;
+    }
+</style>
+
+
+
+@section Scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+    <script type="text/javascript">
+
+        
+
+        function Forward() {
+            debugger;
+            console.log($('#DefCountryList').map(function () { return $(this).val(); }).get());
+        }
+
+
+    </script>
+}
+
+
+

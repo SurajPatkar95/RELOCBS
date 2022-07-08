@@ -1,0 +1,45 @@
+﻿@model StaticPagedList<RELOCBS.Entities.WHInOutAssetMaster>
+
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@{
+    string _PageID = "87";
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+    columns.Add(m => m.RefJobID).Titled("Ref Job ID").SortInitialDirection(GridMvc.Sorting.GridSortDirection.Descending);
+
+    columns.Add(m => m.WareHouse).Titled("WareHouse Name");
+
+    columns.Add(m => m.InDateTime).Titled("In Date Time").Format("{0:dd-MMM-yyyy hh:mm tt}");
+
+    columns.Add(m => m.BarcodeSeqNo).Titled("Box No");
+
+    columns.Add(m => m.InAssetRefID).Titled("In Asset Ref ID");
+
+    columns.Add(m => m.InAssetDescription).Titled("In Asset Desc");
+
+    columns.Add(m => m.OutDateTime).Titled("Out Date Time").Format("{0:dd-MMM-yyyy hh:mm tt}");
+
+    columns.Add(m => m.OutLocAdd1).Titled("Out Loc Add 1");
+
+    columns.Add(m => m.OutLocAdd2).Titled("Out Loc Add 2");
+
+    columns.Add(m => m.OutLocCity).Titled("Out Loc City");
+
+    columns.Add(m => m.OutAssetRemarks).Titled("Out Asset Remarks");
+
+}).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("WHInOutAssetReport", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>

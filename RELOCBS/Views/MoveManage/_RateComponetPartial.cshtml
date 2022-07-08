@@ -1,0 +1,411 @@
+﻿@using RELOCBS.Common
+@model RELOCBS.Entities.MoveManageViewModel
+
+@{
+    string mode = Model.MoveJob.ModeName;
+    int MoveID;
+    Int32.TryParse(Convert.ToString(ViewData["MoveID"]), out MoveID);
+    SelectList RateCompDropDown = new SelectList((System.Collections.IEnumerable)ViewData["RateComponentWODTD"], "Value", "Text");
+    if (mode == "Road" && Model.RMCType == "Brookfield Type")//&& Model.CompanyID == 2
+    {
+        RateCompDropDown = new SelectList((System.Collections.IEnumerable)ViewData["RateComponent"], "Value", "Text");
+    }
+    //else if (mode == "Road")
+    //{
+    //    RateCompDropDown = new SelectList((System.Collections.IEnumerable)ViewData["RateComponentOnlyDTD"], "Value", "Text");
+    //}
+
+    int OrgRateComp = (int)CommonService.RateComp.Origin;
+    int FrtRateComp = (int)CommonService.RateComp.Freight;
+    string FrtRateCompName = CommonService.RateComp.Freight.ToString();
+    int DesRateComp = (int)CommonService.RateComp.Destination;
+    string divInstructdata = Model.RMCType == "Other Type"? "row divInstructdata hide" : "row divInstructdata";
+}
+<div class="@divInstructdata">
+    <div class="form-group col-sm-2 col-md-2">
+        <div class="form-group">
+            <label>Rate Component</label>
+            @Html.DropDownList("MoveJob_RateComponent", RateCompDropDown, "--Select Rate Component--", new { @class = "form-control input-sm clearfix ComboChange" })
+        </div>
+    </div>
+    <div class="col-sm-3 col-md-3">
+        <div class="form-group">
+            <label>Agent</label>
+            @Html.DropDownList("MoveJob_Agent", new SelectList((System.Collections.IEnumerable)ViewData["Agent"], "Value", "Text"), "--Select Agent--", new { @class = "form-control input-sm clearfix enableselect" })
+        </div>
+    </div>
+    <div class="col-sm-3 col-md-3 hide port">
+        <div class="form-group">
+            <label>Exit Port</label>
+            @Html.DropDownList("MoveJob_ExitPort", new SelectList((System.Collections.IEnumerable)ViewData["Port"], "Value", "Text"), "--Select Port--", new { @class = "form-control input-sm clearfix enableselect" })
+        </div>
+    </div>
+    <div class="col-sm-3 col-md-3 hide port">
+        <div class="form-group">
+            <label>Entry Port</label>
+            @Html.DropDownList("MoveJob_EntryPort", new SelectList((System.Collections.IEnumerable)ViewData["Port"], "Value", "Text"), "--Select Port--", new { @class = "form-control input-sm clearfix enableselect" })
+        </div>
+    </div>
+    <div class="form-group col-sm-1 col-md-1 m-l-n">
+        <div class="clearfix">
+            <input type="button" id="btnAddMoveJob" value="Add" onclick="AddRateComp(this)" class="btn btn-primary btn-sm filter-custom-margin" />
+        </div>
+    </div>
+</div>
+<div class="row" id="divInstructList">
+    @try
+    {
+        <div class="row">
+            <div class="col-sm-12 m-b-lg">
+                <div class="table-responsive" id="pnl-rates">
+                    <table class="table table-striped fixed_header" id="MoveRateComponenttable">
+                        <thead class="ibox-title">
+                            <tr>
+                                <th class="tdNone"></th>
+                                <th>Rate Componet</th>
+                                <th>Pricing Agent</th>
+                                <th class="thagent">Agent (Price Team)</th>
+                                <th>Job Agent</th>
+                                @*<th>Exit Port</th>
+                                <th>Entry Port</th>*@
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{int RowNo = 0;}
+
+                            @foreach (RELOCBS.Entities.MoveRateComponent row in Model.MoveJob.MoveRateCompList)
+                            {
+                                int JobAgentId = row.JobAgentID > 0 ? row.JobAgentID : row.AgentID;
+                                
+                                string JobAgentName = row.JobAgentID > 0 ? row.JobAgentName : row.AgentName;
+                                RowNo++;
+                            <tr>
+                                <td class="tdNone">
+                                    <input type="hidden" id="HFVRCRateCompID" class="TblRateComponent" value="@row.RateComponentID" />
+                                    @*<input type="hidden" id="HFVRCAgentID" class="TblHFVAgent" value="@row.AgentID" />*@
+                                    <input type="hidden" id="HFVRCJobAgentID" class="TblHFVJobAgent" value="@JobAgentId" />
+                                    <input type="hidden" id="HFVRCActJobAgentID" class="TblHFVActJobAgent" value="@row.ActJobAgentID" />
+                                    @*@if (Model.RMCType == "Other Type")
+                                    {
+                                        <input type="hidden" id="HFVRCOrgPortId" class="TblOrgPort" value="@row.ExitPortID" />
+                                        <input type="hidden" id="HFVRCDestPortId" class="TblDestPort" value="@row.EntryPortID" />
+                                    }
+                                    else
+                                    {*@
+                                        @if (row.RateComponentID == (int)CommonService.RateComp.Origin || row.RateComponentID == (int)CommonService.RateComp.Freight)
+                                        {
+                                            <input type="hidden" id="HFVRCOrgPortId" class="TblOrgPort" value="@row.ExitPortID" />
+                                        }
+                                        else
+                                        {
+                                            <input type="hidden" id="HFVRCOrgPortId" class="TblOrgPort" value="0" />
+                                        }
+                                        @if (row.RateComponentID == (int)CommonService.RateComp.Destination || row.RateComponentID == (int)CommonService.RateComp.Freight)
+                                        {
+                                            <input type="hidden" id="HFVRCDestPortId" class="TblDestPort" value="@row.EntryPortID" />
+                                        }
+                                        else
+                                        {
+                                            <input type="hidden" id="HFVRCDestPortId" class="TblDestPort" value="0" />
+                                        }
+                                    @*}*@
+
+
+
+                                </td>
+                                <td class="RateComponent">
+                                    @row.RateComponentName
+                                </td>
+                                <td class="Agent">
+                                    <span class="Agentspan">
+                                        @row.AgentName
+                                    </span><br />
+
+
+                                    @if (row.RateComponentID == (int)CommonService.RateComp.Origin || row.RateComponentID == (int)CommonService.RateComp.Freight)
+                                    {
+                                        if (!string.IsNullOrEmpty(row.ActExitPort))
+                                        {
+                                            <span>
+                                                Exit Port - @row.ActExitPort
+                                            </span><br />
+                                        }
+
+                                    }
+                                    @if (row.RateComponentID == (int)CommonService.RateComp.Destination || row.RateComponentID == (int)CommonService.RateComp.Freight)
+                                    {
+                                        if (!string.IsNullOrEmpty(row.ActEntryPort))
+                                        {
+                                            <span>Entry Port -@row.ActEntryPort</span>
+                                        }
+                                        
+                                    }
+
+
+                                </td>
+                                <td class="JobAgent">
+                                    <span class="JobAgentspan">
+                                        @JobAgentName
+                                    </span><br />
+                                    @if (row.RateComponentID == (int)CommonService.RateComp.Origin || row.RateComponentID == (int)CommonService.RateComp.Freight)
+                                    {
+                                        if (!string.IsNullOrEmpty(row.ExitPort))
+                                        {
+                                            <span class="ExitPort">
+                                                Exit Port -@row.ExitPort
+                                            </span><br />
+                                        }
+                                        else if (!string.IsNullOrEmpty(row.ActExitPort))
+                                        {
+                                            <span class="ExitPort">
+                                                Exit Port -@row.ActExitPort
+                                            </span><br />
+                                        }
+                                        else
+                                        {
+                                            <span class="ExitPort"></span><br />
+                                        }
+                                    }
+                                    @if (row.RateComponentID == (int)CommonService.RateComp.Destination || row.RateComponentID == (int)CommonService.RateComp.Freight)
+                                    {
+
+                                        if (!string.IsNullOrEmpty(row.EntryPort))
+                                        {
+                                            <span class="EntryPort">Entry Port -@row.EntryPort</span><br />
+                                        }
+                                        else if (!string.IsNullOrEmpty(row.ActEntryPort))
+                                        {
+                                            <span class="EntryPort">Entry Port -@row.ActEntryPort</span><br />
+                                        }
+                                        else
+                                        {
+                                            <span class="EntryPort"></span><br />
+                                        }
+                                    }
+
+                                </td>
+                                    <td>
+                                        @row.ActJobAgentName
+                                    </td>
+
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    catch (Exception ex)
+    {
+        Console.Write(ex.ToString());
+    }
+</div>
+
+<script type="text/javascript">
+
+    function AddRateComp(button) {
+        //debugger;
+        var OrgRateComp = '@OrgRateComp';
+        var FrtRateComp = '@FrtRateComp';
+        var DesRateComp = '@DesRateComp';
+        var Move = @MoveID;
+        var Mode = '@mode';
+        var RMCType = '@Model.RMCType';
+        fn_AddRateComp(button, OrgRateComp, FrtRateComp, DesRateComp, Move, Mode, RMCType);
+        
+        
+    }
+    
+    function fn_AddRateComp(button, OrgRateComp, FrtRateComp, DesRateComp, Move, Mode, RMCType) {
+	var RateCompDropdown = $("#MoveJob_RateComponent");
+	var RateCompDropdownSelected = RateCompDropdown.val();
+	var RateCompDropdownText = $("#MoveJob_RateComponent :selected").text();
+
+	//if (RateCompDropdownSelected == OrgRateComp) {
+
+	var AgentDropdown = $("#MoveJob_Agent");
+	var AgentDropdownSelected = AgentDropdown.val();
+	var AgentText = $("#MoveJob_Agent :selected").text();
+
+	var ExitPortDropdown = $("#MoveJob_ExitPort");
+	var ExitPortDropdownSelected = ExitPortDropdown.val();
+	var ExitPortDropdownText = ExitPortDropdownSelected != "-1" && ExitPortDropdownSelected ? $("#MoveJob_ExitPort :selected").text() : "";
+
+	var EntryPortDropdown = $("#MoveJob_EntryPort");
+	var EntryPortDropdownSelected = EntryPortDropdown.val();
+	var EntryPortDropdownText = EntryPortDropdownSelected != "-1" && EntryPortDropdownSelected ? $("#MoveJob_EntryPort :selected").text() : "";
+
+	var portvalidation = true, portErrorMsg = null;
+	/*if (RateCompDropdownSelected == OrgRateComp) {
+		portvalidation = ExitPortDropdownSelected != null && ExitPortDropdownSelected > 0;
+		portErrorMsg = portvalidation ? null : "Exit port is required."
+	}*/
+	if (!(Mode == "Road" && RMCType == "Brookfield Type")) {
+		if (RateCompDropdownSelected == FrtRateComp) {
+			portvalidation = ExitPortDropdownSelected != null && ExitPortDropdownSelected > 0 &&
+				EntryPortDropdownSelected != null && EntryPortDropdownSelected > 0;
+			portErrorMsg = portvalidation ? null : "Exit port and Entry Port is required."
+		}
+	}
+
+	/*if (RateCompDropdownSelected == DesRateComp) {
+		portvalidation = EntryPortDropdownSelected != null && EntryPortDropdownSelected > 0;
+		portErrorMsg = portvalidation ? null : "Entry Port is required."
+	}*/
+
+	var frtExitPortSelected, frtEntryPortSelected, frtExitPortText, frtEntryPortText;
+	if (RateCompDropdownSelected != null && RateCompDropdownSelected > 0 &&
+		AgentDropdownSelected != null && AgentDropdownSelected > 0 && portvalidation) {
+		var breakOut = false;
+
+		$('#MoveRateComponenttable > TBODY > tr').each(function () {
+
+			//look for the fields TbltxtAmount in the tr
+			//debugger;
+			if ($('.TblRateComponent', this).val() == RateCompDropdownSelected) {
+				//$('.tdNone', this).text(AgentText);
+				$('.JobAgent', this).find('.JobAgentspan').html(AgentText);
+
+				//$('.JobAgent', this).text(AgentText);
+				$('.TblHFVJobAgent', this).val(AgentDropdownSelected);
+				$('.JobAgent', this).find('.ExitPort').html(ExitPortDropdownText);
+				//$('.', this).html(ExitPortDropdownText);
+				$('.TblOrgPort', this).val(ExitPortDropdownSelected);
+				$('.JobAgent', this).find('.EntryPort').html(EntryPortDropdownText);
+				//$('.', this).html();
+				$('.TblDestPort', this).val(EntryPortDropdownSelected);
+				alert(RateCompDropdownText.trim() + '  Job Agent and ports updated');
+				breakOut = true;
+				//return false;
+
+			}
+		});
+
+		$('#MoveRateComponenttable > TBODY > tr').each(function () {
+			if ($('.TblRateComponent', this).val() == FrtRateComp) {
+				frtExitPortSelected = $('.TblOrgPort', this).val();
+				frtExitPortText = $('.JobAgent', this).find('.ExitPort').html();
+				frtEntryPortSelected = $('.TblDestPort', this).val();
+				frtEntryPortText = $('.JobAgent', this).find('.EntryPort').html();
+			}
+
+		});
+
+		$('#MoveRateComponenttable > TBODY > tr').each(function () {
+			if ($('.TblRateComponent', this).val() == OrgRateComp) {
+				$('.TblOrgPort', this).val(frtExitPortSelected);
+				$('.JobAgent', this).find('.ExitPort').html(frtExitPortText);
+			}
+			if ($('.TblRateComponent', this).val() == DesRateComp) {
+				$('.TblDestPort', this).val(frtEntryPortSelected);
+				$('.JobAgent', this).find('.EntryPort').html(frtEntryPortText);
+			}
+		});
+		///// return from add if costhead already exists
+		if (breakOut) {
+
+			//var HandlingBrDropdown = $("#MoveJob_Agent");
+			AgentDropdown.val('').attr("selected", "selected");
+			AgentDropdown.change();
+			RateCompDropdown.val('').attr("selected", "selected");
+
+			ExitPortDropdown.val('').attr("selected", "selected");
+			ExitPortDropdown.change();
+			EntryPortDropdown.val('').attr("selected", "selected");
+			ExitPortDropdown.change();
+			return false;
+		}
+
+
+		var tBody = $("#MoveRateComponenttable > TBODY")[0];
+
+		var rowCount = $('#MoveRateComponenttable > TBODY > tr').length;
+
+		var tdHFVCostHead = '<input type="hidden" class="TblRateComponent" name="HFVRateComponent" id="HFVRateComponentID_' + (rowCount + 1) + '" value="' + RateCompDropdownSelected + '" />'
+			+ '<input type="hidden" class="TblHFVJobAgent" name="HFVRCJobAgentID" id="HFVRCJobAgentID_' + (rowCount + 1) + '" value="' + AgentDropdownSelected + '" />'
+			+ '<input type="hidden" class="TblOrgPort" name="HFVRCOrgPortId" id="HFVRCOrgPortId_' + (rowCount + 1) + '" value="' + ExitPortDropdownSelected + '" />'
+			+ '<input type="hidden" class="TblDestPort" name="HFVRCDestPortId" id="HFVRCDestPortId_' + (rowCount + 1) + '" value="' + EntryPortDropdownSelected + '" />';
+
+
+		var tdJobAgent = '<span class="Agentspan">' + AgentText + '</span><br />';
+		//debugger;
+		if (RateCompDropdownSelected == OrgRateComp) {
+			tdJobAgent = tdJobAgent + '<span class="ExitPort">Exit Port - ' + ExitPortDropdownText + '</span >';
+		}
+		else if (RateCompDropdownSelected == DesRateComp) {
+			tdJobAgent = tdJobAgent + '<span class="EntryPort">Entry Port - ' + EntryPortDropdownText + '</span >';
+		}
+		else {
+			tdJobAgent = tdJobAgent + '<span class="ExitPort">Exit Port - ' + ExitPortDropdownText + '</span ><br/>'
+				+ '<span class="EntryPort">Entry Port - ' + EntryPortDropdownText + '</span> ';
+		}
+
+		//Add Row.
+		var row = tBody.insertRow(-1);
+		row.className = "package-row";
+
+		//Add CostHeadID cell.
+		var cell = $(row.insertCell(-1));
+		cell.html(tdHFVCostHead);
+		cell.addClass("tdNone");
+
+		//Add RateComp cell.
+		cell = $(row.insertCell(-1));
+		cell.html(RateCompDropdownText);
+		cell.addClass("RateComponent");
+
+		cell = $(row.insertCell(-1));
+		cell.addClass("Agent");
+
+		//Add Agent cell.
+		cell = $(row.insertCell(-1));
+		cell.html(tdJobAgent);
+		cell.addClass("JobAgent");
+
+		//cell = $(row.insertCell(-1));
+		//cell.html(ExitPortDropdownText);
+		//cell.addClass("ExitPort");
+
+		//cell = $(row.insertCell(-1));
+		//cell.html(EntryPortDropdownText);
+		//cell.addClass("EntryPort");
+
+		//Add Button cell.
+		//cell = $(row.insertCell(-1));
+		//var btnRemove = '<button type="button" class="btn btn-danger btn-sm" onclick="RemoveJob(this)"><span class="glyphicon glyphicon-trash"></span></button>';
+		//cell.append(btnRemove);
+
+	}
+	else {
+		alert(portvalidation ? 'Agent,Rate Component is required' : portErrorMsg);
+		return false;
+	}
+
+	$('#MoveRateComponenttable > TBODY > tr').each(function () {
+		//debugger;
+		if ($('.TblRateComponent', this).val() == FrtRateComp) {
+			frtExitPortSelected = $('.TblOrgPort', this).val();
+			frtExitPortText = $('.JobAgent', this).find('ExitPort').html();
+			frtEntryPortSelected = $('.TblDestPort', this).val();
+			frtEntryPortText = $('.JobAgent', this).find('.EntryPort').html();
+		}
+
+	});
+
+	$('#MoveRateComponenttable > TBODY > tr').each(function () {
+		//debugger;
+		if ($('.TblRateComponent', this).val() == OrgRateComp) {
+			$('.TblOrgPort', this).val(frtExitPortSelected);
+			$('.JobAgent', this).find('ExitPort').html(frtExitPortText);
+		}
+		if ($('.TblRateComponent', this).val() == DesRateComp) {
+			$('.TblDestPort', this).val(frtEntryPortSelected);
+			$('.JobAgent', this).find('.EntryPort').html(frtEntryPortText);
+		}
+
+	});
+
+
+}
+</script>

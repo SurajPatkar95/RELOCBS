@@ -1,0 +1,287 @@
+﻿@using RELOCBS.Common;
+
+@using RELOCBS.Utility;
+
+@model RELOCBS.Entities.AgentInvoice
+
+@{
+
+    //Layout = null;
+    ViewBag.Title = "Vendor Invoice";
+}
+
+<style type="text/css">
+    .modal-open {
+        overflow-y: scroll;
+    }
+
+    body {
+        overflow-y: scroll;
+    }
+</style>
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+
+<div class="modal-body">
+    <div class="container-fluid">
+        @using (Html.BeginForm("AgentInvoiceCreate", "DMS", new { id = @Model.ID, Type = @Model.DocFromType }, FormMethod.Post, new { enctype = "multipart/form-data", @id = "Form_InvDMS", @name = "Form_InvDMS" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            @Html.HiddenFor(model => model.ID)
+            @Html.HiddenFor(model => model.DocFromType)
+            @Html.HiddenFor(model => model.DocNameText)
+            @Html.HiddenFor(model => model.DocTypeID)
+            @Html.HiddenFor(model => model.DocNameID)
+            <div class="row">
+                <div class="col-sm-5 form-group">
+                    <label>Vendor Name</label>
+                    @Html.DropDownListFor(model => model.InvDmsAgentId, new SelectList(Enumerable.Empty<SelectListItem>()), null, new { @class = "form-control input-sm clearfix docenableselect" })
+                    @Html.ValidationMessageFor(model => model.InvDmsAgentId, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-sm-2 form-group">
+                    <label>Vendor Code</label>
+                    @Html.EditorFor(model => model.VendorCode, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+                    @Html.ValidationMessageFor(model => model.VendorCode, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-sm-5 form-group">
+                    <label>Address</label>
+                    @Html.EditorFor(model => model.VendorAddress, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+                    @Html.ValidationMessageFor(model => model.VendorAddress, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-sm-3 form-group">
+                    <label>Inv. No./Ref. No.</label>
+                    @Html.EditorFor(model => model.InvoiceNo, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                    @Html.ValidationMessageFor(model => model.InvoiceNo, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-sm-3 form-group">
+                    <label>Amount</label>
+                    @Html.EditorFor(model => model.Amount, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                    @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-sm-3 form-group">
+                    <label>Description</label>
+                    @Html.EditorFor(model => model.DocDescription, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                    @Html.ValidationMessageFor(model => model.DocDescription, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-sm-3 form-group">
+                    <label>File Upload</label>
+                    @Html.TextBoxFor(model => model.file, new { type = "file", @class = "inputfile inputfile-4 form-control", accept = ".xls,.xlsx,.doc,.docx,.jpg,.jpeg,.png,.pdf,.ppt,.pptx,.csv", @multiple = "multiple" })
+                    @Html.ValidationMessageFor(model => model.file, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-sm-1 form-group">
+                    <div class="clearfix">
+                        <input type="submit" name="Save" value="Upload" class="btn btn-primary btn-sm filter-custom-margin">
+                    </div>
+                </div>
+            </div>
+
+        }
+        <div class="row">
+            <div class="table-responsive">
+                <table class="table table-striped fixed_header">
+                    <thead class="ibox-title">
+                        <tr>
+                            <th>Inv. No./Ref.No.</th>
+                            <th>Vendor</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                            <th>File Name</th>
+                            <th>Uploaded By</th>
+                            <th>Uploaded Date</th>
+                            <th></th>
+                            <th colspan="2"></th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.docLists.Count; i++)
+                        {
+                            <tr>
+                                <td>
+                                    @Html.DisplayFor(model => Model.docLists[i].InvRefNo)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(model => Model.docLists[i].AgentName)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(model => Model.docLists[i].Amount)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(model => Model.docLists[i].DocDescription)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(model => Model.docLists[i].FileName)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(model => Model.docLists[i].UploadBy)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(model => Model.docLists[i].UploadDate)
+                                </td>
+                                <td>
+                                    @using (Html.BeginForm("JobDocDownload", "MoveManage", new { id = @Model.docLists[i].FileID }, FormMethod.Post, new { id = "DownloadForm", target = "_blank" }))
+                                    {
+                                        @Html.AntiForgeryToken();
+                                        @Html.Hidden("FileID", Model.docLists[i].FileID, new { @class = "FileID" })
+                                        <button type="submit" name="Download" value="Download" class="btn btn-primary btn-sm"><i class="fa fa-download" aria-hidden="true"></i></button>
+                                    }
+                                </td>
+                                <td colspan="2">
+                                    @if (CommonService.IsViewFileButton(@Model.docLists[i].FileName))
+                                    {
+                                        using (Html.BeginForm("ViewDocument", "DMS", new { id = @Model.docLists[i].FileID }, FormMethod.Post, new { id = "ViewForm", target = "_blank" }))
+                                        {
+                                            @Html.AntiForgeryToken();
+                                            @Html.Hidden("FileID", Model.docLists[i].FileID, new { @class = "FileID" })
+                                            <button type="submit" name="View" value="View" class="btn btn-primary btn-sm"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                                        }
+                                    }
+                                </td>
+                                @*<td>
+                                    @if (UserSession.GetUserSession().LoginType == "SA" || UserSession.GetUserSession().LoginType == "AA" || UserSession.GetUserSession().LoginID == Model.docLists[i].UploadById)
+                                    {
+                                        using (Html.BeginForm("DocDelete", "DMS", new { FileID = @Model.docLists[i].FileID, Type = @Model.DocFromType }, FormMethod.Post, new { id = "DeleteForm" }))
+                                        {
+                                            @Html.AntiForgeryToken();
+                                            @Html.Hidden("FileID", Model.docLists[i].FileID, new { @class = "FileID" })
+                                            @Html.HiddenFor(model => model.ID)
+                                            @Html.HiddenFor(model => model.DocFromType)
+                                            @Html.HiddenFor(model => model.DocTypeID)
+                                            <button type="submit" name="Delete" value="Delete" class="btn btn-danger btn-sm btnDeleteDoc"><i class="fa fa-trash-o"></i></button>
+                                        }
+                                    }
+                                </td>*@
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    
+    $(document).ready(function () {
+
+        $("input").attr("autocomplete", "off");
+
+        //debugger;
+        //if ($("#DocNameDropdown option").length == 3) {
+        //    $('#DocNameDropdown').val($('#DocNameDropdown option:eq(1)').val()).trigger('change');
+
+        //    //$("#DocNameDropdown").select2().select2('val', $('#DocNameDropdown option:eq(2)').val());
+        //}
+
+        $('.docenableselect').select2();
+
+        var form = $("#mdlDMS form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+
+
+        $('#mdlDMS').on('shown.bs.modal', function () {
+            $('#DocTypeDropdown').focus();
+        });
+
+        $('#mdlDMS').on('hidden.bs.modal', function () {
+            $(this).removeData('bs.modal');
+        });
+
+
+        $('#InvDmsAgentId').on('change', function () {
+
+            if($(this).val() && $(this).val() != '')
+            {
+                var VendorId = parseInt($(this).val());
+                $.get("@Url.Action("GetVendorDetails", "DMS")", { Id: VendorId }, function (data) {
+                    $("#VendorAddress").val(data.address);
+                    $("#VendorCode").val(data.vendorCode);
+                });
+
+            }
+
+        });
+
+        $('#Form_InvDMS').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+
+            $('#mdlDMS .modal-content').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '#mdlDMS .modal-content',
+                success: function (data) {
+                    $('#mdlDMS .modal-content').html(data.Result);
+                    if (data.Success) {
+                        //$('#mgrid .pagination li.active a').trigger('click');
+                        toastr.success("File Upload saved successfully.");
+                        //$('#mdlAddEdit').modal('hide');
+                    }
+                    AjaxFillDropDown('#InvDmsAgentId', '@Url.Action("GetInvDmsAgentList", "Combo")');
+                    $('#btnDocSearch').trigger('click');
+                    $('#mdlDMS .modal-content').unmask();
+                }
+            });
+        });
+
+
+        $('.btnDeleteDoc').click(function (event) {
+
+            debugger;
+            event.preventDefault();
+            $frmRWDelete = $('#DeleteForm');
+            swal({
+                title: "Are you sure you want to delete this record?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Delete",
+                cancelButtonText: "No",
+                closeOnConfirm: true,
+                closeOnCancel: true
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        $('#mdlDMS .modal-content').mask("Loading...");
+                        $($frmRWDelete).ajaxSubmit({
+                            success: function (data) {
+                                $('#mdlDMS .modal-content').html(data.Result);
+                                document.body.style.overflowY = 'scroll';
+                                if (data.Success) {
+                                    toastr.success("Document deleted successfully.");
+
+                                } else if (!data.Success) {
+                                    swal({
+                                        text: "Document Delete Failed.",
+                                        type: "error"
+                                    });
+                                }
+                                $('#mdlDMS .modal-content').unmask();
+                            },
+                            complete: function () {
+                                $('#mdlDMS .modal-content').unmask();
+                            }
+                        });
+                    } else {
+                        swal("", "Document Delete Cancelled.", "error");
+                    }
+                });
+
+
+        });
+
+    });
+
+</script>
+
+@section Scripts
+{
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+
+}

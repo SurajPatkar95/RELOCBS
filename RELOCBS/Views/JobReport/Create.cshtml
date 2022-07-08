@@ -1,0 +1,1602 @@
+﻿@model RELOCBS.Entities.PJR_DJR
+
+@using RELOCBS.Common;
+@using RELOCBS.Utility;
+
+@{
+
+    ViewBag.Title = "Job Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string _PageID = "20";
+    string Deleteparam = "MoveID=ParamValue0&ComponentID=ParamValue1&PJRDJRID=ParamValue2&ID=ParamValue3&Type=ParamValue4&JobType=ParamValue5";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+    var DateTitle = Model.ReportType.ToUpper() == "DJR" ? "Delivery" : "Pack";
+    string Rerportparam = "MoveID=ParamValue0&ComponentID=ParamValue1&PJRDJRID=ParamValue2&JobType=ParamValue3";
+
+}
+
+<style type="text/css">
+    .width-90 {
+        width: 97%;
+    }
+
+    .table-scroll {
+        /*width:100%; */
+        display: block;
+        empty-cells: show;
+        /* Decoration */
+        border-spacing: 0;
+        /*border: 1px solid;*/
+        margin-bottom:0px;
+    }
+
+        .table-scroll thead {
+            background-color: #f1f1f1;
+            position: relative;
+            display: block;
+            width: 100%;
+            overflow-y: scroll;
+            /*overflow: hidden;*/
+        }
+
+        .table-scroll tfoot {
+            background-color: #f1f1f1;
+            position: relative;
+            display: block;
+            width: 100%;
+            overflow-y: scroll;
+            /*overflow: hidden;*/
+        }
+
+        .table-scroll tbody {
+            /* Position */
+            display: block;
+            position: relative;
+            width: 100%;
+            overflow-y: scroll;
+            /* Decoration */
+            border-top: 1px solid rgba(0,0,0,0.2);
+        }
+
+        .table-scroll tr {
+            width: 100%;
+            display: flex;
+        }
+
+        .table-scroll td, .table-scroll th {
+            flex-basis: 100%;
+            flex-grow: 2;
+            display: block;
+            padding: 1rem;
+            text-align: left;
+        }
+
+        /* Other options */
+
+        .table-scroll.small-first-col td:first-child,
+        .table-scroll.small-first-col th:first-child {
+            flex-basis: 20%;
+            flex-grow: 1;
+        }
+
+        .table-scroll tbody tr:nth-child(2n) {
+            background-color: rgba(130,130,170,0.1);
+        }
+
+        .body-half-screen {
+            max-height: 16vh;
+        }
+</style>
+
+
+<div class="modal modal-wide fade" id="InstActivityModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg width-100" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Instruction Sheet Activity Details</h4>
+            </div>
+            <div class="modal-body" style="overflow-y:auto; height:480px">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-5">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Job No. :</label>
+                                <div class="col-sm-7">
+                                    @Html.Raw(Model.JobNo)
+                                </div>
+                            </div>
+                        </div>
+                        @if(Model.JobType==1)
+                        { 
+                            <div class="col-md-5">
+                                <div class="form-group row">
+                                    <label class="col-sm-4 col-form-label">Corporate/Shipper :</label>
+                                    <div class="col-sm-7">
+                                        @Html.Raw(Model.CorprateName)
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div id="frmInstActivity" class="row table-responsive">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@using (Html.BeginForm("Create", "JobReport", new { key = CommonService.GenerateQueryString("MoveID=ParamValue0&PJRDJRID=ParamValue1", new string[] { Convert.ToString(@Model.MoveID), (string.IsNullOrWhiteSpace(Convert.ToString(@Model.PJR_DJR_ID)) ? "-1" : Convert.ToString(@Model.PJR_DJR_ID)) }) }, FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+
+ <div id="JobReport">
+        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.MoveID)
+        @Html.HiddenFor(model => model.RateComponentID)
+        @Html.HiddenFor(model => model.PJR_DJR_ID)
+        @Html.HiddenFor(model => model.JobType)
+ <fieldset class="col-md-12 border-grey m-t-sm">
+            <div class="row m-t-xs">
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">Job No. :</label>
+                        <div class="col-sm-7">
+                            @Html.Raw(Model.JobNo +(!string.IsNullOrWhiteSpace(Model.ReportType) ? " (" + Model.ReportType + ")" : ""))
+                            @Html.HiddenFor(model => model.JobNo)
+                            @Html.HiddenFor(model => model.ReportType)
+                        </div>
+                    </div>
+                </div>
+                @if (Model.JobType == 1)
+                {
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group row">
+                            <label class="col-sm-5 col-form-label">Corporate/Shipper&nbsp;:</label>
+                            <div class="col-sm-7">
+                                @Html.Raw(Model.CorprateName)
+                                @Html.HiddenFor(model => model.CorprateName)
+                            </div>
+                        </div>
+                    </div>
+                }
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">Volume(CFT)</label>
+                        <div class="col-sm-5">
+                            @Html.TextBoxFor(model => Model.Volume, new { @class = "form-control input-sm clearfix Volume", oncopy = "return false", onpaste = "return false" , onkeypress = "return OnlyDouble(this, event);" })
+                            @Html.ValidationMessageFor(a => a.Volume, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">No.ofPkgs</label>
+                        <div class="col-sm-5">
+                            @Html.TextBoxFor(model => Model.NoOfPkgs, new { @class = "form-control input-sm clearfix NoOfPackages", oncopy = "return false", onpaste = "return false", onkeypress = "return OnlyInteger(this, event);" })
+                            @Html.ValidationMessageFor(a => a.NoOfPkgs, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="clearfix">
+                        @if (Model.MoveID != 0)
+                        {
+                            <a href="@Url.Action("GetDigitalInventory", "JobReport", new { id = Model.DIPDFId })" class="btnViewDigitalInventory btn btn-default btn-sm m-l-sm pull-right" target="_blank"  title="Activity">View DI</a>
+
+                            <a href="@Url.Action("GetInstActivity", "JobReport", new { MoveID = Model.MoveID,ComponentID =Model.RateComponentID,JobType =Model.JobType })" class="btnViewActivity btn btn-default btn-sm m-l-sm pull-right" title="Activity">View Instructions</a>
+
+                        }
+                        @if (Model.PJR_DJR_ID > 0)
+                        {
+                            <a href="@Url.Action("GetJobReport", "JobReport",new { Key = CommonService.GenerateQueryString(Rerportparam, new string[] {Model.MoveID.ToString(),Model.RateComponentID.ToString(),!string.IsNullOrWhiteSpace(Convert.ToString(Model.PJR_DJR_ID)) ? Convert.ToString(Model.PJR_DJR_ID) : "-1",Convert.ToString(Model.JobType)})})" class="btnView btn btn-sm btn-primary glyphicon glyphicon-print   pull-right" target="_blank" title="View Report"></a>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="row m-t-xs">
+                <div class="col-md-3">
+                    <div class="form-group row">
+                        <label class="col-sm-7 col-form-label">@Html.Raw(DateTitle + " Start Date")</label>
+                        <div class="col-sm-5">
+                            @Html.TextBoxFor(model => Model.PackStartDate, new { @class = "form-control input-sm clearfix PackStartDate datepicker", oncopy = "return false", onpaste = "return false" })
+                            @Html.ValidationMessageFor(a => a.PackStartDate, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group row">
+                        <label class="col-sm-7 col-form-label">No.ofDays</label>
+                        <div class="col-sm-5">
+                            @Html.TextBoxFor(model => Model.NoOfDays, new { @class = "form-control input-sm clearfix NoOfDays ", oncopy = "return false", onpaste = "return false" })
+                            @Html.ValidationMessageFor(a => a.NoOfDays, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group row">
+                        <label class="col-sm-7 col-form-label">@Html.Raw(DateTitle + " Completion Date")</label>
+                        <div class="col-sm-5">
+                            @Html.TextBoxFor(model => Model.PackCompletionDate, new { @class = "form-control input-sm clearfix PackCompletionDate datepicker", oncopy = "return false", onpaste = "return false" })
+                            @Html.ValidationMessageFor(a => a.PackCompletionDate, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+
+                    @if (Model.PJR_DJR_ID > 0)
+                    {
+
+                        <a href="@Url.Action("Create", "DMS", new {  id = @Model.PJR_DJR_ID, Type = "JobReport" })" class="btn btn-primary btn-sm pull-right m-l-xs" data-toggle="modal" data-target="#mdlDMS" data-cache="false" title="DMS"><i class="glyphicon glyphicon-folder-open m-r-xs"></i>DMS</a>
+
+                        if (Model.IsCompleted == 0 && Model.IsCompleted < 1)
+                        {
+                            <button type="submit" class="btn btn-primary btn-sm pull-right m-l-xs" name="submit" value="Completed" id="btnCompleted">Completed</button>
+                        }
+                        else
+                        {
+                            <label class="col-sm-5 col-form-label">Status&nbsp;:</label>
+                            <div class="col-sm-7">
+                                @Html.Raw(Model.Status)
+                                @Html.HiddenFor(model => model.Status)
+                            </div>
+                        }
+
+                    }
+
+                    @if (Model.IsCompleted == 0 && Model.IsCompleted < 1)
+                    {
+                        <button type="submit" class="btn btn-primary btn-sm m-r-xs pull-right" name="submit" value="Save" id="btnSave">Save</button>
+                    }
+                </div>
+            </div>
+            <div class="row m-t-xs">
+                <div class="col-md-5 form-group">
+                    <label class="col-md-4 control-label" for="CreatedDate">Entry Date</label>
+                    <div class="col-md-8">
+                        @Html.TextBoxFor(m => m.CreatedDate, new { @class = "form-control input-sm clearfix CreatedDate datetimepicker", @readonly="readonly" })
+                    </div>
+                </div>
+                <div class="col-md-6 form-group">
+                    <label class="col-md-1 control-label" for="Remark">Remark</label>
+                    <div class="col-md-11">
+                        @Html.TextAreaFor(m => m.Remark, new { @class = "form-control Remark" })
+                    </div>
+                </div>
+            </div>
+</fieldset>
+ <fieldset id="divInstructions" class="table-responsive p-xs col-md-12 border-grey">
+     <legend>Instruction Sheet</legend>
+     <div id="instgrid" class="row">
+
+     </div>
+ </fieldset>
+ <fieldset class="table-responsive p-xs col-md-12 border-grey">
+                <legend>Labour Cost</legend>
+                <div>
+                    @*style="max-height:250px;overflow-x: auto;overflow-y:auto"*@
+                <table id="tblLabourCost" class="table table-condensed table-scroll">
+                    <thead>
+                        <tr>
+                            @*<th>&nbsp;&nbsp;</th>*@
+                            <th>Name</th>
+                            <th>From Time</th>
+                            <th>To Time</th>
+                            <th>No Of Days</th>
+                            <th>Rate</th>
+                            <th>Cost</th>
+                            @*<th class="thRound cw80">Day Present</th>*@
+                            <th>OT HRS</th>
+                            <th>OT Rate</th>
+                            <th>OT Cost</th>
+                            <th>OT Remark</th>
+                            <th class="thRound cw60 thRoundLast">Total</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody class="body-half-screen">
+                        @for (int i = 0; i < Model.inHouseLaboursCost.Count; i++)
+                        {
+                            <tr>
+                                @*<td>
+                                        @if (Model.MoveID > 0)
+                                        {
+                                            <a href="@Url.Action("GetInstActivity", "JobReport", new { MoveID = Model.MoveID })" class="btnViewActivity btn btn-default btn-sm pull-left" data-target="#InstActivityModal" data-cache="false" title="Activity"><i class="glyphicon glyphicon-eye-open"></i></a>
+                                        }
+                                    </td>*@
+                                <td>
+                                    @Html.DisplayFor(model => Model.inHouseLaboursCost[i].EmpName)
+                                    @Html.HiddenFor(model => Model.inHouseLaboursCost[i].EmpName, new { @class = "form-control input-sm clearfix CrewEmpList" })
+                                    @Html.HiddenFor(model => Model.inHouseLaboursCost[i].EmpID, new { @class = "CrewEmp" })
+                                    @Html.HiddenFor(model => Model.inHouseLaboursCost[i].C_ID, new { @class = "C_ID" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].Fromdate, new { @class = "form-control input-sm clearfix CrewEmpFromDate datetimepicker1", @readonly = "readonly", @title = Model.inHouseLaboursCost[i].Fromdate })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].Todate, new { @class = "form-control input-sm clearfix CrewEmpToDate datetimepicker1", @readonly = "readonly", @title = Model.inHouseLaboursCost[i].Todate })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].NoOfDays, new { @class = "form-control input-sm clearfix CrewEmpNoOfDays", @readonly = "readonly", onkeypress = "return OnlyDouble(this, event);" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].Rate, new { @class = "form-control input-sm clearfix CrewEmpRate", oncopy = "return false", onpaste = "return false", onkeypress = "return OnlyDouble(this, event);" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].Cost, new { @class = "form-control input-sm clearfix CrewEmpCost", @readonly = "readonly", onkeypress = "return OnlyDouble(this, event);" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].OT_hours, new { @class = "form-control input-sm clearfix CrewEmpOTHrs", oncopy = "return false", onpaste = "return false", onkeypress = "return OnlyDouble(this, event);" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].OT_Rate, new { @class = "form-control input-sm clearfix CrewEmpOTRate", oncopy = "return false", onpaste = "return false", onkeypress = "return OnlyDouble(this, event);" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].OT_Cost, new { @class = "form-control input-sm clearfix CrewEmpOTCost", @readonly = "readonly", onkeypress = "return OnlyDouble(this, event);" })  @*(row.OT_HRS*row.OT_RATE)*@
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].OT_Remark, new { @class = "form-control input-sm clearfix CrewEmpOTRemark" })  
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].Total, new { @class = "form-control input-sm clearfix CrewEmpTotal", @readonly = "readonly", onkeypress = "return OnlyDouble(this, event);" })  @*(row.OT_HRS*row.OT_RATE) +(row.COST * row.DAYS)*@
+                                </td>
+                                <td>
+                                    @if (hasDeleteAccess && Model.PJR_DJR_ID > 0)
+                                    {
+                                        if (Model.IsCompleted == 0 && Model.IsCompleted < 1)
+                                        {
+
+                                            if (Model.inHouseLaboursCost[i].CC_ID != null && Model.inHouseLaboursCost[i].CC_ID > 0)
+                                            {
+                                            @*@Html.AntiForgeryToken()*@
+                                            @Html.Hidden("LKey", CommonService.GenerateQueryString(Deleteparam, new string[] { Model.MoveID.ToString(), Model.RateComponentID.ToString(), Model.PJR_DJR_ID.ToString(), Model.inHouseLaboursCost[i].C_ID.ToString(), "CREW", Convert.ToString(Model.JobType) }), new { @class = "Key" })
+                                            <a href="@Url.Action("Delete", "JobReport", new { Key = CommonService.GenerateQueryString(Deleteparam, new string[] { Model.MoveID.ToString(), Model.RateComponentID.ToString(), Model.PJR_DJR_ID.ToString(), Model.inHouseLaboursCost[i].C_ID.ToString(), "CREW" , Convert.ToString(Model.JobType) }) })" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash" title="Delete"></a>
+                                            }
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Total :</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th colspan="2">@Html.TextBox("LabourTotal", null, new { @class = "form-control input-sm clearfix", @readonly = "readonly" })</th>
+                            
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </fieldset>
+
+ <fieldset class="table-responsive p-xs col-md-12 border-grey">
+        <legend>Local Transport</legend>
+        <div>
+            @*style="max-height:250px;overflow-x: auto;overflow-y:auto"*@
+        <table id="tblTransportCost" class="table table-condensed table-scroll">
+            <thead>
+                <tr>
+                    <th>Purpose</th>
+                    <th>Vehicle No</th>
+                    <th>Contractor/Driver</th>
+                    <th>From Time</th>
+                    <th>To Time</th>
+                    <th>Cost</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody class="body-half-screen">
+                @for (int i = 0; i < Model.Vehicles.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Vehicles[i].Purpose, new { @class = "form-control input-sm clearfix Purpose", @readonly = "readonly", @title=Model.Vehicles[i].Purpose })
+                            
+                        </td>
+                        <td>
+                            @*@Html.DropDownListFor(model => Model.Vehicles[i].VehicleID, new SelectList((System.Collections.IEnumerable)ViewData["VehicleList"], "Value", "Text", Model.Vehicles[i].VehicleID), null, new { @class = "form-control input-sm clearfix VehicleList" })*@
+                            @Html.TextBoxFor(model => Model.Vehicles[i].VehicleNo, new { @class = "form-control input-sm clearfix VehicleList", @readonly = "readonly", @title=Model.Vehicles[i].VehicleNo })
+                            @Html.HiddenFor(model => Model.Vehicles[i].VehicleID, new { @class = "Vehicle" })   
+                        </td>
+                        <td>
+                            @*@Html.DropDownListFor(model => Model.Vehicles[i].DriverID, new SelectList((System.Collections.IEnumerable)ViewData["DriverList"], "Value", "Text", Model.Vehicles[i].VehicleID), null, new { @class = "form-control input-sm clearfix DriverList" })*@
+                            @Html.TextBoxFor(model => Model.Vehicles[i].Driver, new { @class = "form-control input-sm clearfix DriverList", @readonly = "readonly",@title= Model.Vehicles[i].Driver })
+                            @Html.HiddenFor(model => Model.Vehicles[i].DriverID, new { @class = "VDriver" })
+                            @Html.HiddenFor(model => Model.Vehicles[i].VD_ID, new { @class = "VD_ID" })
+                        </td>
+                        <td>
+                            @Html.TextBoxFor(model => Model.Vehicles[i].FromDate, new { @class = "form-control input-sm clearfix VehicleFromDate", @data_val = false, @readonly = "readonly", @title = Model.Vehicles[i].FromDate })
+                        </td>
+                        <td>
+                            @Html.TextBoxFor(model => @Model.Vehicles[i].ToDate, new { @class = "form-control input-sm clearfix VehicleToDate", @data_val = false, @readonly = "readonly", @title = Model.Vehicles[i].ToDate })
+                        </td>
+                        <td>
+                            @Html.TextBoxFor(model => @Model.Vehicles[i].V_Cost, new { @class = "form-control input-sm clearfix VehicleCost", @title = Model.Vehicles[i].V_Cost, onkeypress = "return OnlyDouble(this, event);" })
+                        </td>
+                        <td>
+
+                            @if (hasDeleteAccess && Model.PJR_DJR_ID > 0)
+                            {
+                                if (Model.IsCompleted == 0 && Model.IsCompleted < 1)
+                                {
+
+                                    if (Model.Vehicles[i].VC_ID != null && Model.Vehicles[i].VC_ID > 0)
+                                    {
+
+                                    @*@Html.AntiForgeryToken()*@
+                                    @Html.Hidden("VKey", CommonService.GenerateQueryString(Deleteparam, new string[] { Model.MoveID.ToString(), Model.RateComponentID.ToString(), Model.PJR_DJR_ID.ToString(), Model.Vehicles[i].VD_ID.ToString(), "VEHICLE", Convert.ToString(Model.JobType) }), new { @class = "Key" })
+                                    <a href="@Url.Action("Delete", "JobReport", new { Key = CommonService.GenerateQueryString(Deleteparam, new string[] { Model.MoveID.ToString(), Model.RateComponentID.ToString(), Model.PJR_DJR_ID.ToString(), Model.Vehicles[i].VD_ID.ToString(), "VEHICLE" , Convert.ToString(Model.JobType) }) })" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash" title="Delete"></a>
+                                    }
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th id="total" colspan="4">Total :</th>
+                    <td>@Html.TextBox("VehicleTotal", null, new { @class = "form-control input-sm clearfix", @readonly = "readonly", onkeypress = "return OnlyDouble(this, event);" })</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</fieldset>
+
+<div class="row m-t-n p-xs">
+    <fieldset class="table-responsive col-md-6 border-grey">
+        <legend>Material Cost</legend>
+        <div>
+            @*style="max-height:250px;overflow-x: auto;overflow-y:auto"*@
+            <table id="tblMaterialCost" class="table table-condensed table-scroll">
+                <thead>
+                    <tr>
+                        <th>Material</th>
+                        <th>Issued Qty.</th>
+                        <th>Return Qty.</th>
+                        <th>Used Qty.</th>
+                        <th>Rate</th>
+                        <th>Cost</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody class="body-half-screen">
+                    @for (int i = 0; i < Model.materialCosts.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                @Html.TextBoxFor(model => Model.materialCosts[i].Materail, new { @class = "form-control input-sm clearfix TblMaterail", @readonly = "readonly", @title = Model.materialCosts[i].Materail })
+                                @Html.HiddenFor(model => Model.materialCosts[i].Materail, new { @class = "form-control input-sm clearfix TblMaterail", @readonly = "readonly" })
+                                @Html.HiddenFor(model => Model.materialCosts[i].MaterailId, new { @class = "TblMaterailId" })
+                                @Html.HiddenFor(model => Model.materialCosts[i].M_ID, new { @class = "M_ID" })
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.materialCosts[i].IssuedQty, new { @class = "form-control input-sm clearfix TblIssuedQty", @readonly = "readonly", @title = Model.materialCosts[i].IssuedQty, onkeypress = "return OnlyDouble(this, event);" })
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.materialCosts[i].ReturnQty, new { @class = "form-control input-sm clearfix TblReturnQty", oncopy = "return false", onpaste = "return false", onkeypress = "return OnlyDouble(this, event);" })
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.materialCosts[i].UsedQty, new { @class = "form-control input-sm clearfix TblUsedQty", @readonly = "readonly", @title = Model.materialCosts[i].UsedQty, onkeypress = "return OnlyDouble(this, event);" }) @*row.issued_qty-row.return_qty*@
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.materialCosts[i].Rate, new { @class = "form-control input-sm clearfix TblRate", onkeypress = "return OnlyDouble(this, event);" }) @*, @readonly = "readonly"*@
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.materialCosts[i].Cost, new { @class = "form-control input-sm clearfix TblCost", @readonly = "readonly", onkeypress = "return OnlyDouble(this, event);" }) @*row.MATERIAL_RATE * [row.issued_qty-row.return_qty]*@
+                            </td>
+                            <td>
+
+                                @if (hasDeleteAccess && Model.PJR_DJR_ID > 0)
+                                {
+                                    if (Model.IsCompleted == 0 && Model.IsCompleted < 1)
+                                    {
+
+                                        if (Model.materialCosts[i].MC_ID != null && Model.materialCosts[i].MC_ID > 0)
+                                        {
+                                        @*@Html.AntiForgeryToken()*@
+                                        var Mkey = CommonService.GenerateQueryString(Deleteparam, new string[] { Model.MoveID.ToString(), Model.RateComponentID.ToString(), Model.PJR_DJR_ID.ToString(), Model.materialCosts[i].M_ID.ToString(), "MATERIAL", Convert.ToString(Model.JobType) });
+                                        @Html.Hidden("Mkey", Mkey, new { @class = "Key" })
+                                        <a href="@Url.Action("Delete", "JobReport", new { Key = CommonService.GenerateQueryString(Deleteparam, new string[] { Model.MoveID.ToString(), Model.RateComponentID.ToString(), Model.PJR_DJR_ID.ToString(), Model.materialCosts[i].M_ID.ToString(), "MATERIAL", Convert.ToString(Model.JobType) }) })" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash" title="Delete"></a>
+                                        }
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th id="total">Total :</th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>@Html.TextBox("MaterialTotal", null, new { @class = "form-control input-sm clearfix", @readonly = "readonly", onkeypress = "return OnlyDouble(this, event);" })</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </fieldset>
+    <fieldset class="table-responsive col-md-6 border-grey">
+        <legend>Additional Service</legend>
+        <div>
+            @*style="max-height:250px;overflow-x: auto;overflow-y:auto"*@
+        <table id="tblServiceCost" class="table table-condensed table-scroll">
+            <thead>
+                <tr>
+
+                    <th>Service Name</th>
+                    <th>Description</th>
+                    <th>Cost</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody class="body-half-screen">
+                @for (var i = 0; i < Model.services.Count; i++)
+                {
+
+                    <tr>
+                        <td>
+                            @Html.TextBoxFor(model => Model.services[i].ServiceName, new { @class = "form-control input-sm clearfix ServiceType", @readonly = "readonly", @title = Model.services[i].ServiceName })
+                            @Html.HiddenFor(a => Model.services[i].ServiceName, new { htmlAttributes = new { @placeholder = "Service Type", @tooltip = "Service Type", @class = "form-control input-sm ServiceType", title = "Service Type", @readonly = "readonly" } })
+                            @Html.HiddenFor(x => Model.services[i].ServiceID, new { @class = "ServiceID" })
+                            @Html.HiddenFor(model => Model.services[i].SD_ID, new { @class = "SD_ID" })
+
+                        </td>
+                        <td>
+                            @Html.TextBoxFor(model => Model.services[i].Description, new { @class = "form-control input-sm clearfix ServiceDescription", @readonly = "readonly", @title = Model.services[i].Description })
+                        </td>
+                        <td>
+                            @Html.EditorFor(x => Model.services[i].Cost, new { htmlAttributes = new { @class = "form-control input-sm clearfix AdCost", onkeypress = "return OnlyDouble(this, event);" } })
+                        </td>
+                        <td>
+
+                            @if (hasDeleteAccess && Model.PJR_DJR_ID > 0)
+                            {
+                                if (Model.IsCompleted == 0 && Model.IsCompleted < 1)
+                                {
+
+                                    if (Model.services[i].ASC_ID != null && Model.services[i].ASC_ID > 0)
+                                    {
+                                        @*@Html.AntiForgeryToken()*@
+                                        var Skey = CommonService.GenerateQueryString(Deleteparam, new string[] { Model.MoveID.ToString(), Model.RateComponentID.ToString(), Model.PJR_DJR_ID.ToString(), Model.services[i].SD_ID.ToString(), "SERVICE", Convert.ToString(Model.JobType) });
+                                        @Html.Hidden("Skey", Skey, new { @class = "Key" })
+                                        <a href="@Url.Action("Delete", "JobReport", new { Key = CommonService.GenerateQueryString(Deleteparam, new string[] { Model.MoveID.ToString(), Model.RateComponentID.ToString(), Model.PJR_DJR_ID.ToString(), Model.services[i].SD_ID.ToString(), "SERVICE", Convert.ToString(Model.JobType) }) })" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash" title="Delete"></a>
+                                    }
+                                }
+                            }
+                        </td>
+                    </tr>
+
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th id="total">Total :</th>
+                    <td></td>
+                    <td></td>
+                    <td>@Html.TextBox("ServiceTotal", null, new { @class = "form-control input-sm clearfix", @readonly = "readonly", onkeypress = "return OnlyDouble(this, event);" })</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</fieldset>
+</div>
+
+<div class="row m-t-n p-xs">
+    <fieldset class="table-responsive col-md-7 border-grey">
+        <legend>Outside Labour</legend>
+        <div>
+            @*style="max-height:250px;overflow-x: auto;overflow-y:auto"*@
+        <table id="tblOutLabourCost" class="table table-condensed table-scroll">
+            <thead>
+                <tr>
+                    
+                    <th>Outside Vendor</th>
+                    <th>Total No. of Outside Labour</th>
+                    <th>Cost</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody class="body-half-screen">
+                @for (int i = 0; i < Model.outLabourCosts.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            @Html.DropDownListFor(model => Model.outLabourCosts[i].Labour_VendorId, new SelectList((System.Collections.IEnumerable)ViewData["VendorList"], "Value", "Text", Model.outLabourCosts[i].Labour_VendorId), "--Select Vendor--", new { @class = "form-control input-sm clearfix", @disabled = "disabled" })
+                            @Html.HiddenFor(model => Model.outLabourCosts[i].Labour_VendorId, new { @class = "CrewVendorID" })
+                            @Html.HiddenFor(model => Model.outLabourCosts[i].L_ID, new { @class = "L_ID" })
+                        </td>
+                        <td>
+                            @Html.TextBoxFor(model => Model.outLabourCosts[i].Labour_OutsideNo, new { @class = "form-control input-sm clearfix", @readonly = "readonly", onkeypress = "return OnlyDouble(this, event);" })
+                        </td>
+                        <td>
+                            @Html.TextBoxFor(model => Model.outLabourCosts[i].Labour_Cost, new { @class = "form-control input-sm clearfix OutLabourCost", onkeypress = "return OnlyDouble(this, event);" })
+                        </td>
+                        <td>
+
+                            @if (hasDeleteAccess && Model.PJR_DJR_ID > 0)
+                            {
+                                if (Model.IsCompleted == 0 && Model.IsCompleted < 1)
+                                {
+
+                                    if (Model.outLabourCosts[i].OLC_ID != null && Model.outLabourCosts[i].OLC_ID > 0)
+                                    {
+
+                                    @*@Html.AntiForgeryToken()*@
+                                    var OLkey = CommonService.GenerateQueryString(Deleteparam, new string[] { Model.MoveID.ToString(), Model.RateComponentID.ToString(), Model.PJR_DJR_ID.ToString(), Model.outLabourCosts[i].L_ID.ToString(), "OUTLABOUR", Convert.ToString(Model.JobType) });
+                                    @Html.Hidden("OLkey", OLkey, new { @class = "Key" })
+                                    <a href="@Url.Action("Delete", "JobReport", new { Key = CommonService.GenerateQueryString(Deleteparam, new string[] { Model.MoveID.ToString(), Model.RateComponentID.ToString(), Model.PJR_DJR_ID.ToString(), Model.outLabourCosts[i].L_ID.ToString(), "OUTLABOUR", Convert.ToString(Model.JobType) }) })" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash" title="Delete"></a>
+                                    }
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th id="total">Total :</th>
+                    <td></td>
+                    <td>@Html.TextBox("OutLabourTotal", null, new { @class = "form-control input-sm clearfix", @readonly = "readonly" })</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</fieldset>
+    @*<fieldset class="table-responsive col-md-5 border-grey hide">
+        <legend>File Upload</legend>
+
+        @if (Model.IsCompleted == 0 && Model.IsCompleted < 1)
+        { 
+
+            <div class="row">
+                <div class="col-sm-4 form-group">
+                    <label>Document Type</label>
+                    
+                    @Html.DropDownListFor(model => model.docUpload.DocTypeID, new SelectList((System.Collections.IEnumerable)ViewData["DocTypeList"], "Value", "Text"), "--Select Doc. Type--", new { id = "DocTypeDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.docUpload.DocTypeID, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-sm-6 form-group pad-none">
+                    <label>Choose File</label>
+                    
+                    @Html.TextBoxFor(model => model.docUpload.file, new { type = "file", @class = "inputfile inputfile-4 form-control", accept = ".xls,.xlsx,.doc,.docx,.jpg,.jpeg,.png" })
+                    @Html.ValidationMessageFor(model => model.docUpload.file, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-sm-2 form-group">
+                    <div class="clearfix">
+                        <input type="submit" id="btnUpload" name="submit" value="Upload" class="btn btn-primary btn-sm filter-custom-margin">
+                    </div>
+                </div>
+            </div>
+        }
+        <div style="max-height:220px;overflow-x: auto;overflow-y:auto">
+            <table id="tblDocList" class="table  table-condensed table-scroll">
+                <thead>
+                    <tr>
+                        <th>Document Type</th>
+                        <th>File Name</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody class="body-half-screen">
+                    @for (int i = 0; i < Model.docUpload.docLists.Count; i++)
+                    {
+                        <tr>
+                            <td class="col-md-3">
+                                
+                                @Html.HiddenFor(model => Model.docUpload.docLists[i].DocTypeID, new { @class = "DocTypeID" })
+                                @Html.DisplayFor(model => Model.docUpload.docLists[i].DocType, new { @class = "form-control DocumentType" })
+                                
+                                @Html.HiddenFor(model => Model.docUpload.docLists[i].DocID, new { @class = "DocID" })
+                            </td>
+                            <td class="col-md-4">
+                                @Html.DisplayFor(model => Model.docUpload.docLists[i].DocumentName, new { @class = "form-control DocumentName" })
+                                
+                            </td>
+                            <td>
+                                
+
+                                <form action="@Url.Action("DownloadDoc", "JobReport", new { DocID = Model.docUpload.docLists[i].DocID, PJR_DJR_ID = Model.PJR_DJR_ID })" method="post" id="DownloadForm" target="_blank">
+                                    
+                                    @Html.HiddenFor(model => Model.docUpload.docLists[i].DocID, new { @id = "DocID" })
+                                    <button type="button" class="btn btn-primary btn-sm glyphicon glyphicon-download-alt DocDownload" data-url="@Url.Action("DownloadDoc", "JobReport", new { DocID = Model.docUpload.docLists[i].DocID, PJR_DJR_ID = Model.PJR_DJR_ID })" id="DownloadForm" data-target="_blank"></button>
+                                </form>
+
+
+                            </td>
+                            <td>
+                                @if (Model.IsCompleted == 0 && Model.IsCompleted < 1)
+                                {
+                                    <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash pull-left" onclick="DeleteDocument(this)"></button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </fieldset>*@
+</div>
+</div>
+
+}
+
+
+<!--DMS Model-->
+<div id="mdlDMS" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+        </div>
+    </div>
+</div>
+
+<!--Job Allocation modal -->
+<div class="modal modal-wide fade" id="myModal" role="dialog" aria-hidden="true" aria-labelledby="myModalLabel" data-keyboard="false">
+    <div class="modal-dialog modal-lg width-90" role="document">
+        <div id="frmContent" class="modal-content">
+
+        </div>
+    </div>
+</div>
+@section Scripts{
+    <script type="text/javascript">
+
+        function ModelClick(sender) {
+            var button = $(sender);
+            var url = button.attr("href");
+
+            $("#frmContent").load(url, function () {
+
+                $('#myModal').modal({
+                    backdrop: 'static'
+                });
+
+                DatePickerClass();
+                EmployeePopOver();
+                ButtonSubmitBind();
+                return false;
+            });
+
+            return false;
+        }
+
+        function DatePickerClass() {
+
+            if ($('#myModal .CrewEmpFromDate').is(':disabled')) {
+                $('#myModal .CAStartDate').attr('disabled', 'disabled').removeAttr('datetimepicker');
+                $('#myModal .CAEndDate').attr('disabled', 'disabled').removeAttr('datetimepicker');
+            }
+
+            $('.datepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY HH:mm",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('.datetimepicker1').datetimepicker({
+                format: "DD-MMM-YYYY HH:mm",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('#myModal .datetimepicker').each(function () {
+
+                if ($(this).val().includes("0001")) {
+                    $(this).val("");
+                }
+            });
+
+            $('#myModal .timepicker').datetimepicker({
+                format: 'HH:mm',
+            });
+
+            $('#myModal .enableselect').select2({
+                width: '100%',
+                dropdownParent: $("#myModal .modal-content")
+            });
+            $('#myModal .multipleselect').multiselect({
+                includeSelectAllOption: false,
+                enableFiltering: true,
+                enableCaseInsensitiveFiltering: true,
+                filterPlaceholder: 'Search',
+                maxHeight: 250,
+                numberDisplayed: 1,
+                buttonWidth: "100%"
+            });
+
+            $('#myModal .TblIssuedQty').bind('input', function () {
+
+                GetMaterialTotal();
+            });
+
+            GetMaterialTotal();
+            Download();
+        }
+
+        function GetMaterialTotal() {
+            var TotalAmount = 0;
+            $('#myModal #tblMaterial tbody tr').each(function (index, tr) {
+                TotalAmount = TotalAmount + (!isNaN(parseInt($(this).find('.TblIssuedQty').val())) ? parseInt($(this).find('.TblIssuedQty').val()) : 0);
+            });
+            $('#myModal #MaterialTotal').val(TotalAmount);
+        }
+
+        function Download() {
+
+            $('#myModal .DocDownload').click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr('data-url');
+                var antiToken = $('input[name="__RequestVerificationToken"]').val();
+                var DocID = $(this).closest('td').find('.DocID').val();
+                var BatchID = $('.BatchID').val();
+
+                var form = $('#frmDownload');
+                if (form != null) {
+                    form.remove();
+                }
+                var newForm = $('<form>', {
+                    'id': 'frmDownload',
+                    'action': url,
+                    'target': '_blank',
+                    'method': 'POST'
+                }).append($('<input>', {
+                    'name': 'BatchID',
+                    'value': BatchID,
+                    'type': 'hidden'
+                })).append(jQuery('<input>', {
+                    'name': '__RequestVerificationToken',
+                    'value': antiToken,
+                    'type': 'hidden'
+                })).append(jQuery('<input>', {
+                    'name': 'DocID',
+                    'value': DocID,
+                    'type': 'hidden'
+                }));
+
+                newForm.appendTo('body').submit();
+            });
+        }
+
+        function EmployeePopOver() {
+            $("#myModal .myPopover").popover({
+                title: 'Detail <a href="#" class="close" data-dismiss="alert">&times;</a>',
+                html: true,
+                trigger: 'click'
+            }).on('shown.bs.popover', function () {
+                var popover = $(this);
+                $('.myPopover').not(this).popover('hide');
+                var contentEl = popover.next(".popover").find(".popover-content");
+                // Show spinner while waiting for data to be fetched
+                contentEl.html("<i class='fa fa-spinner fa-pulse fa-2x fa-fw'></i>");
+                var myParameter = popover.data('api-parameter');
+                $.get(myParameter)
+                    .done(function (data) {
+                        var result = data;
+                        if (result == '') {
+                            result = "No info found.";
+                        }
+                        contentEl.html(result);
+                    }).fail(function (data) {
+                        result = "No info found.";
+                        contentEl.html(result);
+                    });
+
+            });
+        }
+
+        function dateRangeOverlaps(a_start, a_end, b_start, b_end) {
+            if (a_start <= b_start && b_start <= a_end) return true; // b starts in a
+            if (a_start <= b_end && b_end <= a_end) return true; // b ends in a
+            if (b_start < a_start && a_end < b_end) return true; // a in b
+            return false;
+        }
+
+        function ButtonSubmitBind() {
+
+            var ldg = $('#loading');
+            /////Model popup Activity Allocation
+            //$("form#CreateActivityAllocation").validate().settings.ignore = "";
+            var form = $("#myModal form");
+            form.removeData('validator');
+            form.removeData('unobtrusiveValidation');
+            $.validator.unobtrusive.parse(form);
+
+            $('.btnSubmit').on('click', function (e) {
+
+                $('#submit').val($(this).val());
+                debugger;
+
+                if ($('#docUpload_file').length) {
+
+                    if ($(this).val() != "Upload") {
+
+                        $('#DocTypeDropdown').rules('remove', 'required');
+                        $('#docUpload_file').rules('remove', 'required');
+                        $('#DocNameDropdown').rules('remove', 'required');
+                    }
+                    else {
+
+                        $('#DocTypeDropdown').rules('add', { required: true });
+                        $('#docUpload_file').rules('add', { required: true });
+                        $('#DocNameDropdown').rules('add', { required: true });
+                    }
+                }
+            });
+
+            $('#myModal form').on('submit', function (e) {
+                e.preventDefault();
+
+                if (!$(this).valid()) { return; }
+
+                if ($('#submit').val().toUpperCase() == "CANCELED" && ($('#CancelRemark').val() == null || $('#CancelRemark').val() == "")) {
+
+                    alert('Cancel Remark is required');
+                    $(".btnSubmit").removeAttr("disabled");
+                    return false;
+                }
+
+
+                $('#myModal .modal-content').mask("Loading...");
+                //ldg.find('> div > span').text('Please wait....').end().show();
+
+                $(".btnSubmit").attr("disabled", "disabled");
+                //$("#btnUpload").attr("disabled", true);
+                GetAllData();
+                $(this).ajaxSubmit({
+                    target: '#myModal .modal-content',
+                    //async: false,
+                    cache: false,
+                    contentType: false,
+                    enctype: 'multipart/form-data',
+                    processData: false,
+                    //timeout: 600000,
+                    success: function (data) {
+                        OnModalSuccess(data);
+                        $(".btnSubmit").removeAttr("disabled");
+                        $('#myModal .modal-content').unmask();
+                        //$('#frmEmp').unmask();
+                        //ldg.hide();
+                    },
+                    error: function (e) {
+
+                        toastr.error("something went wrong.unable to save");
+
+                        $(".btnSubmit").removeAttr("disabled");
+                        $('#myModal .modal-content').unmask();
+                        //$("#btnUpload").removeAttr("disabled");
+                        //ldg.hide();
+                        //$(".btnSubmit").button('reset');
+                        //$('#frmEmp').unmask();
+                        //DatePickerClass();
+                        //EmployeePopOver();
+                    }
+                });
+            });
+            /////end - Model popup Activity Allocation
+        }
+
+        function GetAllData() {
+
+            var cdata = [];
+            /////Crew member
+            $('#tlbCrew tbody tr').each(function () {
+                var CWMID = $(this).find('.CWMID').val();
+                var CrewEmpList = $(this).find('.CrewEmpList').val();
+                var CrewEmp = $(this).find('.CrewEmp').val();
+                var CrewEmpFromDate = $(this).find('.CrewEmpFromDate').val();
+                var CrewEmpToDate = $(this).find('.CrewEmpToDate').val();
+
+                var alldata = {
+
+                    'CWMID': CWMID,
+                    'EmpName': CrewEmpList,
+                    'EmpID': parseInt(CrewEmp),
+                    'EffectiveFrom': (CrewEmpFromDate),
+                    'EffectiveTo': (CrewEmpToDate)//,
+                    //'InActive': false
+                }
+                cdata.push(alldata);
+            });
+
+            var pair = { 'members': cdata };
+            $("#HVCrewMembers").val(JSON.stringify(pair));
+
+            cdata = [];
+            /////Services
+            $('#tblAddService tbody tr').each(function () {
+                var SD_ID = $(this).find('.SD_ID').val();
+                var ServiceType = $(this).find('.ServiceType').val();
+                var Description = $(this).find('.ADDescription').val();
+                var ServiceID = $(this).find('.ServiceID').val();
+                //var ActivityID = $(this).find('.ActivityID').val();
+                //var SD_ID = $(this).find('.SD_ID').val();
+                var AdFromDate = $(this).find('.AdFromDate').val();
+                var AdToDate = $(this).find('.AdToDate').val();
+                var AdCost = $(this).find('.AdCost').val();
+                var alldata = {
+                    'SD_ID': SD_ID,
+                    'ServiceName': ServiceType,
+                    'ServiceID': parseInt(ServiceID),
+                    //'ActivityID': parseInt(ActivityID),
+                    //'SD_ID': parseInt(SD_ID),
+                    'FromDate': (AdFromDate),
+                    'ToDate': (AdToDate),
+                    'Cost': parseFloat(AdCost),
+                    'Description': Description
+                    //'InActive': false
+                }
+                cdata.push(alldata);
+            });
+
+            pair = { 'services': cdata };
+            $("#HVServices").val(JSON.stringify(pair));
+
+
+            cdata = [];
+            /////job Vehicle List
+            $('#tblVehicle tbody tr').each(function () {
+                var V_ID = $(this).find('.V_ID').val();
+                var PurposeList = $(this).find('.PurposeList').val();
+                var BatchID = $(this).find('.BatchID').val();
+                var VPurpose = $(this).find('.VPurpose').val();
+                var VehicleTypeList = $(this).find('.VehicleTypeList').val();
+                var VehicleType = $(this).find('.VehicleType').val();
+                var VehicleList = $(this).find('.VehicleList').val();
+                var Vehicle = $(this).find('.Vehicle').val();
+                var DriverTypeList = $(this).find('.DriverTypeList').val();
+                var DriverType = $(this).find('.DriverType').val();
+                var DriverList = $(this).find('.DriverList').val();
+                var VDriver = $(this).find('.VDriver').val();
+                var VehicleFromDate = $(this).find('.VehicleFromDate').val();
+                var VehicleToDate = $(this).find('.VehicleToDate').val();
+
+                var alldata = {
+                    'V_ID': V_ID,
+                    'Purpose': PurposeList,
+                    'BatchID': parseInt(BatchID),
+                    'PurposeID': parseInt(VPurpose),
+                    'VehicleType': VehicleTypeList,
+                    'VehicleTypeID': VehicleType,
+                    'VehicleNo': VehicleList,
+                    'VehicleID': parseInt(Vehicle),
+                    'DriverType': DriverTypeList,
+                    'DriverTypeID': DriverType,
+                    'Driver': DriverList,
+                    'DriverID': VDriver,
+                    'FromDate': VehicleFromDate,
+                    'ToDate': VehicleToDate////,
+                    ////'InActive': false
+                }
+                cdata.push(alldata);
+            });
+
+            pair = { 'jobVehicleList': cdata };
+            $("#HVVehicles").val(JSON.stringify(pair));
+
+            cdata = [];
+            /////materialUsed
+            $('#tblMaterial tbody tr').each(function () {
+                var M_ID = $(this).find('.M_ID').val();
+                var TblMaterail = $(this).find('.TblMaterail').val();
+                var TblMaterailID = $(this).find('.TblMaterailId').val();
+                var TblIssuedQty = $(this).find('.TblIssuedQty').val();
+                var TblRate = $(this).find('.TblRate').val();
+
+                var alldata = {
+                    'M_ID': M_ID,
+                    'Materail': TblMaterail,
+                    'MaterailId': parseInt(TblMaterailID),
+                    'IssuedQty': parseInt(TblIssuedQty),
+                    'Rate': parseFloat(TblRate)//,
+                    //'InActive': false
+                }
+                cdata.push(alldata);
+            });
+
+            pair = { 'materialUsed': cdata };
+            $("#HVMaterialUsed").val(JSON.stringify(pair));
+
+            cdata = [];
+            /////docLists
+            $('#tblDocList tbody tr').each(function () {
+                var DocID = $(this).find('.DocID').val();
+                var DocTypeID = $(this).find('.DocTypeID').val();
+                var BatchID = $(this).find('.BatchID').val();
+                var DocumentName = $(this).find('.DocumentName').val();
+
+                var alldata = {
+                    'DocID': DocID,
+                    'DocTypeID': DocTypeID,
+                    'BatchID': parseInt(BatchID),
+                    'DocID': parseInt(DocID),
+                    'DocumentName': DocumentName////,
+                    ////'InActive': false
+                }
+                cdata.push(alldata);
+            });
+
+            pair = { 'docLists': cdata };
+            $("#HVDocList").val(JSON.stringify(pair));
+
+        }
+
+        function OnModalSuccess(data) {
+
+            var htmlData = "";
+            if (data.Result != null) {
+                $('#myModal .modal-content').html(data.Result);
+                if (data.Success) {
+                    toastr.success(data.Message);
+                }
+                else {
+                    toastr.error(data.Message);
+                }
+            }
+            else {
+
+                $('#frmContent').html(data);
+                //$('#myModal').modal('hide');
+                //location.reload(true);
+            }
+
+            DatePickerClass();
+            EmployeePopOver();
+            GetMaterialTotal();
+            ButtonSubmitBind();
+        }
+
+        $(document).ready(function () {
+
+            $("#divInstructions").hide();
+
+            $('#PackStartDate,#PackCompletionDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+
+            DatePickerClass();
+
+            ///.TblReturnQty,.CrewEmpRate,.CrewEmpOTHrs,.CrewEmpOTRate,
+            $('.VehicleCost,.AdCost,.OutLabourCost').bind('input', function () {
+                CalculateTotal(this);
+            });
+
+
+            $(".CrewEmpRate , .CrewEmpOTHrs , .CrewEmpOTRate").on('change keyup paste input', function () {
+                var row = $(this).closest('tr');
+
+                var NoOfDays = parseInt(row.find('.CrewEmpNoOfDays').val(), 10);
+                var Rate = parseFloat(row.find('.CrewEmpRate').val());
+                var OThrs = parseInt(row.find('.CrewEmpOTHrs').val(), 10);
+                var OTRate = parseFloat(row.find('.CrewEmpOTRate').val());
+
+                row.find('.CrewEmpCost').val(NoOfDays * Rate);
+                row.find('.CrewEmpOTCost').val(OThrs * OTRate);
+                row.find('.CrewEmpTotal').val((NoOfDays * Rate) + (OThrs * OTRate));
+
+
+                CalculateTotal(this);
+                return false;
+
+            });
+
+            $(".TblReturnQty").on('change keyup paste input', function () {
+
+                var row = $(this).closest('tr');
+
+                var TblIssuedQty = parseInt(row.find('.TblIssuedQty').val(), 10);
+                var TblReturnQty = parseInt(row.find('.TblReturnQty').val(), 10);
+                var Rate = parseFloat(row.find('.TblRate').val());
+                var TblUsedQty = TblIssuedQty - TblReturnQty;
+                var TblCost = TblUsedQty * Rate;
+
+                row.find('.TblUsedQty').val(TblUsedQty);
+                row.find('.TblCost').val(TblCost);
+
+                CalculateTotal(this);
+                return false;
+
+            });
+            $(".TblRate").on('change keyup paste input', function () {
+                debugger;
+
+                var row = $(this).closest('tr');
+
+                var TblIssuedQty = parseInt(row.find('.TblIssuedQty').val(), 10);
+                var TblReturnQty = parseInt(row.find('.TblReturnQty').val(), 10);
+                var Rate = parseFloat(row.find('.TblRate').val());
+                var TblUsedQty = TblIssuedQty - TblReturnQty;
+                var TblCost = TblUsedQty * Rate;
+
+                row.find('.TblUsedQty').val(TblUsedQty);
+                row.find('.TblCost').val(TblCost);
+
+                CalculateTotal(this);
+                return false;
+
+            });
+
+            $(".btnViewActivity").click(function (e) {
+
+                debugger;
+                e.preventDefault();
+                var button = $(this);
+                var url = button.attr("href");
+                
+                $("#divInstructions").toggle("slow", function () {
+                    // check paragraph once toggle effect is completed
+                    if ($("#divInstructions").is(":visible")) {
+                        $("#divInstructions").mask("Loading...");
+                        //$("#frmInstActivity").load(url, function () {
+                        $("#instgrid").load(url, function (response, status, xhr) {
+
+                            if (status != "error") {
+                                GridBind();
+                            }
+                            $('#divInstructions').unmask();
+                            //$('#InstActivityModal').modal({ backdrop: 'static' });
+                            return false;
+                        });
+
+                    }
+                    
+                });
+                
+                return false;
+            });
+
+            GrandTotal();
+
+            $('#myModal').on('hidden.bs.modal', function () {
+
+                location.reload(true);
+            });
+
+        });
+
+
+        function GrandTotal() {
+
+
+            var TotalAmount = 0;
+
+            $('#tblMaterialCost tbody tr').each(function (index, tr) {
+
+                var issueqty = parseInt($(this).find('.TblIssuedQty').val()); 
+                var returnqty = parseInt($(this).find('.TblReturnQty').val());
+                var rate = parseFloat($(this).find('.TblRate').val());
+                if (!isNaN(issueqty) && !isNaN(returnqty) && !isNaN(rate)) {
+                     $(this).find('.TblCost').val(((issueqty - returnqty) * rate));  
+                }
+
+                TotalAmount = TotalAmount + parseFloat($(this).find('.TblCost').val());
+            });
+
+            if (!isNaN(TotalAmount)) {
+
+                $('#MaterialTotal').val(TotalAmount);
+            }
+
+            TotalAmount = 0;
+
+
+            $('#tblLabourCost tbody tr').each(function (index, tr) {
+
+                TotalAmount = TotalAmount + parseFloat($(this).find('.CrewEmpTotal').val());
+            });
+
+            if (!isNaN(TotalAmount)) {
+
+                $('#LabourTotal').val(TotalAmount);
+            }
+
+            TotalAmount = 0;
+
+
+            $('#tblTransportCost tbody tr').each(function (index, tr) {
+
+                TotalAmount = TotalAmount + parseFloat($(this).find('.VehicleCost').val());
+            });
+
+            if (!isNaN(TotalAmount)) {
+
+                $('#VehicleTotal').val(TotalAmount);
+            }
+
+            TotalAmount = 0;
+
+
+            $('#tblServiceCost tbody tr').each(function (index, tr) {
+
+                TotalAmount = TotalAmount + parseFloat($(this).find('.AdCost').val());
+            });
+
+            if (!isNaN(TotalAmount)) {
+
+                $('#ServiceTotal').val(TotalAmount);
+            }
+
+            TotalAmount = 0;
+
+
+            $('#tblOutLabourCost tbody tr').each(function (index, tr) {
+
+                TotalAmount = TotalAmount + parseFloat($(this).find('.OutLabourCost').val());
+            });
+
+            if (!isNaN(TotalAmount)) {
+
+                $('#OutLabourTotal').val(TotalAmount);
+            }
+
+        }
+
+        function CalculateTotal(TotalType) {
+
+            var TotalAmount = 0;
+            var tblName = "";
+            var GrandTotalTxt = "";
+            var TotalTxt = "";
+
+            if ($(TotalType).hasClass('TblReturnQty') || $(TotalType).hasClass('TblRate')) {
+
+                tblName = '#tblMaterialCost';
+                GrandTotalTxt = '#MaterialTotal';
+                TotalTxt = ".TblCost";
+            }
+
+            if ($(TotalType).hasClass('CrewEmpRate') || $(TotalType).hasClass('CrewEmpOTHrs') || $(TotalType).hasClass('CrewEmpOTRate')) {
+
+                tblName = '#tblLabourCost';
+                GrandTotalTxt = '#LabourTotal';
+                TotalTxt = ".CrewEmpTotal";
+            }
+
+            if ($(TotalType).hasClass('VehicleCost')) {
+
+                tblName = '#tblTransportCost';
+                GrandTotalTxt = '#VehicleTotal';
+                TotalTxt = ".VehicleCost";
+
+            }
+
+            if ($(TotalType).hasClass('AdCost')) {
+
+                tblName = '#tblServiceCost';
+                GrandTotalTxt = '#ServiceTotal';
+                TotalTxt = ".AdCost";
+
+            }
+
+            if ($(TotalType).hasClass('OutLabourCost')) {
+
+                tblName = '#tblOutLabourCost';
+                GrandTotalTxt = '#OutLabourTotal';
+                TotalTxt = ".OutLabourCost";
+
+            }
+
+            if (GrandTotalTxt != "" && TotalTxt != "" && tblName != "") {
+
+                TotalAmount = 0;
+
+                $(tblName + ' tbody tr').each(function (index, tr) {
+                    debugger;
+                    TotalAmount = TotalAmount + parseFloat($(this).find(TotalTxt).val());
+                });
+
+                if (!isNaN(TotalAmount)) {
+
+                    $(GrandTotalTxt).val(TotalAmount);
+                }
+            }
+
+        }
+
+        $('.btnDelete').click(function (e) {
+
+            debugger;
+            e.preventDefault();
+            var url = $(this).attr('href');
+            var key = $(this).closest('td').find('.Key').val();
+            
+            var antikey = $('input[name="__RequestVerificationToken"]').val();
+            swal({
+                title: "",
+                text: "Are you sure you want to delete?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes",
+                cancelButtonText: "No",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        
+                        var form = $('#frmDelete');
+                        if (form != null && form.length > 0) {
+                            form.remove();
+                        }
+                        var newForm = $('<form>', {
+                            'id': 'frmDelete',
+                            'action': url,
+                            //'target': '_blank',
+                            'method': 'POST'
+                        }).append($('<input>', {
+                            'name': 'Key',
+                            'value': key,
+                            'type': 'hidden'
+                        })).append(jQuery('<input>', {
+                            'name': '__RequestVerificationToken',
+                            'value': antikey,
+                            'type': 'hidden'
+                        }));
+
+                        newForm.appendTo('body').submit();
+
+                    } else {
+                        swal("Cancelled", "Delete Cancelled.", "error");
+                    }
+                });
+
+            
+
+        });
+
+        $('.DocDownload').click(function (e) {
+            debugger;
+            e.preventDefault();
+            var url = $(this).attr('data-url');
+            var antiToken = $('input[name="__RequestVerificationToken"]').val();
+            var DocID = $(this).closest('td').find('#DocID').val();
+            var PRJ_DJR_ID = $('#PJR_DJR_ID').val();
+
+            var form = $('#frmDownload');
+            if (form != null) {
+                form.remove();
+            }
+            var newForm = $('<form>', {
+                'id': 'frmDownload',
+                'action': url,
+                'target': '_blank',
+                'method': 'POST'
+            }).append($('<input>', {
+                'name': 'PRJ_DJR_ID',
+                'value': PRJ_DJR_ID,
+                'type': 'hidden'
+            })).append(jQuery('<input>', {
+                'name': '__RequestVerificationToken',
+                'value': antiToken,
+                'type': 'hidden'
+            })).append(jQuery('<input>', {
+                'name': 'DocID',
+                'value': DocID,
+                'type': 'hidden'
+            }));
+
+            newForm.appendTo('body').submit();
+        });
+
+        function GridBind() {
+
+            var size = $("#mgrid #gridT > thead > tr >th").size(); // get total column
+            $("#mgrid #gridT > thead > tr >th").last().remove(); // remove last column
+            $("#mgrid #gridT > thead > tr").prepend("<th></th>"); // add one column at first for collapsible column
+            $("#mgrid #gridT > tbody > tr").each(function (i, el) {
+                $(this).prepend(
+                    $("<td></td>")
+                        .addClass("expands")
+                        .addClass("hoverEff")
+                        .attr('title', "click for show/hide")
+                        .attr('style', "width:100px;")
+                );
+
+                //Now get sub table from last column and add this to the next new added row
+                var table = $("table", this).parent().html();
+                //add new row with this subtable
+                $(this).after("<tr><td></td><td style='padding:5px; margin:0px;' colspan='" + (size - 1) + "'>" + table + "</td></tr>");
+                $("table", this).parent().remove();
+                // ADD CLICK EVENT FOR MAKE COLLAPSIBLE
+                $(".hoverEff", this).on('click', function () {
+                    $(this).parent().closest("tr").next().slideToggle(100);
+                    $(this).toggleClass("expands collapses");
+                });
+            });
+
+            //by default make all subgrid in collapse mode
+            $("#mgrid #gridT > tbody > tr td.expands").each(function (i, el) {
+                $(this).toggleClass("expands collapses");
+                $(this).parent().closest("tr").next().slideToggle(100);
+            });
+
+            $('#mgrid #gridT a').on("click", function (e) {
+                e.preventDefault();
+            });
+
+            $('#mgrid #subT a').on("click", function (e) {
+                e.preventDefault();
+            });
+
+            OpenGrid();
+        }
+
+
+        function OpenGrid() {
+
+            var table = document.getElementById("gridT");
+            var tbody = table.tBodies[0];
+
+            if (tbody.rows.length > 0) {
+
+                $('.hoverEff').trigger('click');
+            }
+        }
+
+        function DeleteDocument(sender) {
+
+            //Determine the reference of the Row using the Button.
+            var row = $(sender).closest("TR");
+            var name = $("TD", row).find('.DocTypeList').text().trim();
+            if (confirm("Do you want to delete: " + name.trim())) {
+                //Get the reference of the Table.
+                var table = $("#tblDocList")[0];
+
+                //Delete the Table row using it's Index.
+                table.deleteRow(row[0].rowIndex);
+
+            }
+
+            return false;
+        }
+
+        
+        function getUrlVars(url) {
+            var vars = {};
+            var parts = url.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, key, value) {
+                vars[key] = value;
+            });
+            return vars;
+        }
+
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+
+}

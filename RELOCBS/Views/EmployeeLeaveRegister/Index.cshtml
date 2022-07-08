@@ -1,0 +1,114 @@
+﻿@model RELOCBS.Entities.EmployeeLeaveRegister
+
+@{
+    ViewBag.Title = "Employee Leave Register";
+}
+<style type="text/css">
+    .Emp-List {
+        max-height: 90%;
+        margin-bottom: 10px;
+        overflow: scroll;
+        -webkit-overflow-scrolling: touch;
+    }
+    .border {
+        border-radius: 25px;
+        border: 2px solid #73AD21;
+        padding: 20px;
+    }
+</style>
+
+<div class="ibox-content">
+    <div class="row">
+        <div class="col-xs-3">
+            <div class="panel panel-default full-height">
+                <div class="panel-heading">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search Employee" onkeyup="SearchEmployee(this)">
+                        <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div id="scrolling-listSearch" class="">
+                        <ul class="list-group Emp-List">
+                            @foreach (var item in Model.EmployeeList)
+                            {
+                                <li id="LpEmp" class="list-group-item"><a href="#" onclick="GetEmployee(@item.Key)"><span class="fa fa-caret-right tree-icon"></span>@Html.Encode(item.Value)</a></li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-9">
+            <div id="EmployeeLeaveDetail">
+                @Html.Partial("_EmployeeLeave", Model.employeeLeave)
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("[data-val-required]").each(function () {
+                $("label[for=" + this.id + "]").addClass("requiredlabel")
+            });
+
+            DatePickerClass();
+        });
+        function SearchEmployee(value) {
+
+            debugger;
+            var searchText = $(value).val().toLowerCase();
+
+            $('#scrolling-listSearch ul > li').each(function () {
+
+                var currentLiText = $(this).text().toLowerCase(),
+                    showCurrentLi = currentLiText.indexOf(searchText) !== -1;
+
+                $(this).toggle(showCurrentLi);
+
+            });
+        }
+
+
+        function GetEmployee(value) {
+
+                var url = '@Url.Action("Details", "EmployeeLeaveRegister")';
+                url = url + "?id=" + value;
+
+                $("#EmployeeLeaveDetail").load(url, function () {
+                    DatePickerClass();
+                    return false;
+                });
+
+                return false;
+
+            }
+
+            function DatePickerClass() {
+
+                $('.datepicker').datetimepicker({
+                format: "DD-MMM-YYYY HH:mm",
+                sideBySide: true,
+                widgetPositioning: {
+                    vertical: 'bottom'
+                }
+
+                });
+
+                $("#FromMonthDate").datepicker({
+                    format: 'dd-M-yyyy',
+                    startView: "months",
+                    minViewMode: "months",
+                    changeMonth: true,
+                    changeYear: true,
+                });
+
+            }
+
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.2.0/css/datepicker.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.2.0/js/bootstrap-datepicker.min.js"></script>
+}

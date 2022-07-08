@@ -1,0 +1,246 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.Common;
+@{
+
+    ViewBag.Title = "Complaints";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string _PageID = "75";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+    
+}
+
+<style>
+    .width-90 {
+        width: 97%;
+    }
+</style>
+<link href="~/Content/Modal_Loading.css" rel="stylesheet" />
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+{
+    @Html.AntiForgeryToken()
+    <div id="main" class="m-t-sm">
+        <div class="row no-gutters">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Shipper</label>
+                    <div class="input-group input-group-sm">
+                        @Html.Editor("shipper", new { htmlAttributes = new { @placeholder = "shipper", @tooltip = "shipper", @class = "form-control input-sm", title = "Issued Month" } })
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-sm-3 col-md-3">
+                <div class="clearfix">
+                    <div class="input-group filter-custom-margin form-control">
+                        <div class="input-group-addon" id="order" style="width : 50%">
+                            <div class="select-style">
+                                <select name="filterType" id="filterType">
+                                    @*<option value="" disabled>Select Search Type</option>*@
+                                    <option value="EnquiryNo" selected>Enquiry No.</option>
+                                    <option value="SurveyNo">Survey No.</option>
+                                    @*<option value="QuoteNo">Quote No.</option>*@
+                                    <option value="JobNo">Job No.</option>
+                                </select>
+                            </div>
+                        </div>
+                        @*<select name="search" id="search" class="form-control enableselect"></select>*@
+                        <input type="text" name="filterValue" id="filterValue" class="form-control" placeholder="Search For ..." autocomplete="off">
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Classification</label>
+                    <div class="input-group input-group-sm">
+                        @Html.DropDownList("classificationId", new SelectList((System.Collections.IEnumerable)ViewData["ClassificationList"], "Value", "Text", ViewData["ClassificationId"]), "Select One", new { @class = "form-control input-sm enableSelect" })
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Logger Name</label>
+                    <div class="input-group input-group-sm">
+                        @Html.Editor("loggerName", new { htmlAttributes = new { @placeholder = "loggerName", @tooltip = "loggerName", @class = "form-control input-sm ", title = "loggerName", id = "loggerName" } })
+                    </div>
+                    @*@Html.DropDownList("JobNo", new SelectList((System.Collections.IEnumerable)ViewData["JobNoList"], "Value", "Text", ViewData["MoveId"]), "Select Job No", new { @class = "form-control input-sm" })*@
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2 hide">
+                <div class="form-group">
+                    <label>Status</label>
+                    <div class="input-group input-group-sm">
+                        @Html.DropDownList("statusId", new SelectList((System.Collections.IEnumerable)ViewData["StatusList"], "Value", "Text", ViewData["statusId"]), "Select Status", new { @class = "form-control input-sm" })
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-md-1">
+                <div class="clearfix">
+                    <input type="submit" id="btnSearch" name="Search" class="btn btn-primary btn-sm filter-custom-margin" value="Search" />
+                </div>
+            </div>
+            @if (hasAddAccess)
+            {
+                <div class="pull-right col-md-2">
+                    <a id="btnCreate" name="Create" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="New Complaint" formnovalidate="formnovalidate" href="@Url.Action("Create", "Complaints")" title="Create" target="_blank">Create Complaint</a>
+                </div>
+            }
+        </div>
+    </div>
+
+
+}
+<div id="mgrid" class="table-responsive">
+    @Html.Partial("_AjaxPartial")
+</div>
+
+<!--Response-->
+<div class="modal modal-wide fade" id="mdlAddEdit" role="dialog" aria-hidden="true" aria-labelledby="myModalLabel" data-keyboard="false">
+    <div class="modal-dialog modal-lg width-90" role="document">
+        <div id="frmContent" class="modal-content parent-cotent">
+
+
+        </div>
+    </div>
+</div>
+
+<div id="loading">
+    <div>
+        <i class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></i>
+        <span>Message</span>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script type="text/javascript">
+    $(document).ready(function () {
+
+        $('enableSelect').select2();
+        
+        $('#myModal').on('hidden.bs.modal', function () {
+
+            //location.reload(true);
+            $('#mgrid .pagination li.active a').trigger('click');
+        });
+        
+        PagedOnCompleteBinds();
+
+        $('body').on('hidden.bs.modal', '.modal', function () {
+            $(this).removeData('bs.modal');
+        });
+
+        pageGrids.mainGrid.onRowSelect(function (e) {
+            console.log($('#pnlGridTopActions #btnEdit, #pnlGridTopActions #btnDelete').length)
+            $('#pnlGridTopActions #btnEdit, #pnlGridTopActions #btnDelete').removeAttr('disabled');
+            $('#pnlGridTopActions #btnEdit').on('click', function (ev) {
+                ev.preventDefault();
+                $('#mgrid tr.grid-row.grid-row-selected').find('.btnEdit').click();
+            });
+            $('#pnlGridTopActions #btnDelete').on('click', function (ev) {
+                ev.preventDefault();
+                $('#mgrid tr.grid-row.grid-row-selected').find('.btnDelete').click();
+            });
+        });
+
+        $('form#CustomFilter').on('submit', function (e) {
+            e.preventDefault();
+            $(this).ajaxSubmit({
+                target: '#mgrid',
+                success: function () {
+                    PagedOnCompleteBinds();
+                }
+            });
+        });
+
+    });
+
+
+    //////Search Form Data
+
+    function PagedOnCompleteBinds() {
+            $(document).ready(function () {
+
+                $('.grid-header-title a').on('click', function (e)
+                {
+                    e.preventDefault();
+                    var sturl = "@Url.Action("Index", "ATR")" + $(this).attr('href');
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('#mgrid .pagination li a').on('click', function (e) {
+                    e.preventDefault();
+
+                    e.stopImmediatePropagation();
+                    var sturl = $('#mgrid .sorted.grid-header-title a').attr('href');
+                    if (typeof sturl != 'undefined') {
+                        var gdir = url("?grid-dir", sturl);
+                        var gcol = url("?grid-column", sturl);
+                        sturl = sturl.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0) ? 1 : 0);
+                        sturl = sturl.replace('?', '&');
+                    }
+
+                    var sturl2 = $(this).attr('href');
+                    if (sturl2 == undefined) {
+                        sturl2 = "@Url.Action("Index", "Complaints")?page=" + parseInt($(this).html());
+                    }
+                    sturl = sturl2 + sturl.replace(/page=\d+/i, "");
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('form.frmRWDelete').on('submit', function (e) {
+                    e.preventDefault();
+                    $frmRWDelete = this;
+                    swal({
+                        title: "Are you sure you want to delete this record?",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Delete",
+                        cancelButtonText: "No",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                        function (isConfirm) {
+                            if (isConfirm) {
+                                $('#mgrid').mask("Loading...");
+                                $($frmRWDelete).ajaxSubmit({
+                                    success: function (data) {
+                                        if (data.Success) {
+                                            toastr.success("Complaint deleted successfully.");
+                                            $('#mgrid .pagination li.active a').trigger('click');
+                                        } else if (!data.Success) {
+                                            swal({
+                                                text: "Complaint Delete Failed.",
+                                                type: "error"
+                                            });
+                                        }
+                                        $('#mgrid').unmask();
+                                    },
+                                    complete: function () {
+                                        $('#mgrid').unmask();
+                                    }
+                                });
+                            } else {
+                                swal("", "Complaint Delete Cancelled.", "error");
+                            }
+                        });
+                });
+                $('.lnkExportToExcel').on('click', function () {
+                    var url = '@Url.Action("ExportToExcel", "Complaints", new { })';
+                    window.location.href = url;
+                });
+            });
+        }
+
+        function PagedOnComplete(obj) {
+            $('#mgrid table').unmask();
+            PagedOnCompleteBinds();
+        }
+
+
+    </script>
+
+}

@@ -1,0 +1,236 @@
+﻿@model RELOCBS.Entities.PJR_DJR
+
+<div id="JobReport">
+    <div class="row col-md-12">
+        <div class="col-md-3">
+            Job No.
+            @Html.Raw(Model.JobNo)
+        </div>
+        <div class="col-md-3">
+            Shipper/Corporate
+            @Html.Raw(Model.CorprateName)
+        </div>
+        <div class="col-md-3">
+            <div class="form-group row">
+                <label for="OriginAddrs" class="col-sm-5 col-form-label">Volume(CFT)</label>
+                <div class="col-sm-5">
+                    @Html.TextBoxFor(model => Model.Volume, new { @class = "form-control input-sm clearfix Volume" })
+                    @Html.ValidationMessageFor(a => a.Volume, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group row">
+                <label for="OriginAddrs" class="col-sm-5 col-form-label">No.of Pkgs</label>
+                <div class="col-sm-5">
+                    @Html.TextBoxFor(model => Model.NoOfPkgs, new { @class = "form-control input-sm clearfix NoOfPackages" })
+                    @Html.ValidationMessageFor(a => a.NoOfPkgs, "", new { @class = "text-danger" })
+                </div>
+            </div>    
+        </div>
+    </div>
+    <div class="row m-t-sm">
+        <div class="table-responsive col-md-7">
+            <h4>Labour Cost</h4>
+            <div style="max-height:250px;overflow-x: auto;overflow-y:auto">
+                <table class="table table-bordered custom-table  tbodyScroll">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Rate</th>
+                            <th>No Of Days</th>
+                            @*<th class="thRound cw80">Day Present</th>*@
+                            <th>OT Rate</th>
+                            <th>OT HRS</th>
+                            <th>OT Cost</th>
+                            <th>OT Remark</th>
+                            <th class="thRound cw60 thRoundLast">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody style="max-height:380px;">
+                        @for (int i = 0; i < Model.inHouseLaboursCost.Count; i++)
+                        {
+                            <tr>
+                                <td>
+                                    @*@Html.DropDownListFor(model => Model.members[i].EmpID, new SelectList((System.Collections.IEnumerable)ViewData["EmployeeList"], "Value", "Text", Model.members[i].EmpID),null, new { @class = "form-control input-sm clearfix CrewEmpList" })*@
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].EmpName, new { @class = "form-control input-sm clearfix CrewEmpList", @readonly = "readonly" })
+                                    @Html.HiddenFor(model => Model.inHouseLaboursCost[i].EmpID, new { @class = "CrewEmp" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].Rate, new { @class = "form-control input-sm clearfix CrewEmpRate", @readonly = "readonly" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].NoOfDays, new { @class = "form-control input-sm clearfix CrewEmpNoOfDays", @readonly = "readonly" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].OT_Rate, new { @class = "form-control input-sm clearfix CrewEmpOTRate" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].OT_hours, new { @class = "form-control input-sm clearfix CrewEmpOTHrs" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].OT_Cost, new { @class = "form-control input-sm clearfix CrewEmpOTCost" })  @*(row.OT_HRS*row.OT_RATE)*@
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].OT_Remark, new { @class = "form-control input-sm clearfix CrewEmpOT_Remark" })  
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.inHouseLaboursCost[i].Total, new { @class = "form-control input-sm clearfix CrewEmpTotal", @readonly = "readonly" })  @*(row.OT_HRS*row.OT_RATE) +(row.COST * row.DAYS)*@
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="table-responsive col-md-5">
+            <h4>Material Cost</h4>
+            <div style="max-height:250px;overflow-x: auto;overflow-y:auto">
+                <table class="table table-bordered tbodyScroll">
+                    <thead>
+                        <tr class="row">
+                            <th class="col-md-4">Material</th>
+                            <th class="col-md-1">Issued Qty.</th>
+                            <th class="col-md-2">Return Qty.</th>
+                            <th class="col-md-1">Used Qty.</th>
+                            <th class="col-md-2">Cost</th>
+                            <th class="col-md-2">Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody >
+                        @for (int i = 0; i < Model.materialCosts.Count; i++)
+                        {
+                            <tr class="row">
+                                <td class="col-md-4">
+                                    @Html.TextBoxFor(model => Model.materialCosts[i].Materail, new { @class = "form-control input-sm clearfix TblMaterail", @readonly = "readonly" })
+                                    @Html.HiddenFor(model => Model.materialCosts[i].MaterailId, new { @class = "TblMaterailId" })
+                                </td>
+                                <td class="col-md-1">
+                                    @Html.TextBoxFor(model => Model.materialCosts[i].IssuedQty, new { @class = "form-control input-sm clearfix TblIssuedQty" ,@readonly = "readonly" })
+                                </td>
+                                <td class="col-md-2">
+                                    @Html.TextBoxFor(model => Model.materialCosts[i].ReturnQty, new { @class = "form-control input-sm clearfix TblReturnQty" })
+                                </td>
+                                <td class="col-md-1">
+                                    @Html.TextBoxFor(model => Model.materialCosts[i].UsedQty, new { @class = "form-control input-sm clearfix TblUsedQty", @readonly = "readonly" }) @*row.issued_qty-row.return_qty*@
+                                </td>
+                                <td class="col-md-2">
+                                    @Html.TextBoxFor(model => Model.materialCosts[i].Cost, new { @class = "form-control input-sm clearfix TblCost", @readonly = "readonly" }) @*row.MATERIAL_RATE * [row.issued_qty-row.return_qty]*@
+                                </td>
+                                <td class="col-md-2">
+                                    @Html.TextBoxFor(model => Model.materialCosts[i].Rate, new { @class = "form-control input-sm clearfix TblRate", @readonly = "readonly" })
+                                </td>
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row m-t-sm">
+        <div class="table-responsive col-md-7">
+            <h4>Local Transport</h4>
+            <div style="max-height:250px;overflow-x: auto;overflow-y:auto">
+                <table class="table table-bordered custom-table tbodyScroll">
+                    <thead>
+                        <tr>
+                            <th>Vehicle No</th>
+                            <th>Contractor/Driver</th>
+                            <th>From Time</th>
+                            <th>To Time</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.Vehicles.Count; i++)
+                        {
+                            <tr>
+                                <td>
+                                    @*@Html.DropDownListFor(model => Model.Vehicles[i].VehicleID, new SelectList((System.Collections.IEnumerable)ViewData["VehicleList"], "Value", "Text", Model.Vehicles[i].VehicleID), null, new { @class = "form-control input-sm clearfix VehicleList" })*@
+                                    @Html.TextBoxFor(model => Model.Vehicles[i].VehicleNo, new { @class = "form-control input-sm clearfix VehicleList", @readonly = "readonly" })
+                                    @Html.HiddenFor(model => Model.Vehicles[i].VehicleID, new { @class = "Vehicle" })
+                                </td>
+                                <td>
+                                    @*@Html.DropDownListFor(model => Model.Vehicles[i].DriverID, new SelectList((System.Collections.IEnumerable)ViewData["DriverList"], "Value", "Text", Model.Vehicles[i].VehicleID), null, new { @class = "form-control input-sm clearfix DriverList" })*@
+                                    @Html.TextBoxFor(model => Model.Vehicles[i].Driver, new { @class = "form-control input-sm clearfix DriverList", @readonly = "readonly" })
+                                    @Html.HiddenFor(model => Model.Vehicles[i].DriverID, new { @class = "VDriver" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => Model.Vehicles[i].FromDate, new { @class = "form-control input-sm clearfix VehicleFromDate datetimepicker", @readonly = "readonly" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => @Model.Vehicles[i].ToDate, new { @class = "form-control input-sm clearfix VehicleToDate datetimepicker", @readonly = "readonly" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(model => @Model.Vehicles[i].V_Cost, new { @class = "form-control input-sm clearfix VehicleCost" })
+                                </td>
+
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="table-responsive col-md-5">
+            <h4>Additional Service</h4>
+            <div style="max-height:250px;overflow-x: auto;overflow-y:auto">
+                <table class="table table-bordered custom-table tbodyScroll">
+                    <thead>
+                        <tr>
+                            <th>Service Name</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody style="max-height:150px">
+                        @for (var i = 0; i < Model.services.Count; i++)
+                        {
+
+                            <tr>
+                                <td>
+                                    @Html.EditorFor(a => Model.services[i].ServiceName, new { htmlAttributes = new { @placeholder = "Service Type", @tooltip = "Service Type", @class = "form-control input-sm ServiceType", title = "Service Type", @readonly = "readonly" } })
+                                    @Html.HiddenFor(x => Model.services[i].ServiceID, new { @class = "ServiceID" })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => Model.services[i].Cost, new { htmlAttributes = new { @class = "form-control input-sm clearfix AdCost" } })
+                                </td>
+                            </tr>
+
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row m-t-sm">
+        <div class="table-responsive col-md-7">
+            <h4>Labour</h4>
+            <div style="max-height:250px;overflow-x: auto;overflow-y:auto">
+                <table class="table table-bordered custom-table tbodyScroll">
+                    <thead>
+                        <tr>
+                            <th>Vendor</th>
+                            <th>Total No. of Outside Labour</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                @Html.DropDownListFor(model => model.Labour_VendorId, new SelectList((System.Collections.IEnumerable)ViewData["VendorList"], "Value", "Text"), "--Select Vendor--", new { @class = "form-control input-sm clearfix enableselect", @disabled = "disabled" })
+                                @Html.HiddenFor(model => model.Labour_VendorId, new { @class = "CrewVendorID" })
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => model.Labour_OutsideNo, new { @class = "form-control input-sm clearfix", @readonly = "readonly" })
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => model.Labour_Cost, new { @class = "form-control input-sm clearfix" })
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+

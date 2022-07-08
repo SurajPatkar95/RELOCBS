@@ -1,0 +1,155 @@
+﻿@model RELOCBS.Entities.JobStorage
+
+@using RELOCBS.Common;
+@using RELOCBS.Utility;
+@using RELOCBS.Extensions;
+
+
+@{
+    ViewBag.Title = "Add Rate & Insurance Details";
+    string _PageID = "24";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+<style type="text/css">
+    .bg {
+        border-left: 5px solid red;
+    }
+
+    .MoveCosttable {
+        table-layout: fixed;
+        border-collapse: collapse;
+        align-content: center;
+    }
+
+        .MoveCosttable thead {
+            display: table-row;
+            width: 100%;
+        }
+
+        .MoveCosttable tbody {
+            display: block;
+            width: 100%;
+            overflow-y: scroll;
+            height: 200px;
+        }
+
+        .MoveCosttable thead tr {
+            display: block;
+            overflow-y: scroll;
+        }
+
+        .MoveCosttable thead {
+            color: black;
+            background: #fff;
+        }
+
+        .MoveCosttable th, .MoveCosttable tbody td {
+            padding: 5px;
+            text-align: left;
+            width: 300px;
+        }
+    
+
+    .MoveCosttable tfoot {
+        display: table-row;
+        width: 100%;
+    }
+
+        .MoveCosttable tfoot tr {
+            display: block;
+            overflow-y: scroll;
+        }
+
+    .MoveCosttable tfoot {
+        color: black;
+        background: #fff;
+    }
+</style>
+
+<div class="ibox-content">
+    <div class="table-responsive">
+        <table class="table table-striped border MoveCosttable" id="StrgDetailTable">
+            <thead>
+                <tr class="bg-white">
+                    <th class="tdNone"></th>
+                    <th>Volume Unit</th>
+                    <th>Volume</th>
+                    <th>Volume Date</th>
+                    <th>Remark</th>
+                    <th>Ins.From Date</th>
+                    <th>Ins.Value(@Model.BaseCurrName)</th>
+                    <th>Ins.%</th>
+                    <th>Ins.Cycle</th>
+                    @if (!Model.ApprovalStatus)
+                    {
+                        <th>Update Rates</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.rateStorageList.Count; i++)
+                {
+
+                    <tr>
+                        <td class="tdNone">
+                            @Html.HiddenFor(a => Model.rateStorageList[i].StorageDetailID, new { @class = "TblRateStorageDetailID" })
+                        </td>
+                        <td class="VolumeUnit">
+                            @Html.DropDownListFor(a => Model.rateStorageList[i].VolumeUnitID, new SelectList((System.Collections.IEnumerable)ViewData["UnitList"], "Value", "Text", Model.rateStorageList[i].VolumeUnitID), "--Select Unit--", new { @class = "form-control input-sm clearfix TblVolumeUnitID", @disabled = "disabled" })
+                            @Html.HiddenFor(a => Model.rateStorageList[i].VolumeUnitID)
+                        </td>
+                        <td class="VolumeCFT">
+                            @Html.TextBoxFor(a => Model.rateStorageList[i].VolumeCFT, new { @class = "form-control input-sm clearfix TblVolumeCFT", @readonly = "readonly" })
+                        </td>
+                        <td class="VolumeDate">
+                            @Html.TextBoxFor(a => Model.rateStorageList[i].VolumeDate, new { @class = "form-control input-sm clearfix datetimepicker TblVolumeDate", @readonly = "readonly" })
+                        </td>
+                        <td class="VolumeRemark">
+                            @Html.TextAreaFor(a => Model.rateStorageList[i].VolumeRemark, new { @class = "form-control input-sm clearfix  TblVolumeRemark", @readonly = "readonly", @rows = "2" })
+                        </td>
+                        <td class="VolumeDate">
+                            @Html.TextBoxFor(a => Model.rateStorageList[i].InsuranceDate, new { @class = "form-control input-sm clearfix datetimepicker TblInsuranceDate", @readonly = "readonly" })
+                        </td>
+                        <td>
+                            @Html.TextBoxFor(a => Model.rateStorageList[i].InsuranceValue, new { @class = "form-control input-sm clearfix TblInsuranceValue", @readonly = "readonly" })
+                        </td>
+                        <td>
+                            @Html.TextBoxFor(a => Model.rateStorageList[i].InsurancePercent, new { @class = "form-control input-sm clearfix TblInsurancePercent", @readonly = "readonly" })
+                        </td>
+                        <td>
+                            @Html.DropDownListFor(a => Model.rateStorageList[i].InsuranceCycleID, new SelectList((System.Collections.IEnumerable)ViewData["PeriodList"], "Value", "Text", Model.rateStorageList[i].InsuranceCycleID), "--Select Cycle--", new { @class = "form-control input-sm clearfix TblInsuranceCycleID", @disabled = "disabled" })
+                            @Html.HiddenFor(a => Model.rateStorageList[i].InsuranceCycleID)
+                        </td>
+                        <td>
+                            @if (!Model.ApprovalStatus)
+                            {
+
+                                var IsEditText = Model.rateStorageList[i].IsBilled == 0 ? "Update Rates" : "View";
+                                var IsEdit = Model.rateStorageList[i].IsBilled == 0 ? "EditRates(this, true)" : "EditRates(this, false)";
+
+                                <input type="button" value="@IsEditText" class="btnEdit btn btn-sm btn-success m-n pull-right" onclick="@IsEdit" />
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @using (Html.BeginForm("Create", "Storage", new { MoveID = Model.jobDetail.MoveID, StorageID = Model.StorageID, Index = 1 }, FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.ValidationSummary(false, "")
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(a => a.jobDetail.MoveID)
+        @Html.HiddenFor(a => a.StorageID)
+        @Html.HiddenFor(m => m.StrgStateID)
+        @Html.HiddenFor(m => m.StrgCityID)
+        @Html.HiddenFor(m => m.WarehouseID)
+        <div id="RateDiv">
+            @Html.Partial("_RatesPartial", Model)
+        </div>
+    }
+
+</div>
+  

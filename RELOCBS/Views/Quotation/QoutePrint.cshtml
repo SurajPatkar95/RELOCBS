@@ -1,0 +1,543 @@
+﻿@model RELOCBS.Entities.QouteHtmlPrint
+@using RELOCBS.Utility;
+
+@{
+    Layout = null;
+
+    string CompanyName = UserSession.GetUserSession().CompanyName.ToLower();
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Quote Print</title>
+    @*@Styles.Render("~/Content/css")
+
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")*@
+
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style type="text/css">
+        #tblInvoiceItems tbody td {
+            border: solid;
+            border-width: thin;
+            border-color: lightgray;
+        }
+
+        .ttop {
+            vertical-align: top !important;
+        }
+
+        body {
+        }
+
+        .floatLeft {
+            float: left;
+        }
+
+        .tcenter {
+            text-align: center !important;
+        }
+
+        .boxWraper {
+            /*border: 1px solid #7b7b7b;*/
+            display: block;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+            .boxWraper .padding tr td {
+                padding: 3px 6px;
+            }
+
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        tr.border_bottom td {
+            border-bottom: 1pt solid black;
+        }
+
+        .tableData {
+            border: 0 !important;
+            line-height: 16px;
+        }
+
+
+            .tableData tr td {
+                background: #fff;
+                height: 100%;
+                vertical-align: middle;
+                border: 1px solid #7b7b7b;
+            }
+
+        .boxWraper tr th {
+            /*border: 1px solid #e3e7ee;*/
+            text-align: center;
+            padding: 3px 6px;
+        }
+
+
+        .marginLR {
+            margin: 0 auto;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        /*table {
+            border-collapse: separate;
+            border-spacing: 2px;
+        }*/
+
+        table {
+            background-color: transparent;
+        }
+
+        /*table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+        }*/
+
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 15px;
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            color: #808080;
+            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: subpixel-antialiased;
+            background: #fff;
+        }
+
+        .cw100 {
+            width: 100px !important;
+        }
+
+        .cw110 {
+            width: 110px !important;
+        }
+
+        .cw80 {
+            width: 80px !important;
+        }
+
+        .cw120 {
+            width: 120px !important;
+        }
+
+        .cw140 {
+            width: 140px !important;
+        }
+
+        .cw160 {
+            width: 160px !important;
+        }
+
+        .cw130 {
+            width: 140px !important;
+        }
+
+        .tbold {
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            font-weight: 600;
+        }
+
+        .tright {
+            text-align: right !important;
+        }
+
+        label {
+            margin-bottom: 0;
+            color: black;
+        }
+
+        .tcollapse {
+            border-collapse: collapse;
+        }
+
+
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+        .taW {
+            width: 100% !important;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: normal;
+            font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+        }
+
+        .numbertd {
+            text-align: right;
+        }
+
+        table, img, svg {
+            break-inside: avoid;
+        }
+
+        .bggrey {
+            background-color: lightgrey;
+        }
+    </style>
+    <style type="text/css">
+        @@media print {
+            .grid-header {
+                background: #eee;
+                font-size: 14px;
+            }
+
+            body {
+                font-family: Serif;
+            }
+
+            h2 {
+                font-size: 20px;
+                text-transform: uppercase;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            h4 {
+                font-size: 14px;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            img {
+                display: inline;
+            }
+        }
+    </style>
+
+    <style>
+        table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+            table td {
+                word-wrap: break-word; /* All browsers since IE 5.5+ */
+                overflow-wrap: break-word; /* Renamed property in CSS3 draft spec */
+                width: 100px;
+            }
+
+        div {
+            word-wrap: break-word; /* All browsers since IE 5.5+ */
+            overflow-wrap: break-word; /* Renamed property in CSS3 draft spec */
+            width: 100%;
+        }
+
+        .header {
+            padding: 20px 0 20px 0;
+            margin-bottom: 5px;
+            overflow: auto;
+            border-bottom: 1px medium black;
+        }
+
+
+        @@media screen {
+            div.footer {
+                border-top: 1px medium black;
+                font-weight: lighter;
+            }
+        }
+        @@media print {
+            div.footer {
+                position: fixed;
+                bottom: 0;
+                border-top: 1px medium black;
+                font-weight: lighter;
+            }
+        }
+
+
+
+
+    </style>
+</head>
+<body>
+    <div class="col-lg-12 col-sm-12 col-md-12" style=" flex-align:center">
+        <table class="marginLR" style="width:20cm;">
+            <tbody>
+                <tr>
+                    <td>
+                        <table class="taW">
+                            <thead>
+                                <tr>
+                                    <td>
+                                        <div class="header">
+                                            @*hidden-print*@
+                                            @if (Model.IsEmail == 1)
+                                            {
+                                                <div class="tcenter">
+                                                    @if (CompanyName.Equals("btr"))
+                                                    {
+                                                        <img src="~/Content/images/BTR_logo.PNG" style="height:60px" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <img src="~/Content/images/logo.png" style="height:60px" />
+                                                    }
+                                                </div>
+
+                                            }
+                                            else
+                                            {
+                                                <div style="height:50px">&nbsp;&nbsp;</div>
+                                            }
+
+                                            <div style="margin-top:10px">
+                                                <table>
+                                                    <tr>
+                                                        <td>
+                                                            <label class="cw80 tbold">Quote No.</label> :
+                                                            <span class="ng-binding tbold"><u>@Html.Raw(Model.QuoteNo)</u></span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <span class="ng-binding">@Html.Raw(DateTime.Now.ToString("MMM dd,yyyy"))</span>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                <tr>
+                                    <td>
+                                        <div class="boxWraper">
+                                            <table class="taW tcollapse padding">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            @Html.Raw(Model.QtAddress1)
+                                                        </td>
+                                                    </tr>
+
+                                                    @if (!string.IsNullOrWhiteSpace(Model.QtAttention))
+                                                    {
+                                                        <tr>
+                                                            <td style="height:10px;"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="tbold" style="margin-left:20px">
+                                                                <label class="cw80 tbold">Kind Attn</label>:- <span class="ng-binding tbold"><u>@Html.Raw(Model.QtAttention)</u></span>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                    <tr>
+                                                        <td style="height:10px;"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            @Html.Raw(Model.Annotation)
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <span class="ng-binding">  @Html.Raw(Model.QtIntroduction.Trim().Replace("\n", "<br/>"))</span>
+                                                        </td>
+                                                    </tr>
+
+                                                    <tr>
+                                                        <td>
+                                                            <span class="ng-binding">   @Html.Raw(Model.Line1.Trim().Replace("\n", "<br/>"))</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="height:10px;"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <label class="cw80 tbold">QUOTATION</label> :
+                                                            @if (!String.IsNullOrWhiteSpace(Model.QtSubject))
+                                                            {
+                                                                <span class="tbold">@Html.Raw("(" + Model.QtSubject + ")")</span>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                    @if (Model.QouteCostHeads != null && Model.QouteCostHeads.Count > 0)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <table>
+                                                                    <tbody>
+                                                                        @for (int i = 0; i < Model.QouteCostHeads.Count(); i++)
+                                                                        {
+                                                                            <tr>
+                                                                                <td>
+                                                                                    <label class="cw100 tbold">
+                                                                                        @Model.QouteCostHeads[i].InfoForDisplay
+                                                                                    </label>:-
+                                                                                </td>
+                                                                                <td>
+                                                                                    <span class="ng-binding tbold">
+                                                                                        @Model.QouteCostHeads[i].ConvCurrValue @Model.QouteCostHeads[i].QuoteCurrValue
+                                                                                    </span>
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+                                                                    </tbody>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                    @if (Model.exclusive != null && !string.IsNullOrWhiteSpace(Model.exclusive.MsgToDisplay))
+                                                    {
+                                                        <tr>
+                                                            <td style="height:10px;"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <label class="cw80 tbold">Exclusions</label> :
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <div> @Model.exclusive.MsgToDisplay</div>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                    @if (Model.inclusive != null && !string.IsNullOrWhiteSpace(Model.inclusive.MsgToDisplay))
+                                                    {
+                                                        <tr>
+                                                            <td style="height:10px;"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <label class="cw80 tbold">Inclusions</label> :
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <div>@Model.inclusive.MsgToDisplay</div>
+                                                            </td>
+                                                        </tr>
+                                                    }
+
+                                                    @if (Model.qouteTerms != null && Model.qouteTerms.Count > 0)
+                                                    {
+                                                        <tr>
+                                                            <td style="height:10px;"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <label class="cw80 tbold">Terms</label> :
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <table>
+                                                                    <tbody>
+                                                                        @for (int i = 0; i < Model.qouteTerms.Count(); i++)
+                                                                        {
+                                                                            <tr>
+                                                                                <td class="tbold" style="width:15px">
+                                                                                    <label>@Model.qouteTerms[i].MasterToDisplay</label>
+                                                                                </td>
+                                                                                <td>@Model.qouteTerms[i].MsgToDisplay</td>
+                                                                            </tr>
+                                                                        }
+                                                                    </tbody>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                    <tr>
+                                                        <td style="height:10px;"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <span>
+                                                                @Html.Raw(@Model.Line2)
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="height:2px;"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <span>
+                                                                @Html.Raw(Model.Line3)
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="font-size:20px;font-family:Brush Script MT, Brush Script Std, cursive;font-style:italic;font-weight:bold">
+                                                            @Model.SentBy
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            @Model.SentByDesign
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="height:5px;"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div>I / We accept the terms and conditions of this quotation and request you to commence</div>
+                                                            <div style="margin-top:20px">packing on _____________________.   Signature: _______________________________.</div>
+
+                                                            <div style="margin-top:20px">Date: _________________________.   Company Stamp: __________________________.</div>
+
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="footer">
+                                                                @if (CompanyName.Equals("btr"))
+                                                                {
+                                                                    <h5>
+                                                                        BTR International is a trading name of Breachwood Transport & Removals Ltd
+                                                                        (Company No 722110)
+                                                                    </h5>
+                                                                }
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+    </div>
+    
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jquery-ui")
+    @Scripts.Render("~/bundles/custom")
+</body>
+</html>

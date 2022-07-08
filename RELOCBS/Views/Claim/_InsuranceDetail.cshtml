@@ -1,0 +1,134 @@
+﻿@model RELOCBS.Entities.Claim
+
+
+@{
+
+    var InsCompClass = Model.IsSubmitToFinance ?  "form-control input-sm clearfix InsuranceComp" : "form-control input-sm clearfix InsuranceComp";
+    string Readonly = Model.IsSubmitToFinance ? "readonly" : "";
+}
+
+<div class="row">
+    <div class="col-sm-2 col-md-2 @Readonly">
+        <div class="form-group">
+            <label>Total Insured Amt</label>
+            @Html.TextBoxFor(model => Model.Total_InsuredAmout, new { @class = "form-control input-sm clearfix Total_InsuredAmout", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+        </div>
+    </div>
+    <div class="col-sm-2 col-md-2 @Readonly">
+        <div class="form-group">
+            <label>Total Premium Paid</label>
+            @Html.TextBoxFor(model => Model.Total_PremiumPaid, new { @class = "form-control input-sm clearfix Total_PremiumPaid", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+        </div>
+    </div>
+    <div class="col-sm-2 col-md-2 @Readonly">
+        <div class="form-group">
+            <label>Total BasePremium Amt</label>
+            @Html.TextBoxFor(model => Model.Total_BasePremAmt, new { @class = "form-control input-sm clearfix Total_BasePremAmt", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+        </div>
+    </div>
+    <div class="col-sm-2 col-md-2 @Readonly">
+        <div class="form-group">
+            <label>Total Insured Amt <span class="InsBaseCurrText font-bold"></span></label>
+            @Html.TextBoxFor(model => Model.Total_InsuredAmout_Ex, new { @class = "form-control input-sm clearfix Total_InsuredAmout_Ex", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+        </div>
+    </div>
+    <div class="col-sm-2 col-md-2 @Readonly">
+        <div class="form-group">
+            <label>Total Premium Paid <span class="InsBaseCurrText font-bold"></span></label>
+            @Html.TextBoxFor(model => Model.Total_PremiumPaid_Ex, new { @class = "form-control input-sm clearfix Total_PremiumPaid_Ex", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+        </div>
+    </div>
+    <div class="col-sm-2 col-md-2 @Readonly">
+        <div class="form-group">
+            <label>Total Base Premium Amt <span class="InsBaseCurrText font-bold"></span></label>
+            @Html.TextBoxFor(model => Model.Total_BasePremAmt_Ex, new { @class = "form-control input-sm clearfix Total_BasePremAmt_Ex", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-3 col-md-3 @Readonly">
+        <div class="form-group">
+            <label>Insurance Company</label>
+            @Html.DropDownListFor(model => Model.InsuranceCompanyID, new SelectList((System.Collections.IEnumerable)ViewData["InsuranceCompList"], "Value", "Text"), "--Select Insurance Company--", new { @class = @InsCompClass, @disabled = "disabled" })
+            @Html.HiddenFor(model => Model.InsuranceCompanyID)
+            @Html.ValidationMessageFor(a => a.InsuranceCompanyID, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="col-sm-2 col-md-2">
+        <div class="form-group">
+            <label class="text-right">P.A. No</label>
+            @Html.DropDownListFor(model => Model.P_A_No, new SelectList((System.Collections.IEnumerable)ViewData["InsurancePANOList"], "Value", "Text"), "--Select P.A.No--", new { @class = "form-control input-sm clearfix PA_No" })
+            @Html.HiddenFor(model => Model.P_A_No)
+            @Html.ValidationMessageFor(a => a.P_A_No, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="col-sm-2 col-md-2">
+        <div class="form-group">
+            <label class="text-right">Ins Date</label>
+            @Html.TextBoxFor(model => Model.Insurance_Date, new { @class = "form-control input-sm clearfix Insurance_Date datetimepicker", @readonly = "readonly" })
+            @Html.ValidationMessageFor(a => a.Insurance_Date, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="col-sm-2 col-md-2">
+        <div class="form-group">
+            <label>Rate Curr.</label>
+            @Html.DropDownListFor(model => Model.Ins_RateCurr, new SelectList((System.Collections.IEnumerable)ViewData["CurrancyList"], "Value", "Text"), "--Select Rate Currency--", new { @class = "form-control input-sm clearfix", @disabled = "disabled" })
+            @Html.HiddenFor(model => Model.Ins_RateCurr, new { @class = "BaseCurrency" })
+        </div>
+    </div>
+    <div class="col-sm-1 col-md-1">
+        <div class="form-group">
+            <label>CnvrRate</label>
+            @Html.TextBoxFor(model => Model.Ins_ConverRate, new { @class = "form-control input-sm clearfix ExRateM", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+        </div>
+    </div>
+    <div class="col-sm-2 col-md-2">
+        <div class="form-group">
+            <label>Base Curr.</label>
+            @Html.DropDownListFor(model => Model.Ins_BaseCurr, new SelectList((System.Collections.IEnumerable)ViewData["CurrancyList"], "Value", "Text"), "--Select Base Currency--", new { @class = "form-control input-sm clearfix", @disabled = "disabled" })
+            @Html.HiddenFor(model => Model.Ins_BaseCurr, new { @class = "BaseCurrency" })
+        </div>
+    </div>
+</div>
+<table class="table table-borderless table-condensed">
+    <tr>
+        <th class="text-right">Sum Insrd Amt</th>
+        <td>
+            @Html.TextBoxFor(model => Model.Sum_Insrd_Amt, new { @class = "form-control input-sm clearfix Rate", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+            @Html.ValidationMessageFor(a => a.Sum_Insrd_Amt, "", new { @class = "text-danger" })
+        </td>
+        <td style="width:10%" class="text-right"><span class="InsBaseCurrText font-bold"></span></td>
+        <td>
+            @Html.TextBoxFor(model => Model.Sum_Insrd_Amt_Ex, new { @class = "form-control input-sm clearfix Amount", @readonly = "readonly" })
+            @Html.ValidationMessageFor(a => a.Sum_Insrd_Amt_Ex, "", new { @class = "text-danger" })
+        </td>
+        <td></td>
+    </tr>
+    <tr>
+        <th class="text-right">Prem Recieved</th>
+        <td>
+            @Html.TextBoxFor(model => Model.Prem_Recieved, new { @class = "form-control input-sm clearfix Basic_Prem_Paid Rate", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+            @Html.ValidationMessageFor(a => a.Prem_Recieved, "", new { @class = "text-danger" })
+        </td>
+        <td style="width:10%" class="text-right"><span class="InsBaseCurrText font-bold"></span></td>
+        <td>
+            @Html.TextBoxFor(model => Model.Prem_Recieved_Ex, new { @class = "form-control input-sm clearfix Amount", @readonly = "readonly" })
+            @Html.ValidationMessageFor(a => a.Prem_Recieved_Ex, "", new { @class = "text-danger" })
+        </td>
+        <td></td>
+    </tr>
+    <tr>
+        <th class="text-right">Prem Paid</th>
+        <td>
+            @Html.TextBoxFor(model => Model.Prem_Paid, new { @class = "form-control input-sm clearfix Basic_Prem_Paid Rate", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+            @Html.ValidationMessageFor(a => a.Prem_Paid, "", new { @class = "text-danger" })
+        </td>
+        <td style="width:10%" class="text-right"><span class="InsBaseCurrText text-right font-bold"></span></td>
+        <td>
+            @Html.TextBoxFor(model => Model.Prem_Paid_Ex, new { @class = "form-control input-sm clearfix Amount", @readonly = "readonly" })
+            @Html.ValidationMessageFor(a => a.Prem_Paid_Ex, "", new { @class = "text-danger" })
+        </td>
+        <td style="width:40%">&nbsp;</td>
+    </tr>
+</table>

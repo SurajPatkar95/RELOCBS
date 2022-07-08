@@ -88,12 +88,16 @@ namespace RELOCBS.BL.Common
                     CompanyObj = (from rw in CompanyDt.AsEnumerable()
                                select new CompanyViewModel()
                                {
-                                   CompanyName = Convert.ToString(rw["CityName"]),
-                                   ShortCompanyName = Convert.ToString(rw["CityCode"]),
-                                   CompID=Convert.ToInt32(0),
+                                   CompanyName = Convert.ToString(rw["CompanyName"]),
+                                   ShortCompanyName = Convert.ToString(rw["ShortCompanyName"]),
+                                   CompID=Convert.ToInt32(rw["CompID"]),
+                                   Address1 = Convert.ToString(rw["Address1"]),
+                                   Address2 = Convert.ToString(rw["Address2"]),
+                                   Address3 = Convert.ToString(rw["Address3"]),
                                    CityID = Convert.ToInt32(rw["CityID"]),
-                                   CityName = Convert.ToString(rw["CountryName"]),
-                                   IsActive = Convert.ToBoolean(rw["isActive"])
+                                   CityName = Convert.ToString(rw["CityName"]),
+                                   ZIPNO = Convert.ToInt32(rw["ZIPNO"]),
+                                   IsActive = Convert.ToBoolean(rw["Isactive"])
                                }).First();
 
 
@@ -113,13 +117,13 @@ namespace RELOCBS.BL.Common
 
         }
 
-        public IEnumerable<Company> GetCompanyList(int pPageIndex, int pPageSize, string pOrderBy, int pOrder,int? pRateTypeGrpID, int? pCountryID, int? pCityID, int? pisActive, string SearchKey, int LoggedinUserID, out int totalCount)
+        public IEnumerable<Company> GetCompanyList(int pPageIndex, int pPageSize, string pOrderBy, int pOrder, int? pCountryID, int? pCityID, int? pisActive, string SearchKey, int LoggedinUserID, out int totalCount)
         {
             totalCount = 0;
 
             try
             {
-                IEnumerable<Company> CompanyList = companyDAL.GetCompanyList(pPageIndex, pPageSize, pOrderBy, pOrder, pRateTypeGrpID, pCountryID, pCityID, pisActive, SearchKey, LoggedinUserID, out totalCount);
+                IEnumerable<Company> CompanyList = companyDAL.GetCompanyList(pPageIndex, pPageSize, pOrderBy, pOrder, pCountryID, pCityID, pisActive, SearchKey, LoggedinUserID, out totalCount);
 
                 return CompanyList;
             }

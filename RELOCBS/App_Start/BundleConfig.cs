@@ -9,10 +9,13 @@ namespace RELOCBS
         public static void RegisterBundles(BundleCollection bundles)
         {
             bundles.Add(new ScriptBundle("~/bundles/jquery").Include(
-                        "~/Scripts/jquery-{version}.js"));
+                        "~/Scripts/jquery-{version}.js"
+                        ));
 
             bundles.Add(new ScriptBundle("~/bundles/jqueryval").Include(
-                        "~/Scripts/jquery.validate*"));
+                        "~/Scripts/jquery.validate*"
+                        , "~/Scripts/mvcvalidationextensions.unobtrusive.js"
+                        ));
 
             // Use the development version of Modernizr to develop with and learn from. Then, when you're
             // ready for production, use the build tool at https://modernizr.com to pick only the tests you need.
@@ -56,10 +59,18 @@ namespace RELOCBS
                       "~/Scripts/Plugins/jsPdf/jspdf.min.js",
                       "~/Scripts/Plugins/clockpicker/clockpicker.js",
                       "~/Scripts/Utility.js",
-                      "~/Scripts/custom.js"));
+                      "~/Scripts/custom.js",
+                      "~/Scripts/UnitConverter.js",
+                      "~/Scripts/HtmVal.js"));
 
             bundles.Add(new ScriptBundle("~/bundles/jqunobtrusive").Include(
                         "~/Scripts/jquery.unobtrusive-ajax.min.js"));
+
+            bundles.Add(new ScriptBundle("~/bundles/TableSort").Include(
+                        "~/Scripts/Plugins/tableSorter/jquery.tablesorter.js"
+                        ));
+
+
             #endregion
 
             bundles.Add(new StyleBundle("~/Content/css").Include(
@@ -170,7 +181,28 @@ namespace RELOCBS
                       "~/Scripts/Plugins/clockpicker/clockpicker.css",
                       "~/Content/plugins/timeline.css",
                       "~/Content/style.css",
-                      "~/Content/custom.css"));
-        }
+                      "~/Content/custom.css",
+                      "~/Content/tablesort.css",
+                      "~/Content/tableScrollbar.css"
+                      ));
+
+			bundles.Add(new StyleBundle("~/Content/CustomLogin").Include(
+					  "~/Scripts/Plugins/sweetalert/sweetalert.css",
+					  "~/Scripts/Plugins/toastr/toastr.min.css",
+					  "~/Content/Login.css"
+				));
+			bundles.Add(new ScriptBundle("~/bundles/ComboFill").Include(
+					  "~/Scripts/FillCombo.js"
+				));
+
+			bundles.Add(new ScriptBundle("~/bundles/SubCostHead").Include(
+					  "~/Scripts/SubCostHeads.js"
+				));
+
+			bundles.Add(new ScriptBundle("~/bundles/MoveManage").Include(
+					  "~/Scripts/MoveManage/MoveManage.js"
+				));
+
+		}
     }
 }

@@ -1,0 +1,320 @@
+﻿@using RELOCBS.Utility;
+@using System.Data;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model RELOCBS.Entities.EmployeeLeaveDetail
+
+@{
+    ViewBag.Title = "Employee Leave Detail";
+
+    string _PageID = "40";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+}
+
+
+
+<fieldset class="col-md-12 border m-n">
+    <legend>Export Employee Leaves</legend>
+    @using (Html.BeginForm("Export", "EmployeeLeaveRegister", FormMethod.Post, new { enctype = "multipart/form-data", target = "_blank" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="row">
+            <div class="col-sm-2 col-md-2 m-t-sm">
+                <label for="ForMonthDate">Search For Month:</label>
+            </div>
+            <div class="col-sm-3 col-md-3 m-t-sm">
+                @Html.TextBox("FromMonthDate", (DateTime?)ViewBag.ForMonth, new { placeholder = "Select From Month", @class = "form-control input-sm", @required = "required" })
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <input type="submit" id="btnExport" name="Submit" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm" value="Export" />
+                </div>
+            </div>
+        </div>
+    }
+</fieldset>
+<fieldset class="col-md-12 border m-n">
+    <legend>Add/Edit Employee Leaves</legend>
+    @using (Html.BeginForm("Index", "EmployeeLeaveRegister", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.employee.CardEmpCode)
+        @Html.HiddenFor(m => m.employee.EmpID)
+        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+        <div class="row">
+            <div class="col-sm-7 col-md-7"></div>
+            <div class="col-sm-5 col-md-5">
+                <div class="form-group">
+                    @if (Model.employee != null && Model.employee.EmpID > 0)
+                    {
+                        <input type="button" id="btnClearFields" name="Clear" class="btn btn-default m-t-sm m-b-sm  m-r-sm btn-sm  pull-right hidden" value="Clear" />
+                        <input type="submit" id="btnSave" name="Submit" class="btn btn-primary m-t-sm m-b-sm pull-right m-r-sm btn-sm" value="Save" />
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    @Html.HiddenFor(model => model.employee.EmpID)
+                    @Html.HiddenFor(model => model.employee.EmpName)
+                    @Html.LabelFor(model => model.employee.EmpName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.employee.EmpID, new SelectList((System.Collections.IEnumerable)ViewData["EmployeeList"], "Value", "Text"), "--Select Employee--", new { id = "EmployeeDropdown", @class = "form-control input-sm clearfix", @disabled = "disabled" })
+                    @Html.ValidationMessageFor(model => model.employee.EmpID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.employee.Designation, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.employee.DesignationID, new SelectList((System.Collections.IEnumerable)ViewData["DesignationList"], "Value", "Text"), "--Select Designation--", new { id = "DesignationDropdown", @class = "form-control input-sm clearfix", @disabled = "disabled" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.employee.Mobile, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.employee.Mobile, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readOnly = "readonly" } })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.employee.DOJ, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.employee.DOJ, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readOnly = "readonly" } })
+                </div>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-sm-6 col-md-6">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.employee.Address, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.employee.Address, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readOnly = "readonly" } })
+                </div>
+            </div>
+
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.employee.Phone1, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.employee.Phone1, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readOnly = "readonly" } })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.employee.Phone2, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.employee.Phone2, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readOnly = "readonly" } })
+                </div>
+            </div>
+        </div>
+        <div class="row no-gutters">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>From Date</label>
+                    <input type="text" id="FromDate" class="form-control input-sm FromDate datepicker" />
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>To Date</label>
+                    <input type="text" id="ToDate" class="form-control input-sm ToDate datepicker" />
+                </div>
+            </div>
+            <div class="form-group col-sm-1 col-md-1 m-l-n">
+                <div class="clearfix">
+                    <input type="button" id="btnAdd" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="AddLeave()" />
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12 m-b-lg">
+                <div class="table-responsive" id="pnl-rates">
+                    <table class="table table-striped fixed_header" id="LeaveTable">
+                        <thead class="ibox-title">
+                            <tr>
+                                <th class="tdNone"></th>
+                                <th>From Date</th>
+                                <th>To Date</th>
+                                <th>No. of Days</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            @for (int i = 0; i < Model.empLeaves.Count; i++)
+                            {
+                                <tr>
+                                    <td class="tdNone">
+                                        @Html.HiddenFor(model => Model.empLeaves[i].EmpID)
+                                    </td>
+                                    <td>
+                                        @Html.TextBoxFor(model => Model.empLeaves[i].FromDate, new { @class = "form-control input-sm clearfix tblFromDate datetimepicker", @readonly = "readonly" })
+                                    </td>
+                                    <td>
+                                        @Html.TextBoxFor(model => Model.empLeaves[i].ToDate, new { @class = "form-control input-sm clearfix tblToDate datetimepicker", @readonly = "readonly" })
+                                    </td>
+                                    <td>
+                                        @Html.TextBoxFor(model => Model.empLeaves[i].NoOfDays, new { @class = "form-control input-sm clearfix tblNoOfDays", @readonly = "readonly" })
+                                    </td>
+                                    <th></th>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    }
+</fieldset>
+    <script>
+        function RemoveLeave(sender) {
+            var row = $(sender).closest("TR");
+            if (confirm("Do you want to delete?")) {
+
+                var table = $("#LeaveTable")[0];
+                table.deleteRow(row[0].rowIndex);
+            }
+
+            return false;
+        }
+
+        function AddLeave() {
+
+            var empComboValue = $("#employee_EmpID").val();
+            var FromDate = $("#FromDate").val();
+            var ToDate = $("#ToDate").val();
+
+            if (empComboValue > 0) {
+
+                var g1 = new Date(FromDate);
+                // (YYYY-MM-DD)
+                var g2 = new Date(ToDate);
+                if (g2 >= g1) {
+
+                    if (!checkLeaveExists(FromDate, ToDate)) {
+
+                        var tBody = $("#LeaveTable > TBODY")[0];
+                        var rowCount = $('#LeaveTable > TBODY > tr').length;
+                        var row = tBody.insertRow(-1);
+                        row.className = "package-row";
+
+                        var cell = $(row.insertCell(-1));
+
+                        var td = '<input data-val="true" data-val-number="The field EmpID must be a number." data-val-required="The EmpID field is required." id="empLeaves_' + rowCount + '__EmpID" name="empLeaves[' + rowCount + '].EmpID" type="hidden" value="' + empComboValue + '">';
+
+                        cell.html(td);
+                        cell.addClass("tdNone");
+
+                        td = '<input class="form-control input-sm clearfix tblFromDate datetimepicker" data-val="true" data-val-date="The field FromDate must be a date." data-val-required="The FromDate field is required." id="empLeaves_' + rowCount + '__FromDate" name="empLeaves[' + rowCount + '].FromDate"  readonly="readonly" type="text" value="' + FromDate + '">';
+
+                        cell = $(row.insertCell(-1));
+
+                        cell.html(td);
+
+                        td = '<input class="form-control input-sm clearfix tblToDate datetimepicker" data-val="true" data-val-date="The field ToDate must be a date." data-val-required="The ToDate field is required." id="empLeaves_' + rowCount + '__ToDate" name="empLeaves[' + rowCount + '].ToDate"  readonly="readonly" type="text" value="' + ToDate + '">';
+
+                        cell = $(row.insertCell(-1));
+                        cell.html(td);
+
+                        td = '<input class="form-control input-sm clearfix tblNoOfDays" data-val="true" data-val-number="The field NoOfDays must be a number." data-val-required="The NoOfDays field is required." id="empLeaves_' + rowCount + '__NoOfDays" name="empLeaves[' + rowCount + '].NoOfDays" readonly="readonly"  type="text" value="' + GetDatetimeDiff(g1, g2) + '">';
+
+                        cell = $(row.insertCell(-1));
+                        cell.html(td);
+
+                        var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left m-n  m-l-md" onclick="RemoveLeave(this)" />'
+                        cell = $(row.insertCell(-1));
+                        cell.append(tdremove);
+
+                    }
+                    else {
+
+                        alert('This Date range can not be added.');
+                        return false;
+
+                    }
+
+                }
+                else {
+
+                    alert('Select valid Date range');
+                    return false;
+
+                }
+
+            }
+            else {
+                alert('Employee is required');
+                return false;
+            }
+
+            return false;
+
+        }
+
+        function GetDateDiffInDays(FromDate, ToDate) {
+
+            var date1 = new Date(FromDate);
+            var date2 = new Date(ToDate);
+
+            // To calculate the time difference of two dates
+            var Difference_In_Time = date2.getTime() - date1.getTime();
+
+            // To calculate the no. of days between two dates
+            var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
+
+
+            return (Difference_In_Days >= 0) ? Difference_In_Days + 1 : 0;
+        }
+
+
+        function GetDatetimeDiff(FromDate, ToDate) {
+
+
+            debugger;
+
+            var delta = Math.abs(ToDate - FromDate) / 1000;
+
+            // calculate (and subtract) whole days
+            var days = Math.floor(delta / 86400);
+            delta -= days * 86400;
+
+            // calculate (and subtract) whole hours
+            var hours = Math.floor(delta / 3600) % 24;
+            delta -= hours * 3600;
+
+            // calculate (and subtract) whole minutes
+            var minutes = Math.floor(delta / 60) % 60;
+            delta -= minutes * 60;
+
+
+            return "days: " + days + " hours: " + hours + " minutes: " + minutes;
+
+        }
+
+        function checkLeaveExists(FromDate, ToDate) {
+            debugger;
+            var result = false;
+            var e1start = new Date(FromDate);
+            var e1end = new Date(ToDate);
+
+
+            $("#LeaveTable > TBODY > tr").each(function () {
+
+                var e2start = new Date($(this).find('.tblFromDate').val());
+                var e2end = new Date($(this).find('.tblToDate').val());
+
+                if ((e1start.getTime() >= e2start.getTime() && e1start.getTime() <= e2end.getTime() || e2start.getTime() >= e1start.getTime() && e2start.getTime() <= e1end.getTime())) {
+                    result = true;
+                    return false;
+                }
+
+            });
+
+            return result;
+
+        }
+
+    </script>

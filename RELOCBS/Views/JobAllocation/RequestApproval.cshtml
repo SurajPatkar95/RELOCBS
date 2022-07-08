@@ -1,0 +1,624 @@
+﻿@model RELOCBS.Entities.ActivityAllocationModel
+
+@{
+    ViewBag.Title = "RequestApproval";
+    Layout = "~/Views/Shared/_LayoutNonMenu.cshtml";
+}
+
+<style type="text/css">
+    .modal .popover, .modal .tooltip {
+        /*z-index: 100000000;*/
+        max-width: 100%;
+        max-height: 280px;
+        overflow: auto;
+    }
+
+    .table-scroll {
+        /*width:100%; */
+        display: block;
+        empty-cells: show;
+        /* Decoration */
+        border-spacing: 0;
+        /*border: 1px solid;*/
+    }
+
+        .table-scroll thead {
+            background-color: #f1f1f1;
+            position: relative;
+            display: block;
+            width: 100%;
+            overflow-y: scroll;
+            overflow: hidden;
+        }
+
+        .table-scroll tfoot {
+            background-color: #f1f1f1;
+            position: relative;
+            display: block;
+            width: 100%;
+            overflow-y: scroll;
+            overflow: hidden;
+        }
+
+        .table-scroll tbody {
+            /* Position */
+            display: block;
+            position: relative;
+            width: 100%;
+            overflow-y: scroll;
+            /* Decoration */
+            border-top: 1px solid rgba(0,0,0,0.2);
+        }
+
+        .table-scroll tr {
+            width: 100%;
+            display: flex;
+        }
+
+        .table-scroll td, .table-scroll th {
+            flex-basis: 100%;
+            flex-grow: 2;
+            display: block;
+            padding: 1rem;
+            text-align: left;
+        }
+
+        /* Other options */
+
+        .table-scroll.small-first-col td:first-child,
+        .table-scroll.small-first-col th:first-child {
+            flex-basis: 20%;
+            flex-grow: 1;
+        }
+
+        .table-scroll tbody tr:nth-child(2n) {
+            background-color: rgba(130,130,170,0.1);
+        }
+
+    .body-half-screen {
+        max-height: 30vh;
+    }
+</style>
+
+
+@using (Html.BeginForm("RequestApproval", "JobAllocation", new { V1="A", V2 = ViewBag.V2, V3= ViewBag.V3, V4= ViewBag.V4, V5= ViewBag.V5, qCode = ViewBag.qCode }, FormMethod.Post, new { enctype = "multipart/form-data", id = "CreateActivityAllocation", name = "CreateActivityAllocation" }))
+{
+    <div id="frmEmp" class="ibox-content-pad ibox-content">
+    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(a => a.BatchID)
+    @Html.HiddenFor(a => a.ACT_Status)
+    @Html.HiddenFor(a => a.ACT_StatusID)
+    @Html.HiddenFor(a => a.CancelRemark, new { @id = "txtCancelRemark" })
+
+    @Html.HiddenFor(m => m.HVMaterialUsed)
+    @Html.HiddenFor(m => m.HVCrewMembers)
+    @Html.HiddenFor(m => m.HVDocList)
+    @Html.HiddenFor(m => m.HVServices)
+    @Html.HiddenFor(m => m.HVVehicles)
+    @Html.HiddenFor(m => m.RateComponentID)
+    @Html.HiddenFor(m => m.BranchID)
+    @Html.HiddenFor(m => m.JobType)
+    @Html.HiddenFor(m => m.CompanyID)
+
+        
+    
+
+    @if (Model.ActivityIds != null)
+    {
+        for (int i = 0; i < Model.ActivityIds.Count; i++)
+        {
+            @Html.HiddenFor(a => Model.ActivityIds[i])
+        }
+    }
+
+    @if (Model.InstIds != null)
+    {
+        for (int i = 0; i < Model.InstIds.Count; i++)
+        {
+            @Html.HiddenFor(a => Model.InstIds[i])
+        }
+    }
+
+    <div class="row">
+        <div class="col-md-5">
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label">Job No.:</label>
+                <div class="col-md-10 text-left">
+                    @Html.Raw(Model.JobNo)
+                    @Html.HiddenFor(model => model.JobNo)
+                </div>
+            </div>
+        </div>
+        @if (Model.JobType == 1)
+        {
+            <div class="col-md-5">
+                <div class="form-group row">
+                    <label class="col-md-2 col-form-label">Shipper:</label>
+                    <div class="col-md-10 text-left">
+                        @Html.Raw(Model.ShipperName)
+                        @Html.HiddenFor(model => model.ShipperName)
+                    </div>
+                </div>
+            </div>
+        }
+        <div class="col-md-2">
+            <div class="form-group row">
+                <label class="col-md-3 col-form-label">Status:</label>
+                <div class="col-md-9 text-left">
+                    @Html.Raw(Model.ACT_Status)
+                    @Html.HiddenFor(model => model.ACT_Status)
+                    @Html.HiddenFor(model => model.TabIndex)
+                </div>
+            </div>
+        </div>
+        <button type="submit" name="submit" id="btnSave" value="Save"  class="btn btn-primary btnSubmit hide">Save</button>
+    </div>
+
+    <div class="row tabs-container">
+        <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="@(Model.TabIndex == 0 ? "active" : "") tab-0 hide" onclick="tabClick(0)"><a href="#CrewAllocation" aria-controls="CrewAllocation" role="tab" data-toggle="tab" aria-expanded="true">Crew Allocation</a></li>
+            <li role="presentation" class="@(Model.TabIndex == 1 ? "active" : "") tab-1 hide" onclick="tabClick(1)"><a href="#AdditionalService" aria-controls="AdditionalService" role="tab" data-toggle="tab" aria-expanded="true">Additional Services</a></li>
+            <li role="presentation" class="@(Model.TabIndex == 2 ? "active" : "") tab-2" onclick="tabClick(2)"><a href="#VehicleAllocation" aria-controls="VehicleAllocation" role="tab" data-toggle="tab" aria-expanded="true">Vehicle Allocation</a></li>
+            <li role="presentation" class="@(Model.TabIndex == 3 ? "active" : "") tab-3 hide" onclick="tabClick(3)"><a href="#MaterialRequest" aria-controls="MaterialRequest" role="tab" data-toggle="tab" aria-expanded="true">Material Request</a></li>
+            @if (Model.BatchID != null && Model.BatchID > 0)
+            {
+                <li role="presentation" class="@(Model.TabIndex == 4 ? "active" : "") tab-4 hide" onclick="tabClick(4)"><a href="#DocumentUpload" aria-controls="DocumentUpload" role="tab" data-toggle="tab" aria-expanded="true">Document Upload</a></li>
+            }
+        </ul>
+        <div class="tab-content">
+            <div role="tabpanel" class="@(Model.TabIndex == 0 ? "tab-pane active" : "tab-pane") hide" id="CrewAllocation">
+                @{ Html.RenderPartial("_CrewAllocation", Model); }
+            </div>
+            <div role="tabpanel" class="@(Model.TabIndex == 1 ? "tab-pane active" : "tab-pane") hide" id="AdditionalService">
+                @{ Html.RenderPartial("_AdditionalService", Model); }
+            </div>
+            <div role="tabpanel" class="@(Model.TabIndex == 2 ? "tab-pane active" : "tab-pane")" id="VehicleAllocation">
+                @{ Html.RenderPartial("_VehicleAllocation", Model); }
+            </div>
+            <div role="tabpanel" class="@(Model.TabIndex == 3 ? "tab-pane active" : "tab-pane") hide" id="MaterialRequest">
+                @{ Html.RenderPartial("_MaterialRequest", Model); }
+            </div>
+            @if (Model.BatchID != null && Model.BatchID > 0)
+            {
+                <div role="tabpanel" class="@(Model.TabIndex == 4 ? "tab-pane active" : "tab-pane") hide" id="DocumentUpload">
+                    @Html.Partial("DocUpload", Model)
+                </div>
+            }
+        </div>
+    </div>
+
+</div>
+<div id="VehicleApproval" class="hide">
+        @Html.HiddenFor(model => model.hireVehileApproval.V_ID,new { @id="Approval_V_ID", @class="Approval_V_ID" })
+        @Html.HiddenFor(model => Model.hireVehileApproval.IsApproved, new { @id= "rbVehicleApprove", @class="rbApprove" })
+        @Html.HiddenFor(model => Model.hireVehileApproval.Remark, new { @id= "txtHiredVehicleApproveRemark", @class = "form-control input-sm clearfix txtHiredVehicleApproveRemark" })
+</div>
+
+}
+
+@section Scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+
+    <script type="text/javascript">
+        function tabClick(index) {
+
+            $('#TabIndex').val(index);
+
+            return false;
+        }
+
+        $(document).ready(function () {
+
+            loadHiredVehicleBinding();
+            DatePickerClass();
+            EmployeePopOver();
+
+            $('form').on('submit', function (e) {
+                //e.preventDefault();
+                $('.Approval_V_ID').val($('.HFV_VID').val());
+                debugger;
+                if (!$(this).valid()) { e.preventDefault(); return; }
+                
+                //$(".btnSubmit").attr("disabled", "disabled");
+                GetAllData();
+                $('#overlay').fadeIn();
+            });
+
+            $('input[type=radio][class="rbApproval"]').change(function () {
+
+                $('.rbApprove').val(this.value);
+                //$('.rbReject').prop('checked', false);
+                //if (this.value == '1') {
+                //    $('.rbApprove').v('checked', true);
+                //}
+                //else if (this.value == '0') {
+                //    $('.rbReject').prop('checked', true);
+                //}
+            });
+
+            $('.HiredVehicleApproveRemark').on('input propertychange paste', function () {
+                $('#txtHiredVehicleApproveRemark').val($(this).val());
+            });
+
+        });
+
+        function DatePickerClass() {
+
+            if ($('.CrewEmpFromDate').is(':disabled')) {
+                $('.CAStartDate').attr('disabled', 'disabled').removeAttr('datetimepicker');
+                $('.CAEndDate').attr('disabled', 'disabled').removeAttr('datetimepicker');
+            }
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY HH:mm",
+                sideBySide: true//,
+                //widgetPositioning: {
+                //    vertical: 'bottom'
+                //}
+
+            });
+
+            $('.timepicker').datetimepicker({
+                format: 'HH:mm',
+            });
+
+            $('.datetimepicker').each(function () {
+
+                if ($(this).val().includes("0001")) {
+                    $(this).val("");
+                }
+            });
+
+            $('.enableselect').select2({
+                width: '100%',
+                //dropdownParent: $("#myModal .parent-cotent")
+            });
+            $('.multipleselect').multiselect({
+                includeSelectAllOption: false,
+                enableFiltering: true,
+                enableCaseInsensitiveFiltering: true,
+                filterPlaceholder: 'Search',
+                maxHeight: 250,
+                numberDisplayed: 1,
+                buttonWidth: "100%"
+            });
+
+            $('.TblIssuedQty').bind('input', function () {
+
+                GetMaterialTotal();
+            });
+
+            GetMaterialTotal();
+            Download();
+        }
+
+        function EmployeePopOver() {
+            $(".myPopover").popover({
+                title: 'Detail <a href="#" class="close" data-dismiss="alert">&times;</a>',
+                html: true,
+                trigger: 'click'
+            }).on('shown.bs.popover', function () {
+                var popover = $(this);
+                $('.myPopover').not(this).popover('hide');
+                var contentEl = popover.next(".popover").find(".popover-content");
+                // Show spinner while waiting for data to be fetched
+                contentEl.html("<i class='fa fa-spinner fa-pulse fa-2x fa-fw'></i>");
+                var myParameter = popover.data('api-parameter');
+                $.get(myParameter)
+                    .done(function (data) {
+                        var result = data;
+                        if (result == '') {
+                            result = "No info found.";
+                        }
+                        contentEl.html(result);
+                    }).fail(function (data) {
+                        result = "No info found.";
+                        contentEl.html(result);
+                    });
+
+            });
+        }
+
+        function GetMaterialTotal() {
+
+
+
+            var TotalAmount = 0;
+
+            $('#tblMaterial tbody tr').each(function (index, tr) {
+
+                TotalAmount = TotalAmount + (!isNaN(parseInt($(this).find('.TblIssuedQty').val())) ? parseInt($(this).find('.TblIssuedQty').val()) : 0);
+            });
+
+            $('#MaterialTotal').val(TotalAmount);
+
+        }
+
+        function Download() {
+
+            $('.DocDownload').click(function (e) {
+
+                e.preventDefault();
+                var url = $(this).attr('data-url');
+                var antiToken = $('input[name="__RequestVerificationToken"]').val();
+                var DocID = $(this).closest('td').find('.DocID').val();
+                var BatchID = $('.BatchID').val();
+
+                var form = $('#frmDownload');
+                if (form != null) {
+                    form.remove();
+                }
+                var newForm = $('<form>', {
+                    'id': 'frmDownload',
+                    'action': url,
+                    'target': '_blank',
+                    'method': 'POST'
+                }).append($('<input>', {
+                    'name': 'BatchID',
+                    'value': BatchID,
+                    'type': 'hidden'
+                })).append(jQuery('<input>', {
+                    'name': '__RequestVerificationToken',
+                    'value': antiToken,
+                    'type': 'hidden'
+                })).append(jQuery('<input>', {
+                    'name': 'DocID',
+                    'value': DocID,
+                    'type': 'hidden'
+                }));
+
+                newForm.appendTo('body').submit();
+            });
+        }
+
+        function GetAllData() {
+
+            var cdata = [];
+            /////Crew member
+            $('#tlbCrew tbody tr').each(function () {
+                var CWMID = $(this).find('.CWMID').val();
+                var CrewEmpList = $(this).find('.CrewEmpList').val();
+                var CrewEmp = $(this).find('.CrewEmp').val();
+                var CrewEmpFromDate = $(this).find('.CrewEmpFromDate').val();
+                var CrewEmpToDate = $(this).find('.CrewEmpToDate').val();
+
+                var alldata = {
+
+                    'CWMID': CWMID,
+                    'EmpName': CrewEmpList,
+                    'EmpID': parseInt(CrewEmp),
+                    'EffectiveFrom': (CrewEmpFromDate),
+                    'EffectiveTo': (CrewEmpToDate)//,
+                    //'InActive': false
+                }
+                cdata.push(alldata);
+            });
+
+            var pair = { 'members': cdata };
+            $("#HVCrewMembers").val(JSON.stringify(pair));
+
+            cdata = [];
+            /////Services
+            $('#tblAddService tbody tr').each(function () {
+                var SD_ID = $(this).find('.SD_ID').val();
+                var ServiceType = $(this).find('.ServiceType').val();
+                var Description = $(this).find('.ADDescription').val();
+                var ServiceID = $(this).find('.ServiceID').val();
+                //var ActivityID = $(this).find('.ActivityID').val();
+                //var SD_ID = $(this).find('.SD_ID').val();
+                var AdFromDate = $(this).find('.AdFromDate').val();
+                var AdToDate = $(this).find('.AdToDate').val();
+                var AdCost = $(this).find('.AdCost').val();
+                var alldata = {
+                    'SD_ID': SD_ID,
+                    'ServiceName': ServiceType,
+                    'ServiceID': parseInt(ServiceID),
+                    //'ActivityID': parseInt(ActivityID),
+                    //'SD_ID': parseInt(SD_ID),
+                    'FromDate': (AdFromDate),
+                    'ToDate': (AdToDate),
+                    'Cost': parseFloat(AdCost),
+                    'Description': Description
+                    //'InActive': false
+                }
+                cdata.push(alldata);
+            });
+
+            pair = { 'services': cdata };
+            $("#HVServices").val(JSON.stringify(pair));
+
+
+            cdata = [];
+            /////job Vehicle List
+            $('#tblVehicle tbody tr').each(function () {
+                var V_ID = $(this).find('.V_ID').val();
+                var PurposeList = $(this).find('.PurposeList').val();
+                var BatchID = $(this).find('.BatchID').val();
+                var VPurpose = $(this).find('.VPurpose').val();
+                var VehicleTypeList = $(this).find('.VehicleTypeList').val();
+                var VehicleType = $(this).find('.VehicleType').val();
+                var VehicleList = $(this).find('.VehicleList').val();
+                var Vehicle = $(this).find('.Vehicle').val();
+                var DriverTypeList = $(this).find('.DriverTypeList').val();
+                var DriverType = $(this).find('.DriverType').val();
+                var DriverList = $(this).find('.DriverList').val();
+                var VDriver = $(this).find('.VDriver').val();
+                var VehicleFromDate = $(this).find('.VehicleFromDate').val();
+                var VehicleToDate = $(this).find('.VehicleToDate').val();
+                var VehicleRemark = $(this).find('.V_Remark').val();
+                var VehicleCost = $(this).find('.V_Cost').val();
+
+                let VehicleMovementID = $(this).find(".MovementID").val();
+                let VehicleSupplierID = $(this).find(".SupplierID").val();
+                let VehicleDimensionID = $(this).find(".DimensionID").val();
+                let VehicleReasonID = $(this).find(".VReasonID").val();
+
+                let VehicleMovement = $(this).find(".MovementList").val();
+                let VehicleSupplier = $(this).find(".SupplierList").val();
+                let VehicleDimension = $(this).find(".DimensionList").val();
+                let VehicleReason = $(this).find(".VReasonList").val();
+
+                var alldata = {
+                    'V_ID': V_ID,
+                    'Purpose': PurposeList,
+                    'BatchID': parseInt(BatchID),
+                    'PurposeID': parseInt(VPurpose),
+                    'VehicleType': VehicleTypeList,
+                    'VehicleTypeID': VehicleType,
+                    'VehicleNo': VehicleList,
+                    'VehicleID': parseInt(Vehicle),
+                    'DriverType': DriverTypeList,
+                    'DriverTypeID': DriverType,
+                    'Driver': DriverList,
+                    'DriverID': VDriver,
+                    'FromDate': VehicleFromDate,
+                    'ToDate': VehicleToDate,
+                    'V_Remark': VehicleRemark,
+                    'V_Cost': VehicleCost,
+                    'MovementID': VehicleMovementID,
+                    'MovementName': VehicleMovement,
+                    'SupplierID': VehicleSupplierID,
+                    'SupplierName': VehicleSupplier,
+                    'DimensionID': VehicleDimensionID,
+                    'DimensionName': VehicleDimension,
+                    'ReasonID': VehicleReasonID,
+                    'ReasonName': VehicleReason,
+                }
+                cdata.push(alldata);
+            });
+
+            pair = { 'jobVehicleList': cdata };
+            $("#HVVehicles").val(JSON.stringify(pair));
+
+            cdata = [];
+            /////materialUsed
+            $('#tblMaterial tbody tr').each(function () {
+                var M_ID = $(this).find('.M_ID').val();
+                var TblMaterail = $(this).find('.TblMaterail').val();
+                var TblMaterailID = $(this).find('.TblMaterailId').val();
+                var TblIssuedQty = $(this).find('.TblIssuedQty').val();
+                var TblRate = $(this).find('.TblRate').val();
+
+                var alldata = {
+                    'M_ID': M_ID,
+                    'Materail': TblMaterail,
+                    'MaterailId': parseInt(TblMaterailID),
+                    'IssuedQty': parseInt(TblIssuedQty),
+                    'Rate': parseFloat(TblRate)//,
+                    //'InActive': false
+                }
+                cdata.push(alldata);
+            });
+
+            pair = { 'materialUsed': cdata };
+            $("#HVMaterialUsed").val(JSON.stringify(pair));
+
+            cdata = [];
+            /////docLists
+            $('#tblDocList tbody tr').each(function () {
+                var DocID = $(this).find('.DocID').val();
+                var DocTypeID = $(this).find('.DocTypeID').val();
+                var BatchID = $(this).find('.BatchID').val();
+                var DocumentName = $(this).find('.DocumentName').val();
+
+                var alldata = {
+                    'DocID': DocID,
+                    'DocTypeID': DocTypeID,
+                    'BatchID': parseInt(BatchID),
+                    'DocID': parseInt(DocID),
+                    'DocumentName': DocumentName////,
+                    ////'InActive': false
+                }
+                cdata.push(alldata);
+            });
+
+            pair = { 'docLists': cdata };
+            $("#HVDocList").val(JSON.stringify(pair));
+
+        }
+
+        const loadHiredVehicleBinding = function () {
+
+            const HiredVehicleApproval = function (event) {
+
+
+                const V_ID = event.target.dataset.id;
+                if (event.currentTarget.classList.contains('btnApproval')) {
+
+                    $('#hireVehileApproval_V_ID').val(V_ID);
+                }
+                else {
+
+                    const remark = event.target.closest('tr').querySelector('.V_Remark').value;
+                    const cost = event.target.closest('tr').querySelector('.V_Cost').value;
+
+                    if (Number.isNaN(Number.parseInt(V_ID))) {
+                        event.preventDefault();
+                        return;
+                    }
+                    if (remark == '' || Number.isNaN(Number.parseFloat(cost))) {
+                        event.preventDefault();
+                        alert('Remark and Cost required');
+                        return;
+                    }
+                    $('#hireVehileSendForApprove_V_ID').val(V_ID);
+                    $('#hireVehileSendForApprove_Remark').val(remark);
+                    $('#hireVehileSendForApprove_Cost').val(cost);
+
+                    $('#submit').val($('#btnSendForApproval').attr('value'));
+                    $('#btnSendForApproval').submit();
+                }
+
+
+
+            }
+
+            const ApprovalClose = function (e) {
+                $('#myModal2').modal('hide');
+                e.preventDefault();
+            }
+
+            const ApproveFunction = function (e) {
+
+
+                const V_ID = $('#hireVehileApproval_V_ID').val();
+                const remark = $('#hireVehileApproval_Remark').val();
+                if (Number.isNaN(Number.parseInt(V_ID))) {
+                    event.preventDefault();
+                    return;
+                }
+
+                if (!$('#rbHVApprove').prop('checked') && !$('#rbHVReject').prop('checked')) {
+                    event.preventDefault();
+                    alert('Approval Status required');
+                    return;
+                }
+                if (remark == '') {
+                    event.preventDefault();
+                    alert('Remark required');
+                    return;
+                }
+                $('#submit').val($('.btnApprove').attr('value'));
+                //$('#myModal2').modal('hide');
+                //$('#btnSave').trigger('click');
+
+            }
+
+            document.querySelectorAll('.btnSentApproval').forEach(el => el.addEventListener('click', HiredVehicleApproval));
+            document.querySelectorAll('.btnApproval').forEach(el => el.addEventListener('click', HiredVehicleApproval));
+
+            document.querySelectorAll('.btnCloseApproval').forEach(el => el.addEventListener('click', ApprovalClose));
+            document.querySelectorAll('#btnApprovalSave').forEach(el => el.addEventListener('click', ApproveFunction));
+
+        }
+
+    </script>
+
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+
+}

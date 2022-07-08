@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RELOCBS.Utility;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
@@ -6,10 +7,10 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
-using RELOCBS.Utility;
 using System.Web.Mvc;
 
 namespace RELOCBS.App_Code
@@ -53,7 +54,7 @@ namespace RELOCBS.App_Code
             try
             {
                 System.Web.HttpContext context = System.Web.HttpContext.Current;
-                string LoginID = Convert.ToString(UserSession.GetUserSession().LoginID);
+                string LoginID = Convert.ToString(UserSession.GetUserSession()?.LoginID);
                 string FullMessage = "UserID : " + LoginID + Environment.NewLine +
                                      "DateTime  : " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm:ss") + Environment.NewLine +
                                      "Page      : " + objPage.ToString() + Environment.NewLine +
@@ -825,7 +826,7 @@ namespace RELOCBS.App_Code
 
         #endregion
 
-        #region
+        #region Combo
 
         public IEnumerable<SelectListItem> BindDropdown(string PrmQuery, bool PrmAddAll = false)
         {
@@ -833,12 +834,12 @@ namespace RELOCBS.App_Code
 
             try
             {
-                
+
                 using (DataTable dtTable = GetDataTable(PrmQuery))
                 {
                     if (dtTable != null)
                     {
-                        
+
 
                         Int32 itemOffset;
                         Int32 endOffset;
@@ -854,7 +855,7 @@ namespace RELOCBS.App_Code
 
                         for (Int32 i = itemOffset; i < endOffset; i++)
                         {
-                            SelectListItem item = new SelectListItem(){ Value=dtTable.Rows[i][0].ToString(), Text=dtTable.Rows[i][1].ToString() };
+                            SelectListItem item = new SelectListItem() { Value = dtTable.Rows[i][0].ToString(), Text = dtTable.Rows[i][1].ToString() };
                             listItems.Add(item);
                             //item.DataBind();
                         }
@@ -868,8 +869,8 @@ namespace RELOCBS.App_Code
             finally
             {
                 if (PrmAddAll)
-                    listItems.Insert(0, new SelectListItem() { Value= "-1",Text="*All Items*" });
-                
+                    listItems.Insert(0, new SelectListItem() { Value = "-1", Text = "*All Items*" });
+
             }
 
             return listItems;
@@ -877,5 +878,186 @@ namespace RELOCBS.App_Code
 
 
         #endregion
+
+        #region Security Patch Code
+
+        public bool CheckImproperUrl(string Url)
+        {
+            //Regex reg = new Regex(System.Configuration.ConfigurationManager.AppSettings["Validinputs"]);
+            //if (!string.IsNullOrEmpty(Url))
+            //{
+            //    return reg.IsMatch(Url);
+            //}
+            Uri uri = null;
+            if (!Uri.TryCreate(Url, UriKind.Absolute, out uri) || null == uri)
+            {
+
+                //Invalid URL
+                return false;
+            }
+
+            return true;
+        }
+
+        //public bool CheckImproperUrl(string Url)
+        //{
+        //    Regex reg = new Regex(System.Configuration.ConfigurationManager.AppSettings["Validinputs"]);
+        //    if (!string.IsNullOrEmpty(Url))
+        //    {
+        //        return reg.IsMatch(Url);
+        //    }
+        //    return true;
+        //}
+
+        public bool CheckSessionToken()
+        {
+            try
+            {
+                if (_Page.Session["LoginID"] != null && _Page.Session["LoginID"].ToString() != "")
+                {
+
+                    if (_Page.Session["AuthToken"] != null && _Page.Request.Cookies["AuthToken"] != null)
+                    // if (_Page.Session["AuthToken"] != null && myCookie != null)
+                    {
+                        if (!_Page.Session["AuthToken"].ToString().Equals(_Page.Request.Cookies["AuthToken"].Value))
+                            //if (!_Page.Session["AuthToken"].ToString().Equals(myCookie.Value))
+                            return false;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+
+            return true;
+        }
+
+        public bool ValidateFileForSecurity(List<HttpPostedFileBase> files, out string Message)
+        {
+            Message = string.Empty;
+            try
+            {
+                string RestrictedExtenstions = System.Configuration.ConfigurationManager.AppSettings["MaliciousExt"].ToString().Trim();
+                List<string> lstExt = RestrictedExtenstions.Split(',').ToList();
+                //MimeTypes MimeType=new MimeTypes();
+                if (files != null && files.Count() > 0)
+                {
+                    foreach (HttpPostedFileBase File in files)
+                    {
+                        string FileExtension = Path.GetExtension(File.FileName).ToLower();
+                        if (lstExt.Contains(FileExtension))
+                            throw new ArgumentException(FileExtension + " extenstion not allowed.");
+                        if (File.FileName.Count(x => x == '.') != 1)
+                            throw new ArgumentException("Invalid File");
+                        if (MimeTypesSubs.GetValidMimeType(File))
+                            throw new ArgumentException("Invalid File");
+                        //if (MimeTypesSubs.checkMagicNumbers(File))
+                        //  throw new ArgumentException("Invalid File");
+                        //if (IsExeFile(File))
+                        //    throw new ArgumentException("Invalid File");
+                        //if (File.ContentType != "text/plain")
+                        //    throw new ArgumentException("Invalid File");
+                    }
+                }
+            }
+            catch (Exception Ex)
+            {
+                Message = Ex.Message;
+                return false;
+            }
+            return true;
+        }
+
+        public static bool IsExeFile(HttpPostedFileBase file)
+        {
+
+            byte[] buffer = new byte[file.InputStream.Length];
+            byte[] FileContent;// = new byte[file.InputStream.Length];
+
+            using (Stream str = file.InputStream)
+            {
+                byte[] content = new byte[str.Length];
+                str.Read(content, 0, content.Length);
+
+                FileContent = content;
+            }
+
+            //using (MemoryStream ms = new MemoryStream())
+            //{
+            //    int read;
+            //    while ((read = file.InputStream.Read(buffer, 0, buffer.Length)) > 0)
+            //    {
+            //        ms.Write(buffer, 0, read);
+            //    }
+            //    FileContent= ms.ToArray();
+            //}
+            //FileStream stream = File.OpenRead(file.InputStream);
+
+            var twoBytes = SubByteArray(FileContent, 0, 2);
+            return ((Encoding.UTF8.GetString(twoBytes) == "MZ") || (Encoding.UTF8.GetString(twoBytes) == "ZM"));
+        }
+
+        private static byte[] SubByteArray(byte[] data, int index, int length)
+        {
+            byte[] result = new byte[length];
+            Array.Copy(data, index, result, 0, length);
+            return result;
+        }
+
+        public string EncryptQS(string prmStr)
+        {
+            if (!string.IsNullOrWhiteSpace(prmStr))
+            {
+                // return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(prmStr));
+                byte[] inputArray = UTF8Encoding.UTF8.GetBytes(prmStr);
+                TripleDESCryptoServiceProvider tripleDES = new TripleDESCryptoServiceProvider();
+
+                tripleDES.Key = UTF8Encoding.UTF8.GetBytes("xxx-aaa-sss-xxxx");
+
+                tripleDES.Mode = CipherMode.ECB;
+                tripleDES.Padding = PaddingMode.PKCS7;
+                ICryptoTransform cTransform = tripleDES.CreateEncryptor();
+                byte[] resultArray = cTransform.TransformFinalBlock(inputArray, 0, inputArray.Length);
+                tripleDES.Clear();
+                return Convert.ToBase64String(resultArray, 0, resultArray.Length);
+            }
+            else
+            {
+                return "";
+            }
+        }
+
+        public string DecryptQS(string prmStr)
+        {
+            if (!string.IsNullOrWhiteSpace(prmStr))
+            {
+                // return System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(prmStr));
+                byte[] inputArray = Convert.FromBase64String(prmStr.Replace(" ", "+"));
+                // byte[] inputArray = Encoding.ASCII.GetBytes(prmStr);
+                TripleDESCryptoServiceProvider tripleDES = new TripleDESCryptoServiceProvider();
+
+                tripleDES.Key = UTF8Encoding.UTF8.GetBytes("xxx-aaa-sss-xxxx");
+                tripleDES.Mode = CipherMode.ECB;
+                tripleDES.Padding = PaddingMode.PKCS7;
+                ICryptoTransform cTransform = tripleDES.CreateDecryptor();
+                byte[] resultArray = cTransform.TransformFinalBlock(inputArray, 0, inputArray.Length);
+                tripleDES.Clear();
+                return UTF8Encoding.UTF8.GetString(resultArray);
+            }
+            else
+            {
+                return "";
+            }
+
+        }
+
+        #endregion
+
     }
 }

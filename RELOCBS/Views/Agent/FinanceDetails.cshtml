@@ -1,0 +1,124 @@
+﻿@model RELOCBS.Entities.AgentViewModel
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">Finance Details</h4>
+</div>
+@using (Html.BeginForm("FinanceDetails", "Agent", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-sm-12">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.HiddenFor(model => model.AgentID)
+                <div class="row">
+                    <div class="form-group row">
+                        <label class="control-label col-md-3 col-md-offset-2">Name</label>
+                        <div class="col-md-5">
+                            @Html.EditorFor(model => model.FinanceDetails.Name, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                            @*@Html.ValidationMessageFor(model => model.ShortAgentName, "", new { @class = "text-danger" })*@
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="control-label col-md-3 col-md-offset-2">Mobile No.</label>
+                        <div class="col-md-5">
+                            @Html.EditorFor(model => model.FinanceDetails.Number, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                            @*@Html.ValidationMessageFor(model => model.AgentName, "", new { @class = "text-danger" })*@
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="control-label col-md-3 col-md-offset-2">Email</label>
+                        <div class="col-md-5">
+                            @Html.EditorFor(model => model.FinanceDetails.Email, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                            @*@Html.ValidationMessageFor(model => model.AgentGroupID, "", new { @class = "text-danger" })*@
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="panel-group">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Escalation 1</div>
+                            <div class="panel-body">
+                                <div class="form-group row">
+                                    <label class="control-label col-md-3 col-md-offset-2">Name</label>
+                                    <div class="col-md-5">
+                                        @Html.EditorFor(model => model.FinanceDetails.ESC1_Name, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                        @*@Html.ValidationMessageFor(model => model.ShortAgentName, "", new { @class = "text-danger" })*@
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="control-label col-md-3 col-md-offset-2">Mobile No.</label>
+                                    <div class="col-md-5">
+                                        @Html.EditorFor(model => model.FinanceDetails.ESC1_Number, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                        @*@Html.ValidationMessageFor(model => model.AgentName, "", new { @class = "text-danger" })*@
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="control-label col-md-3 col-md-offset-2">Email</label>
+                                    <div class="col-md-5">
+                                        @Html.EditorFor(model => model.FinanceDetails.ESC1_Email, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                        @*@Html.ValidationMessageFor(model => model.AgentGroupID, "", new { @class = "text-danger" })*@
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                    @*<div class="well-xs">
+            <h4>Escalation 2</h4>
+
+        </div>*@
+                </div>
+                
+                <div class="row">
+                        <div class="panel-group">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Escalation 2</div>
+                                <div class="panel-body">
+                                    <div class="form-group row">
+                                        <label class="control-label col-md-3 col-md-offset-2">Name</label>
+                                        <div class="col-md-5">
+                                            @Html.EditorFor(model => model.FinanceDetails.ESC2_Name, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                            @*@Html.ValidationMessageFor(model => model.ShortAgentName, "", new { @class = "text-danger" })*@
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label class="control-label col-md-3 col-md-offset-2">Mobile No.</label>
+                                        <div class="col-md-5">
+                                            @Html.EditorFor(model => model.FinanceDetails.ESC2_Number, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                            @*@Html.ValidationMessageFor(model => model.AgentName, "", new { @class = "text-danger" })*@
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label class="control-label col-md-3 col-md-offset-2">Email</label>
+                                        <div class="col-md-5">
+                                            @Html.EditorFor(model => model.FinanceDetails.ESC2_Email, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                            @*@Html.ValidationMessageFor(model => model.AgentGroupID, "", new { @class = "text-danger" })*@
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            
+                        </div>
+                        @*<div class="well-xs">
+                            <h4>Escalation 2</h4>
+                            
+                        </div>*@
+                    </div>
+                    
+                
+
+            </div>
+            </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnCreate" />
+        </div>
+    </div>
+}

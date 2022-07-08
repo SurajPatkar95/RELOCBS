@@ -25,7 +25,7 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        @Html.LabelFor(model => model.CityName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                        @Html.LabelFor(model => model.CityName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
                         <div class="col-md-5">
                             @Html.EditorFor(model => model.CityName, new { htmlAttributes = new { @class = "form-control input-sm" } })
                             @Html.ValidationMessageFor(model => model.CityName, "", new { @class = "text-danger" })
@@ -38,7 +38,13 @@
                             @Html.ValidationMessageFor(model => model.CountryID, "", new { @class = "text-danger" })
                         </div>
                     </div>
-
+                    <div class="form-group row">
+                        @Html.LabelFor(model => model.StateName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                        <div class="col-md-5">
+                            @Html.DropDownListFor(model => model.StateID, new SelectList((System.Collections.IEnumerable)ViewData["State"], "Value", "Text"), "Select State", new { @class = "form-control input-sm clearfix" })
+                            @Html.ValidationMessageFor(model => model.StateID, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
                     <div class="form-group row">
                         <div class="col-md-offset-2">
                             <div class="col-md-5">
@@ -73,17 +79,17 @@
         form.removeData('validator');
         form.removeData('unobtrusiveValidation');
         $.validator.unobtrusive.parse(form);
-        
+        $('select#CountryID').select2();
 
         $('#mdlAddEdit').on('shown.bs.modal', function () {
             $('#CountryID').focus();
         });
 
-        @*$('body').on('change', '#CountryID', function (e) {
+        $('body').on('change', '#CountryID', function (e) {
             var CountryID = $(this).val();
             $("select#StateID").empty();
             $('#StateID').append($('<option>', {
-                value: 0,
+                value: '',
                 text: 'Select State'
             }));
             $.ajax({
@@ -97,13 +103,15 @@
                     $('select#StateID').select2({ data: data });
                 }
             });
-        });*@
+        });
 
 
         AutoDropFill();
         $('#mdlAddEdit form').on('submit', function (e) {
             e.preventDefault();
             if (!$(this).valid()) { return; }
+            debugger;
+            if ($('select#CountryID option:selected').text().toUpperCase() == "INDIA" && ($('select#StateID option:selected').val() == null || $('select#StateID option:selected').val() == "")) { alert('State is required'); return; }
 
             $('#mdlAddEdit .modal-content').mask("Loading...");
             $(this).ajaxSubmit({

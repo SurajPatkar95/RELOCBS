@@ -1,0 +1,146 @@
+﻿@model RELOCBS.Entities.WHJob_InstructionSheet
+@{
+    Layout = null;
+}
+
+<div class="ibox-content">
+    @Html.HiddenFor(a => a.JobID)
+    @Html.HiddenFor(a => a.InstID)
+    <div class="row">
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <strong>Job No. :</strong>&nbsp;<strong>@Html.Raw(Model.JobNo)</strong>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <strong>Inst No. :</strong>&nbsp;<strong>@Html.Raw(Model.InstID)</strong>
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <strong>BusinessLine:</strong>&nbsp;<strong>@Html.Raw(Model.BusinessLine)</strong>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <strong>Status:</strong>&nbsp;<strong>@Html.Raw(Model.Status)</strong>
+            </div>
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="SpecialInstructions" class="col-sm-2 col-form-label">Special Instructions</label>
+        <div class="col-sm-10">
+            @Html.TextAreaFor(a => a.SpecialInstructions, new { @class = "form-control input-sm", rows = "3", placeholder = "SpecialInstructions", title = "SpecialInstructions", @id = "SpecialInstructions" })
+        </div>
+    </div>
+    <fieldset class="row col-sm-12  border-grey">
+        <legend>Address</legend>
+        <div class="form-group row">
+            <label for="OriginAddrs" class="col-sm-1 col-form-label">Address1</label>
+            <div class="col-sm-5">
+                @Html.TextAreaFor(a => a.Add1, new { @class = "form-control input-sm", rows = "3", placeholder = "Address 1", title = "OriginAddrs1", @id = "OriginAddrs1" })
+            </div>
+            <label for="OriginAddrs" class="col-sm-1 col-form-label">Address2</label>
+            <div class="col-sm-5">
+                @Html.TextAreaFor(a => a.Add2, new { @class = "form-control input-sm", rows = "3", placeholder = "Address 2", title = "OriginAddrs2", @id = "OriginAddrs2" })
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="OriginCity" class="col-sm-1 col-form-label">City</label>
+            <div class="col-sm-3">
+                @Html.TextBoxFor(a => a.City, new { @class = "form-control input-sm", placeholder = "City", title = "City", @id = "OriginCity", @readonly = "readonly" })
+            </div>
+            <label for="OrgPincode" class="col-sm-1 col-form-label">Pincode</label>
+            <div class="col-sm-2">
+                @Html.TextBoxFor(a => a.Pincode, new { @class = "form-control input-sm", placeholder = "Pincode", title = "OrgPincode", @id = "OrgPincode", @readonly = "readonly" })
+            </div>
+            <label for="OrgMobile" class="col-sm-1 col-form-label">Mobile</label>
+            <div class="col-sm-2">
+                @Html.TextBoxFor(a => a.Mobile, new { @class = "form-control input-sm", placeholder = "Mobile", title = "OrgMobile", @id = "OrgMobile", @readonly = "readonly" })
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="OrgEmail" class="col-sm-1 col-form-label">Email</label>
+            <div class="col-sm-4">
+                @Html.TextBoxFor(a => a.Email, new { @class = "form-control input-sm", placeholder = "Email", title = "OrgEmail", @id = "OrgEmail", @readonly = "readonly" })
+            </div>
+            <label class="col-sm-1 col-form-label">Wt/Vol</label>
+            <div class="col-sm-2">
+                @Html.EditorFor(model => model.WeightUnit, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+            </div>
+            <label class="col-sm-1 col-form-label">Weight</label>
+            <div class="col-sm-2">
+                @Html.EditorFor(model => model.WeightUnitFrom, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+            </div>
+            <label class="col-sm-1 col-form-label hide">To</label>
+            <div class="col-sm-2 hide">
+                @Html.EditorFor(model => model.WeightUnitTo, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="col-md-12 m-n pad-none">
+        <legend data-toggle="collapse" data-target="#SODetails">
+            <i class="more-less glyphicon glyphicon-plus"></i>
+            Activities
+        </legend>
+        <div class="m-t-sm panel-collapse CollapsingFieldSet" id="SODetails">
+            <div class="row">
+                <div class="col-sm-12">
+                    <table id="tblActivities" class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Activity Type</th>
+                                <th>From Date</th>
+                                <th>To Date</th>
+                                <th>Days</th>
+                                <th>From Location</th>
+                                <th>To Location</th>
+                                <th>Time</th>
+                                <th>Remark</th>
+                            </tr>
+                        </thead>
+                        <tbody style="max-height:150px">
+                            @for (var i = 0; i < Model.activities.Count; i++)
+                            {
+
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(a => Model.activities[i].ActivityTypeName, new { htmlAttributes = new { @placeholder = "Activity Type", @tooltip = "Activity Type", @class = "form-control input-sm ActType", title = "Activity Type", @readonly = "readonly" } })
+                                        @Html.HiddenFor(x => Model.activities[i].ActivityTypeID, new { @class = "ActivityTypeID" })
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(a => Model.activities[i].FromDate, new { htmlAttributes = new { @placeholder = "From Date", @tooltip = "From Date", @class = "form-control input-sm datetimepicker ActFromDate", title = "From Date" } })
+
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(a => Model.activities[i].ToDate, new { htmlAttributes = new { @placeholder = "To Date", @tooltip = "To Date", @class = "form-control input-sm datetimepicker ActToDate", title = "To Date" } })
+
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(a => Model.activities[i].NumberOfDays, new { htmlAttributes = new { @placeholder = "Days", @tooltip = "Days", @class = "form-control input-sm  ActDays", title = "Days" } })
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(x => Model.activities[i].FromLocation, new { htmlAttributes = new { @class = "form-control input-sm clearfix ActFromLoc" } })
+
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(x => Model.activities[i].ToLocation, new { htmlAttributes = new { @class = "form-control input-sm clearfix ActToLoc" } })
+
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(a => Model.activities[i].RepTime, new { htmlAttributes = new { @placeholder = "Rep Time", @tooltip = "Rep Time", @class = "form-control input-sm clearfix timepicker ActRepTime" } })
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(x => Model.activities[i].Remark, new { htmlAttributes = new { @class = "form-control input-sm clearfix ActRemark" } })
+                                    </td>
+                                </tr>
+
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+</div>

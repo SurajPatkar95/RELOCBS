@@ -41,7 +41,7 @@ namespace RELOCBS.BL.Home
             List<MenuViewModel> menuViewModelList = new List<MenuViewModel>();
             try
             {
-                DataTable LocalDataSet = (DataTable)menuDAL.InitializeMenu(LoginID);
+                DataTable LocalDataSet = (DataTable)menuDAL.InitializeMenu(LoginID, "ASSIGNED");
 
                 if (LocalDataSet != null && LocalDataSet.Rows.Count > 0)
                 {

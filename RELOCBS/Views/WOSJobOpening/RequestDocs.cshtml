@@ -1,0 +1,265 @@
+﻿@model RELOCBS.Entities.WOSJobOpening
+
+@{
+    ViewBag.Title = "Request Docs";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@Styles.Render("~/Content/bootstrap-selectcss")
+
+<style>
+    .bg-light-silver {
+        background-color: #e1e1e1;
+    }
+</style>
+
+<div class="ibox-content">
+    <div class="row">
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label>Move Id : </label>@Model.WOSMoveID
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label>Job Id : </label>@Model.WOSJobID
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-3">
+            <div class="form-group">
+                <label>Assignee Name: </label>@(Model.AssigneeFName + " " + Model.AssigneeLName)
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        @if (string.IsNullOrEmpty(Model.EmailTo))
+        {
+            <div class="col-md-6 col-sm-6">
+                <div class="form-group">
+                    <label>Note: Assignee details link not sent.</label>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="col-md-6 col-sm-6">
+                <div class="form-group">
+                    <label>Note: Assignee details link sent to - @Model.EmailTo</label>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="bg-light-silver">
+        <div class="ibox-content">
+            @using (Html.BeginForm("RequestDocs", "WOSJobOpening", new { WOSMoveID = @Model.WOSMoveID }, FormMethod.Post, new { enctype = "multipart/form-data", id = "formRequestDocs" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true)
+                @Html.HiddenFor(m => m.WOSMoveID, new { @id = "WOSMoveID" })
+                @Html.HiddenFor(m => m.MoveID, new { @id = "MoveID" })
+                @Html.HiddenFor(m => m.Assignee.RequestDocsGroupID, new { @id = "RequestDocsGroupID" })
+                @Html.HiddenFor(m => m.Assignee.WOSJobDocUpload.DocNameIDListHidden, new { @id = "DocNameIDListHidden" })
+                <div class="row">
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label class="requiredlabel">Document Type</label>
+                            @Html.DropDownListFor(m => m.Assignee.WOSJobDocUpload.DocTypeID, new SelectList((System.Collections.IEnumerable)ViewData["DocTypeList"], "Value", "Text"), "--Select Doc. Type--", new { @class = "form-control input-sm enableselect", @id = "DocTypeID", @onchange = "javascript:DocTypeChange(this.value);" })
+                        </div>
+                    </div>
+                    <div id="dvDocDescription" class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>Desc</label>
+                            @Html.TextBoxFor(m => m.Assignee.WOSJobDocUpload.DocDescription, new { @class = "form-control input-sm", @id = "DocDescription", @placeholder = "Description", @title = "Description" })
+                        </div>
+                    </div>
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label class="requiredlabel">Document Name</label>
+                            @Html.ListBoxFor(m => m.Assignee.WOSJobDocUpload.DocNameIDList, new SelectList((System.Collections.IEnumerable)ViewData["DocNameList"], "Value", "Text", Model.Assignee.WOSJobDocUpload.DocNameIDList), new { @class = "form-control input-sm  multipleselect", @id = "DocNameIDList", @multiple = "multiple" })
+                        </div>
+                    </div>
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label class="requiredlabel">Selected Docs</label>
+                            @Html.ListBoxFor(m => m.Assignee.WOSJobDocUpload.DocNameIDListSelected, new SelectList((System.Collections.IEnumerable)new List<SelectListItem>(), "Value", "Text", Model.Assignee.WOSJobDocUpload.DocNameIDListSelected), new { @class = "form-control input-sm multipleselect", @id = "DocNameIDListSelected", @multiple = "multiple" })
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="form-group clearfix text-center">
+                            <input type="submit" id="btnSaveRequestDocs" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Save" />
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+        var DocNameIDData = [];
+        $(document).ready(function () {
+            $("#btnSaveRequestDocs").click(function (e) {
+                if ($("#DocNameIDListHidden").val() == "") {
+                    swal({ title: "Error!", text: "Please select documents.", type: "error" });
+                    $("#DocNameIDListSelected").focus();
+                    e.preventDefault();
+                }
+            });
+            $('#DocNameIDList').multiselect({
+                includeSelectAllOption: false,
+                enableFiltering: true,
+                filterPlaceholder: 'Search',
+                maxHeight: 250,
+                buttonWidth: '100%',
+                buttonClass: 'form-control input-sm',
+                onChange: function (element, checked) {
+                    DocNameIDListChange(element, checked);
+                }
+            });
+            $('#DocNameIDListSelected').multiselect({
+                includeSelectAllOption: false,
+                enableFiltering: true,
+                filterPlaceholder: 'Search',
+                maxHeight: 250,
+                buttonWidth: '100%',
+                buttonClass: 'form-control input-sm',
+                onChange: function (element, checked) {
+                    var DocTypeID = parseInt($("#DocTypeID").val());
+                    var DocType = $("#DocTypeID option:selected").text().trim();
+                    var DocNameID = parseInt(element.val());
+                    var DocName = element[0].text;
+
+                    if (checked === false) {
+                        var index = DocNameIDData.findIndex(i => i.DocNameID === DocNameID);
+                        if (index > -1)
+                            DocNameIDData.splice(index, 1);
+
+                        $("#DocNameIDListSelected").empty();
+                        DocNameIDData.forEach(function (arrayItem) {
+                            $("#DocNameIDListSelected").append($('<option>').text(arrayItem.DocName).attr('value', arrayItem.DocNameID).prop('selected', true));
+                        });
+
+                        $("#DocNameIDList option[value='" + DocNameID + "']").prop('selected', false);
+                        $("#DocNameIDList").multiselect('refresh');
+
+                        $('#DocNameIDListSelected').multiselect('rebuild');
+                        SetHiddenFieldValue();
+                    }
+                }
+            });
+            BindDocNameIDSelectedList();
+        });
+        function BindDocNameIDSelectedList() {
+            var WOSJobDocUploadList = @Html.Raw(Json.Encode(@ViewBag.WOSJobDocUploadList));
+
+            $("#DocNameIDListSelected").empty();
+            WOSJobDocUploadList.forEach(function (arrayItem) {
+                var DocTypeID = arrayItem.DocTypeID;
+                var DocType = arrayItem.DocTypeText;
+                var DocNameID = arrayItem.DocNameID
+                var DocName = arrayItem.DocNameText;
+                var DocDesc = "";
+
+                var DocId = {
+                    'DocTypeID': DocTypeID,
+                    'DocNameID': DocNameID,
+                    'DocName': DocType + ' - ' + DocName,
+                    'DocDesc': DocDesc
+                }
+                DocNameIDData.push(DocId);
+
+                $("#DocNameIDListSelected").append($('<option>').text(DocId.DocName).attr('value', DocId.DocNameID).prop('selected', true));
+            });
+            $('#DocNameIDListSelected').multiselect('rebuild');
+        }
+        function DocTypeChange(DocType) {
+            $("#DocNameIDList").empty();
+            if (DocType != null && DocType != "") {
+                $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    url: "@Url.Action("GetDocName", "Combo")?DocType=" + DocType,
+                    async: 'false',
+                    dataType: 'json',
+                    type: "GET",
+                    success: function (data) {
+                        var DocTypeID = parseInt($("#DocTypeID").val());
+                        var DocType = $("#DocTypeID option:selected").text().trim();
+                        $.each(data, function (i, item) {
+                            var SelectOption = false;
+                            var DocNameID = parseInt(item.Value);
+                            var DocName = item.Text.trim();
+
+                            var index = DocNameIDData.findIndex(i => i.DocTypeID === DocTypeID && i.DocNameID === DocNameID && i.DocName === DocType + ' - ' + DocName);
+                            if (index > -1)
+                                SelectOption = true;
+
+                            $("#DocNameIDList").append($('<option>').text(item.Text).attr('value', item.Value).prop('selected', SelectOption));
+
+                        });
+                        $('#DocNameIDList').multiselect('rebuild');
+                    },
+                    error: function (reponse) {
+                        alert("error : " + reponse);
+                    }
+                });
+            }
+        }
+        function DocNameIDListChange(element, checked) {
+            var DocTypeID = parseInt($("#DocTypeID").val());
+            var DocType = $("#DocTypeID option:selected").text().trim();
+            var DocNameID = parseInt(element.val());
+            var DocName = element[0].text.trim();
+            var DocDesc = $("#DocDescription").val().trim();
+
+            if (checked === true) {
+                var DocId = {
+                    'DocTypeID': DocTypeID,
+                    'DocNameID': DocNameID,
+                    'DocName': DocType + ' - ' + DocName,
+                    'DocDesc': DocDesc
+                }
+
+                if (DocName == "Others") {
+                    if ($("#DocDescription").val() == "") {
+                        swal({ title: "Error!", text: "Please enter description.", type: "error" });
+                        $("#DocNameIDList option:contains('Others')").prop('selected', false);
+                        $('#DocNameIDList').multiselect('rebuild').close();
+                        return false;
+                    }
+                }
+                $("#DocDescription").val('').click();
+                DocNameIDData.push(DocId);
+            }
+            else if (checked === false) {
+                var index = DocNameIDData.findIndex(i => i.DocTypeID === DocTypeID && i.DocNameID === DocNameID);
+                if (index > -1)
+                    DocNameIDData.splice(index, 1);
+            }
+
+            $("#DocNameIDListSelected").empty();
+            DocNameIDData.forEach(function (arrayItem) {
+                $("#DocNameIDListSelected").append($('<option>').text(arrayItem.DocName).attr('value', arrayItem.DocNameID).prop('selected', true));
+            });
+            $('#DocNameIDListSelected').multiselect('rebuild');
+
+            SetHiddenFieldValue();
+        }
+        function SetHiddenFieldValue() {
+            var strData = { 'DocNameIDList': DocNameIDData };
+            $("#DocNameIDListHidden").val(JSON.stringify(strData));
+        }
+        function AddDocDescription() {
+            $("#DocDescription").val('');
+        }
+    </script>
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+    <link type="text/css" href="~/Content/bootstrap-datetimepicker.min.css" />
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+    @Scripts.Render("~/bundles/SubCostHead")
+}

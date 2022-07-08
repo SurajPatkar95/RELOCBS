@@ -5,6 +5,7 @@ using System.Web;
 
 namespace RELOCBS.Models
 {
+    [Serializable]
     public class MenuViewModel
     {
         public MenuViewModel()

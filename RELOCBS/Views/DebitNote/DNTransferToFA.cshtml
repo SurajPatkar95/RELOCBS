@@ -1,0 +1,348 @@
+﻿@model RELOCBS.Entities.DNFundTranfer
+
+@{
+    ViewBag.Title = "Debit Note Transfer To FA";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    HtmlString htmlString = null;
+    if (!string.IsNullOrEmpty(ViewBag.htmlString))
+    {
+        string strHtmlString = ViewBag.htmlString;
+        strHtmlString = "<p>" + strHtmlString.Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>";
+
+        if (strHtmlString.Contains("</p><p><br></p><p>"))
+        {
+            strHtmlString = strHtmlString.Substring(0, strHtmlString.LastIndexOf("</p><p><br></p><p>"));
+        }
+        htmlString = new HtmlString(strHtmlString);
+    }
+
+    int RevenueBranchCount = Model.RevenueBranchId == null ? 0 : ((System.Collections.Generic.List<SelectListItem>)ViewData["RevenueBranchList"]).Count() == Model.RevenueBranchId.Length ? 0 : Model.RevenueBranchId.Length;
+
+    var RevenueBranch = Convert.ToString(Model.RevenueBranchId);
+
+    if (RevenueBranchCount > 0)
+    {
+        RevenueBranch = String.Join(",", Model.RevenueBranchId);
+    }
+}
+<style>
+    #order {
+        padding: 0 0 0 0;
+        border-right: 0;
+    }
+
+    .select-style {
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        display: inline-block;
+        vertical-align: middle;
+        background: url("http://grumbletum.com/places/arrowdown.gif") no-repeat 100% 40%;
+    }
+
+        .select-style select {
+            font-weight: bold;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            background-color: transparent;
+            background-image: none;
+            border: none;
+            box-shadow: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+    .grid-mvc {
+        height: 1500px;
+        overflow: auto;
+    }
+</style>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>From Date</label>
+                <div class="input-group input-group-sm date" id="dtp_FromDate">
+                    @Html.EditorFor(m => m.FromDate, new { htmlAttributes = new { @placeholder = "From Date", @tooltip = "From Date", @class = "form-control input-sm datetimepicker", title = "From Date", id = "FromDate" } })
+                    <span class="input-group-addon" style="display: none;">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>To Date</label>
+                <div class="input-group input-group-sm date" id="dtp_ToDate">
+                    @Html.EditorFor(m => m.ToDate, new { htmlAttributes = new { @placeholder = "To Date", @tooltip = "To Date", @class = "form-control input-sm datetimepicker", title = "To Date", id = "ToDate" } })
+                    <span class="input-group-addon" style="display: none;">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>Bill No</label>
+                <div class="input-group">
+                    @Html.EditorFor(m => m.BillNo, new { htmlAttributes = new { @placeholder = "Bill No", @tooltip = "Bill No", @class = "form-control input-sm ", @title = "Bill No", @id = "BillNo" } })
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>Status</label>
+                <div class="input-group">
+                    @Html.DropDownListFor(m => m.Status, (List<SelectListItem>)ViewData["StatusList"], "Select One", new { @class = "form-control", @id = "Status" })
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>Revenue Br.</label>
+                @Html.ListBoxFor(m => m.RevenueBranchId, new MultiSelectList((System.Collections.IEnumerable)ViewData["RevenueBranchList"], "Value", "Text", Model.RevenueBranchId), new { @class = "form-control multipleselect RevenueBranchId", @multiple = "multiple" })
+            </div>
+        </div>
+        <div class="col-sm-1 col-md-1">
+            <div class="form-group clearfix">
+                <input type="submit" id="btnSearch" name="Search" class="btn btn-primary btn-sm m-r-sm pull-right" value="Search" />
+            </div>
+        </div>
+        <div class="col-sm-1 col-md-1">
+            <div class="form-group clearfix">
+                <input type="submit" id="btnExport" name="Export" class="btn btn-default btn-sm m-r-sm pull-right glyphicon glyphicon-export" disabled value="Export" form="FormExport" />
+            </div>
+        </div>
+        <div class="col-sm-1 col-md-1">
+            <div class="form-group clearfix pull-right">
+                Total Records: @Model.DNInvoiceList.Count()
+            </div>
+        </div>
+    </div>
+}
+<br />
+<div id="mgrid">
+    @using (Html.BeginForm("Export", "DebitNote", FormMethod.Post, new { @id = "FormExport" }))
+    {
+        @Html.HiddenFor(m => m.Status, new { @id = "Status" })
+        <table class="Gridbody table table-bordered table-striped table-hover" id="DNTransferToFATable" style="display: inline-table;height: auto;">
+            <thead class="ibox-title">
+                <tr>
+                    <th>Bill No</th>
+                    <th>Bill Date</th>
+                    <th>Job No</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Account Code</th>
+                    <th>FA Code</th>
+                    <th>Check All<input type="checkbox" id="chkCheckAll" /></th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.DNInvoiceList.Count; i++)
+                {
+                    object AccountCodeReadonly = new { @class = "AccountCode", @onchange = "AccountCodeChange(this);", @onkeypress = "return OnlyDouble(this, event);" };
+                    object ExportCss = "";
+
+                    if (Model.Status == "Exported" || !string.IsNullOrEmpty(Model.DNInvoiceList[i].AccountCode))
+                    {
+                        AccountCodeReadonly = new { @class = "AccountCode", @readonly = true };
+                    }
+
+                    if (string.IsNullOrEmpty(Model.DNInvoiceList[i].AccountCode))
+                    {
+                        ExportCss = "disabled";
+                    }
+                    <tr>
+                        <td>
+                            @Html.HiddenFor(m => Model.DNInvoiceList[i].DebitOrCredit)
+                            @Html.HiddenFor(m => Model.DNInvoiceList[i].CBSRefID)
+                            @Html.HiddenFor(m => Model.DNInvoiceList[i].BillNo)
+                            @Model.DNInvoiceList[i].BillNo
+                        </td>
+                        <td>
+                            @if (Model.DNInvoiceList[i].BillDate != null)
+                            {
+                                @(((DateTime)Model.DNInvoiceList[i].BillDate).ToString("dd-MMM-yyyy"))
+                            }
+                        </td>
+                        <td>@Model.DNInvoiceList[i].JobNo</td>
+                        <td>@Model.DNInvoiceList[i].Value</td>
+                        <td>@Model.DNInvoiceList[i].Description</td>
+                        <td>@Html.TextBoxFor(m => m.DNInvoiceList[i].AccountCode, AccountCodeReadonly)</td>
+                        <td>@Model.DNInvoiceList[i].FACode</td>
+                        <td>
+                            <input type="checkbox" class="chkList" @ExportCss />@Html.HiddenFor(m => Model.DNInvoiceList[i].IsExport, new { @class = "IsExport" })
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.multipleselect').multiselect({
+                includeSelectAllOption: true,
+                enableFiltering: true,
+                filterPlaceholder: 'Search',
+                maxHeight: 250,
+                buttonWidth: '100%',
+                buttonClass: 'form-control',
+            });
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('#btnExport').attr('disabled', 'disabled');
+
+            if (parseInt('@RevenueBranchCount') <= 0) {
+                $('select.RevenueBranchId').find("option").each(function () {
+                    $(this).prop('selected', true);
+                    $("select.RevenueBranchId").multiselect('selectAll', false);
+                    $("select.RevenueBranchId").multiselect('updateButtonText');
+                });
+            }
+            else {
+                $('select.RevenueBranchId').find("option").each(function () {
+                    $("select.RevenueBranchId").multiselect('updateButtonText');
+                    $("select.RevenueBranchId").multiselect('selectAll', true);
+                });
+
+                var data = '@RevenueBranch';
+                if (data != 'null') {
+                    var valArr = data.split(",");
+                    var i = 0, size = valArr.length;
+                    for (i; i < size; i++) {
+                        $('select.RevenueBranchId').multiselect('select', valArr[i]);
+                    }
+                }
+            }
+
+            $('#FromDate,#ToDate,#TentDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+
+            if ($('#Status').val() == '')
+                $('#Status').val('Finalized');
+
+            $('body').on('hidden.bs.modal', '.modal', function () {
+                $(this).removeData('bs.modal');
+            });
+
+            if ('@htmlString' != undefined && '@htmlString') {
+                var ua = window.navigator.userAgent;
+                var msie = ua.indexOf("MSIE ");
+                if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) // If Internet Explorer
+                {
+                    txtArea1.document.open("txt/html", "replace");
+                    txtArea1.document.write('@htmlString');
+                    txtArea1.document.close();
+                    txtArea1.focus();
+                    sa = txtArea1.document.execCommand("SaveAs", true, "DebitNoteTransferToFA.xls");
+                }
+                else //other browser not tested on IE 11
+                    sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent('@htmlString'));
+
+                return (sa);
+            }
+        });
+        function AccountCodeChange(button) {
+            var row = $(button).closest("tr");
+            var AccountCode = row.find('.AccountCode').val();
+            if (AccountCode != "")
+                row.find(".chkList").removeAttr("disabled");
+            else
+                row.find(".chkList").attr("disabled", "disabled");
+        }
+        //search form data
+        function PagedOnCompleteBinds() {
+            $(document).ready(function () {
+                $('select').select2();
+                $('.grid-header-title a').on('click', function (e) {
+                    e.preventDefault();
+                    var sturl = "@Url.Action("DNTransferToFA", "DebitNote")" + $(this).attr('href');
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('#mgrid .pagination li a').on('click', function (e) {
+                    e.preventDefault();
+
+                    e.stopImmediatePropagation();
+                    var sturl = $('#mgrid .sorted.grid-header-title a').attr('href');
+                    if (typeof sturl != 'undefined') {
+                        var gdir = url("?grid-dir", sturl);
+                        var gcol = url("?grid-column", sturl);
+                        sturl = sturl.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0) ? 1 : 0);
+                        sturl = sturl.replace('?', '&');
+                    }
+
+                    var sturl2 = $(this).attr('href');
+                    if (sturl2 == undefined) {
+                        sturl2 = "@Url.Action("DNTransferToFA", "DebitNote")?page=" + parseInt($(this).html());
+                    }
+                    sturl = sturl2 + sturl.replace(/page=\d+/i, "");
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+            });
+        }
+        function PagedOnComplete(obj) {
+            $('#mgrid table').unmask();
+            PagedOnCompleteBinds();
+        }
+        $('.chkList').click(function () {
+            var IsCheck = $(this).is(':checked');
+            $(this).siblings('.IsExport').val(IsCheck);
+            $('#DNTransferToFATable tbody tr').each(function () {
+                if ($(this).find('.chkList').is(':checked')) {
+                    IsCheck = true;
+                }
+            });
+
+            if (IsCheck) {
+                $('#btnExport').removeAttr('disabled');
+            }
+            else {
+                $('#btnExport').attr('disabled', 'disabled');
+            }
+        });
+        $('#chkCheckAll').click(function () {
+            var IsCheck = $(this).is(':checked');
+            var IsCheckInd = true;
+            $('#DNTransferToFATable tbody tr').each(function () {
+                if (!$(this).find('.chkList').is(':disabled')) {
+                    if (IsCheck) {
+                        if (!$(this).find('.chkList').is(':checked')) {
+                            $(this).find('.chkList').click();
+                            $(this).find('.IsExport').val($(this).find('.chkList').is(':checked'));
+                        }
+                        $('#btnExport').removeAttr('disabled');
+                        IsCheckInd = !$(this).is(':checked');
+                    }
+                    else {
+                        $(this).find('.chkList').removeAttr('checked');
+                        $(this).find('.IsExport').val($(this).find('.chkList').is(':checked'));
+                        $('#btnExport').attr('disabled', 'disabled');
+                        IsCheckInd = !$(this).is(':checked');
+                    }
+                }
+            });
+        });
+    </script>
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+}

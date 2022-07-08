@@ -1,0 +1,182 @@
+﻿@model RELOCBS.Entities.WHAssessmentQuestions
+
+@{
+    ViewBag.Title = "Add/Edit Parameter";
+
+}
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+
+@using (Html.BeginForm("Create", "WHAssessQuestions", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-sm-12">
+
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.HiddenFor(model => model.QuestionId)
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Parameter, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Parameter, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Parameter, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Desired, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Desired, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Desired, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.QuestionOrder, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.QuestionOrder, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.QuestionOrder, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.CategoryId, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.CategoryId, new SelectList((System.Collections.IEnumerable)ViewData["Category"], "Value", "Text"), "Select Category", new { @class = "form-control input-sm clearfix" })
+                        @Html.ValidationMessageFor(model => model.CategoryId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.ResponsibilityId, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.ResponsibilityId, new SelectList((System.Collections.IEnumerable)ViewData["Resposibility"], "Value", "Text"), "Select Resposibility", new { @class = "form-control input-sm clearfix" })
+                        @Html.ValidationMessageFor(model => model.ResponsibilityId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.PriorityId, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.PriorityId, new SelectList((System.Collections.IEnumerable)ViewData["Priority"], "Value", "Text"), "Select Priority", new { @class = "form-control input-sm clearfix" })
+                        @Html.ValidationMessageFor(model => model.PriorityId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Score, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Score, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Score, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.EffectiveFrom, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.EffectiveFrom, new { htmlAttributes = new { @placeholder = "Valid From", @tooltip = "Valid From", @class = "form-control input-sm datetimepicker", title = "Valid From" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                        @Html.ValidationMessageFor(model => model.EffectiveFrom, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-2">
+                        <div class="col-md-5">
+                            @Html.CheckBoxFor(model => model.IsActive, new { htmlAttributes = new { @class = "form-control input-sm" } }) Active
+                        </div>
+                    </div>
+                </div>
+
+                @{ 
+
+                    string InactiveHideClass = Model.IsActive ? "hide" : "";
+                }
+
+                <div class="form-group row inactiveDate @InactiveHideClass">
+                    @Html.LabelFor(model => model.EffectiveTo, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.EffectiveTo, new { htmlAttributes = new { @placeholder = "Valid To", @tooltip = "Valid To", @class = "form-control input-sm datetimepicker", title = "Valid To" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                        @Html.ValidationMessageFor(model => model.EffectiveTo, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnCreate" />
+        </div>
+    </div>
+}
+
+<script>
+                $(document).ready(function () {
+                    $("[data-val-required]").each(function () {
+                        $("label[for=" + this.id + "]").addClass("requiredlabel")
+                    });
+
+                    $('select#CategoryId').select2();
+
+                    $('.datetimepicker').datetimepicker({
+                        format: "DD-MMM-YYYY",
+                        sideBySide: true,
+                        widgetPositioning: {
+                            vertical: 'bottom'
+                        }
+
+                    });
+
+                    $('#IsActive').change(function (e) {
+
+                        $('.inactiveDate').removeClass('hide');
+
+                        if ($(this).prop('checked')) {
+
+                            $('.inactiveDate').addClass('hide');
+                        }
+                    });
+
+                });
+
+
+</script>
+<script>
+                $(document).ready(function () {
+
+                    $("input").attr("autocomplete", "off");
+
+                    var form = $("#mdlAddEdit form");
+                    form.removeData('validator');
+                    form.removeData('unobtrusiveValidation');
+                    $.validator.unobtrusive.parse(form);
+
+                    $('#mdlAddEdit').on('shown.bs.modal', function () {
+                        $('#Parameter').focus();
+                    });
+                    $('#mdlAddEdit form').on('submit', function (e) {
+                        e.preventDefault();
+                        if (!$(this).valid()) { return; }
+                        debugger;
+                        if (!$('#IsActive').attr('checked') && ($('#EffectiveTo').val() == null || $('#EffectiveTo').val() == "")) { alert("Valid To required");   }
+
+                        $('#mdlAddEdit .modal-content').mask("Loading...");
+                        $(this).ajaxSubmit({
+                            target: '#mdlAddEdit .modal-content',
+                            success: function (data) {
+                                $('#mdlAddEdit .modal-content').html(data.Result);
+                                if (data.Success) {
+                                    $('#mgrid .pagination li.active a').trigger('click');
+                                    toastr.success("Parameter saved successfully.");
+                                    $('#mdlAddEdit').modal('hide');
+                                }
+                                $('#mdlAddEdit .modal-content').unmask();
+                            }
+                        });
+                    });
+                });
+</script>

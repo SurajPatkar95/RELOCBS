@@ -1,0 +1,128 @@
+﻿@model RELOCBS.Entities.CostHeadMaster
+
+@{
+    //Layout = null;
+    ViewBag.Title = "New CostHead";
+}
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+@using (Html.BeginForm("Edit", "CostHead", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-sm-12">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.HiddenFor(model => model.CostHeadID)
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.CostHeadName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.CostHeadName, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.CostHeadName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.SSCCode, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.SSCCode, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.SSCCode, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.FinanceCode, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.FinanceCode, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.FinanceCode, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.ItemCode, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.ItemCode, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.ItemCode, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.InvDescription, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.InvDescription, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.InvDescription, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-2">
+                        <div class="col-md-5">
+                            @Html.CheckBoxFor(model => model.IsGSTApplicable, new { htmlAttributes = new { @class = "form-control input-sm" } }) GSTApplicable
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-2">
+                        <div class="col-md-5">
+                            @Html.CheckBoxFor(model => model.HasSubCostHead, new { htmlAttributes = new { @class = "form-control input-sm" } }) HasSubCostHead
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-2">
+                        <div class="col-md-5">
+                            @Html.CheckBoxFor(model => model.IsActive, new { htmlAttributes = new { @class = "form-control input-sm" } }) Active
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnCreate" />
+        </div>
+    </div>
+
+}
+<script>
+    $(document).ready(function () {
+        $("[data-val-required]").each(function () {
+            $("label[for=" + this.id + "]").addClass("requiredlabel")
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+
+        $("input").attr("autocomplete", "off");
+
+        var form = $("#mdlAddEdit form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+        $('select#CountryID').select2();
+
+        $('#mdlAddEdit').on('shown.bs.modal', function () {
+            $('#CostHeadName').focus();
+        });
+        
+        $('#mdlAddEdit form').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+
+            $('#mdlAddEdit .modal-content').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '#mdlAddEdit .modal-content',
+                success: function (data) {
+                    $('#mdlAddEdit .modal-content').html(data.Result);
+                    if (data.Success) {
+                        $('#mgrid .pagination li.active a').trigger('click');
+                        toastr.success("CostHead saved successfully.");
+                        $('#mdlAddEdit').modal('hide');
+                    }
+                    $('#mdlAddEdit .modal-content').unmask();
+                }
+            });
+        });
+        
+    });
+
+</script>

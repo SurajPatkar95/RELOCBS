@@ -1,0 +1,280 @@
+﻿@model  RELOCBS.Entities.Dashboard
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<!DOCTYPE HTML>
+<html>
+<head>
+    @section Scripts{
+        @Styles.Render("~/Content/bootstrap-multiselectcss")
+        @*@Styles.Render("~/Content/bootstrap-tablecss-fixed-columns")*@
+        <link type="text/css" href="~/Content/bootstrap-datetimepicker.min.css" />
+        @Scripts.Render("~/bundles/bootstrap-select")
+        @Scripts.Render("~/bundles/bootstrap-multiselect")
+        @Scripts.Render("~/bundles/jqueryval")
+        @Scripts.Render("~/bundles/jqunobtrusive")
+        <script>
+    window.onload = function () {
+        CanvasJS.addColorSet("greenShades",
+        [//colorSet Array
+
+            "#0096FF",
+            "#ADD8E6"
+        ]);
+        var chart = new CanvasJS.Chart("chartContainer",
+        {
+            animationEnabled: true,
+            theme: "light1", // "light1", "dark1", "dark2"
+            exportEnabled: true,
+            colorSet: "greenShades",
+            //backgroundColor: "#f3f3f4",
+            title: {
+                text: ""
+            },
+            dataPointWidth: 5,
+            axisX: {
+                gridColor: "white",
+                labelAngle: 0,
+                labelMaxWidth: 400,
+                //labelPlacement: "inside",
+                labelTextAlign: "center",
+                labelAutoFit: true,    //true by default.
+                labelWrap: true,
+                interval: 1
+            },
+            axisY: {
+            },
+            data: [{
+                click: function (e) {
+                    //alert("dataSeries Event => , dataPoint { x:" + e.dataPoint.label + ", y: " + e.dataPoint.y + " }");
+                    GetJobList(e.dataPoint.label,'S');
+
+                },
+                
+                type: "bar",
+                dataPoints:  @Html.Raw(ViewBag.DataPoints)
+            }]
+        });
+
+     chart.render();
+
+
+
+    var chart = new CanvasJS.Chart("chartContainer1", {
+	    animationEnabled: true,
+	    theme: "light1", // "light1", "dark1", "dark2"
+        exportEnabled: true,
+        colorSet: "greenShades",
+        //backgroundColor: "#f3f3f4",
+	    title: {
+		    text: ""
+        },
+        axisX: {
+            labelMaxWidth: 100,
+            //labelPlacement: "inside",
+            labelAngle: 75,
+            labelTextAlign: "center",
+            labelAutoFit: false,    //true by default.
+            labelWrap: true,
+            tickColor: "blue",
+            },
+        axisY:{
+            gridColor: "white"
+          },
+        data: [{
+            click: function (e) {
+                GetJobList(e.dataPoint.label, 'S');
+            },
+		    type: "column",
+		    dataPoints:  @Html.Raw(ViewBag.DataPoints2)
+	    }]
+    });
+
+    chart.render();
+
+    var chart = new CanvasJS.Chart("chartContainer2", {
+	    animationEnabled: true,
+	    theme: "light1", // "light1", "dark1", "dark2"
+        //exportEnabled: true,
+            colorSet: "greenShades",
+
+            //backgroundColor: "#f3f3f4",
+	    title: {
+		    text: ""
+        },
+        axisX: {
+            labelMaxWidth: 100,
+            //labelPlacement: "inside",
+            labelAngle: 75,
+            labelTextAlign: "center",
+            labelAutoFit: false,    //true by default.
+            labelWrap: true,
+            tickColor: "blue",
+            },
+        axisY:{
+            gridColor: "white"
+          },
+        data: [{
+            click: function (e) {
+
+
+                GetJobList(e.dataPoint.label,'D');
+            },
+		    type: "column",
+		    dataPoints:  @Html.Raw(ViewBag.DataPoints3)
+	    }]
+    });
+
+    chart.render();
+
+
+
+
+    var chart = new CanvasJS.Chart("chartContainer_Pie", {
+	theme: "light2", // "light1", "light2", "dark1", "dark2"
+	exportEnabled: true,
+        animationEnabled: true,
+        //backgroundColor: "#f8b469";
+	title: {
+		fontSize: 21
+	},
+	data: [{
+		type: "pie",
+		startAngle: 160,
+		toolTipContent: "<b>{label}</b>: {y}%",
+		indexLabel: "{label} - {y}%",
+        dataPoints: @Html.Raw(ViewBag.DataPoints_Pie),
+        indexLabelPlacement: "inside",
+        indexLabelFontColor: "#FFFFF0",
+        interval: 1
+	}]
+});
+chart.render();
+}
+
+
+    function GetJobList(label, flag)
+    {
+
+        var Convurl = '@Url.Action("GetJobList", "Dashboard", new { label = "-1",UserID = "-2", Flag = "-3" })';
+        Convurl = Convurl.replace("-1", label);
+        Convurl = Convurl.replace("-2", $("#key").val());
+        Convurl = Convurl.replace("-3", flag);
+        Convurl = Convurl.replace(/&amp;/g, "&");
+        //
+        $.get(Convurl, function (data) {
+            debugger;
+            $('.Followup_Header').html(label);
+            $('#mdlAddEdit #partial').html(data);
+            //$('#mdlDMS').modal(options);
+            $('#mdlAddEdit').modal('show');
+
+        });
+    }
+
+    $(document).ready(
+        function ()
+        {
+            $("#key").change(function ()
+            {
+                $(this).closest('form').submit();
+
+
+
+            });
+
+            $('.datetimepicker').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning:
+                {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+        }
+    );
+        </script>
+    }
+
+    <style>
+        .modal-dialog {
+            width: 100%;
+            /*overflow:scroll;*/
+        }
+
+        /*.modal-content {
+            /*overflow: scroll;
+            width: 95%;
+        }*/
+        .solid-border {
+            border-right: 7px outset;
+            outline-style: solid;
+            outline-width: thin;
+            /*padding: 10px;
+            background-color: #f8b469;*/
+            border-color: #dcf0f7;
+            height: 1000px;
+        }
+    </style>
+</head>
+<body>
+    <div class="row bg-white">
+        <div class="col-md-3 solid-border" style="padding:0px;">
+            <div class="row col-md-12 form-group" style="margin:2px;">
+                @using (Html.BeginForm("Index", "Dashboard", FormMethod.Post, new { enctype = "multipart/form-data", @name = "DashboardForm", @id = "DashboardForm" }))
+                {
+                    @Html.DropDownListFor(m => m.UserDetails.UserID, new SelectList((System.Collections.IEnumerable)ViewData["SDList"], "Value", "Text", ViewData["SDList"]), new { id = "key", @class = "form-control input-sm clearfix" })
+                }
+            </div>
+
+            <div class="row col-md-12" style="padding:0px; margin:0px; margin-top:100px">
+                <div id="chartContainer_Pie" style="height: 400px; width:100%; border: 5px outset #dcf0f7;"></div>
+            </div>
+        </div>
+        <div class="col-md-9 col-height solid-border" style="padding:1px">
+            <div id="chartContainer" style="height:350px;border: 5px outset #dcf0f7;"></div>
+            <div id="chartContainer1" style="height: 300px; width:50%; float:left;border: 5px outset #dcf0f7;"></div>
+            @*#dcf0f7*@
+            <div id="chartContainer2" style="height: 300px; width:50%; float:right;border: 5px outset #dcf0f7;"></div>
+            <div id="mdlAddEdit" class="modal fade modal-wide" data-backdrop="static" data-keyboard="false">
+                <div class="modal-dialog width-100">
+
+                    <div class="modal-content p-md pad-top-none">
+
+                        <div class="modal-header pad-bot-none">
+                            <div><h3 class="Followup_Header"></h3><button type="button" class="close" data-dismiss="modal">&times;</button></div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="modal-body" id="partial" style="overflow-y:auto; height:420px">
+                                </div>
+                            </div>
+
+                        </div>
+                        @*<div class="row">
+                                <div class="col-sm-12 pull-right">
+                                    <button id="btnCancel" class="btn btn-sm btn-danger m-t-xs m-l-xs  pull-right filter-custom-margin" type="button" data-dismiss="modal">Cancel</button>
+                                    <button id="btnSaveAmendRates" class="btn btn-sm btn-info m-t-xs pull-right filter-custom-margin pull-right" type="submit" form="modaldetails">Save Amend Rates</button>
+                                </div>
+                            </div>*@
+
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+    </div>
+    <script src="~/Scripts/canvasjs.min.js"></script>
+    @*<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+        <script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>*@
+</body>
+</html>

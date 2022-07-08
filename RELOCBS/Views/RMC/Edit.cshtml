@@ -1,0 +1,153 @@
+﻿@model RELOCBS.Entities.RMCViewModel
+
+@{
+    ViewBag.Title = "New RMC";
+}
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+
+@using (Html.BeginForm("Create", "RMC", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-sm-12">
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.HiddenFor(model=>model.RMCID)
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.ShortRMCName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.ShortRMCName, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.ShortRMCName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.RMCName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.RMCName, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.RMCName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.RateTypeName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.RateTypeGrpID, new SelectList((System.Collections.IEnumerable)ViewData["RateTypeGrpList"], "Value", "Text"), "--Select Rate Type Group--", new { @class = "form-control input-sm clearfix enableselect" })
+                        @Html.ValidationMessageFor(model => model.RateTypeGrpID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Address1, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Address1, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Address2, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Address2, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Address2, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Address3, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Address3, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Address3, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.CityName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.CityID, new SelectList(Enumerable.Empty<SelectListItem>(), "Value", "Text"), "--Select City--", new { @class = "form-control input-sm clearfix enableselect" })
+                        @Html.ValidationMessageFor(model => model.CityID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-2">
+                        <div class="col-md-5">
+                            @Html.CheckBoxFor(model => model.isActive, new { htmlAttributes = new { @class = "form-control input-sm" } }) Active
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnCreate" />
+        </div>
+    </div>
+}
+
+<script>
+    $(document).ready(function () {
+        $("[data-val-required]").each(function () {
+            $("label[for=" + this.id + "]").addClass("requiredlabel")
+        });
+        $('.enableselect').select2();
+        AjaxFillDropDown('select#CityID', "@Url.Action("GetCityList", "RMC")");
+        AjaxFillDropDown('select#CityID', "@Url.Action("GetCityList", "RMC")",@Model.CityID);
+    });
+</script>
+<script>
+    $(document).ready(function () {
+
+        $("input").attr("autocomplete", "off");
+
+        var form = $("#mdlAddEdit form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+
+
+        $('#mdlAddEdit').on('shown.bs.modal', function () {
+            $('#RMCName').focus();
+        });
+
+        @*$('body').on('change', '#RMCID', function (e) {
+            var RMCID = $(this).val();
+            $("select#StateID").empty();
+            $('#StateID').append($('<option>', {
+                value: 0,
+                text: 'Select State'
+            }));
+            $.ajax({
+                url: "@Url.Action("GetState", "City")?RMCID=" + RMCID,
+                success: function (data) {
+                    var data = $.map(data, function (obj) {
+                        obj.text = obj.text || obj.Text;
+                        obj.id = obj.id || obj.Value;
+                        return obj;
+                    });
+                    $('select#StateID').select2({ data: data });
+                }
+            });
+        });*@
+        
+        $('#mdlAddEdit form').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+
+            $('#mdlAddEdit .modal-content').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '#mdlAddEdit .modal-content',
+                success: function (data) {
+                    $('#mdlAddEdit .modal-content').html(data.Result);
+                    if (data.Success) {
+                        $('#mgrid .pagination li.active a').trigger('click');
+                        toastr.success("RMC saved successfully.");
+                        $('#mdlAddEdit').modal('hide');
+                    }
+                    $('#mdlAddEdit .modal-content').unmask();
+                }
+            });
+        });
+        
+
+    });
+
+</script>

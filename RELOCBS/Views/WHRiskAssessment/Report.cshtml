@@ -1,0 +1,479 @@
+﻿@model RELOCBS.Entities.WHAssessmentReport
+@{
+    ViewBag.Title = "Report";
+    Layout = null;
+}
+<html>
+<head>
+    <title>Warehouse Checklist Report</title>
+    <meta name="viewport" content="width=device-width" />
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    
+
+</head>
+<body>
+
+    @using (Html.BeginForm("Export", "WHRiskAssessment", FormMethod.Post))
+    {
+        <input type="hidden" name="GridHtml" />
+        <input type="submit" id="btnSubmit" class="btn btn-sm btn-primary" value="Export to Excel" />
+    }
+
+    <div id="Grid" class="col-lg-12 col-sm-12 col-md-12" style=" flex-align:center">
+        <style>
+
+            body {
+                padding: 0;
+                margin: 0;
+                font-size: 12px;
+                font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+                color: #808080;
+                -webkit-font-smoothing: antialiased;
+                -webkit-font-smoothing: subpixel-antialiased;
+                background: #fff;
+            }
+
+            #tblQuestions td, #tblOtherQuestions td {
+                white-space: normal !important;
+                word-wrap: break-word;
+            }
+
+            .text-white {
+                color: white;
+            }
+
+            .bg-dark {
+                background-color: black;
+            }
+
+            .bg-orange {
+                background-color: gold;
+                color: black;
+            }
+
+            .tbl-th-bg-Red {
+                background-color: red;
+            }
+
+            .tbl-th-bg-Amber {
+                background-color: #FFBF00;
+            }
+
+            .tbl-th-bg-Yellow {
+                background-color: yellow;
+            }
+
+            .tbl-th-bg-Green {
+                background-color: green;
+            }
+
+            .text-center{
+
+                text-align:center;
+            }
+
+
+            .float-container {
+                
+                padding: 20px;
+            }
+
+            .float-child {
+                width: 50%;
+                float: left;
+                padding: 20px;
+            } 
+
+        </style>
+        <table class="marginLR" style="width:20cm;">
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="container m-t-sm" >
+                            <div class="row">
+                                <div class="col-xs-6" style="width:50%;float:left;padding:20px">
+                                    <div class="row">
+                                        <table class="table table-bordered" style="border: 1px solid #ccc;font-size: 9pt;">
+                                            <tbody>
+                                                <tr>
+                                                    <td style="border: 1px solid #ccc"><label>Date</label></td>
+                                                    <td style="border: 1px solid #ccc">
+                                                        @{ string FormatedDate = Model.AuditDate != null ? Convert.ToDateTime(Model.AuditDate).ToString("dd-MMM-yyyy") : ""; }
+                                                        @FormatedDate
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="border: 1px solid #ccc">
+                                                        <label>Facility</label>
+                                                    </td>
+                                                    <td style="border: 1px solid #ccc">
+                                                        @Model.Warehouse
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="border: 1px solid #ccc">
+                                                        <label>Area</label>
+                                                    </td>
+                                                    <td style="border: 1px solid #ccc">@Model.Area</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="border: 1px solid #ccc"><label>No. of People</label></td>
+                                                    <td style="border: 1px solid #ccc">@Model.NoOfPeople</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="border: 1px solid #ccc">
+                                                        <label>Lift Vans Capacity</label>
+                                                    </td>
+                                                    <td style="border: 1px solid #ccc">
+                                                        @Model.NoOfLiftVan
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="border: 1px solid #ccc">
+                                                        <label>Vol.(CFT)</label>
+                                                    </td>
+                                                    <td style="border: 1px solid #ccc">
+                                                        @Model.TotalVolCFT
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="border: 1px solid #ccc">
+                                                        <label>lift Vans Stored</label>
+                                                    </td>
+                                                    <td style="border: 1px solid #ccc">
+                                                        @Model.NoOfLiftVanStored
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="border: 1px solid #ccc">
+                                                        <label>Remark</label>
+                                                    </td>
+                                                    <td style="border: 1px solid #ccc">
+                                                        @Model.Remark
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="border: 1px solid #ccc">Participants </td>
+                                                    <td style="border: 1px solid #ccc">
+                                                        <ul>
+                                                            @foreach(string employee in Model.Participants)
+                                                            {
+                                                                <li>@employee</li>
+                                                            }
+                                                        </ul>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="col-xs-1"></div>
+                                <div class="col-xs-5" style="width:50%;float:left;padding:20px">
+                                    <div class="row">
+                                        @{ string AuditMonth = Model.AuditDate != null ? Convert.ToDateTime(Model.AuditDate).ToString("MMM-yyyy") : ""; }
+                                        <table id="tblRatig" class="table table-bordered" style="border: 1px solid #ccc;font-size: 9pt;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="border: 1px solid #ccc">Rating</th>
+                                                    <td id="ratingColor" style="border: 1px solid #ccc;width:250px; height:25px;">
+                                                    @*<label id="ratingColor" style="width:250px; height:25px;"></label>*@
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th style="border: 1px solid #ccc">Month</th>
+                                                    <th style="border: 1px solid #ccc">@AuditMonth</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th style="border: 1px solid #ccc">SCORE</th>
+                                                    <th style="border: 1px solid #ccc" id="thScore"><label id="ScorePercent"></label> %</th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="m-t-sm" id="SODetails">
+                            <div class="row">
+                                <div class="col-sm-12 table-responsive">
+                                    <table id="tblQuestions" class="table table-bordered" style="border: 1px solid #ccc;font-size: 9pt;">
+                                        <thead>
+                                            <tr>
+                                                <td colspan="5" class="bg-dark text-white text-center" style="background-color:black;color:white;text-align:center" ><b>Scoring</b></td>
+                                                <td class="bg-dark text-white" style="background-color:black;color:white;text-align:center"> <label id="TotalScore"></label></td>
+                                                <td class="bg-dark text-white" style="background-color:black;color:white;text-align:center" ><label id="TotalScoreGiven"></label></td>
+                                                <td class="bg-dark text-white" style="background-color:black;color:white;text-align:center"><label id="TotalScoreObtained"></label></td>
+                                                <td colspan="2" class="bg-dark"></td>
+                                            </tr>
+                                            <tr>
+                                                <th class="bg-orange" style="border: 1px solid #ccc">Category</th>
+                                                <th class="bg-orange" style="border: 1px solid #ccc">Responsibility</th>
+                                                <th class="bg-orange" style="border: 1px solid #ccc">Parameter</th>
+                                                <th class="bg-orange" style="border: 1px solid #ccc">Desired</th>
+                                                <th class="bg-orange" style="border: 1px solid #ccc">Priority</th>
+                                                <th class="bg-orange" style="border: 1px solid #ccc">Score</th>
+                                                <th class="bg-orange" style="border: 1px solid #ccc">Score</th>
+                                                <th class="bg-orange" style="border: 1px solid #ccc">Score Obtained</th>
+                                                <th class="bg-orange" style="border: 1px solid #ccc">Status as on</th>
+                                                <th class="bg-orange" style="border: 1px solid #ccc">Comments&nbsp;&nbsp;</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @for (var i = 0; i < Model.questions.Count; i++)
+                                            {
+                                                <tr>
+                                                    <td class="bg-warning" style="min-width: 150px;max-width: 150px; border: 1px solid #ccc;background-color: #fcf8e3;">
+                                                        <label>@Model.questions[i].CategoryOrder . @Model.questions[i].CategoryName</label>
+                                                    </td>
+                                                    <td style="border: 1px solid #ccc">
+                                                        <b>@Model.questions[i].ResponsibilityName</b>
+                                                    </td>
+                                                    <td style="min-width: 250px;max-width: 250px;border: 1px solid #ccc">
+                                                        @Model.questions[i].CategoryOrder . @Model.questions[i].QuestionOrder . <b>@Model.questions[i].Parameter</b>
+                                                    </td>
+                                                    <td style="min-width: 400px;max-width: 400px;border: 1px solid #ccc">
+                                                        @Model.questions[i].Desired
+                                                        @Html.HiddenFor(a => Model.questions[i].Desired, new { @class = "Desired" })
+                                                    </td>
+                                                    <td style="border: 1px solid #ccc">
+                                                        <b> @Model.questions[i].PriorityName</b>
+                                                    </td>
+                                                    <td style="border: 1px solid #ccc">
+                                                        <label class="Score">@Model.questions[i].Score</label>
+                                                    </td>
+                                                    <td style="border: 1px solid #ccc">
+                                                        <label class="ScoreGiven">@Model.questions[i].ScoreGiven</label>
+
+                                                    </td>
+                                                    <td style="border: 1px solid #ccc">
+                                                        <label class="ScoreObtained">@Model.questions[i].ScoreObtained</label>
+                                                    </td>
+                                                    <td style="min-width: 120px;max-width: 120px;border: 1px solid #ccc">
+                                                        <label class="StatusId">@Model.questions[i].Status</label>
+                                                    </td>
+                                                    <td style="border: 1px solid #ccc">
+                                                        @Model.questions[i].Comments
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+    </div>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+
+    @Scripts.Render("~/bundles/jqueryval")
+
+    @*@Styles.Render("~/Content/icheckcss")
+        @Scripts.Render("~/bundles/icheck")*@
+
+    @Styles.Render("~/Content/summernote")
+    @Scripts.Render("~/bundles/jquery-ui")
+    @Scripts.Render("~/bundles/summernote")
+    @Scripts.Render("~/bundles/bgiframe")
+
+    @Scripts.Render("~/bundles/custom")
+
+
+    <script type="text/javascript">
+        $(function () {
+            $("#btnSubmit").click(function () {
+                $("input[name='GridHtml']").val($("#Grid").html());
+            });
+        });
+    </script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            GetTotal();
+
+            $('#tblQuestions').each(function () {
+                var Column_number_to_Merge = 1;
+
+                // Previous_TD holds the first instance of same td. Initially first TD=null.
+                var Previous_TD = null;
+                var i = 1;
+                $("tbody", this).find('tr').each(function () {
+                    // find the correct td of the correct column
+                    // we are considering the table column 1, You can apply on any table column
+                    var Current_td = $(this).find('td:nth-child(' + Column_number_to_Merge + ')');
+
+                    if (Previous_TD == null) {
+                        // for first row
+                        Previous_TD = Current_td;
+                        i = 1;
+                    }
+                    else if (Current_td.text() == Previous_TD.text()) {
+                        // the current td is identical to the previous row td
+                        // remove the current td
+                        Current_td.remove();
+                        // increment the rowspan attribute of the first row td instance
+                        Previous_TD.attr('rowspan', i + 1);
+                        i = i + 1;
+                    }
+                    else {
+                        // means new value found in current td. So initialize counter variable i
+                        Previous_TD = Current_td;
+                        i = 1;
+                    }
+                });
+            });
+
+        });
+
+        function GetScroreObtained(row, Status) {
+
+            let score = row.find('.Score').val();
+            let scoreGiven = 0;
+            let scoreObtained = 0;
+
+            if (Status == "Closed") {
+
+                scoreGiven = score;
+                scoreObtained = score;
+            }
+            else if (Status == "Hold") {
+
+                scoreGiven = 0;
+                scoreObtained = 0;
+            }
+            else if (Status == "NA") {
+
+                scoreGiven = score;
+                scoreObtained = 0;
+            }
+            else if (Status == "Open") {
+
+                scoreGiven = score;
+                scoreObtained = 0;
+            }
+            else if (Status == "Partial") {
+
+                scoreGiven = score;
+                scoreObtained = (Number(score) / 2);
+            }
+
+            row.find(".ScoreGiven").val(scoreGiven);
+            row.find(".ScoreObtained").val(scoreObtained);
+
+        }
+
+        function GetTotal() {
+            var sumScore = 0;
+            $('.Score').each(function () {
+                var score = Number($(this).text());
+                sumScore += score;
+            });
+            $('#TotalScore').text(sumScore);
+
+            sumScore = 0;
+            $('.ScoreGiven').each(function () {
+                var score = Number($(this).text());
+                sumScore += score;
+            });
+
+            $('#TotalScoreGiven').text(sumScore);
+
+            sumScore = 0;
+            $('.ScoreObtained').each(function () {
+                var score = Number($(this).text());
+                sumScore += score;
+            });
+
+            $('#TotalScoreObtained').text(sumScore);
+
+            $('#ScorePercent').text(Math.round((parseFloat($('#TotalScoreObtained').text()) / parseFloat($('#TotalScoreGiven').text())) * 100));
+
+            $('#ratingColor').removeAttr('style');
+            debugger;
+            if (parseFloat($('#ScorePercent').text()) >= 96) {
+
+                //$('#ratingColor').text('GREEN');
+                $('#ratingColor').attr('style','border: 1px solid #ccc;width:250px; height:25px;background-color:green;color:green');
+            }
+            else if (parseFloat($('#ScorePercent').text()) < 96 && parseFloat($('#ScorePercent').text()) >= 85) {
+
+                //$('#ratingColor').text('YELLOW');
+                $('#ratingColor').attr('style', 'border: 1px solid #ccc;width:250px; height:25px;background-color:yellow;color:yellow');
+            }
+            else if (parseFloat($('#ScorePercent').text()) < 85 && parseFloat($('#ScorePercent').text()) >= 71) {
+
+                //$('#ratingColor').text('AMBER');
+                $('#ratingColor').attr('style', 'border: 1px solid #ccc;width:250px; height:25px;background-color:#FFBF00;color:#FFBF00');
+            }
+            else if (parseFloat($('#ScorePercent').text()) < 71 && parseFloat($('#ScorePercent').text()) >= 0) {
+
+                //$('#ratingColor').text('RED');
+                $('#ratingColor').attr('style', 'border: 1px solid #ccc;width:250px; height:25px;background-color:red;color:red');
+            }
+
+            GetRating();
+        }
+
+
+        function GetRating() {
+
+            debugger;
+
+            var myList = {};
+            $('.StatusId').each(function () {    // Grab all input with ID begins with 'code'
+                let StatusText = $(this).text();
+
+                let Count = 1;
+                if (StatusText != null && StatusText != "") {
+
+                    if (myList[StatusText] != null) {
+
+                        myList[StatusText] += Count;
+                    }
+                    else {
+                        myList[StatusText] = Count;
+                    }
+                }
+
+
+            });
+
+            $("#tblRatig > TBODY").html("");
+
+            for (var i in myList) {
+                var StatusText = i;
+                var Count = myList[i];
+                // Draw the summary <td> using the id and the value here
+                var tbody = $("#tblRatig > TBODY")[0];
+                var row = tbody.insertRow(-1);
+                cell = $(row.insertCell(-1));
+                td = StatusText;
+                cell.attr('style', "border: 1px solid #ccc")
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+                td = Count;
+                cell.attr('style', "border: 1px solid #ccc")
+                cell.append(td);
+
+            }
+
+        }
+    </script>
+
+</body>
+</html>

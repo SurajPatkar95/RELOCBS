@@ -61,6 +61,235 @@ namespace RELOCBS.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] BTR_Dest_Format {
+            get {
+                object obj = ResourceManager.GetObject("BTR_Dest_Format", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] BTR_Origin_Format {
+            get {
+                object obj = ResourceManager.GetObject("BTR_Origin_Format", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] CityCostFormat {
+            get {
+                object obj = ResourceManager.GetObject("CityCostFormat", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] CurrencyConversionFormat {
+            get {
+                object obj = ResourceManager.GetObject("CurrencyConversionFormat", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Destination_BGRS_AIR {
+            get {
+                object obj = ResourceManager.GetObject("Destination_BGRS_AIR", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Destination_BGRS_BTR {
+            get {
+                object obj = ResourceManager.GetObject("Destination_BGRS_BTR", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Destination_BGRS_SEA {
+            get {
+                object obj = ResourceManager.GetObject("Destination_BGRS_SEA", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] DestinationCostUploadFormat {
+            get {
+                object obj = ResourceManager.GetObject("DestinationCostUploadFormat", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Freight_BGRS_AIR {
+            get {
+                object obj = ResourceManager.GetObject("Freight_BGRS_AIR", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Freight_BGRS_BTR {
+            get {
+                object obj = ResourceManager.GetObject("Freight_BGRS_BTR", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Freight_BGRS_SEA {
+            get {
+                object obj = ResourceManager.GetObject("Freight_BGRS_SEA", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] FreightCostUploadFormat {
+            get {
+                object obj = ResourceManager.GetObject("FreightCostUploadFormat", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] GDPR_DataSubject_Consent_Form {
+            get {
+                object obj = ResourceManager.GetObject("GDPR_DataSubject_Consent_Form", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] GDPR_Privacy_Policy_V1 {
+            get {
+                object obj = ResourceManager.GetObject("GDPR_Privacy_Policy_V1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Origin_BGRS_AIR {
+            get {
+                object obj = ResourceManager.GetObject("Origin_BGRS_AIR", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Origin_BGRS_BTR {
+            get {
+                object obj = ResourceManager.GetObject("Origin_BGRS_BTR", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Origin_BGRS_SEA {
+            get {
+                object obj = ResourceManager.GetObject("Origin_BGRS_SEA", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] OriginCostUploadFormat {
+            get {
+                object obj = ResourceManager.GetObject("OriginCostUploadFormat", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ROADCostUploadFormat {
+            get {
+                object obj = ResourceManager.GetObject("ROADCostUploadFormat", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to D:\Nikhil\RELOCBS.
+        /// </summary>
+        internal static string String {
+            get {
+                return ResourceManager.GetString("String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] TransferToFA {
+            get {
+                object obj = ResourceManager.GetObject("TransferToFA", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] TransferToFAReloSmart {
+            get {
+                object obj = ResourceManager.GetObject("TransferToFAReloSmart", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] TransferToFAReloTrack {
+            get {
+                object obj = ResourceManager.GetObject("TransferToFAReloTrack", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to UnExpected error occured At BL.
         /// </summary>
         internal static string UnExpectedErrorAtBL {

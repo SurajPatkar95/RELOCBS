@@ -1,0 +1,49 @@
+﻿@model RELOCBS.Entities.CityCostUpload
+
+
+@try
+{
+    if (Model.CityCostHeadList.Count > 0)
+    {
+        <div class="row">
+            <div class="col-sm-12 m-b-lg">
+                <div class="ibox float-e-margins">
+                    <div class="table-responsive" id="pnl-rates" style="overflow: auto;height: 340px">
+                        <table class="table table-striped" id="RateList">
+                            <thead class="ibox-title">
+                                <tr>
+                                    <th>Cost Head</th>
+                                    <th>Rate Per Unit</th>
+                                    <th>Amount</th>
+                                    <th>Value in USD</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (var i = 0; i < Model.CityCostHeadList.Count(); i++)
+                                {
+                                    <tr>
+                                        <td>
+                                            @Html.HiddenFor(x => Model.CityCostHeadList[i].CostHeadID, new { @class = "CostHead" })
+                                            @Html.DropDownListFor(x => Model.CityCostHeadList[i].CostHeadID, new SelectList((System.Collections.IEnumerable)ViewData["CostHead"], "Value", "Text", Model.CityCostHeadList[i].CostHeadID), "--Select Cost Head--", new { id = "CostHeadDropdown", @class = "form-control input-sm clearfix", @disabled = "disabled" })
+                                        </td>
+                                        <td>
+                                            @Html.DropDownListFor(x => Model.CityCostHeadList[i].ServiceIncluded, new SelectList((System.Collections.IEnumerable)ViewData["YESNO"], "Value", "Text", Model.CityCostHeadList[i].ServiceIncluded), "--Select ServiceIncluded--", new { id = "ServiceIncludedDropdown", @class = "form-control input-sm clearfix" })
+                                        </td>
+                                        <td>
+                                            @Html.EditorFor(x => Model.CityCostHeadList[i].Amount, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdAmount", onkeypress = "return OnlyDouble(this, event);" } })
+                                        </td>
+                                        <td>
+                                            @Html.EditorFor(x => Model.CityCostHeadList[i].USDRate, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdUSDRate", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" } })
+                                        </td>
+
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+catch { }

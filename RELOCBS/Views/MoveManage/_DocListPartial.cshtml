@@ -1,0 +1,102 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+@using RELOCBS.Common;
+
+@model RELOCBS.Entities.MoveManageViewModel
+
+@{
+
+    string _PageID = "10";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+<style>
+    #DocTable th:hover {
+        cursor: pointer;
+    }
+</style>
+
+<div class="table-responsive">
+    <table id="DocTable" class="table table-striped tableScrollbar fixed_header">
+        <thead class="ibox-title">
+            <tr>
+                <th id="DocType">Document Type</th>
+                <th id="nm">Document Name</th>
+                <th>Description</th>
+                <th>File Name</th>
+                <th id="RefNo">Inv.No/Ref.No</th>
+                <th id="CreateBy">Uploaded By</th>
+                <th id="sl">Uploaded Date</th>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody style="height:420px">
+            @for (int i = 0; i < Model.jobDocUpload.docLists.Count; i++)
+            {
+                Model.ISGDPRFileUploaded = Model.jobDocUpload.docLists[i].DocNameID == 969 && Model.jobDocUpload.docLists[i].DocTypeID == 22 && Model.ISGDPRNationalty ;
+                
+                <tr>
+                    <td>
+                        @Html.DisplayFor(model => Model.jobDocUpload.docLists[i].DocType)
+
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => Model.jobDocUpload.docLists[i].DocName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => Model.jobDocUpload.docLists[i].DocDescription)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => Model.jobDocUpload.docLists[i].FileName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => Model.jobDocUpload.docLists[i].InvRefNo)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => Model.jobDocUpload.docLists[i].UploadBy)
+                    </td>
+                    <td>
+                        @Html.Raw(Model.jobDocUpload.docLists[i].UploadDate.ToString("dd-MMM-yyyy"))
+                    </td>
+                    <td>
+                        @using (Html.BeginForm("JobDocDownload", "MoveManage", null, FormMethod.Post, new { id = "DownloadForm", target = "_blank" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            @Html.Hidden("id", Model.jobDocUpload.docLists[i].FileID, new { @class = "FileID" })
+                            <button type="submit" name="Save" class="btn btn-primary btn-sm m-n"><i class="fa fa-download" aria-hidden="true"></i></button>
+                        }
+                    </td>
+                    <td>
+                        @if (CommonService.IsViewFileButton(@Model.jobDocUpload.docLists[i].FileName))
+                        {
+                            using (Html.BeginForm("ViewDocument", "DMS", new { id = @Model.jobDocUpload.docLists[i].FileID }, FormMethod.Post, new { id = "ViewForm", target = "_blank" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.Hidden("FileID", Model.jobDocUpload.docLists[i].FileID, new { @class = "FileID" })
+                                <button type="submit" name="View" value="View" class="btn btn-primary btn-sm m-n"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                            }
+                        }
+                    </td>
+                    <td>
+                        @if (UserSession.GetUserSession().LoginType == "SA" || UserSession.GetUserSession().LoginType == "AA" || UserSession.GetUserSession().LoginID == Model.jobDocUpload.docLists[i].UploadById || Model.jobDocUpload.docLists[i].UploadById == 0)
+                        {
+                            using (Html.BeginForm("JobDocDelete", "MoveManage", new { Indx = 7, SurveyID = @Model.SurveyID, MoveID = @Model.MoveID, IsGetCost = false }, FormMethod.Post, new { id = "DeleteForm", onsubmit = "return DeleteJobDoc()" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.Hidden("id", Model.jobDocUpload.docLists[i].FileID, new { @class = "FileID" })
+                                <button type="submit" name="DeleteDoc" value="DeleteDoc" class="btn btn-danger btn-sm m-n"><i class="fa fa-trash-o"></i></button>
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

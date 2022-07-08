@@ -46,6 +46,7 @@ namespace RELOCBS.DAL.Common
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CityCode", SqlDbType.NVarChar, 50, ParameterDirection.Input, CSubs.PSafeValue(city.CityCode));
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CityName", SqlDbType.NVarChar, 100, ParameterDirection.Input, CSubs.PSafeValue(city.CityName));
                         conn.AddParameter(ParameterOF.PROCEDURE, "@Sp_CountryID", SqlDbType.Int, 0, ParameterDirection.Input, (city.CountryID));
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@Sp_StateID", SqlDbType.Int, 0, ParameterDirection.Input, (city.StateID));
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_IsActive", SqlDbType.Bit, 0, ParameterDirection.Input, city.isActive);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_LOGINID", SqlDbType.Int, 0, ParameterDirection.Input, UserSession.GetUserSession().LoginID);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@RETURNSTATUS", SqlDbType.SmallInt, 0, ParameterDirection.ReturnValue);
@@ -97,6 +98,7 @@ namespace RELOCBS.DAL.Common
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CityCode", SqlDbType.NVarChar, 50, ParameterDirection.Input, CSubs.PSafeValue(city.CityCode));
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CityName", SqlDbType.NVarChar, 100, ParameterDirection.Input, CSubs.PSafeValue(city.CityName));
                         conn.AddParameter(ParameterOF.PROCEDURE, "@Sp_CountryID", SqlDbType.Int, 0, ParameterDirection.Input, (city.CountryID));
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@Sp_StateID", SqlDbType.Int, 0, ParameterDirection.Input, (city.StateID));
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_IsActive", SqlDbType.Bit, 0, ParameterDirection.Input, city.isActive);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_LOGINID", SqlDbType.Int, 0, ParameterDirection.Input, UserSession.GetUserSession().LoginID);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@RETURNSTATUS", SqlDbType.SmallInt, 0, ParameterDirection.ReturnValue);
@@ -230,6 +232,7 @@ namespace RELOCBS.DAL.Common
                                   CityID = Convert.ToInt32(rw["CityID"]),
                                   CountryID = Convert.ToInt32(rw["CountryID"]),
                                   CountryName = Convert.ToString(rw["CountryName"]),
+                                  StateName = Convert.ToString(rw["StateName"]),
                                   Isactive = Convert.ToBoolean(rw["isActive"])
                               }).ToList();
 

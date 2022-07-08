@@ -1,0 +1,76 @@
+﻿<div id="divVehicleAllocation" class="modal pannel-table fade" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width:750px;">
+        <div class="modal-content">
+            <div class="panel popup-panel">
+                <div class="panel-heading">
+                    <h3>
+                        Vehicle Allocation
+                        <a id="btnVehicleAllocationClose" class="close floatRight" data-dismiss="modal"><span class="fa fa-close"></span></a>
+                    </h3>
+                </div>
+                <div class="panel-body" style="padding-top:0; min-height:90px;">
+                    <table class="tableData taW tbodyScroll">
+                        <thead>
+                            <tr>
+                                <th class="thRound thRoundFirst cw150">Purpose</th>
+                                <th class="thRound thRoundFirst cw150">Vehicle No</th>
+                                <th class="thRound cw150">Driver Name</th>
+                                <th class="thRound cw120">From Date</th>
+                                <th class="thRound thRoundLast cw120">To Date</th>
+                            </tr>
+                        </thead>
+                        <tbody style="max-height:380px;">
+                            <tr data-ng-repeat="vRow in pVehicleList | unique : 'VehicleId'">
+                                <script>
+                                            $('.joballocation_datetimepicker').datetimepicker({
+                                                dayOfWeekStart: 1,
+                                                lang: 'en',
+                                                format: 'd/m/Y H:i'
+                                            });
+                                </script>
+                                <td class="cw150">
+
+                                    <select class="flatbox taW" data-ng-model="vRow.PurId" id="purpose" data-ng-options="item.PurId as item.PurDesc for item in PurposeMasterList">
+                                        <option>Select</option>
+                                    </select>
+
+
+                                </td>
+                                <td class="cw150">
+                                    <select class="flatbox taW" data-ng-model="vRow.VehicleId" id="Vehicle" data-ng-change="GetVehicleDataChk(vRow)" data-ng-options="item.VehicleId as item.VehicleNbr for item in VehicleNoLookup">
+                                        <option>Select</option>
+                                    </select>
+                                    <input type="hidden" data-ng-model="vRow.WisId" ng-init="vRow.WisId=seletedJob.WisId" />
+                                </td>
+                                <td class="cw150">
+                                    <select class="flatbox taW" data-ng-model="vRow.DriverId" id="Driver" data-ng-options="item.DriverId as item.DriverName for item in DriverLookup">
+                                        <option>Select</option>
+                                    </select>
+                                </td>
+                                <td class="cw120">
+                                    <div class="input-group">
+                                        <input class="flatbox dateinput2 taW joballocation_datetimepicker" data-ng-model=vRow.FromDate ng-change="valueChanged($index,vRow.FromDate,vRow.ToDate)" type="text">
+                                        <span class="date-icon2"></span>
+                                    </div>
+                                </td>
+                                <td class="cw120">
+                                    <div class="input-group">
+                                        <input class="flatbox dateinput2 taW joballocation_datetimepicker" data-ng-model=vRow.ToDate type="text">
+                                        <span class="date-icon2"></span>
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="panel-footer tcenter">
+                    <button type="button" class="btn btn-primary" data-ng-click="AddNewDtls()">Add New</button>
+                    <button type="button" class="btn btn-primary" data-ng-click="SaveVehicleDetails()">Save</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

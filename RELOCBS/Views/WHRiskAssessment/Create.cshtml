@@ -1,0 +1,902 @@
+﻿@model RELOCBS.Entities.WHAssessmentViewModel
+
+@using RELOCBS.Common;
+@using RELOCBS.Utility;
+
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string _PageID = "70";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+<style>
+ #tblQuestions td, #tblOtherQuestions td {
+        white-space: normal !important;
+        word-wrap: break-word;
+    }
+
+    #tblQuestions .bg-dark {
+
+        background-color:black;
+    }
+
+    #tblQuestions .bg-orange {
+        background-color: gold;
+        color:black;
+    }
+
+    .tbl-th-bg-Red {
+        background-color:red;
+    }
+
+    .tbl-th-bg-Amber {
+        background-color: #FFBF00;
+    }
+
+    .tbl-th-bg-Yellow {
+        background-color: yellow;
+    }
+    .tbl-th-bg-Green {
+        background-color: green;
+    }
+    
+
+</style>
+
+@using (Html.BeginForm("Create", "WHRiskAssessment", FormMethod.Post, new { enctype = "multipart/form-data", @id = "WHRiskAssessmentFrm" }))
+{
+
+    @Html.ValidationSummary(false, "")
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(a => a.TransId)
+    @Html.HiddenFor(a => a.HFVQuestions)
+
+    <fieldset class="col-md-12 border-grey m-t-xs">
+        <div class="row m-t-xs">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Date</label>
+                    @Html.TextBoxFor(model => Model.AuditDate, new { @class = "form-control input-sm clearfix OdometerDate datetimepicker" })
+                    @Html.ValidationMessageFor(a => a.AuditDate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Facility</label>
+                    @Html.DropDownListFor(model => Model.WarehouseId, new SelectList((System.Collections.IEnumerable)ViewData["WarehouseList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm clearfix WarehouseId enableselect" })
+                    @Html.ValidationMessageFor(a => a.WarehouseId, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Area</label>
+                    @Html.TextBoxFor(model => Model.Area, new { @class = "form-control input-sm clearfix Area", @readonly = "readonly" })
+                    @Html.ValidationMessageFor(a => a.Area, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>No. of People</label>
+                    @Html.TextBoxFor(model => Model.NoOfPeople, new { @class = "form-control input-sm clearfix NoOfPeople", onkeypress = "return OnlyDouble(this, event);" })
+                    @Html.ValidationMessageFor(a => a.NoOfPeople, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Lift Vans Capacity</label>
+                    @Html.TextBoxFor(model => Model.NoOfLiftVan, new { @class = "form-control input-sm clearfix NoOfLiftVan", onkeypress = "return OnlyDouble(this, event);" })
+                    @Html.ValidationMessageFor(a => a.NoOfLiftVan, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-1 col-md-1">
+                <div class="clearfix m-t-md">
+                    <button type="button" class="btnViewRating btn btn-default btn-sm m-l-sm pull-right" title="Activity">View Rating</button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Vol.(CFT)</label>
+                    @Html.TextBoxFor(model => Model.TotalVolCFT, new { @class = "form-control input-sm clearfix TotalVolCFT", onkeypress = "return OnlyDouble(this, event);" })
+                    @Html.ValidationMessageFor(a => a.TotalVolCFT, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>lift Vans Stored</label>
+                    @Html.TextBoxFor(model => Model.NoOfLiftVanStored, new { @class = "form-control input-sm clearfix NoOfLiftVanStored", onkeypress = "return OnlyDouble(this, event);" })
+                    @Html.ValidationMessageFor(a => a.NoOfLiftVanStored, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Participants</label>
+                    @Html.ListBoxFor(a => a.Participants, new SelectList((System.Collections.IEnumerable)ViewData["EmployeeList"], "Value", "Text", Model.Participants), new { @class = "inpit-sm p-n pull-right m-l-n", @autocomplete = "off", @multiple = "multiple" })
+                    @Html.ValidationMessageFor(a => a.Participants, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Remark</label>
+                    @Html.TextAreaFor(model => Model.Remark, new { @class = "form-control input-sm clearfix Remarks", @columns = "10", @rows = "3" })
+                    @Html.ValidationMessageFor(a => a.Remark, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-1 col-md-1">
+                <div class="clearfix m-t-md">
+                    <button type="submit" class="btn btn-primary btn-sm pull-left" name="submit" value="Save" id="btnSave">Save</button>
+                </div>
+            </div>
+            <div class="col-sm-1 col-md-1">
+                <div class="clearfix m-t-md">
+                    @if (Model.TransId > 0)
+                    {
+                        <a href="@Url.Action("GetReport", "WHRiskAssessment",new { id = Model.TransId })" class="btnView btn btn-sm btn-primary glyphicon glyphicon-print   pull-right" target="_blank" title="View Report"></a>
+                    }
+                </div>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset id="divRating" class="table-responsive p-xs col-md-12 border-grey">
+        <legend>Rating</legend>
+            <div class="row">
+                @{ string AuditMonth = Model.AuditDate != null ? Convert.ToDateTime(Model.AuditDate).ToString("MMM-yyyy") : "";    }
+                <table id="tblRatig" class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Rating</th>
+                            <th><label id="ratingColor" style="width:250px"></label></th>
+                        </tr>
+                        <tr>
+                            <th>Month</th>
+                            <th>@AuditMonth</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>SCORE</th>
+                            <th id="thScore">@Html.TextBoxFor(a => a.ScorePercent, new { @placeholder = "", @tooltip = "Score", @class = "text-right ScorePercent", title = "ScorePercent", @readonly = "readonly" }) %</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+    </fieldset>
+    <fieldset class="col-md-12 m-n pad-none border-grey ">
+        <legend>
+            Checklist
+        </legend>
+        <div class="m-t-sm" id="SODetails">
+            <div class="row">
+                <div class="col-sm-12 table-responsive">
+                    <table id="tblQuestions" class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <td colspan="5" class="bg-dark text-white text-center"><b>Scoring</b></td>
+                                <td class="bg-dark"><input  type="text" id="TotalScore" class="form-control input-sm" name="TotalScore" readonly/></td>
+                                <td class="bg-dark"><input type="text" id="TotalScoreGiven" class="form-control input-sm" name="TotalScoreGiven" readonly /></td>
+                                <td class="bg-dark"><input type="text" id="TotalScoreObtained" class="form-control input-sm" name="TotalScoreObtained" readonly /></td>
+                                <td colspan="3" class="bg-dark"></td>
+                            </tr>
+                            <tr>
+                                <th class="bg-orange">Category</th>
+                                <th class="bg-orange">Responsibility</th>
+                                <th class="bg-orange">Parameter</th>
+                                <th class="bg-orange">Desired</th>
+                                <th class="bg-orange">Priority</th>
+                                <th class="bg-orange">Score</th>
+                                <th class="bg-orange">Score</th>
+                                <th class="bg-orange">Score Obtained</th>
+                                <th class="bg-orange">Status as on</th>
+                                <th class="bg-orange">Comments&nbsp;&nbsp;</th>
+                                @*<th class="bg-orange"></th>*@
+                                <th class="bg-orange"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.questions.Count; i++)
+                            {
+                                <tr> 
+                                    <td class="bg-warning" style="min-width: 150px;max-width: 150px;">
+                                        <label>@Model.questions[i].CategoryOrder . @Model.questions[i].CategoryName</label>
+                                    </td>
+                                    <td>
+                                        <b>@Model.questions[i].ResponsibilityName</b>
+                                        @Html.HiddenFor(a => Model.questions[i].ResponsibilityName, new { @class = "ResponsibilityName" })
+                                        @Html.HiddenFor(x => Model.questions[i].ResponsibilityId, new { @class = "ResponsibilityId" })
+                                    </td>
+                                    <td style="min-width: 250px;max-width: 250px;">
+                                        @Model.questions[i].CategoryOrder . @Model.questions[i].QuestionOrder . <b>@Model.questions[i].Parameter</b>
+                                        @Html.HiddenFor(a => Model.questions[i].Parameter, new { @class = "Parameter" })
+                                        @Html.HiddenFor(x => Model.questions[i].TransDetailId, new { @class = "TransDetailId" })
+                                        @Html.HiddenFor(x => Model.questions[i].TransId, new { @class = "TransId" })
+                                        @Html.HiddenFor(x => Model.questions[i].QuestionId, new { @class = "QuestionId" })
+                                        @Html.HiddenFor(x => Model.questions[i].QuestionOrder, new { @class = "QuestionOrder" })
+                                        @Html.HiddenFor(a => Model.questions[i].CategoryName, new { @class = "CategoryName" })
+                                        @Html.HiddenFor(x => Model.questions[i].CategoryId, new { @class = "CategoryId" })
+                                        @Html.HiddenFor(x => Model.questions[i].CategoryOrder, new { @class = "CategoryOrder" })
+                                    </td>
+                                    <td style="min-width: 400px;max-width: 400px;">
+                                        @Model.questions[i].Desired
+                                        @Html.HiddenFor(a => Model.questions[i].Desired, new { @class = "Desired" })
+                                    </td>
+                                    <td>
+                                        <b> @Model.questions[i].PriorityName</b>
+                                        @Html.HiddenFor(a => Model.questions[i].PriorityName, new { @class = "PriorityName" })
+                                        @Html.HiddenFor(x => Model.questions[i].PriorityId, new { @class = "PriorityId" })
+                                    </td>
+                                    <td>
+                                        <b>@Model.questions[i].Score</b>
+                                        @Html.HiddenFor(a => Model.questions[i].Score, new { @class = "Score" })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(a => Model.questions[i].ScoreGiven, new { htmlAttributes = new { @placeholder = "", @tooltip = "Score", @class = "form-control input-sm ScoreGiven", title = "Account", @readonly = "readonly" } })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(a => Model.questions[i].ScoreObtained, new { htmlAttributes = new { @placeholder = "", @tooltip = "Score", @class = "form-control input-sm ScoreObtained", title = "Account", @readonly = "readonly" } })
+                                    </td>
+                                    <td style="min-width: 120px;max-width: 120px;">
+                                        @Html.DropDownListFor(a => Model.questions[i].StatusId, new SelectList((System.Collections.IEnumerable)ViewData["WHAssessmentStatusList"], "Value", "Text", Model.questions[i].StatusId), "Select One", new { @class = "form-control StatusId", title = "Status as on" })
+                                        
+                                    </td>
+                                    <td>
+                                        @Html.TextAreaFor(a => a.questions[i].Comments, new { htmlAttributes = new { @class = "form-control input-sm Comments", title = "Comments", @rows = "5", @columns = "30" } })
+                                    </td>
+                                    @*<td>
+                                        <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveJob(this)"></button>
+                                    </td>*@
+                                    <td>
+                                        @if (Model.questions[i].TransDetailId != null && Model.questions[i].TransDetailId > 0)
+                                        {
+                                        <a href="@Url.Action("CreateDoc", "WHRiskAssessment", new { id = @Model.questions[i].TransDetailId, Type = "WHChecklist" })" class="btn btn-primary btn-sm pull-right m-l-xs" data-toggle="modal" data-target="#mdlDMS" data-cache="false" title="DMS"><i class="glyphicon glyphicon-folder-open m-r-xs"></i>DMS</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="col-md-12 m-n pad-none border-grey ">
+        <legend>
+            Other Checklist
+        </legend>
+        <div id="divOtherChecklist" class="m-t-sm">
+            <div class="row">
+                <div class="col-sm-2 col-md-2 form-group hide">
+                    <label>Category</label>
+                    @Html.DropDownList("CategoryOther", new SelectList((System.Collections.IEnumerable)ViewData["CategoryList"], "Value", "Text", 24), "--Select Category--", new { @class = "form-control input-sm clearfix" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Responsibility</label>
+                    @Html.DropDownList("ResponsibilityOther", new SelectList((System.Collections.IEnumerable)ViewData["ResponsibilityList"], "Value", "Text"), "--Select Responsibility--", new { @class = "form-control input-sm clearfix" })
+                </div>
+                <div class="col-sm-3 col-md-3 form-group">
+                    <label>Parameter</label>
+                    @Html.TextBox("ParameterOther", null, new { @class = "form-control input-sm clearfix" })
+                </div>
+                <div class="col-sm-3 col-md-3 form-group">
+                    <label>Desired</label>
+                    @Html.TextBox("DesiredOther", null, new { @class = "form-control input-sm clearfix" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Priority</label>
+                    @Html.DropDownList("PriorityOther", new SelectList((System.Collections.IEnumerable)ViewData["PriorityList"], "Value", "Text"), "--Select Priority--", new { @class = "form-control input-sm clearfix" })
+                </div>
+                <div class="col-sm-1 col-md-1 form-group">
+                    <label>Score</label>
+                    @Html.TextBox("ScoreOther", null, new { @class = "form-control input-sm clearfix" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Status as on</label>
+                    @Html.DropDownList("StatusOther", new SelectList((System.Collections.IEnumerable)ViewData["WHAssessmentStatusList"], "Value", "Text"), "--Select Status--", new { @class = "form-control input-sm clearfix" })
+                </div>
+                <div class="col-sm-3 col-md-3 form-group">
+                    <label>Comments</label>
+                    @Html.TextBox("CommentsOther", null, new { @class = "form-control input-sm clearfix" })
+                </div>
+                <div class="col-sm-1 col-md-1 form-group">
+                    <div class="clearfix">
+                        <input type="button" id="btnAdd" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="addOtherQuestion()">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 table-responsive">
+                    <table id="tblOtherQuestions" class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th class="bg-orange hide">Category</th>
+                                <th class="bg-orange">Responsibility</th>
+                                <th class="bg-orange">Parameter</th>
+                                <th class="bg-orange">Desired</th>
+                                <th class="bg-orange">Priority</th>
+                                <th class="bg-orange">Score</th>
+                                <th class="bg-orange">Score</th>
+                                <th class="bg-orange">Score Obtained</th>
+                                <th class="bg-orange">Status as on</th>
+                                <th class="bg-orange">Comments&nbsp;&nbsp;</th>
+                                <th class="bg-orange"></th>
+                                <th class="bg-orange"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.otherQuestions.Count; i++)
+                            {
+                                <tr>
+                                    <td class="bg-warning hide" style="min-width: 150px;max-width: 150px;">
+                                        <label>@Model.otherQuestions[i].CategoryName</label>
+                                    </td>
+                                    <td>
+                                        <b>@Model.otherQuestions[i].ResponsibilityName</b>
+                                        @Html.HiddenFor(a => Model.otherQuestions[i].ResponsibilityName, new { @class = "ResponsibilityName" })
+                                        @Html.HiddenFor(x => Model.otherQuestions[i].ResponsibilityId, new { @class = "ResponsibilityId" })
+                                    </td>
+                                    <td style="min-width: 250px;max-width: 250px;">
+                                       <b>@Model.otherQuestions[i].Parameter</b>
+                                        @Html.HiddenFor(a => Model.otherQuestions[i].Parameter, new { @class = "Parameter" })
+                                        @Html.HiddenFor(x => Model.otherQuestions[i].TransDetailId, new { @class = "TransDetailId" })
+                                        @Html.HiddenFor(x => Model.otherQuestions[i].TransId, new { @class = "TransId" })
+                                        @Html.HiddenFor(a => Model.otherQuestions[i].CategoryName, new { @class = "CategoryName" })
+                                        @Html.HiddenFor(x => Model.otherQuestions[i].CategoryId, new { @class = "CategoryId" })
+                                    </td>
+                                    <td style="min-width: 400px;max-width: 400px;">
+                                        @Model.otherQuestions[i].Desired
+                                        @Html.HiddenFor(a => Model.otherQuestions[i].Desired, new { @class = "Desired" })
+                                    </td>
+                                    <td>
+                                        <b> @Model.otherQuestions[i].PriorityName</b>
+                                        @Html.HiddenFor(a => Model.otherQuestions[i].PriorityName, new { @class = "PriorityName" })
+                                        @Html.HiddenFor(x => Model.otherQuestions[i].PriorityId, new { @class = "PriorityId" })
+                                    </td>
+                                    <td>
+                                        <b>@Model.otherQuestions[i].Score</b>
+                                        @Html.HiddenFor(a => Model.otherQuestions[i].Score, new { @class = "Score" })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(a => Model.otherQuestions[i].ScoreGiven, new { htmlAttributes = new { @placeholder = "", @tooltip = "Score", @class = "form-control input-sm ScoreGiven", title = "Score", @readonly = "readonly" } })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(a => Model.otherQuestions[i].ScoreObtained, new { htmlAttributes = new { @placeholder = "", @tooltip = "Score", @class = "form-control input-sm ScoreObtained", title = "Score", @readonly = "readonly" } })
+                                    </td>
+                                    <td style="min-width: 120px;max-width: 120px;">
+                                        @Html.DropDownListFor(a => Model.otherQuestions[i].StatusId, new SelectList((System.Collections.IEnumerable)ViewData["WHAssessmentStatusList"], "Value", "Text", Model.otherQuestions[i].StatusId), "Select One", new { @class = "form-control StatusId", title = "Status as on" })
+                                    </td>
+                                    <td>
+                                        @Html.TextAreaFor(a => a.otherQuestions[i].Comments, new { @class = "form-control input-sm Comments", title = "Comments", @rows = "5", @columns = "30" } )
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveOtherQuestion(this)"></button>
+                                    </td>
+                                    <td>
+                                        @if (Model.otherQuestions[i].TransDetailId != null && Model.otherQuestions[i].TransDetailId > 1)
+                                        {
+                                            <a href="@Url.Action("CreateDoc", "WHRiskAssessment", new {  id = @Model.otherQuestions[i].TransDetailId, Type = "WHChecklist" })" class="btn btn-primary btn-sm pull-right m-l-xs" data-toggle="modal" data-target="#mdlDMS" data-cache="false" title="DMS"><i class="glyphicon glyphicon-folder-open m-r-xs"></i>DMS</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+}
+
+<!--DMS Model-->
+<div id="mdlDMS" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>
+
+
+@section Scripts{
+
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#tblQuestions').each(function () {
+                var Column_number_to_Merge = 1;
+
+                // Previous_TD holds the first instance of same td. Initially first TD=null.
+                var Previous_TD = null;
+                var i = 1;
+                $("tbody", this).find('tr').each(function () {
+                    // find the correct td of the correct column
+                    // we are considering the table column 1, You can apply on any table column
+                    var Current_td = $(this).find('td:nth-child(' + Column_number_to_Merge + ')');
+
+                    if (Previous_TD == null) {
+                        // for first row
+                        Previous_TD = Current_td;
+                        i = 1;
+                    }
+                    else if (Current_td.text() == Previous_TD.text()) {
+                        // the current td is identical to the previous row td
+                        // remove the current td
+                        Current_td.remove();
+                        // increment the rowspan attribute of the first row td instance
+                        Previous_TD.attr('rowspan', i + 1);
+                        i = i + 1;
+                    }
+                    else {
+                        // means new value found in current td. So initialize counter variable i
+                        Previous_TD = Current_td;
+                        i = 1;
+                    }
+                });
+            });
+        });
+
+        $(document).ready(function () {
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('#btnSave').on('click', function (e) {
+
+                GetJsonData();
+                let form = $('#WHRiskAssessmentFrm');
+                if (form.valid()) {
+
+                    $('#overlay').fadeIn();
+                }
+                else {
+                    e.preventDefault();
+                }
+            });
+
+            
+            GetJsonData();
+            GetTotal();
+
+            StatusEventRegister();
+
+            $("#divRating").hide();
+
+            $(".btnViewRating").click(function (e) {
+
+                debugger;
+                e.preventDefault();
+                $("#divRating").toggle("slow");
+
+                return false;
+            });
+
+        });
+
+        function StatusEventRegister() {
+
+            $(".StatusId").on("change", function (e) {
+
+                let selectedText = $(this).find(":selected").text();
+                let row = $(this).closest('tr');
+                GetScroreObtained(row, selectedText);
+                GetTotal();
+
+            });
+        }
+
+        function GetScroreObtained(row,Status) {
+
+            let score = row.find('.Score').val();
+            let scoreGiven = 0;
+            let scoreObtained = 0;
+
+            if (Status == "Closed") {
+
+                scoreGiven = score;
+                scoreObtained = score;
+            }
+            else if (Status == "Hold") {
+
+                scoreGiven = 0;
+                scoreObtained = 0;
+            }
+            else if (Status == "NA") {
+
+                scoreGiven = 0;
+                scoreObtained = 0;
+            }
+            else if (Status == "Open") {
+
+                scoreGiven = score;
+                scoreObtained = 0;
+            }
+            else if (Status == "Partial") {
+
+                scoreGiven = score;
+                scoreObtained = (Number(score)/2);
+            }
+           
+            row.find(".ScoreGiven").val(scoreGiven);
+            row.find(".ScoreObtained").val(scoreObtained);
+
+        }
+
+        function GetTotal() {
+            var sumScore = 0;
+            $('.Score').each(function () {
+                var score = Number($(this).val());
+                sumScore += score;
+            });
+            $('#TotalScore').val(sumScore);
+
+            sumScore = 0;
+            $('.ScoreGiven').each(function () {
+                var score = Number($(this).val());
+                sumScore += score;
+            });
+
+            $('#TotalScoreGiven').val(sumScore);
+
+            sumScore = 0;
+            $('.ScoreObtained').each(function () {
+                var score = Number($(this).val());
+                sumScore += score;
+            });
+
+            $('#TotalScoreObtained').val(sumScore);
+
+            $('#ScorePercent').val( Math.round((parseFloat($('#TotalScoreObtained').val()) / parseFloat($('#TotalScoreGiven').val())) * 100));
+
+            $('#ratingColor').removeClass('');
+            debugger;
+            if (parseFloat($('#ScorePercent').val()) >= 96) {
+
+                $('#ratingColor').addClass('tbl-th-bg-Green');
+            }
+            else if (parseFloat($('#ScorePercent').val()) < 96 && parseFloat($('#ScorePercent').val()) >= 85) {
+
+                $('#ratingColor').addClass('tbl-th-bg-Yellow');
+            }
+            else if (parseFloat($('#ScorePercent').val()) < 85 && parseFloat($('#ScorePercent').val()) >= 71) {
+
+                $('#ratingColor').addClass('tbl-th-bg-Amber');
+            }
+            else if (parseFloat($('#ScorePercent').val()) < 71 && parseFloat($('#ScorePercent').val()) >= 0) {
+
+                $('#ratingColor').addClass('tbl-th-bg-Red');
+            }
+            
+            GetRating();
+        }
+
+
+        function GetRating() {
+
+            debugger;
+
+            var myList = {};
+            $('.StatusId').each(function () {    // Grab all input with ID begins with 'code'
+                let StatusText = $(this).find('option:selected').text();
+                let StatusValue = $(this).find('option:selected').val(); // Get the actual text status name
+                let Count= 1;
+                if (StatusValue!=null && StatusValue!="") {
+
+                    if (myList[StatusText] != null) {
+
+                        myList[StatusText] += Count;
+                    }
+                    else {
+                        myList[StatusText] = Count;
+                    }
+                }
+
+                
+            });
+
+            $("#tblRatig > TBODY").html("");
+            
+            for (var i in myList) {
+                var StatusText = i;
+                var Count = myList[i];
+                // Draw the summary <td> using the id and the value here
+                var tbody = $("#tblRatig > TBODY")[0];
+                var row = tbody.insertRow(-1);
+                cell = $(row.insertCell(-1));
+                td = StatusText;
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+                td = Count;
+                cell.append(td);
+
+            }
+
+        }
+
+        function GetJsonData() {
+
+            var data = GetData();
+            if (data != null && data.length > 0) {
+
+                $('#HFVQuestions').val(JSON.stringify(data));
+            }
+        }
+
+        function GetData() {
+            var data = [];
+            
+            $('#tblOtherQuestions tbody tr').each(function () {
+
+
+                let TransId = $(this).find('.TransId').val();
+                let TransDetailId = $(this).find('.TransDetailId').val();
+                //let QuestionId = $(this).find('.QuestionId').val();
+                let Parameter = $(this).find('.Parameter').val();
+                let Desired = $(this).find('.Desired').val();
+                let QuestionOrder = $(this).find('.QuestionOrder').val();
+                let CategoryId = $(this).find('.CategoryId').val();
+                let CategoryName = $(this).find('.CategoryName').val();
+                let CategoryOrder = $(this).find('.CategoryOrder').val();
+                let ResponsibilityId = $(this).find('.ResponsibilityId').val();
+                let ResponsibilityName = $(this).find('.ResponsibilityName').val();
+                let PriorityId = $(this).find('.PriorityId').val();
+                let PriorityName = $(this).find('.PriorityName').val();
+                let Score = $(this).find('.Score').val();
+                let ScoreGiven = $(this).find('.ScoreGiven').val();
+                let ScoreObtained = $(this).find('.ScoreObtained').val();
+                let StatusId = $(this).find('.StatusId').val();
+                debugger;
+                let Comments = $(this).find('.Comments').val();
+                
+                    var alldata = {
+                        'TransId': TransId,
+                        'TransDetailId': TransDetailId,
+                        'Parameter': Parameter,
+                        'Desired': Desired,
+                        'QuestionOrder': QuestionOrder,
+                        'CategoryId': CategoryId,
+                        'CategoryName': CategoryName,
+                        'CategoryOrder': CategoryOrder,
+                        'ResponsibilityId': ResponsibilityId,
+                        'ResponsibilityName': ResponsibilityName,
+                        'PriorityId': PriorityId,
+                        'PriorityName': PriorityName,
+                        'Score': Score,
+                        'ScoreGiven': ScoreGiven,
+                        'ScoreObtained': ScoreObtained,
+                        'StatusId': StatusId,
+                        'Comments': Comments
+                    }
+                    data.push(alldata);
+                });
+            
+            return data;
+        }
+
+        $('#WarehouseId').change(function () {
+            var id = $(this).val();
+
+            if (id != null && id != "") {
+
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("GetWarehoueArea", "WHRiskAssessment")' + '?id=' + id,
+                    data: "{id:'" + id + "'}",
+                    success: function (data) {
+
+                        if (data != null) {
+
+                            $('#Area').val(data);
+                        }
+                    },
+                    failure: function (data) {
+                        //alert('error occured');
+                    }
+
+                });
+
+            }
+            else {
+
+                $('#Area').val("");
+            }
+
+        });
+
+        
+        function checkJobExists(MoveId) {
+
+            var result = false;
+
+            $("#tblQuestions > TBODY > tr").each(function () {
+
+                if ($('.MoveID').val() === FromLoc) {
+                    result = true;
+                    return false;
+                }
+
+            });
+
+            return result;
+
+        }
+
+        function RemoveOtherQuestion(sender) {
+
+            //Determine the reference of the Row using the Button.
+            var row = $(sender).closest("TR");
+            var name = row[0].rowIndex;
+            if (confirm("Are you sure you want to delete?")) {
+
+                var table = $("#tblOtherQuestions")[0];
+                table.deleteRow(row[0].rowIndex);
+                GetTotal();
+                return false;
+            }
+
+            return false;
+
+        }
+
+        function addOtherQuestion() {
+
+            var CategoryId = $("#CategoryOther option:selected");
+            var Paramter = $("#ParameterOther").val();
+            var Desired = $("#DesiredOther").val();
+            var ResponsibilityOther = $("#ResponsibilityOther option:selected");
+            var PriorityOther = $("#PriorityOther option:selected");
+            var StatusOther = $("#StatusOther option:selected");
+            var score = $("#ScoreOther").val();
+            var CommentsOther = $("#CommentsOther").val();
+            let TransId = '@Model.TransId';
+
+            debugger;
+            if (parseInt(CategoryId.val()) > 0 && Paramter != null && Paramter != "" && Desired != null && Desired !="" && ResponsibilityOther.val() != null && PriorityOther.val() != null && StatusOther.val() != null && parseFloat(score)>=0) {
+
+                var tBody = $("#tblOtherQuestions > TBODY")[0];
+                var rowCount = $('#tblOtherQuestions > TBODY > tr').length;
+
+                var row = tBody.insertRow(-1);
+                row.className = "package-row";
+
+                var cell = $(row.insertCell(-1));
+                var td = '<label>' + ResponsibilityOther.text() + '</label>';
+                cell.addClass('bg-warning hide');
+                cell.attr('style','min-width: 150px;max-width: 150px;');
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+                td = `<b>${ResponsibilityOther.text()}</b>
+                    <input class="ResponsibilityName" id = "otherQuestions_${rowCount}__ResponsibilityName" name = "otherQuestions[${rowCount}].ResponsibilityName" type = "hidden" value = "${ResponsibilityOther.text()}" autocomplete = "off" >
+                    <input class="ResponsibilityId" data-val="true" data-val-number="The field ResponsibilityId must be a number." data-val-required="The ResponsibilityId field is required." id="otherQuestions_${rowCount}__ResponsibilityId" name="otherQuestions[${rowCount}].ResponsibilityId" type="hidden" value="${ResponsibilityOther.val()}" autocomplete="off">`;
+
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+                td = `<b>${Paramter}</b>
+                      <input class="Parameter" id="otherQuestions_${rowCount}__Parameter" name="otherQuestions[${rowCount}].Parameter" type="hidden" value="${Paramter}" autocomplete="off">
+                      <input class="TransDetailId" data-val="true" data-val-number="The field TransDetailId must be a number." id="otherQuestions_${rowCount}__TransDetailId" name="otherQuestions[${rowCount}].TransDetailId" type="hidden" value="" autocomplete="off">
+                      <input class="TransId" data-val="true" data-val-number="The field TransId must be a number." id="otherQuestions_${rowCount}__TransId" name="otherQuestions[${rowCount}].TransId" type="hidden" value="${TransId}" autocomplete="off">
+                      <input id="otherQuestions_${rowCount}__CategoryName" name="otherQuestions[${rowCount}].CategoryName" type="hidden" value="${CategoryId.text()}" autocomplete="off">
+                      <input class="CategoryId" data-val="true" data-val-number="The field CategoryId must be a number." data-val-required="The CategoryId field is required." id="otherQuestions_${rowCount}__CategoryId" name="otherQuestions[${rowCount}].CategoryId" type="hidden" value="${CategoryId.val()}" autocomplete="off">`;
+
+                cell.append(td);
+                cell.attr('style', 'min-width: 250px;max-width: 250px;');
+
+                cell = $(row.insertCell(-1));
+                td = `${Desired}<input class="Desired" id="otherQuestions_${rowCount}__Desired" name="otherQuestions[${rowCount}].Desired" type="hidden" value="${Desired}" autocomplete="off">`;
+
+                cell.append(td);
+                cell.attr('style', 'min-width: 400px;max-width: 400px;');
+
+                cell = $(row.insertCell(-1));
+                td = `<b>${PriorityOther.text()}</b><input class="PriorityName" id="otherQuestions_${rowCount}__PriorityName" name="otherQuestions[${rowCount}].PriorityName" type="hidden" value="${PriorityOther.text()}" autocomplete="off">
+                      <input class="PriorityId" data-val="true" data-val-number="The field PriorityId must be a number." data-val-required="The PriorityId field is required." id="otherQuestions_${rowCount}__PriorityId" name="otherQuestions[${rowCount}].PriorityId" type="hidden" value="${PriorityOther.val()}" autocomplete="off">`;
+
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+                td = `<b>${score}</b><input class="Score" data-val="true" data-val-number="The field Score must be a number." data-val-required="The Score field is required." id="otherQuestions_${rowCount}__Score" name="otherQuestions[${rowCount}].Score" type="hidden" value="${score}" autocomplete="off">`;
+                cell.append(td);
+
+                let scoreGiven = 0;
+                let scoreObtained = 0;
+
+                if (StatusOther.text() == "Closed") {
+
+                    scoreGiven = score;
+                    scoreObtained = score;
+                }
+                else if (StatusOther.text() == "Hold") {
+
+                    scoreGiven = 0;
+                    scoreObtained = 0;
+                }
+                else if (StatusOther.text() == "NA") {
+
+                    scoreGiven = 0;
+                    scoreObtained = 0;
+                }
+                else if (StatusOther.text() == "Open") {
+
+                    scoreGiven = score;
+                    scoreObtained = 0;
+                }
+                else if (StatusOther.text() == "Partial") {
+
+                    scoreGiven = score;
+                    scoreObtained = (Number(score) / 2);
+                }
+                
+                cell = $(row.insertCell(-1));
+                td = `<input class="form-control input-sm ScoreGiven text-box single-line" data-val="true" data-val-number="The field ScoreGiven must be a number." id="otherQuestions_${rowCount}__ScoreGiven" name="otherQuestions[${rowCount}].ScoreGiven" placeholder="" readonly="readonly" title="Score" tooltip="Score" type="text" value="${scoreGiven}" autocomplete="off">`;
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+                td = `<input class="form-control input-sm ScoreObtained text-box single-line" data-val="true" data-val-number="The field ScoreObtained must be a number." id="otherQuestions_${rowCount}__ScoreObtained" name="otherQuestions[${rowCount}].ScoreObtained" placeholder="" readonly="readonly" title="Score Obtained" tooltip="Score" type="text" value="${scoreObtained}" autocomplete="off">`;
+                cell.append(td);
+
+                debugger;
+                cell = $(row.insertCell(-1));
+                td = `<select class="form-control StatusId" data-val="true" data-val-number="The field StatusId must be a number." id="otherQuestions_${rowCount}__StatusId" name="otherQuestions[${rowCount}].StatusId" title="Status as on">`+
+                    $("#StatusOther option").map(function () {
+
+                        var selected = 'selected="selected"';
+                        return `<option ${StatusOther.val() == $(this).val() ? selected : '' } value="${$(this).val()}">${$(this).text()}</option>` ;
+                    }).get().join("") 
+                    +`</select>`;
+                cell.append(td);
+                cell.attr('style', 'style="min-width: 120px;max-width: 120px;"');
+
+                cell = $(row.insertCell(-1));
+                td = `<textarea cols="30" class = "form-control input-sm Comments" title = "Comments" rows = "5"  id="otherQuestions_${rowCount}__Comments" name="otherQuestions[${rowCount}].Comments" rows="2">${CommentsOther}</textarea>`
+                cell.append(td);
+
+                
+                cell = $(row.insertCell(-1));
+                var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveOtherQuestion(this)">';
+                cell.append(tdremove);
+
+                cell = $(row.insertCell(-1));
+                cell.append("");
+
+                StatusEventRegister();
+                GetTotal();
+            }
+            else {
+
+                alert('Parameter,Desired,Responsiblity,Priority,Status and Score required');
+            }
+        }
+
+
+        $(function () {
+            $('#Participants').multiselect({
+                includeSelectAllOption: false,
+                enableFiltering: true,
+                filterPlaceholder: 'Search',
+                maxHeight: 250,
+                buttonWidth: '250px'
+            });
+        });
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+}
+

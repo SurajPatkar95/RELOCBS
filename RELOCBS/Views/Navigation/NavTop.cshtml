@@ -33,16 +33,17 @@
                     @if (@UserSession.GetUserSession() != null)
                     {
                         <strong class="font-bold">@UserSession.GetUserSession().UserName</strong>
+                        <br /><span class="font-sm">@UserSession.GetUserSession().CompanyName - @UserSession.GetUserSession().BussinessLine</span>
                     }
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="fa fa-caret-down"></i></a>
                     <ul class="dropdown-menu animated fadeInDown m-t-xs">
-                        <li><a href="@Url.Action("Profile", "Account", new { area="" })">Profile</a></li>
+                        <li><a href="@Url.Action("ChangePassword", "Account", new { area="" })">Change Password</a></li>
                         <li class="divider"></li>
                         <li><a href="@Url.Action("LogOut", "Account", new { area="" })">Log Out</a></li>
                     </ul>
                 </div>
             </div>
-            <h2 class="col-sm-4 text-center">@ViewBag.PageTitle</h2>
+            <h2 class="col-sm-4 text-center">@*@ViewBag.PageTitle*@ <font face="algerian">@UserSession.GetPageSession()</font></h2>
             <div class="col-sm-4">
                 <ul class="nav navbar-top-links navbar-right">
                     <li>

@@ -1,0 +1,43 @@
+﻿@model StaticPagedList<RELOCBS.Entities.WHInOutAssetMaster>
+
+@using RELOCBS.Utility;
+@using RELOCBS.Common;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@{
+    string _PageID = "87";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+columns.Add(m => m.MoveID).Titled("Move ID").Css("hide").SortInitialDirection(GridMvc.Sorting.GridSortDirection.Descending);
+
+columns.Add(m => m.JobID).Titled("Job No");
+
+columns.Add(m => m.RefJobID).Titled("Ref Job ID");
+
+columns.Add(m => m.WareHouse).Titled("WareHouse").Format("{0:dd-MMM-yyyy hh:mm tt}");
+
+columns.Add().Titled("Actions").Css("col-md-2").SetWidth("10%").Encoded(false).Sanitized(false).Sortable(true).RenderValueAs(m =>
+@<span>
+    @if (hasAddAccess)
+    {
+        <a href="@Url.Action("Create", "WHAssetManagement", new { MoveID = m.MoveID })" class="btnViewJob btn btn-xs btn-primary glyphicon glyphicon-pencil" data-target="#mdlAddEdit" data-cache="false" title="View Job"></a>
+    } 
+</span>);
+}).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>

@@ -5,44 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>[@ViewBag.SiteTitleShort] @ViewBag.Title</title>
     <link href='https://fonts.googleapis.com/css?family=Lato:400,300,700,900' rel='stylesheet' type='text/css'>
+    <!--Bootsrap 4 CDN-->
+    <!--<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">-->
+    <!--Fontawesome CDN-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
     @Styles.Render("~/Content/css")
-    @Scripts.Render("~/bundles/modernizr")
     @Styles.Render("~/Content/custom")
-
+    @Styles.Render("~/Content/CustomLogin")
 </head>
-<body class="pg-login bg-white">
-    <div id="wrapper">
-        <div id="page-wrapper-login" class="">
-
-            <div class="col-md-6 pnl-login-left">
-                @RenderBody()
-
-                <footer class="login-foot">
-                    <div class="row">
-                        <div class="col-sm-12 text-center">
-                            <a href="#">Terms of Use</a> | <a href="#">Policy</a>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-12 text-center m-t-sm">
-                            <p>&copy; @ViewBag.Copyright</p>
-                        </div>
-                    </div>
-
-
-                </footer>
-
+    <body>
+        <div class="wrapper">
+            <div class="login-body">
+                    @RenderBody()
             </div>
-            <div class="col-md-6 pad-none">
-                <div class="pnl-login-right"></div>
-                @*<img src="~/Content/images/banner_login.jpg" class="img-responsive" />*@
+            <div class="login-footer">
+                <div class="row">
+                    <div class="col-sm-12 text-center">
+                        <a href="#">Terms of Use</a> | <a href="#">Policy</a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 text-center m-t-sm">
+                        <p>&copy; @ViewBag.Copyright</p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
-    @Scripts.Render("~/bundles/custom")
-    @RenderSection("scripts", required: false)
-</body>
-</html>
+        @Scripts.Render("~/bundles/jquery")
+        @Scripts.Render("~/bundles/bootstrap")
+        @Scripts.Render("~/bundles/custom")
+        <script type="text/javascript">
+           $(document).ready(function () {
+                $("Username").removeClass("text-box");
+                $("Username").removeClass("single - line");
+                $("Username").addClass("form - control");
+            });
+        </script>
+        @RenderSection("scripts", required: false)
+        @{ Html.RenderPartial("_Toastr"); }
+    </body>
+    </html>

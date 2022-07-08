@@ -1,0 +1,238 @@
+﻿@model IEnumerable<RELOCBS.Entities.HistorySplTHC>
+
+@using PagedList;
+@using PagedList.Mvc;
+
+@{
+    ViewBag.Title = "Special THC History";
+    var PageList = (StaticPagedList<RELOCBS.Entities.HistorySplTHC>)ViewData["PagedList"];
+    
+    WebGrid grid = new WebGrid(source: Model, canPage: false, canSort: false);
+}
+
+@{
+    var gridColumns = new List<WebGridColumn>();
+
+    gridColumns.Add(grid.Column("RMCName", "RMCName"));
+    gridColumns.Add(grid.Column("AgentName", "AgentName"));
+
+    gridColumns.Add(grid.Column("DestCity", "DestCity"));
+    gridColumns.Add(grid.Column("OrgContinentName", "OrgContinentName"));
+
+    gridColumns.Add(grid.Column(header: "Rate Applicable From", format: (item) => item.EffectiveFrom != null ? string.Format("{0:dd-MMM-yyyy}", item.EffectiveFrom):""));
+    gridColumns.Add(grid.Column(header: "Rate Applicable To", format: (item) => item.EffectiveTo!=null ? string.Format("{0:dd-MMM-yyyy}", item.EffectiveTo) : ""));
+
+    //gridColumns.Add(grid.Column(header: "OrgRMCAgentEffectDateID", columnName: "OrgRMCAgentEffectDateID", style: "display:none"));
+    gridColumns.Add(grid.Column(columnName: "Isactive", header: "Active", format: @<text>
+
+
+    @if (item.IsActive == true)
+    {
+        <i class="fa fa-check text-navy"></i>
+        <input type="hidden" id="Active" name="Active" value="1" />
+
+    }
+    else
+    {
+        <i class="icon-remove text-red-dark"></i>
+        <input type="hidden" id="Active" name="Active" value="0" />
+    }
+    <input type="hidden" id="MastTransId" name="MastTransId" value="@item.MastTransId" />
+
+    </text>));
+
+var SubGridColumns = new List<WebGridColumn>();
+
+//SubGridColumns.Add(grid.Column("MastTransId", "MastTransId"));
+//SubGridColumns.Add(grid.Column("TransId", "TransId"));
+SubGridColumns.Add(grid.Column("Mode", "Mode"));
+SubGridColumns.Add(grid.Column("SlabValue", "SlabValue"));
+SubGridColumns.Add(grid.Column("THCValue", "THCValue"));
+
+gridColumns.Add(grid.Column(format: (item) =>
+{
+ WebGrid subGrid = new WebGrid(source: item.SubTHC, canPage: false);
+ return subGrid.Table(
+tableStyle: "table table-responsive table-bordered SubTble",
+htmlAttributes: new { id = "subT" },
+ columns: subGrid.Columns(
+     SubGridColumns.ToArray()
+     )
+ );
+}));
+
+}
+
+<style type="text/css">
+
+    .SubTble a:link {
+        color: black;
+        font-weight: bold;
+    }
+
+    th, td {
+        padding: 5px;
+    }
+
+    th {
+        background-color: rgb(248, 248, 248);
+    }
+
+    #gridT, #gridT tr {
+        border: 1px solid #0D857B;
+    }
+
+    .SubTble, .SubTble tr {
+        border: 1px solid #f3f3f3;
+    }
+
+    .SubTble {
+        margin: 0px 0px 0px 10px;
+        padding: 5px;
+        width: 95%;
+    }
+
+        .SubTble th {
+            font-size: 14px;
+        }
+
+    .hoverEff {
+        cursor: pointer;
+    }
+
+        .hoverEff:hover {
+            background-color: rgb(248, 242, 242);
+        }
+
+    .expands {
+        background-image: url(../Images/expand.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        width: 100px;
+    }
+
+    .collapses {
+        background-image: url(../Images/collapse.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        width: 100px;
+    }
+
+    .SubTble > tbody > tr:first-child > td {
+        vertical-align: top;
+        background-color: #F5F5F6;
+        font-weight: bold;
+    }
+</style>
+
+@using (Html.BeginForm())
+{
+
+    <div id="main" style="padding:5px; background-color:white;">
+        @grid.Table(
+         tableStyle: "table table-responsive table-bordered",
+         htmlAttributes: new { id = "gridT", width = "700px" },
+         columns: grid.Columns(
+
+             gridColumns.ToArray()
+             )
+         )
+    </div>
+
+
+    <div class="clearfix pnl-pagination">
+        <div class="pull-right">
+
+            @Html.PagedListPager((IPagedList)PageList, page => Url.Action("THCHistory", new { page, Component = ViewBag.Component, RMC = ViewBag.RMC, Agent = ViewBag.Agent, DestCity = ViewBag.DestCity, OrgContinent = ViewBag.OrgContinent }))
+            @if (Model.Count() == 0)
+            {
+                <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+            }
+        </div>
+    </div>
+}
+
+@section Scripts{
+<script>
+    $(document).ready(function () {
+
+                var size = $("#main #gridT > thead > tr >th").size(); // get total column
+                $("#main #gridT > thead > tr >th").last().remove(); // remove last column
+                $("#main #gridT > thead > tr").prepend("<th></th>"); // add one column at first for collapsible column
+                $("#main #gridT > tbody > tr").each(function (i, el) {
+                    $(this).prepend(
+                        $("<td></td>")
+                            .addClass("expands")
+                            .addClass("hoverEff")
+                            .attr('title', "click for show/hide")
+                            .attr('style', "width:100px;")
+                    );
+
+                    //Now get sub table from last column and add this to the next new added row
+                    var table = $("table", this).parent().html();
+                    //add new row with this subtable
+                    $(this).after("<tr><td></td><td style='padding:5px; margin:0px;' colspan='" + (size - 1) + "'>" + table + "</td></tr>");
+                    $("table", this).parent().remove();
+                    // ADD CLICK EVENT FOR MAKE COLLAPSIBLE
+                    $(".hoverEff", this).on('click', function () {
+
+                        $(this).parent().closest("tr").next().slideToggle(100);
+                        $(this).toggleClass("expands collapses");
+                        var contentEl = $(this).parent().closest("tr").next().find("td:eq(1)");
+                        if ($(this).hasClass('expands')) {
+
+                            if (contentEl.find('#subT') == null || contentEl.find('#subT tbody tr').length <= 1) {
+
+                                contentEl.html("<i class='fa fa-spinner fa-pulse fa-2x fa-fw'></i>");
+                                var urlParams = new URLSearchParams(window.location.search);
+                                var url = '@Url.Action("THCHistory", new {
+                                          Component = "-1", RMC = "-2",Agent = "-3",
+                                          DestCity = "-4",
+                                          OrgContinent = "-5",
+                                          MasterTrans = "-6"
+                                      })';
+
+                                url = url.replace("-1", urlParams.get('Component'));
+                                url = url.replace("-2", urlParams.get('RMC'));
+                                url = url.replace("-3", urlParams.get('Agent'));
+                                url = url.replace("-4", urlParams.get('DestCity'));
+                                url = url.replace("-5", urlParams.get('OrgContinent'));
+                                url = url.replace("-6", $(this).parent().closest("tr").find('#MastTransId').val());
+
+                                url = url.replace(/&amp;/g, "&");
+
+                                $.get(url).done(function (data) {
+                                    var result = data;
+                                    contentEl.html(result);
+                                    //contentEl.find('#subT > thead').toggle();
+                                }).fail(function (data) {
+                                    result = "No info found.";
+                                    contentEl.html(result);
+                                });
+                            }
+                            else {
+                                contentEl.find('#subT tbody tr').removeAttr("style");
+                            }
+
+                        }
+
+                    });
+                });
+
+                //by default make all subgrid in collapse mode
+                $("#main #gridT > tbody > tr td.expands").each(function (i, el) {
+                    $(this).toggleClass("expands collapses");
+                    $(this).parent().closest("tr").next().slideToggle(100);
+                });
+
+
+                $('#main #gridT a').on("click", function (e) {
+                    e.preventDefault();
+                })
+
+                $('#subT > thead').toggle();
+                //$('#subT').find("tr:first").css("background-color", "#F5F5F6").css("font-weight", "bold");
+                //$("#subT > tr:first").css("background-color", "#F5F5F6").css("font-weight", "bold");
+            });
+</script>
+}

@@ -1,7 +1,7 @@
 ﻿@using RELOCBS.Utility;
 @{
 
-    string _PageID = "7";
+    string _PageID = "11";
     bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
     bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
     bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
@@ -14,7 +14,7 @@
 
     @Html.AntiForgeryToken()
     <div class="form-group col-md-2">
-        <label class="marr-5">Show Records</label>
+        <label class="marr-5"></label>
         <div class="clearfix">
             @Html.TextBox("SearchKey", null, new { @class = "form-control input-sm" })
             @*@Html.DropDownList("CityID", new SelectList((System.Collections.IEnumerable)ViewData["CityList"], "Value", "Text"), I18N("Select City"), new { @class = "form-control input-sm" })*@

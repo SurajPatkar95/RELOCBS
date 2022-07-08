@@ -1,0 +1,305 @@
+﻿@using RELOCBS.Extensions;
+
+@model RELOCBS.Entities.CommonReport
+
+@{
+    ViewBag.Title = "Index";
+}
+
+@functions {
+    object getHtmlAttributes(bool ReadOnly, bool isDropdown, string CssClass)
+    {
+        if (isDropdown && ReadOnly)
+        {
+            return new { @class = CssClass, @disabled = "disabled" };
+        }
+
+        if (ReadOnly)
+        {
+            return new { @class = CssClass, @readonly = "readonly" };
+        }
+        return new { @class = CssClass };
+    }
+}
+
+<style>
+    .col-height {
+        height: 500px;
+        overflow-y: auto;
+    }
+
+    #ColumnList {
+        height: 400px;
+        overflow-y: auto;
+    }
+    /* visited link */
+    .visited-link {
+        color: darkblue;
+        font-weight: bold;
+        text-decoration: underline;
+    }
+
+    .solid-border {
+        border: 7px solid #ADD8E6;
+        outline-style: solid;
+        outline-width: thin;
+        padding: 10px;
+    }
+</style>
+<div class="ibox">
+    <div class="ibox-title">
+        <div class="row">
+            @using (Html.BeginForm(null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+            {
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.AntiForgeryToken()
+                <div class="col-md-3 col-height solid-border">
+                    <div class="row col-md-12">
+                        <ul style="list-style-type:none;">
+                            @foreach (var item in Model.ReportNameList)
+                            {
+                                var VisitedLinkClass = "stretched-link m-t-xs " + (Model.ReportID == Convert.ToInt32(item.Value) ? " visited-link" : " ");
+                                <li>
+                                    <a href="@Url.Action("GetDateColumn", "Report", new { id = item.Value , ReportName = item.Text })" data-id="@item.Value" data-text="@item.Text" class="@VisitedLinkClass">@Html.Raw(item.Text.ToUpper())</a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-9 col-height solid-border">
+                    <div class="row col-md-12 m-l-xs bg-grey-light2">
+                        <label>Report Library</label>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="row m-t-sm">
+                                <div class="col-md-3">
+                                    <label class="control-label">Name</label>
+                                </div>
+                                <div class="col-md-6">
+                                    @Html.TextBoxFor(model => model.ReportName, new { @class = "form-control input-sm", @readonly = "readonly" })
+                                    @Html.HiddenFor(model => model.ReportID)
+                                    @Html.ValidationMessageFor(model => model.ReportID, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label class="control-label filter-custom-margin">Business Line</label>
+                                </div>
+                                <div class="col-md-6">
+                                    @Html.ListBoxFor(model => model.BussLineID, new SelectList((System.Collections.IEnumerable)ViewData["BussLineList"], "Value", "Text", Model.BussLineID), new { @class = "form-control input-sm multipleselect Bussline", @multiple = "multiple", disabled = "@disabled" })
+                                    @Html.ValidationMessageFor(model => model.BussLineID, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label class="control-label filter-custom-margin">Revenue Branch</label>
+                                </div>
+                                <div class="col-md-6">
+                                    @Html.ListBoxFor(model => model.RevenueBranchId, new SelectList((System.Collections.IEnumerable)ViewData["RevenueBranchList"], "Value", "Text", Model.RevenueBranchId), new { @class = "form-control input-sm multipleselect", @multiple = "multiple", disabled = "@disabled" })
+                                    @Html.ValidationMessageFor(model => model.RevenueBranchId, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label class="control-label filter-custom-margin">ServiceLine</label>
+                                </div>
+                                <div class="col-md-6">
+                                    @Html.ListBoxFor(model => model.ServiceLineId, new SelectList((System.Collections.IEnumerable)ViewData["ServiceLineList"], "Value", "Text", Model.ServiceLineId), new { @class = "form-control input-sm multipleselect", @multiple = "multiple", disabled = "@disabled" })
+                                    @Html.ValidationMessageFor(model => model.ServiceLineId, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="row m-t-sm">
+                                <div class="col-md-3">
+                                    <label class="control-label">Date Column</label>
+                                </div>
+                                <div class="col-md-6">
+                                    @Html.DropDownListFor(model => model.SelectedDateType, new SelectList((System.Collections.IEnumerable)ViewData["ReportDateColList"], "Value", "Text", Model.SelectedDateType), "Select Date Column", new { @class = "form-control input-sm", disabled = "@disabled" })
+                                    @Html.ValidationMessageFor(model => model.SelectedDateType, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="row m-t-sm">
+                                <div class="col-md-3">
+                                    <label class="control-label">From Date</label>
+                                </div>
+                                <div class="col-md-6">
+                                    @Html.TextBoxFor(model => model.FromDate, new { @class = "form-control input-sm datepicker" }).DisableIf(() => Model.ReportID <= 1)
+                                    @Html.ValidationMessageFor(model => model.FromDate, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="row m-t-sm">
+                                <div class="col-md-3">
+                                    <label class="control-label">To Date</label>
+                                </div>
+                                <div class="col-md-6">
+                                    @Html.TextBoxFor(model => model.Todate, new { @class = "form-control input-sm datepicker" }).DisableIf(() => Model.ReportID <= 1)
+                                    @Html.ValidationMessageFor(model => model.Todate, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="row m-t-sm">
+                                @{
+                                    string btnDisabled = "btn btn-primary btn-sm m-r-sm filter-custom-margin " + (Model.ReportID > 0 ? "" : "disabled");
+                                }
+                                <div class="col-lg-offset-3 col-md-3">
+                                    <input type="submit" id="btnGetList" name="submit" class="@btnDisabled" value="GetColumnsList" />
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="submit" id="btnSearch" name="submit" class="@btnDisabled" value="Generate" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row col-md-12 bg-grey-light2">
+                                <label class="control-label">Columns</label>
+                            </div>
+                            <div class="row">
+                                <div id="ColumnList" class="col-md-12">
+                                    <ul style="list-style-type:none;">
+                                        <li>
+                                            @if (Model.ReportColumns != null && Model.ReportColumns.Count > 0)
+                                            {
+                                                @Html.CheckBox("ChkSelectAllColumn")@Html.Raw("<b>&nbsp; Select All</b>")
+                                            }
+                                        </li>
+                                    </ul>
+                                    <ul style="list-style-type:none;">
+                                        @for (int i = 0; i < Model.ReportColumns.Count; i++)
+                                        {
+                                            <li>
+                                                @Html.CheckBoxFor(m => Model.ReportColumns[i].Selected, new { @class = "Chk" }) @Html.Raw(Model.ReportColumns[i].ColumnName)
+                                                @Html.HiddenFor(m => Model.ReportColumns[i].ColumnID)
+                                                @Html.HiddenFor(m => Model.ReportColumns[i].ColumnName)
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+    <script type="text/javascript">
+        $(document).ready(function () {
+            CommonLoad();
+            if (@Model.ReportID > 0) {
+                $('.multiselect').attr('disabled', false).removeClass('disabled');
+                $('select').prop('disabled', false);
+                $('.datepicker').prop('readonly', false);
+            }
+            $("#btnGetList,#btnSearch").on('click', function () {
+                if ($(this).attr("id").toUpperCase() == "BTNSEARCH") {
+                    $("form#CustomFilter").attr("target", "_blank");
+                }
+                else {
+                    $("form#CustomFilter").removeAttr("target");
+                }
+            });
+            $('#ChkSelectAllColumn').on('change', function (event) {
+                event.preventDefault();
+                $('.Chk').prop('checked', $(this).prop("checked"));
+            });
+            $('.Bussline').on('change', function (event) {
+                var cntrl = $(this);
+                var bussLineID = 'Both';
+                var ReportName = $("#ReportName").val();
+
+                if (cntrl.val() != null) {
+                    var count = cntrl.val().length;
+                    if (count == 2) {
+                        bussLineID = 'Both';
+                    }
+                    else {
+                        if (cntrl.val() == 'RMC-BUSINESS') {
+                            bussLineID = 'RMC';
+                        }
+                        else if (cntrl.val() == 'NON RMC-BUSINESS') {
+                            bussLineID = 'Non RMC';
+                        }
+                        else if (cntrl.val() == 'ORIENTATION SERVICE') {
+                            bussLineID = 'ORIENTATION SERVICE';
+                        }
+                    }
+                    var url = '@Url.Action("GetServiceLine", "Report", new { BussLine = "-1", ReportName="-2" })';
+                    url = url.replace("-1", bussLineID);
+                    url = url.replace("-2", ReportName);
+
+                    url = url.replace(/&amp;/g, "&");
+                    $.getJSON(
+                        url,
+                        function (results) {
+                            $('#ServiceLineId').empty();
+                            $.each(results.lstServiceLineList, function (i, item) {
+                                $("#ServiceLineId").append($('<option>').text(item.Text).attr('value', item.Value));
+                            });
+                            $('#ServiceLineId').multiselect('rebuild');
+                        });
+                }
+            });
+            $('.stretched-link').on('click', function (event) {
+                var $linkclick = $(this);
+                event.preventDefault();
+
+                $.getJSON($(this).attr('href'),
+                    function (results) {
+                        $("#SelectedDateType").empty();
+                        $("#SelectedDateType").append('<option value="">Select DateColumn</option>');
+                        $.each(results.lstItem, function (i, item) {
+                            $("#SelectedDateType").append($('<option>').text(item.Text).attr('value', item.Value));
+                        });
+
+                        $('#ReportName').val($linkclick.attr('data-text'));
+                        $('#ReportID').val($linkclick.attr('data-id'));
+                        $('input[type="submit"]').removeClass('disabled');
+                        $('.multiselect').attr('disabled', false).removeClass('disabled');
+                        $('select').prop('disabled', false);
+                        $('.datepicker').prop('readonly', false);
+                        $('#ColumnList').html('');
+                        $('.stretched-link').removeClass('visited-link');
+                        $linkclick.addClass('visited-link');
+                    });
+
+                CommonLoad();
+            });
+
+            var numberNotChecked = parseInt($('.Chk:not(":checked")').length);
+            var totalCheckboxes = parseInt($('.Chk').length);
+            var numberChecked = totalCheckboxes - numberNotChecked;
+            if (!isNaN(numberChecked) && totalCheckboxes > 0 && numberChecked == 0) {
+                $('#ChkSelectAllColumn').attr('checked', 'checked').trigger("change");
+            }
+        });
+        function CommonLoad() {
+            $('.multipleselect').multiselect({
+                includeSelectAllOption: true,
+                enableFiltering: true,
+                filterPlaceholder: 'Search',
+                maxHeight: 250,
+                buttonWidth: '250px'
+            });
+            $('.datepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+            $('#FromDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+            $('#ToDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+        }
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+}

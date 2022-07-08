@@ -1,0 +1,103 @@
+﻿@model RELOCBS.Entities.WOSJobOpening
+
+@using RELOCBS.Common;
+@using RELOCBS.Utility;
+
+@{
+    string _PageID = "71";
+
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+<style>
+    #DocTable th:hover {
+        cursor: pointer;
+    }
+</style>
+
+<div class="table-responsive">
+    <table id="DocTable" class="table table-bordered table-responsive table-hover" style="width: 100%;">
+        <thead class="ibox-title">
+            <tr>
+                <th id="DocType">Document Type</th>
+                <th id="nm">Document Name</th>
+                <th>Description</th>
+                <th>File Name</th>
+                <th id="CreateBy">Uploaded By</th>
+                <th id="sl">Uploaded Date</th>
+                <th>Show To Assignee</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.WOSJobDocUploadList.Count; i++)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(m => m.WOSJobDocUploadList[i].DocTypeText)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(m => m.WOSJobDocUploadList[i].DocNameText)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(m => m.WOSJobDocUploadList[i].DocDescription)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(m => m.WOSJobDocUploadList[i].FileName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(m => m.WOSJobDocUploadList[i].UploadBy)
+                    </td>
+                    <td>
+                        @if (Model.WOSJobDocUploadList[i].UploadDate != null)
+                        {
+                            @(((DateTime)Model.WOSJobDocUploadList[i].UploadDate).ToString("dd-MMM-yyyy"))
+                        }
+                    </td>
+                    <td>
+                        @if (Model.WOSJobDocUploadList[i].IsShowToAssignee)
+                        {
+                            <i class="fa fa-check text-navy"></i>
+                        }
+                        else
+                        {
+                            <i class="fa fa-remove text-red-dark"></i>
+                        }
+                    </td>
+                    <td>
+                        @if (Model.WOSJobDocUploadList[i].FileID != null)
+                        {
+                            using (Html.BeginForm("JobDocDownload", "WOSJobOpening", null, FormMethod.Post, new { id = "DownloadForm", target = "_blank", @class = "inline" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.Hidden("FileID", Model.WOSJobDocUploadList[i].FileID, new { @class = "FileID" })
+                                <button type="submit" name="Save" class="btn btn-primary btn-sm m-n"><i class="fa fa-download" aria-hidden="true"></i></button>
+                            }
+                            if (CommonService.IsViewFileButton(Model.WOSJobDocUploadList[i].FileName))
+                            {
+                                using (Html.BeginForm("ViewDocument", "DMS", new { id = @Model.WOSJobDocUploadList[i].FileID }, FormMethod.Post, new { id = "ViewForm", target = "_blank", @class = "inline" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.Hidden("id", Model.WOSJobDocUploadList[i].FileID, new { @class = "FileID" })
+                                    <button type="submit" name="View" value="View" class="btn btn-primary btn-sm m-n"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                                }
+                            }
+                            if (UserSession.GetUserSession().LoginType == "SA" || UserSession.GetUserSession().LoginType == "AA" || UserSession.GetUserSession().LoginID == Model.WOSJobDocUploadList[i].UploadById || Model.WOSJobDocUploadList[i].UploadById == 0)
+                            {
+                                using (Html.BeginForm("JobDocDelete", "WOSJobOpening", FormMethod.Post, new { enctype = "multipart/form-data", @name = "formDeleteDoc", @id = "formDeleteDoc", onsubmit = "return DeleteJobDoc()", @class = "inline" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.Hidden("FileID", Model.WOSJobDocUploadList[i].FileID, new { @class = "FileID" })
+                                    @Html.HiddenFor(m => m.WOSMoveID, new { @id = "WOSMoveID" })
+                                    <button type="submit" name="DeleteDoc" value="DeleteDoc" class="btn btn-danger btn-sm m-n"><i class="fa fa-trash-o"></i></button>
+                                }
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

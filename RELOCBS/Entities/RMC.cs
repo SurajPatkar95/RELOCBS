@@ -16,9 +16,9 @@ namespace RELOCBS.Entities
         public String Address1    { get; set; }
         public String  Address2 { get; set; }
         public String  Address3 { get; set; }
-        public int CityID { get; set; }
+        public int? CityID { get; set; }
         public String CityName { get; set; }
-        public int CountryID { get; set; }
+        public int? CountryID { get; set; }
         public String CountryName { get; set; }
         public bool isActive { get; set; }
          public int TotalRows { get; set; }
@@ -41,18 +41,21 @@ namespace RELOCBS.Entities
         public String RateTypeName { get; set; }
 
         [Display(Name = "Address1")]
-        [Required(ErrorMessage = "Please enter Address1.")]
+        //[Required(ErrorMessage = "Please enter Address1.")]
         public String Address1 { get; set; }
         public String Address2 { get; set; }
         public String Address3 { get; set; }
 
         [Display(Name = "City")]
-        [Required(ErrorMessage = "Please enter City.")]
-        public int CityID { get; set; }
+        //[Required(ErrorMessage = "Please enter City.")]
+        public int? CityID { get; set; }
         public String CityName { get; set; }
 
-        public int CountryID { get; set; }
+        public int? CountryID { get; set; }
         public String CountryName { get; set; }
+
+        public int? ClientID { get; set; }
+        public String ClientName { get; set; }
 
         public bool isActive { get; set; }
 

@@ -1,0 +1,1909 @@
+﻿@*Edit cost*@
+@using RELOCBS.Utility;
+@using System.Data;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model RELOCBS.Entities.CostViewModel
+
+@{
+    ViewBag.Title = "Cost";
+
+    string _PageID = "7";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+    string RoadDisabled = "";
+    if (Model.ModeID == 3 || Model.ModeID == 4)
+    {
+        RoadDisabled = "no-borders input-sm clearfix disableselect";
+    }
+    else
+    {
+        RoadDisabled = "no-borders input-sm clearfix enableselect";
+    }
+}
+
+@Styles.Render("~/Content/bootstrap-selectcss")
+<style>
+    .tdNone {
+        display: none;
+    }
+
+    .important {
+        color: black;
+        font-weight: bold;
+        /*background-color: #c7ea46;*/
+        background-color: #C0C0C0;
+    }
+
+    .nonimportant {
+        color: black;
+        font-weight: bold;
+        background-color: red;
+    }
+
+    .grid-header {
+        background-color: white;
+        color: black;
+        font-weight: bold;
+        border-top: 1px thin grey;
+        border-bottom: 1px medium grey;
+    }
+
+    .fixed_header {
+        table-layout: fixed;
+        border-collapse: collapse;
+        align-content: center;
+    }
+
+        .fixed_header thead {
+            display: table-row;
+            width: 99%;
+        }
+
+        .fixed_header tbody {
+            display: block;
+            width: 100%;
+            overflow: auto;
+            height: 100px;
+        }
+
+        .fixed_header thead tr {
+            display: block;
+        }
+
+        .fixed_header thead {
+            color: black;
+            background: #fff;
+        }
+
+            .fixed_header thead th {
+                padding: 0;
+                text-align: left;
+                width: 5%;
+            }
+
+        .fixed_header tbody td {
+            padding: 5px;
+            text-align: center;
+            width: 5%;
+            vertical-align: middle;
+        }
+
+    .modal.modal-wide .modal-dialog {
+        width: 90%;
+    }
+
+    #SubCostHeadModal .modal-dialog {
+        width: 50%;
+    }
+
+    .modal-wide .modal-body {
+        overflow-y: auto;
+    }
+
+    .bg {
+        border-left: 5px solid red;
+    }
+</style>
+
+
+<div class="modal fade" id="EditModal" tabindex="1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3>Edit Cost Head</h3>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="tblIndexID" id="tblIndexID" value="" />
+                <div class="row">
+                    <div class="col-sm-4 col-md-4">
+                        <div class="form-group">
+                            <label>Rate Component</label>
+                            @Html.DropDownList("EditRateComponent", new SelectList((System.Collections.IEnumerable)ViewData["RateComponent"], "Value", "Text"), "--Select Rate Component--", new { id = "EditRateComponentDropdown", @class = "form-control input-sm clearfix ", @disabled = "disabled" })
+                            @Html.Hidden("EditRateComponentID")
+                        </div>
+                    </div>
+                    <div class="col-sm-4 col-md-4">
+                        <div class="form-group">
+                            <label>Cost Head</label>
+                            @Html.DropDownList("EditCostHead", new SelectList((System.Collections.IEnumerable)ViewData["CostHeadList"], "Value", "Text"), "--Select Cost Head--", new { id = "EditCostHeadDropdown", @class = "form-control input-sm clearfix", @disabled = "disabled" })
+                            @Html.Hidden("EditCostHeadID")
+                        </div>
+                    </div>
+                    <div class="col-sm-4 col-md-4">
+                        <div class="form-group">
+                            <label>Agent</label>
+                            @Html.DropDownList("EditAgent", new SelectList((System.Collections.IEnumerable)Enumerable.Empty<SelectListItem>(), "Value", "Text"), "--Select Agent--", new { id = "EditAgentDropdown", @class = "form-control input-sm clearfix enableselect EditAgentDropDown" })
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-sm-4 col-md-4">
+                        <div class="form-group">
+                            <label>Transit Time</label>
+                            <div class="row">
+                                <div class="col-sm-2">
+                                    From &nbsp;
+                                </div>
+                                <div class="col-sm-4">
+                                    @Html.Editor("EditTransitTimeFrom", new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                                    @*@Html.ValidationMessageFor(model => model.TransitTimeFrom, "", new { @class = "text-danger" })*@
+                                </div>
+                                <div class="col-sm-1">
+                                    To &nbsp;
+                                </div>
+                                <div class="col-sm-4">
+                                    @Html.Editor("EditTransitTimeTo", new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                                    @*@Html.ValidationMessageFor(model => model.TransitTimeTo, "", new { @class = "text-danger" })*@
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-sm-4 col-md-4 hide">
+                        <div class="form-group">
+                            <label>BaseCurrency</label>
+                            @Html.DropDownList("EditBaseCurrencyRateID", new SelectList((System.Collections.IEnumerable)ViewData["BaseCurrencyRate"], "Value", "Text"), "--Select BaseCurrency Rate--", new { id = "EditBaseCurrencyRateDropdown", @class = "form-control input-sm clearfix" })
+                        </div>
+                    </div>
+                    <div class="col-sm-4 col-md-4">
+                        <div class="form-group">
+                            <label>RateCurrency</label>
+                            @Html.DropDownList("EditRateCurrencyID", new SelectList((System.Collections.IEnumerable)ViewData["RateCurrency"], "Value", "Text"), "--Select Rate Currency--", new { id = "EditRateCurrencyDropdown", @class = "form-control input-sm clearfix" })
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>ConversionRate</label>
+                            <input type="number" class="form-control input-sm" id="EditConversionRate" placeholder="Enter Conversion Rate" onkeypress="return OnlyDouble(this, event,4);" />
+                        </div>
+                    </div>
+                    <div class="col-sm-3 col-md-3">
+                        <label>Estimate</label>
+                        <input type="number" class="form-control input-sm" id="EditEstimate" placeholder="Enter Amount" onkeypress="return OnlyDouble(this, event);" />
+                    </div>
+                    <div id="ModalServiceLine" class="col-sm-6 col-md-6">
+                        <label>Shipping Lines</label>
+                        @Html.DropDownList("EditShipingLineID", new SelectList((System.Collections.IEnumerable)ViewData["ShippingLineList"], "Value", "Text"), "--Select ShippingLine--", new { id = "EditShippingLineDropdown", @class = "form-control input-sm clearfix enableselect" })
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-primary" data-dismiss="modal">Close</a>
+                <button class="btn btn-primary" id="btnEditCostHead" name="btnEditCostHead" onclick="Update(this);">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal modal-wide fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="partial">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="SubCostHeadModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                Sub Cost Details
+                <button type="button" class="SubCostClose close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="SubCostHead">
+                @*@Html.Raw(Json.Encode(Model.RateCompRateBatchId))*@
+                @(new HtmlString(ViewBag.SubCostList))
+                @*@Html.Raw(Html.Encode(ViewBag.SubCostList));*@
+            </div>
+            <div class="modal-footer">
+                <button id="btnSubCostAdd" class="btn btn-sm btn-primary" onclick="SubCostAdd();">Add</button>
+                <button id="btnSubCostCancel" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*"Create", "Cost", FormMethod.Post, new { enctype = "multipart/form-data", id = "frmimportLaneRate" }*@
+@using (Html.BeginForm("Edit", "Cost", new { RateCompRateWtID = @Model.RateCompRateWtID, SurveyID = @Model.SurveyID }, FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="m-t-sm">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(a => a.SurveyID)
+        @Html.HiddenFor(a => a.RateCompRateWtID)
+        @Html.HiddenFor(a => a.RateCompRateWtBatchID)
+        @Html.HiddenFor(a => a.RateCompRateBatchId)
+        @Html.HiddenFor(a => a.HFVCostList)
+        @Html.HiddenFor(a => a.HFSubCostList)
+        <div class="row m-b-xs">
+            @if (Model.SurveyID != null && Model.SurveyID > 0)
+            {
+                <div class="col-sm-2 col-md-3 ">
+                    <div class="form-group">
+                        <strong>Survey No. :</strong>&nbsp;<strong>@Model.SurveyID</strong>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-3">
+                    <div class="form-group">
+                        <strong>Enq. No / Shp. No :</strong> &nbsp;<strong>@Model.EnqID / @Model.EnqDetSequenceID</strong>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="col-sm-5 col-md-7">
+                    <div class="form-group">
+                        <label> </label>
+                    </div>
+                </div>
+            }
+            <div class="col-sm-5 col-md-5">
+                <div class="form-group">
+                    <a id="btnClearFields" class="btn btn-default m-r-sm btn-sm  pull-right" value="Clear All"
+                       href="@( Model.SurveyID != null && Model.SurveyID > 0 ? Url.Action("Create", "Cost", new { SurveyID = Model.SurveyID}) : Url.Action("Create", "Cost") )">Clear All</a>
+                    <input type="submit" id="btnSave" name="SubmitRate" class="btn btn-primary pull-right m-r-sm btn-sm" value="Save Rates" /> @*onclick="SaveData();" formnovalidate="formnovalidate"*@
+                    @if (Model.SurveyID != null && Model.SurveyID > 0)
+                    {
+                        <a onclick="showSurveyCostHeadDetails(this);" id="SurveyDetails_@Model.SurveyID" data-id="@Model.SurveyID" class="btn btn-default  m-r-sm btn-sm  pull-right" data-cache="false" title="View Survey"
+                           data-assigned-id="@Model.SurveyID" data-toggle="modal" data-target="#exampleModalLong">View Survey</a>
+                        
+                        <a id="btnReport" class="btn btn-default m-r-sm btn-sm  pull-right" href="@Url.Action("GetCompareRate", "Cost", new { surveyid = Model.SurveyID })" target="_blank">Compare</a>  
+                        <a href="@Url.Action("Create", "DMS", new {  id = @Model.SurveyID, Type = "Estimate" })" class="btn btn-primary m-r-sm btn-sm pull-right" data-toggle="modal" data-target="#mdlDMS" data-cache="false" title="DMS"><i class="glyphicon glyphicon-folder-open m-r-xs"></i>DMS</a>
+                    }
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RMCName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownList("RMCID", new SelectList((System.Collections.IEnumerable)ViewData["RMC"], "Value", "Text"), "--Select RMC--", new { id = "RMCDropdown", @class = "form-control input-sm clearfix", @onchange = "javascript:RMC_OnChange(this.value);" })
+                    @Html.HiddenFor(model => model.RMCID)
+                    @Html.ValidationMessageFor(model => model.RMCID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Service Line</label>
+                    @Html.DropDownListFor(a => a.ServiceLineID, new SelectList((System.Collections.IEnumerable)ViewData["ServiceLine"], "Value", "Text", ViewData["ServiceLineList"]), "Select One", new { @class = "form-control", id = "ServiceLineId", title = "Service Line" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.BusinessLineName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownList("BusinessLineID", new SelectList((System.Collections.IEnumerable)ViewData["BusinessLine"], "Value", "Text"), "--Select Business Line--", new { id = "BusinessLineDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.HiddenFor(model => model.BusinessLineID)
+                    @Html.ValidationMessageFor(model => model.BusinessLineID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.GoodsDescriptionName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownList("GoodsDescriptionID", new SelectList((System.Collections.IEnumerable)ViewData["GoodsDescription"], "Value", "Text"), "--Select Goods Description--", new { id = "GoodsDescriptionDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.HiddenFor(model => model.GoodsDescriptionID)
+                    @Html.ValidationMessageFor(model => model.GoodsDescriptionID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ModeName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownList("ModeID", new SelectList((System.Collections.IEnumerable)ViewData["Mode"], "Value", "Text"), "--Select Mode--", new { id = "ModeDropdown", @class = "form-control input-sm clearfix " })
+                    @Html.HiddenFor(model => model.ModeID)
+                    @Html.ValidationMessageFor(model => model.ModeID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.FromLocationName, htmlAttributes: new { id = "FromLocationName", @class = "control-label" })
+                    @Html.DropDownList("FromLocationID", new SelectList((System.Collections.IEnumerable)ViewData["CityList"], "Value", "Text"), "--Select From City--", new { id = "FromLocationDropdown", @class = "form-control input-sm clearfix CityDropDown" })
+                    @Html.HiddenFor(model => model.FromLocationID)
+                    @Html.ValidationMessageFor(model => model.FromLocationID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ExitPointName, htmlAttributes: new { id = "ExitPortName", @class = "control-label" })
+                    @Html.DropDownList("ExitPointID", new SelectList((System.Collections.IEnumerable)ViewData["PortList"], "Value", "Text"), "--Select Exit Port--", new { id = "ExitPortDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.HiddenFor(model => model.ExitPointID)
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.EntryPointName, htmlAttributes: new { id = "EntryPortnName", @class = "control-label" })
+                    @Html.DropDownList("EntryPointID", new SelectList((System.Collections.IEnumerable)ViewData["PortList"], "Value", "Text"), "--Select Entry Port--", new { id = "EntryPortDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.HiddenFor(model => model.EntryPointID)
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ToLocationName, htmlAttributes: new { id = "ToLocationName", @class = "control-label" })
+                    @Html.DropDownList("ToLocationID", new List<SelectListItem>(), new { id = "ToLocationDropdown", @class = "form-control input-sm clearfix CityDropDown" })
+                    @Html.HiddenFor(model => model.ToLocationID)
+                    @Html.ValidationMessageFor(model => model.ToLocationID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-1 col-md-1">
+                <div class="form-group">
+                    <label>Wt/Vol Unit</label>
+                    @Html.DropDownListFor(model => model.WeightUnitID, new SelectList((System.Collections.IEnumerable)ViewData["WeightUnit"], "Value", "Text"), "--Select Weight Unit--", new { id = "WeightUnitDropdown", @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.WeightUnitID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-1 col-md-1">
+                <div class="form-group">
+                    <label>Wt/Vol</label>
+                    @Html.EditorFor(model => model.WeightUnitFrom, new { htmlAttributes = new { @class = "form-control input-sm clearfix", onkeypress = "return OnlyDouble(this, event);" } })
+                    @Html.ValidationMessageFor(model => model.WeightUnitFrom, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2 hide">
+                <div class="form-group">
+                    <label>Weight To</label>
+                    @Html.EditorFor(model => model.WeightUnitTo, new { htmlAttributes = new { @class = "form-control input-sm clearfix", onkeypress = "return OnlyDouble(this, event);" } })
+                    @Html.ValidationMessageFor(model => model.WeightUnitTo, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RateComponentName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownList("RateComponent", new SelectList((System.Collections.IEnumerable)ViewData["RateComponent"], "Value", "Text"), "--Select Rate Component--", new { id = "RateComponentDropdown", @class = "form-control input-sm clearfix" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.AgentName, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownList("Agent", new SelectList((System.Collections.IEnumerable)Enumerable.Empty<SelectListItem>(), "Value", "Text"), "--Select Agent--", new { id = "AgentDropdown", @class = "form-control input-sm clearfix enableselect AgentDropDown" })
+                </div>
+            </div>
+            @if (Model.CompanyID == 2)
+            {
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label>Custom Clearance Agent</label>
+                        @Html.DropDownListFor(x => x.TransitAgentID, new SelectList((System.Collections.IEnumerable)ViewData["Agent"], "Value", "Text"), "--Select Cust. Clr. Agent--", new { id = "TransitAgentDropdown", @class = "form-control input-sm clearfix enableselect" })
+                    </div>
+                </div>
+            }
+            <div class="col-sm-2 col-md-2 divShippingLine">
+                <div class="form-group">
+                    <label>Shipping Line</label>
+                    @Html.DropDownList("ShipingLine", new SelectList((System.Collections.IEnumerable)ViewData["ShippingLineList"], "Value", "Text"), "--Select ShippingLine--", new { id = "ShippingLineDropdown", @class = "form-control input-sm clearfix enableselect" })
+                    @Html.HiddenFor(model => model.ShipingLineID, new { @class = "ShipingLineID" })
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="form-group">
+                    @*@Html.LabelFor(model => model.Remarks, htmlAttributes: new { id = "lblRemarks", @class = "control-label" })*@
+                    <label>Remarks</label>
+                    @Html.TextBoxFor(model => model.Remarks, new { id = "Remarks", @class = "form-control input-sm clearfix" })
+                </div>
+            </div>
+        </div>
+        <div class="row no-gutters">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Transit Time</label>
+                    <div class="row">
+                        <div class="col-sm-2">
+                            From &nbsp;
+                        </div>
+                        <div class="col-sm-4">
+                            @Html.EditorFor(model => model.TransitTimeFrom, new { htmlAttributes = new { @class = "form-control input-sm clearfix", onkeypress = "return OnlyInteger(this, event);" } })
+                            @*@Html.ValidationMessageFor(model => model.TransitTimeFrom, "", new { @class = "text-danger" })*@
+                        </div>
+                        <div class="col-sm-1">
+                            To &nbsp;
+                        </div>
+                        <div class="col-sm-4">
+                            @Html.EditorFor(model => model.TransitTimeTo, new { htmlAttributes = new { @class = "form-control input-sm clearfix", onkeypress = "return OnlyInteger(this, event);" } })
+                            @*@Html.ValidationMessageFor(model => model.TransitTimeTo, "", new { @class = "text-danger" })*@
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            @*<div class="col-sm-1 col-md-1">
+                    <div class="form-group">
+                        <label>Transit Time To</label>
+                        @Html.EditorFor(model => model.TransitTimeTo, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.TransitTimeTo, "", new { @class = "text-danger" })
+                    </div>
+                </div>*@
+            <div class="col-sm-1 col-md-1 m-l-n">
+                <div class="form-group">
+                    <label>Base Curr.</label>
+                    @Html.HiddenFor(model => model.BaseCurrencyRateID)
+                    @Html.DropDownListFor(model => model.BaseCurrencyRateID, new SelectList((System.Collections.IEnumerable)ViewData["BaseCurrencyRate"], "Value", "Text"), "--Select BaseCurrency Rate--", new { id = "BaseCurrencyRateDropdown", @class = "form-control input-sm clearfix CommBaseCurr", disabled = "disabled" })
+                </div>
+            </div>
+            <div class="col-sm-1 col-md-1 m-l-n">
+                <div class="form-group">
+                    <label>Rate Curr.</label>
+                    @Html.DropDownListFor(model => model.RateCurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["RateCurrency"], "Value", "Text"), "--Select Rate Currency--", new { id = "RateCurrencyDropdown", @class = "form-control input-sm clearfix CommRateCurr" })
+                </div>
+            </div>
+            <div class="col-sm-1 col-md-1 m-l-n">
+                <div class="form-group">
+                    <label>Conv.Rate</label>
+                    @Html.EditorFor(model => model.ConversionRate, new { htmlAttributes = new { @class = "form-control input-sm clearfix CommConvRate", id = "txtConversionRate", onkeypress = "return OnlyDouble(this, event,4);" } })
+
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2 m-l-n">
+                <div class="form-group">
+                    <label>Cost Head</label>
+                    @Html.DropDownList("CostHead", new SelectList((System.Collections.IEnumerable)ViewData["CostHeadList"], "Value", "Text"), "--Select Cost Head--", new { id = "CostHeadDropdown", @class = "form-control input-sm clearfix enableselect" })
+                    @Html.Hidden("IsSubCost")
+                </div>
+            </div>
+            <div class="col-sm-2 col-sm-1 m-l-n">
+                <label>Est. Amt.</label>
+                <input type="number" class="form-control input-sm" id="txtAmount" placeholder="Enter Amount" onkeypress="return OnlyDouble(this, event);" />
+            </div>
+            <div class="col-sm-2 col-md-1 m-l-n">
+                <div class="form-group">
+                    <label>Total Est.</label>
+                    @Html.EditorFor(model => model.Rate, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+                    @Html.ValidationMessageFor(model => model.Rate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group col-sm-1 col-md-1 m-l-n">
+                <div class="clearfix">
+                    <input type="button" id="btnAdd" value="Add" class="btn btn-primary btn-sm filter-custom-margin" />
+                </div>
+            </div>
+            <div class="col-sm-2 col-sm-1 m-l-n">
+                <label>Est. Org.</label>
+                <input type="number" class="form-control input-sm" id="txtOriginEstimate" placeholder="Origin Estimate" onkeypress="return OnlyDouble(this, event);" disabled />
+            </div>
+            <div class="col-sm-2 col-sm-1 m-l-n">
+                <label>Est. Frg.</label>
+                <input type="number" class="form-control input-sm" id="txtFrightEstimate" placeholder="Freight Estimate" onkeypress="return OnlyDouble(this, event);" disabled />
+            </div>
+            <div class="col-sm-2 col-sm-1 m-l-n">
+                <label>Est. Dest.</label>
+                <input type="number" class="form-control input-sm" id="txtDestinationEstimate" placeholder="Destination Estimate" onkeypress="return OnlyDouble(this, event);" disabled />
+            </div>
+
+        </div>
+        <div class="row">
+
+            @*<div class="form-group">
+                    <div class="col-md-2 col-sm-2">
+                        @Html.CheckBoxFor(model => model.ShowConstHeads, new { htmlAttributes = new { @class = "form-control input-sm", id = "chkShowCostHead" } }) Apply Cost Heads
+                    </div>
+                </div>*@
+        </div>
+    </div>
+    <div>
+        <div class="row m-t-md" id="divCostHead">
+            @try
+            {
+                <div class="row">
+                    <div class="col-sm-12 m-b-lg">
+                        <div class="table-responsive" id="pnl-rates">
+                            <table class="table table-striped fixed_header" id="CostHeadtable">
+                                <thead class="ibox-title">
+                                    <tr>
+                                        <th class="tdNone"></th>
+                                        <th style="width:25%">Agent</th>
+                                        <th style="width:8%">Component</th>
+                                        <th style="width:17%">CostHead</th>
+                                        <th style="width:6%">Base Cur.</th>
+                                        <th style="width:6%">Rate Cur.</th>
+                                        <th style="width:6%">Con.Rate</th>
+                                        <th style="width:6%">Est.Rate</th>
+                                        <th style="width:6%">Est.Base</th>
+                                        <th style="width:8%">Transit Fm</th>
+                                        <th style="width:8%">Transit To</th>
+                                        <th style="width:5%">Action</th>
+                                        <th style="width:5%"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{int RowNo = 0;}
+
+
+                                    @foreach (RELOCBS.Entities.CostHeadDetail row in Model.CostHeadList)
+                                    {
+                                        RowNo++;
+
+                                        <tr class="package-row">
+                                            <td class="tdNone">
+                                                <input type="hidden" class="TblRateComponent" name="HFVRateComponent" id="HFVRateComponentID" value="@row.RateComponentID" />
+                                                <input type="hidden" class="TblHFVCostHead" name="HFVCostHead" id="HFVCostHeadID" value="@row.CostHeadID" />
+                                                <input type="hidden" class="TblHFVAgent" name="HFVAgent" id="HFVAgentID" value="@row.AgentID" />
+                                                <input type="hidden" class="TblHFVBaseRate" name="HFVBaseRate" id="HFVBaseRateID" value="@row.BaseCurrencyRateID" />
+                                                <input type="hidden" class="TblHFVRateCurrency" name="HFVRateCurrency" id="HFVRateCurrencyID" value="@row.RateCurrencyID" />
+                                            </td>
+                                            <td class="Agent" style="width:25%;text-align:left;">
+                                                @row.AgentName
+                                            </td>
+                                            <td class="RateComponent text-left" style="width:8%; text-align:left;">
+                                                @row.RateComponentName
+                                            </td>
+                                            <td class="CostHead text-left" style="width:17%;text-align:left;">
+                                                @row.CostHeadName
+                                                @if (row.IsSubCost)
+                                                {
+                                                    <button type="button" id="btnSubCost" class="btnSubCost" onclick="GetSubCost(this);"><span class="glyphicon glyphicon-pencil"></span></button>
+                                                }
+                                            </td>
+                                            <td class="BaseCurrencyRate text-left" style="width:6%;text-align:left;">
+                                                @row.BaseCurrencyRateName
+                                            </td>
+                                            <td class="RateCurrency text-left" style="width:6%;text-align:left;">
+                                                @row.RateCurrencyName
+                                            </td>
+                                            <td class="ConversionRate text-left" style="width:6%;text-align:left;">
+                                                <input type="number" class="form-control input-sm TbltxtConversionRate" style="width:50px" value="@row.ConversionRate.ToString()" onkeyup="TotalCalEstimate()" onkeypress="return OnlyDouble(this, event);" />
+                                            </td>
+                                            <td class="Amount text-left" style="width:6%;text-align:left;">
+                                                <input type="number" class="form-control input-sm TbltxtAmount" style="width:50px" value="@row.Amount.ToString()" onkeyup="TotalCalEstimate()" onkeypress="return OnlyDouble(this, event);" />
+                                            </td>
+                                            <td class="BaseEstimate text-left" style="width:6%;text-align:left;"></td>
+                                            <td class="text-left" style="width:8%;text-align:left;">
+                                                <input type="number" class="form-control input-sm TbltxtTransitTimeF" style="width:50px" value="@row.TransitTimeFrom.ToString()" onkeypress="return OnlyInteger(this, event);" />
+                                            </td>
+                                            <td class="text-left" style="width:8%;text-align:left;">
+                                                <input type="number" class="form-control input-sm TbltxtTransitTimeT" style="width:50px" value="@row.TransitTimeTo.ToString()" onkeypress="return OnlyInteger(this, event);" />
+                                            </td>
+                                            <td class="text-left" style="width:5%;text-align:left;">
+                                                <button type="button" class="btn btn-danger btn-xs" onclick="Remove(this)">
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </button>
+
+                                            </td>
+                                            <td class="text-left" style="width:5%;text-align:left;">
+                                                <a onclick="Edit(this);" id="CostHeadDetails_@RowNo" data-id="@RowNo" class="btn btn-xs btn-default glyphicon glyphicon-pencil" data-cache="false" title="Detail CostHead"
+                                                   data-assigned-id="@RowNo" data-toggle="modal" data-target="#EditModal"></a>
+                                            </td>
+                                            @*<td class="Agent">
+                                                    @row.AgentName
+                                                </td>
+                                                <td class="RateComponent">
+                                                    @row.RateComponentName
+                                                </td>
+                                                <td class="CostHead">
+                                                    @row.CostHeadName
+                                                </td>
+                                                <td class="BaseCurrencyRate">
+                                                    @row.BaseCurrencyRateName
+                                                </td>
+                                                <td class="RateCurrency">
+                                                    @row.RateCurrencyName
+                                                </td>
+                                                <td class="ConversionRate">
+                                                    <input type="text" class="form-control input-sm TbltxtConversionRate" style="width:50px" value="@row.ConversionRate.ToString()" onkeyup="TotalCalEstimate()" />
+                                                </td>
+                                                <td class="Amount">
+                                                    <input type="text" class="form-control input-sm TbltxtAmount" style="width:50px" value="@row.Amount.ToString()" onkeyup="TotalCalEstimate()" />
+                                                </td>
+                                                <td class="BaseEstimate"></td>
+                                                <td>
+                                                    <input type="text" class="form-control input-sm TbltxtTransitTimeF" style="width:50px" value="@row.TransitTimeFrom.ToString()" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="form-control input-sm TbltxtTransitTimeT" style="width:50px" value="@row.TransitTimeTo.ToString()" />
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-danger btn-sm" onclick="Remove(this)">
+                                                        <span class="glyphicon glyphicon-trash"></span>
+                                                    </button>
+                                                    <a onclick="Edit(this);" id="CostHeadDetails_@RowNo" data-id="@RowNo" class="btn btn-xs btn-default glyphicon glyphicon-pencil" data-cache="false" title="Detail CostHead"
+                                                       data-assigned-id="@RowNo" data-toggle="modal" data-target="#EditModal"></a>
+                                                </td>*@
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+
+                    </div>
+                </div>
+
+                //if (Model.CostHeadList.Count > 0)
+                //{
+                //}
+            }
+            catch { }
+        </div>
+    </div>
+
+
+
+}
+
+<div>
+    @Html.Grid(Model.SurveyRateGridDt).Named("mainGrid").Columns(columns =>
+    {
+
+    columns.Add().Encoded(false)
+    .Sanitized(false).Css("tdNone")
+    .Sortable(false).RenderValueAs(d=>
+
+@<input type="hidden" name="Survey" id="Survey" class="tdSurvey" value="@d.SurveyID" />
+);
+                columns.Add().Encoded(false)
+.Sanitized(false).Css("tdNone")
+.Sortable(false).RenderValueAs(d =>
+
+@<input type="hidden" name="RateWt" id="RateWt" class="tdRateWt" value="@d.ratecompanyratewtid" />
+);
+
+                columns.Add().Encoded(false)
+.Sanitized(false).Css("tdNone")
+.Sortable(false).RenderValueAs(d =>
+
+@<input type="hidden" name="RateCompRateBatchId" id="RateCompRateBatchId" class="tdRateCompRateBatchId" value="@d.RateCompRateBatchId" />
+);
+    /*columns.Add(o => o.FromCity)
+.Titled("From City")
+.Css("col-md-2")
+.SetWidth(2);*/
+    columns.Add(o => o.RateCompRateBatchId)
+    .Titled("Estimation ID").Css("col-md-2").SetWidth(1);
+
+    columns.Add(o => o.Exitport)
+.Titled("Exitport").Css("col-md-2").SetWidth(2);
+
+    columns.Add(o => o.EntryPort)
+.Css("col-md-2")
+.Titled("EntryPort")
+.SetWidth(2);
+
+    /* columns.Add(o => o.ToCity)
+.Titled("To City")
+.Css("col-md-2").SetWidth(2);*/
+
+    columns.Add(o => o.WeightFrom)
+.Titled("WeightFrom")
+.Css("col-md-1").SetWidth(1);
+
+    columns.Add(o => o.WtUnit)
+.Titled("Weight Unit")
+.Css("col-md-1").SetWidth(1);
+
+    columns.Add(o => o.TotEstimate)
+.Titled("Total Estimate")
+.Css("col-md-2").SetWidth(2);
+
+
+    columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(false)
+.Css("col-md-3").Titled("Actions")
+.RenderValueAs(d =>
+@<span>
+
+
+    @if (hasEditAccess)
+                {
+        <a href="@Url.Action("Edit", "Cost" , new {SurveyID=d.SurveyID,RateCompRateWtID =d.ratecompanyratewtid,RateCompRateBatchId =d.RateCompRateBatchId })" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" data-cache="false" title="Edit Rate"></a>
+                }
+
+    <a onclick="showDetails(this);" id="Details_@d.ratecompanyratewtid" data-id="@d.SurveyID" class="btn btn btn-xs btn-default glyphicon glyphicon-eye-open" data-cache="false" title="Detail Rate"
+       data-assigned-id="@d.ratecompanyratewtid" data-toggle="modal" data-target="#exampleModalLong"></a>
+    <a id="btnReport" class="btn btn-xs btn-default fa fa-download" href="@Url.Action("GetReport","Cost",new {surveyid = d.SurveyID, Wtid=d.ratecompanyratewtid})" target="_blank"></a>
+
+    @*@if (hasAddAccess)
+                 {
+        <a class="add-btn btn btn-xs btn-default pull-left" data-cache="false" title="Copy Rate" onclick="CopyRate(this)" style="display:none">Copy Rate</a>
+                 }*@
+
+
+
+
+
+
+</span>
+);
+
+
+
+                columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(false)
+.Css("col-md-3").Titled("Actions")
+.RenderValueAs(d =>
+@<span>
+    <a class="btn btn-xs btn-default" data-cache="false" title="Copy Rate" href="@Url.Action("Create", "Quotation" , new {SurveyID=d.SurveyID,RateCompRateWtID =d.ratecompanyratewtid,RateCompRateBatchId =d.RateCompRateBatchId })">Apply Quotation</a>
+</span>
+);
+
+                columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Css("col-md-1").Titled("Delete").RenderValueAs((d) =>
+
+@<div>
+
+    @if (hasDeleteAccess)
+                {
+        //using (Html.BeginForm("Delete", "Cost", new { SurveyID = d.SurveyID, RateCompRateWtID = d.ratecompanyratewtid }))
+        //{
+        //    new HtmlString("<input data-confirmprompt='Are you sure?' type='submit' name ='Delete' value='Delete' />");
+        //}
+        <form method="post" action="@Url.Action("Delete", "Cost", new {SurveyID = d.SurveyID,RateCompRateWtID = d.ratecompanyratewtid,RateCompRateBatchID = d.RateCompRateBatchId })" class="frmRWDelete" title="Delete Cost">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="SurveyID" value="@d.SurveyID" />
+            <input type="hidden" name="RateCompRateWtID" value="@d.ratecompanyratewtid" />
+            <button type="button" id="btndeleteest" name="action:Delete" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5"></button>
+        </form>
+
+                }
+</div>
+
+);
+
+
+            }).Sortable(false).Selectable(false).SetRowCssClasses(item => item.Colour == "A" ? "important" : "nonimportant")
+</div>
+<div class="row m-t-md" id="ViewCostRateGridPlaceHolder">
+</div>
+<!--DMS Model-->
+<div id="mdlDMS" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+        </div>
+    </div>
+</div>
+@section Scripts{
+    <script type="text/javascript">
+    $(document).ready(function () {
+        // Enable Live Search.
+        //$('select').select2();
+        
+
+        AjaxFillDropDown('.CityDropDown', "@Url.Action("GetCityList", "Cost")");
+        AjaxFillDropDown('#ToLocationDropdown', "@Url.Action("GetCityList", "Cost")",'@Model.ToLocationID');
+        AjaxFillDropDown('#FromLocationDropdown', "@Url.Action("GetCityList", "Cost")",'@Model.FromLocationID');
+        //$('#EditAgentDropdown').select2(
+        //    {
+        //        dropdownParent: $("#EditModal")
+        //    }
+        //);
+
+        var IsEdit = @Html.Raw(Json.Encode(Model.RateCompRateBatchId));
+
+        if ((IsEdit != null && IsEdit > 0)) {
+
+            $("#ModeDropdown").attr('disabled', 'disabled');
+            $("#ToLocationDropdown").attr('disabled', 'disabled');
+            $("#FromLocationDropdown").attr('disabled', 'disabled');
+
+            $("#RMCDropdown").attr('disabled', 'disabled');
+            $("#BusinessLineDropdown").attr('disabled', 'disabled');
+            $("#GoodsDescriptionDropdown").attr('disabled', 'disabled');
+            $("#ExitPortDropdown").attr('disabled', 'disabled');
+            $("#EntryPortDropdown").attr('disabled', 'disabled');
+            $("#ServiceLineId").attr('disabled', 'disabled');
+
+
+            ///High light the edit grid
+            //$("").find();
+
+            
+            $("div").find("[data-gridname='mainGrid']").find("table tr").removeClass("bg");
+
+            $tr = $("div[data-gridname='mainGrid'] tr").filter(function () {
+                return $(this).find("#RateCompRateBatchId").val() == IsEdit;
+            }).closest('tr');
+
+            $tr.addClass("bg");
+
+        }
+        else {
+
+            $("#ModeDropdown").removeAttr('disabled');
+            $("#ToLocationDropdown").removeAttr('disabled');
+            $("#FromLocationDropdown").removeAttr('disabled');
+
+            $("#RMCDropdown").removeAttr('disabled');
+            $("#BusinessLineDropdown").removeAttr('disabled');
+            $("#GoodsDescriptionDropdown").removeAttr('disabled');
+            $("#ExitPortDropdown").removeAttr('disabled');
+            $("#EntryPortDropdown").removeAttr('disabled');
+            $("#ServiceLineId").removeAttr('disabled');
+
+
+        }
+
+
+        $("div").find("[data-gridname='mainGrid']").find("table").removeClass("table-striped");
+
+        TotalCalEstimate();
+
+        $('#ModeDropdown').change(function () {
+            var mode = $(this).val();
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                url: "GetShippingLineList",
+                data: "{mode:'" + mode + "'}",
+                success: function (data) {
+
+                    alert('done');
+                },
+                failure: function (data) {
+                    //alert('error occured');
+                }
+
+            });
+        });
+
+
+        $('#BaseCurrencyRateDropdown').change(function () {
+
+            if ($(this).val() == $('#RateCurrencyDropdown').val()) {
+
+                $('#txtConversionRate').val(1);
+            }
+
+        });
+
+        $('#RateCurrencyDropdown').change(function () {
+
+            if ($(this).val() == $('#BaseCurrencyRateDropdown').val()) {
+
+                $('#txtConversionRate').val(1);
+            }
+
+        });
+
+        $("#WeightUnitFrom").change(function () {
+
+            $("#WeightUnitTo").val($(this).val());
+
+        })
+
+        getAllSubCostData();
+
+        AjaxFillDropDown('.AgentDropDown', "@Url.Action("GetAgentList", "Cost")");
+        var  agenturl = '@Url.Action("GetAgentList", "Cost",new { AgentType= "A" })';
+        AjaxFillDropDown('.AgentDropDown', agenturl, '@Model.DefaultAgentID');
+        
+    });
+
+    /////On RMC Change
+    function RMC_OnChange(_RMC) {
+
+        $("#CostHeadDropdown").empty();
+
+        $("#CostHeadDropdown").append($('<option>').text("--Select CostHead--").attr('value', -1));
+
+
+        if (_RMC != null && _RMC != "") {
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetCostHead", "Combo")?RMCID=" + _RMC,
+                async: 'false',
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+
+
+                    $.each(data, function (number, municipe) {
+
+                        $("#CostHeadDropdown").append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+
+                    });
+
+                    //$("#CostHeadDropdown").removeClass("selectpicker");
+                    //$("#CostHeadDropdown").addClass("selectpicker");
+                    //$("#CostHeadDropdown").selectpicker();
+
+                    //$("#CostHeadDropdown").selectpicker('refresh');
+                    //$("#CostHeadDropdown").selectpicker('render');
+
+                    //var markup = "<option data-tokens='0'></option>";
+                    //for (var x = 0; x < data.length; x++) {
+                    //    markup += "<option data-tokens=" + data[x].Value + ">" + data[x].Text + "</option>";
+                    //}
+                    //$("#CostHeadDropdown").html(markup).show();
+
+
+                },
+                error: function (reponse) {
+                    alert("error : " + reponse);
+                }
+            });
+        }
+
+    }
+
+    /////Cost head table Add/Remove from list
+
+    function getAllData() {
+        var data = [];
+        $('#CostHeadtable tbody tr').each(function () {
+
+            var RateCompID = $(this).find('.TblRateComponent').val();
+            var AgentID = $(this).find('.TblHFVAgent').val();
+            var BaseRateID = $(this).find('.TblHFVBaseRate').val();
+            var RateCurrencyID = $(this).find('.TblHFVRateCurrency').val();
+            var ConversionRate = $(this).find('.TbltxtConversionRate').val();
+
+            var CostHeadID = $(this).find('.TblHFVCostHead').val();
+            var CostHeadName = $("TD", this).eq(1).html();
+            var Amount = $(this).find('.TbltxtAmount').val();
+
+            var TransFrom = $(this).find('.TbltxtTransitTimeF').val();
+            var TransTo = $(this).find('.TbltxtTransitTimeT').val();
+            var alldata = {
+                'CostHeadID': parseInt(CostHeadID),
+                'CompID': parseInt(RateCompID),
+                'BaseCurrID': parseInt(BaseRateID),
+                'RateCurrID': parseInt(RateCurrencyID),
+                'BaseCurrConversRate': parseFloat(ConversionRate),
+                'AgentID': parseInt(AgentID),
+                'NetAmt': parseFloat(Amount),
+                'TransTimeFrom': parseInt(TransFrom),
+                'TransTimeTo': parseInt(TransTo)
+            }
+            data.push(alldata);
+        });
+
+        var pair = { 'CostHeadwiseDetail': data }
+        return pair;
+    }
+
+
+
+    $("body").on("click", "#btnAdd", function () {
+
+        var Mode = parseInt($('#ModeDropdown').val());
+        var IsSubCost = JSON.parse($('#IsSubCost').val());
+        var RateCompDropdown = $("#RateComponentDropdown");
+        var RateCompDropdownSelected = RateCompDropdown.val();
+        var RateCompDropdownText = $("#RateComponentDropdown :selected").text().trim();
+
+        var BaseCurrencyRateDropdown = $("#BaseCurrencyRateDropdown");
+        var BaseCurrencyRateDropdownSelected = BaseCurrencyRateDropdown.val();
+        var BaseCurrencyRateDropdownText = $("#BaseCurrencyRateDropdown :selected").text().trim();
+
+        var RateCurrencyDropdown = $("#RateCurrencyDropdown");
+        var RateCurrencyDropdownSelected = RateCurrencyDropdown.val();
+        var RateCurrencyDropdownText = $("#RateCurrencyDropdown :selected").text().trim();
+
+        var CostHeadDropdown = $("#CostHeadDropdown");
+        var CostHeadDropdownSelected = CostHeadDropdown.val();
+        var CostHeadDropdownText = $("#CostHeadDropdown :selected").text().trim();
+
+        var AgentDropdown = $("#AgentDropdown");
+        var AgentDropdownSelected = AgentDropdown.val();
+        var AgentText = $("#AgentDropdown :selected").text().trim();
+
+        var txtAmount = $("#txtAmount");
+        var txtAmountValue = txtAmount.val();
+
+
+
+        var txtConversionRate = $("#txtConversionRate");
+        var txtConversionRateValue = txtConversionRate.val();
+        var txtRate = $('#Rate');
+
+        var TransitTimeFrom = $('#TransitTimeFrom');
+        var TransitTimeFromValue = TransitTimeFrom.val();
+        var TransitTimeTo = $('#TransitTimeTo');
+        var TransitTimeToValue = TransitTimeTo.val();
+
+        var ShippingLine = parseInt($('#ShippingLineDropdown').val());
+
+        if (RateCurrencyDropdownSelected != null && RateCurrencyDropdownSelected > 0 && BaseCurrencyRateDropdownSelected != null && BaseCurrencyRateDropdownSelected > 0 && txtConversionRateValue != null && txtConversionRateValue != "" && RateCompDropdownSelected != null && RateCompDropdownSelected > 0 && AgentDropdownSelected != null && AgentDropdownSelected > 0 && CostHeadDropdownSelected && CostHeadDropdownSelected >= 0 && txtAmountValue != null && txtAmountValue != "") {
+            //
+            //var Mode = parseInt($('#ModeDropdown').val());
+            //var ShippingLine = parseInt($('#ShippingLineDropdown').val());
+            //if (RatecomDropdownSelected == "2" && (Mode == 1 || Mode == 2) && (isNaN(ShippingLine) || ShippingLine <= 0)) {
+
+            //    alert('shipping line is required.');
+            //    return false;
+            //}
+
+            var breakOut = false;
+
+            $('#CostHeadtable > TBODY > tr').each(function () {
+               // 
+                //look for the fields TbltxtAmount in the tr
+                if ($('.TblHFVCostHead', this).val() == CostHeadDropdownSelected && $('.TblRateComponent', this).val() == RateCompDropdownSelected) {
+
+                    alert(CostHeadDropdownText + ' CostHead already exist for ' + RateCompDropdownText.trim() + ' Component');
+                    breakOut = true;
+                    return false;
+                }
+            });
+            ///// return from add if costhead already exists
+            if (breakOut) {
+
+                return false;
+            }
+
+
+
+
+            //if (RateCompDropdownSelected == "2" && (Mode == 1 || Mode == 2) && (isNaN(ShippingLine) || ShippingLine <= 0)) {
+
+            //    alert('shipping line is required.');
+            //    return false;
+            //}
+
+
+            var RateCompTblRows = $('#CostHeadtable > TBODY > tr:contains(' + RateCompDropdownText + ')');
+
+            if (RateCompTblRows.length > 0) {
+
+
+                $('#CostHeadtable > TBODY > tr:contains(' + RateCompDropdownText + ')').each(function () {
+                    
+                    //look for the fields TblHFVAgent in the tr
+                    $('.TblHFVAgent', this).val(AgentDropdownSelected);
+                    $('.Agent', this).html(AgentText);
+                    //$('.TbltxtTransitTimeF', this).val(TransitTimeFromValue);
+                    //$('.TbltxtTransitTimeT', this).val(TransitTimeToValue);
+
+                    //$('.BaseCurrencyRate', this).text(BaseCurrencyRateDropdownText);
+                    //$('.RateCurrency', this).text(RateCurrencyDropdownText);
+
+                    //$('.TbltxtConversionRate', this).val(txtConversionRateValue);
+                    //$('.TblHFVBaseRate', this).val(BaseCurrencyRateDropdownSelected);
+                    //$('.TblHFVRateCurrency', this).val(RateCurrencyDropdownSelected);
+
+                });
+
+            }
+
+            //var table = $("#CostHeadtable");
+            //var firstTd = $("td:second", table);
+            //var secondTd = firstTd.next();
+            //// need to update the agent id based on the rate component
+            //if (firstTd.text() != AgentText && secondTd.text() == RateCompDropdownText) {
+
+            //    alert("Error: You're trying to add the same entry");
+            //    return false;
+            //}
+
+            var tBody = $("#CostHeadtable > TBODY")[0];
+
+            var rowCount = $('#CostHeadtable > TBODY > tr').length;
+
+
+            var tdHFVCostHead = '<input type="hidden" class="TblRateComponent" name="HFVRateComponent" id="HFVRateComponentID_' + (rowCount + 1) + '" value="' + RateCompDropdownSelected + '" />'
+                + '<input type="hidden" class="TblHFVCostHead" name="HFVCostHead" id="HFVCostHeadID_' + (rowCount + 1) + '" value="' + CostHeadDropdownSelected + '" />'
+                + '<input type="hidden" class="TblHFVAgent" name="HFVAgent" id="HFVAgentID_' + (rowCount + 1) + '" value="' + AgentDropdownSelected + '" />'
+                + '<input type="hidden" class="TblHFVBaseRate" name="HFVBaseRate" id="HFVBaseRateID_' + (rowCount + 1) + '" value="' + BaseCurrencyRateDropdownSelected + '" />'
+                + '<input type="hidden" class="TblHFVRateCurrency" name="HFVRateCurrency" id="HFVRateCurrencyID_' + (rowCount + 1) + '" value="' + RateCurrencyDropdownSelected + '" />'
+
+
+            var tdConversionRate = '<input type="number" class="form-control input-sm TbltxtConversionRate" style="width:50px" value="' + txtConversionRateValue + '" onkeypress="return OnlyDouble(this, event);" />';
+
+            var tdAmount = '<input type="number" class="form-control input-sm TbltxtAmount"  name="TbltxtAmount" style="width:50px"  value="' + txtAmountValue + '" onkeypress="return OnlyDouble(this, event);" />';
+
+            var transitTimeFrom = '<input type="number" class="form-control input-sm TbltxtTransitTimeF" style="width:50px" value="' + TransitTimeFromValue + '" onkeypress="return OnlyInteger(this, event);" />'
+            var transitTimeTo = '<input type = "number" class="form-control input-sm TbltxtTransitTimeT" style = "width:50px" value = "' + TransitTimeToValue + '" onkeypress="return OnlyInteger(this, event);" />'
+
+            if (JSON.parse(IsSubCost)) {
+                CostHeadDropdownText = CostHeadDropdownText + ' <button type="button" id="btnSubCost_' + (rowCount + 1) + '" class="btnSubCost" onclick="GetSubCost(this);"><span class="glyphicon glyphicon-pencil"></span></button> ';
+            }
+
+            //Add Row.
+            var row = tBody.insertRow(-1);
+            row.className = "package-row";
+
+            //Add CostHeadID cell.
+            var cell = $(row.insertCell(-1));
+            cell.html(tdHFVCostHead);
+            cell.addClass("tdNone");
+
+            //Add Agent cell.
+            cell = $(row.insertCell(-1));
+            cell.html(AgentText);
+            cell.addClass("Agent");
+
+            //Add RateComp cell.
+            cell = $(row.insertCell(-1));
+            cell.html(RateCompDropdownText);
+            cell.addClass("RateComponent");
+
+            //Add CostHeadText cell.
+            cell = $(row.insertCell(-1));
+            cell.html(CostHeadDropdownText);
+            cell.addClass("CostHead");
+
+            //Add BaseCurrText cell.
+            cell = $(row.insertCell(-1));
+            cell.html(BaseCurrencyRateDropdownText);
+            cell.addClass("BaseCurrencyRate");
+
+            //Add RateCurr cell.
+            cell = $(row.insertCell(-1));
+            cell.html(RateCurrencyDropdownText);
+            cell.addClass("RateCurrency");
+
+            ////add ConversionRate
+            cell = $(row.insertCell(-1));
+            cell.html(tdConversionRate);
+            cell.addClass("ConversionRate");
+
+            //Add Amount cell.
+            cell = $(row.insertCell(-1));
+            cell.html(tdAmount);
+            cell.addClass("Amount");
+
+            cell = $(row.insertCell(-1));
+            cell.addClass("BaseEstimate");
+
+            ///Add Transit Time From Cell
+            cell = $(row.insertCell(-1));
+            cell.html(transitTimeFrom);
+
+            ///Add Transit Time To Cell
+            cell = $(row.insertCell(-1));
+            cell.html(transitTimeTo);
+
+            //Add Button cell.
+            cell = $(row.insertCell(-1));
+            var btnRemove = '<button type="button" class="btn btn-danger btn-sm" onclick="Remove(this)"><span class="glyphicon glyphicon-trash"></span></button>';
+            var btnEdit = '<a onclick="Edit(this);" id="CostHeadDetails_' + (rowCount + 1) + '" data-id=' + (rowCount + 1) + ' class="btn btn-xs btn-default glyphicon glyphicon-pencil" data-cache="false" title="Detail CostHead" data - assigned - id=' + (rowCount + 1) + ' data-toggle="modal" data-target="#EditModal"></a>';
+
+            cell.append(btnRemove + btnEdit);
+            
+            if (RateCompDropdownSelected == "2" && (Mode == 1 || Mode == 2) && (!isNaN(ShippingLine) && ShippingLine > 0)) {
+
+                $('.ShipingLineID').val(ShippingLine);
+
+            }
+
+
+            //Clear the TextBoxes.
+            CostHeadDropdown.prop("selected", "0");
+            $('#CostHeadDropdown').val('').change();
+            txtAmount.val("");
+            $('#AgentDropdown').val(AgentDropdownSelected).change();
+
+            TotalCalEstimate();
+        }
+        else {
+            alert('Agent,Rate Component, Cost Head, Base Currency,Rate Currancy,Conversion Rate and Amount is required');
+            return false;
+        }
+    });
+
+
+    function Remove(button) {
+        //Determine the reference of the Row using the Button.
+        var row = $(button).closest("TR");
+        var name = $("TD", row).eq(1).html();
+        if (confirm("Do you want to delete: " + name)) {
+            //Get the reference of the Table.
+            var table = $("#CostHeadtable")[0];
+
+            //Delete the Table row using it's Index.
+            table.deleteRow(row[0].rowIndex);
+
+            var CostHeadID = $(row).find('td .TblHFVCostHead').val();
+            var RateCompID = $(row).find('td .TblRateComponent').val();
+
+
+            SubCostRemove(CostHeadID, RateCompID);
+
+            TotalCalEstimate();
+
+
+        }
+    };
+
+
+     function EditAgentDropdown() {
+            
+            $('.EditAgentDropDown').select2({
+                width: '100%',
+                dropdownParent: $("#EditModal .modal-content"),
+                minimumInputLength: 3,
+                //width: 'resolve',
+                placeholder: "Select One",
+                ajax: {
+                    url: "@Url.Action("GetAgentList", "Cost")", 
+                    type: "POST",
+                    dataType: 'json',
+                    data: function (term) {
+                        return {
+                            term: term.term,
+                        };
+                    },
+                    processResults: function (data) {
+                        debugger;
+                        //$(control).find('option').remove();
+                        return {
+                            results: $.map(data.CountryList, function (item) {
+
+                                return {
+                                    id: item.Value,
+                                    text: item.Text
+                                }
+                            })
+                        }; // data.CountryList returning json data from Controlle
+                    }
+                }
+
+
+            });
+
+
+        }
+
+
+    var rowIndex=-1;
+    function Edit(button) {
+
+        
+
+        var row = $(button).closest("TR");
+        var id = $(button).data('assigned-id');
+
+        $('#EditRateComponentDropdown').val(row.find('.TblRateComponent').val().trim()).attr("selected", "selected");
+        $('#EditCostHeadDropdown').val(row.find('.TblHFVCostHead').val().trim()).attr("selected", "selected").change();
+
+        //$('#EditAgentDropdown').val(row.find('.TblHFVAgent').val().trim()).attr("selected", "selected").change();
+        var AgentID = row.find('.TblHFVAgent').val().trim();
+        EditAgentDropdown();
+        var  agenturl = '@Url.Action("GetAgentList", "Cost",new { AgentType= "A" })';
+        AjaxFillDropDown('.EditAgentDropDown', agenturl, AgentID);
+
+        $("#EditBaseCurrencyRateDropdown").val(row.find('.TblHFVBaseRate').val().trim()).attr("selected", "selected");
+        $("#EditRateCurrencyDropdown").val(row.find('.TblHFVRateCurrency').val().trim()).attr("selected", "selected");
+        $("#EditConversionRate").val(row.find('.TbltxtConversionRate').val().trim());
+        $("#EditEstimate").val(row.find('.TbltxtAmount').val().trim());
+        $("#EditTransitTimeFrom").val(row.find('.TbltxtTransitTimeF').val().trim());
+        $("#EditTransitTimeTo").val(row.find('.TbltxtTransitTimeT').val().trim());
+        $("#EditRateComponentID").val(row.find('.TblRateComponent').val().trim());
+        $("#EditCostHeadID").val(row.find('.TblHFVCostHead').val().trim());
+        $('#EditShippingLineDropdown').val($('#ShipingLineID').val().trim()).attr("selected", "selected").change();
+
+        $('#ModalServiceLine').hide();
+
+        if ($('#EditRateComponentDropdown').val() == "2" && ($('#ModeDropdown').val() == 1 || $('#ModeDropdown').val() == 2)) {
+
+            $('#ModalServiceLine').show();
+        }
+
+        rowIndex = row[0].rowIndex;
+    }
+
+    $(document).on("onclick", "#btnEditCostHead",function (e) {
+        Update();
+        e.preventDefault();
+    });
+
+    $(document).on('hide.bs.modal', '#EditModal', function () {
+
+        rowIndex = -1;
+        clearEditControls();
+
+    });
+
+    function clearEditControls() {
+
+        $('#EditRateComponentDropdown').val("").removeAttr("selected");
+        $('#EditCostHeadDropdown').val("").removeAttr("selected");
+        $('#EditAgentDropdown').val("").removeAttr("selected");
+        $("#EditBaseCurrencyRateDropdown").val("").removeAttr("selected");
+        $("#EditRateCurrencyDropdown").val("").removeAttr("selected");
+        $("#EditConversionRate").val("");
+        $("#EditEstimate").val("");
+        $("#EditTransitTimeFrom").val("");
+        $("#EditTransitTimeTo").val("");
+        $("#EditRateComponentID").val("");
+        $("#EditCostHeadID").val("");
+        $("#EditServiceLineID").val("").removeAttr("selected");
+    }
+
+    function Update(button){
+
+        
+        if (rowIndex > 0) {
+            rowIndex = rowIndex - 1;
+            var tablRow = $('#CostHeadtable > TBODY > tr:eq(' + rowIndex + ')');
+            tablRow.find('.TblHFVAgent').val($('#EditAgentDropdown').val());
+            tablRow.find('.TblHFVBaseRate').val($('#EditBaseCurrencyRateDropdown').val());
+            tablRow.find('.TblHFVRateCurrency').val($('#EditRateCurrencyDropdown').val());
+            tablRow.find('.TbltxtConversionRate').val($('#EditConversionRate').val());
+            tablRow.find('.TbltxtAmount').val($('#EditEstimate').val());
+            tablRow.find('.TbltxtTransitTimeF').val($('#EditTransitTimeFrom').val());
+            tablRow.find('.TbltxtTransitTimeT').val($('#EditTransitTimeTo').val());
+            tablRow.find('.TblRateComponent').val($('#EditRateComponentID').val());
+            tablRow.find('.TblHFVCostHead').val($('#EditCostHeadID').val());
+            tablRow.find('.Agent').text($('#EditAgentDropdown :selected').text().trim());
+            //tablRow.find('.RateComponent').val($('#EditAgentDropdown').text());
+            //tablRow.find('.CostHead').val($('#EditAgentDropdown').text());
+            tablRow.find('.BaseCurrencyRate').html($('#EditBaseCurrencyRateDropdown :selected').text().trim());
+            tablRow.find('.RateCurrency').html($('#EditRateCurrencyDropdown :selected').text().trim());
+            $('.ShipingLineID').val($('#EditShippingLineDropdown').val());
+            var RateCompDropdownText = tablRow.find('.RateComponent').text().trim();
+
+            $('#CostHeadtable > TBODY > tr:contains(' + RateCompDropdownText + ')').each(function () {
+
+                //look for the fields TbltxtAmount in the tr
+                $('.TblHFVAgent', this).val($('#EditAgentDropdown').val());
+                $('.Agent', this).text($('#EditAgentDropdown :selected').text().trim());
+                $('.TbltxtTransitTimeF',this).val($('#EditTransitTimeFrom').val());
+                $('.TbltxtTransitTimeT', this).val($('#EditTransitTimeTo').val());
+
+                $('.BaseCurrencyRate', this).text($('#EditBaseCurrencyRateDropdown :selected').text().trim());
+                $('.RateCurrency', this).text($('#EditRateCurrencyDropdown :selected').text().trim());
+
+                $('.TbltxtConversionRate', this).val($('#EditConversionRate').val());
+                $('.TblHFVBaseRate', this).val($('#EditBaseCurrencyRateDropdown').val());
+                $('.TblHFVRateCurrency', this).val($('#EditRateCurrencyDropdown').val());
+            });
+
+            rowIndex = -1;
+            toastr.success("Cost Head Updated", "Success");
+            $('#EditModal').modal('hide');
+            TotalCalEstimate();
+            clearEditControls();
+        }
+        else {
+            rowIndex = -1;
+            toastr.error("No Cost Head Detail to Update", "Error");
+        }
+    }
+
+    ////On Amount text box enter key press call the Add button event
+    $('#txtAmount').on("keypress", function (e) {
+        if (e.keyCode == 13) {
+
+            $('#btnAdd').click();
+            return false; // prevent the button click from happening
+        }
+    });
+
+    //$('#btnSave').on("onclick", function (e) {
+    //    var Flag = SaveData();
+
+    //    if (!Flag) {
+    //        e.preventDefault();
+    //    }
+
+    //});
+
+
+        $(function () {
+
+            //////Start Save data
+            var SaveData = function (event) {
+
+                try {
+
+
+                    if ($('#CostHeadtable > TBODY > tr') == null || $('#CostHeadtable > TBODY > tr').length <= 0) {
+
+                        alert('Add Cost atleast one Cost Heads to Save');
+                        event.preventDefault();
+                        return false;
+                    }
+
+
+
+                    var BreakOut = false;
+
+                    var Mode = parseInt($('#ModeDropdown').val());
+                    var ShippingLine = parseInt($('.ShipingLineID').val());
+                    //$('#CostHeadtable > TBODY > tr').each(function () {
+
+                    //    //look for the fields TbltxtAmount in the tr
+                    //    if (($('.TblRateComponent', this).val() == "2") && (Mode == 1 || Mode == 2) && (isNaN(ShippingLine) || ShippingLine <= 0)) {
+
+                    //        alert('shipping line is required.');
+                    //        BreakOut = true;
+                    //        return false;
+                    //    }
+
+
+                    //});
+
+                    if (BreakOut) {
+
+                        event.preventDefault();
+                        return false;
+                    }
+
+                    $("#HFVCostList").val(JSON.stringify(getAllData()));
+
+
+                } catch (e) {
+
+                    event.preventDefault();
+                    return false;
+                }
+
+            }
+
+            $("#btnSave").bind("click", SaveData);
+
+        });
+
+
+
+
+
+    ////////Get existing Rate for Grid
+    function GetRateGridForRateComponent(RateComponetID) {
+
+        $("#ViewCostRateGridPlaceHolder").load("@Url.Action("Index", "GeneralPricing")",
+            { RateComponetID: RateComponetID });
+    }
+
+
+    ///////Clear all selection data
+
+    $("#btnClearFields").on("click", function () {
+
+        $('#RMCDropdown :selected').val('').change();
+        $('#RMCDropdown :selected').val('').change();
+        $('#BusinessLineDropdown :selected').val('').change();
+        $('#GoodsDescriptionDropdown :selected').val('').change();
+        $('#ModeDropdown :selected').val('').change();
+        $('#RateComponentDropdown :selected').val('').change();
+        $('#AgentDropdown :selected').val('').change();
+        $('#FromLocationDropdown :selected').val('').change();
+        $('#ToLocationDropdown :selected').val('').change();
+        $('#RateCurrencyDropdown :selected').val('').change();
+        $('#BaseCurrencyRateDropdown :selected').val('').change();
+        $('#WeightUnitDropdown :selected').val('').change();
+
+        $("#ConversionRate").val('');
+        $("#WeightUnitFrom").val('');
+        $("#WeightUnitTo").val('');
+        $('#TransitTimeFrom').val('');
+        $('#TransitTimeTo').val('');
+        $('#Rate').val('');
+        $('#ShowConstHeads').prop('checked', false);
+
+    });
+
+
+    function CopyRate(button) {
+        var row = $(button).closest("TR");
+        var param1 = $(".tdSurvey", row).val();
+        var param2 = $(".tdRateWt", row).val();
+        var param3 = $(".tdRateCompRateBatchId", row).val();
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("CopyRate", "Cost")' + '?param1=' + param1 + "&param2=" + param2 + "&param3=" + param3,
+            type: 'GET',
+            async: 'false',
+            dataType: 'json',
+
+            success: function (result) {
+
+                var data = result;
+                $("#RMCDropdown").val(data.RMCID);
+                $("#ModeDropdown").val(data.ModeID);
+                $("#GoodsDescriptionDropdown").val(data.BusinessLineID);
+                $("#BusinessLineDropdown").val(data.GoodsDescriptionID);
+
+                //alert(result);
+            },
+            error: function (reponse) {
+                toastr.error("unable to copy estimate.");
+            }
+        });
+
+
+    }
+
+
+    function TotalCalEstimate() {
+
+        var NetAmount = 0;
+        var OrgAmt = 0;
+        var FrgAmt = 0;
+        var DestAmt = 0;
+        var GrossAmount = 0;
+        var BaseEstimate = 0;
+
+        $('#CostHeadtable > TBODY > tr').each(function () {
+
+            var RateCompDropdownText = $('.RateComponent', this).text().trim();
+
+            TbltxtConversionRate = (isNaN(parseFloat($('.TbltxtConversionRate', this).val()))) ? 0 : parseFloat($('.TbltxtConversionRate', this).val())
+            TbltxtAmount = (isNaN(parseFloat($('.TbltxtAmount', this).val()))) ? 0 : parseFloat($('.TbltxtAmount', this).val())
+
+            BaseEstimate = TbltxtAmount * TbltxtConversionRate;
+            if (!isNaN(BaseEstimate)) {
+
+                $('.BaseEstimate', this).html(BaseEstimate);
+
+            }
+            else {
+
+                $('.BaseEstimate', this).html("0");
+                BaseEstimate = 0;
+            }
+
+            GrossAmount = GrossAmount + BaseEstimate;
+
+            if (RateCompDropdownText.toLowerCase() == 'origin') {
+
+                OrgAmt = OrgAmt + BaseEstimate;
+
+                $('#txtOriginEstimate').val(OrgAmt);
+            }
+            else if (RateCompDropdownText.toLowerCase() == 'freight') {
+
+                FrgAmt = FrgAmt + BaseEstimate;
+                $('#txtFrightEstimate').val(FrgAmt);
+            }
+            else if (RateCompDropdownText.toLowerCase() == 'destination') {
+
+                DestAmt = DestAmt + BaseEstimate;
+                $('#txtDestinationEstimate').val(DestAmt);
+
+            }
+        });
+
+        $("#Rate").val(GrossAmount);
+
+        sortTable();
+
+        $('.btnDelete').on('click', function (e) {
+            e.preventDefault();
+            
+            var frmRWDelete = $(this);
+            swal({
+                title: "Are you sure?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Delete",
+                cancelButtonText: "No",
+                closeOnConfirm: true,
+                closeOnCancel: true
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+
+                        $(frmRWDelete).closest('form').submit();
+                    }
+                }
+            );
+        });
+    }
+
+    function showSurveyCostHeadDetails(clickedElement) {
+
+        var id = $(clickedElement).data('assigned-id');
+        var route = '@Url.Action("Details", "Survey",new { id= "-1" })';
+        route = route.replace("-1", id);
+        $('#partial').load(route);
+
+        //var dataid = $(clickedElement).attr("data-id");
+        //showDetailsAjax(dataid);
+    }
+
+    function showDetails(clickedElement) {
+
+        var surveyid = $(clickedElement).attr("data-id");
+        var Wtid = $(clickedElement).attr('data-assigned-id');
+        var batchid = $(clickedElement).attr('data-batch-id');
+        showDetailsAjax(surveyid, Wtid, batchid);
+    }
+
+
+        function showDetailsAjax(surveyid, Wtid, Batchid) {
+            
+        var link = '@Url.Action("Details", "cost", new { surveyid = "-1", Wtid ="-2", Batchid = "-3" })'
+        link = link.replace("-1", surveyid);
+        link = link.replace("-2", Wtid);
+        link = link.replace("-3", Batchid);
+        link = link.replace("&amp;", "&");
+
+        $.ajax({
+            type: "GET",
+            url: link,
+            error: function (data) { },
+            success: function (data) {
+                $("#exampleModalLong .modal-body").html(data);
+                TotalCalCostEstimateDetail();
+                $('#exampleModalLong').modal('show');
+
+            },
+        });
+    }
+
+    function TotalCalCostEstimateDetail() {
+
+        var NetAmount = 0;
+        var OrgAmt = 0;
+        var FrgAmt = 0;
+        var DestAmt = 0;
+        var BaseEstimate = 0;
+
+        $('#CostHeadtableDetail > TBODY > tr').each(function () {
+
+            var RateCompDropdownText = $('.tdRateComponent', this).text().trim();
+            var tdConversionRate = (isNaN(parseFloat($('.tdConversionRate', this).text().trim()))) ? 0 : parseFloat($('.tdConversionRate', this).text().trim());
+            var tdAmount = (isNaN(parseFloat($('.tdAmount', this).text().trim()))) ? 0 : parseFloat($('.tdAmount', this).text().trim());
+
+            BaseEstimate = tdAmount * tdConversionRate;
+
+            if (!isNaN(BaseEstimate)) {
+
+                $('.tdBaseEstimate', this).html(BaseEstimate);
+
+            }
+            else {
+
+                $('.tdBaseEstimate', this).html("0");
+                BaseEstimate = 0;
+            }
+
+            NetAmount = NetAmount + BaseEstimate;
+
+
+            if (RateCompDropdownText.toLowerCase() == 'origin') {
+
+                OrgAmt = OrgAmt + BaseEstimate;
+
+                $('#txtOriginEstimateDetail').val(OrgAmt);
+            }
+            else if (RateCompDropdownText.toLowerCase() == 'freight') {
+
+                FrgAmt = FrgAmt + BaseEstimate;
+                $('#txtFrightEstimateDetail').val(FrgAmt);
+            }
+            else if (RateCompDropdownText.toLowerCase() == 'destination') {
+
+                DestAmt = DestAmt + BaseEstimate;
+                $('#txtDestinationEstimateDetail').val(DestAmt);
+
+            }
+        });
+
+
+        $('#txtNetEstimateDetail').val(NetAmount);
+
+    }
+
+
+        function sortTable() {
+
+
+            var table, rows, switching, i, x, y, shouldSwitch;
+            table = document.getElementById("CostHeadtable");
+            switching = true;
+            /*Make a loop that will continue until
+            no switching has been done:*/
+            while (switching) {
+                //start by saying: no switching is done:
+                switching = false;
+                rows = table.rows;
+                /*Loop through all table rows (except the
+                first, which contains table headers):*/
+                for (i = 1; i < (rows.length - 1); i++) {
+                    //start by saying there should be no switching:
+                    shouldSwitch = false;
+                    /*Get the two elements you want to compare,
+                    one from current row and one from the next:*/
+                    x = rows[i].getElementsByTagName("TD")[0];
+                    y = rows[i + 1].getElementsByTagName("TD")[0];
+                    //check if the two rows should switch place:
+                    if (parseInt(x.firstChild.value) > parseInt(y.firstChild.value)) {
+                        //if so, mark as a switch and break the loop:
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+                if (shouldSwitch) {
+                    /*If a switch has been marked, make the switch
+                    and mark that a switch has been done:*/
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                }
+            }
+        }
+
+        $('#RateComponentDropdown').on('change', function () {
+
+            var RateComponent = $("#RateComponentDropdown :selected").text();
+            var RateComponentID = $("#RateComponentDropdown :selected").val();
+            var Mode = $('#ModeDropdown').val();
+            if (RateComponent.toLowerCase() == "freight") {
+                $('.divShippingLine').removeClass('hide');
+            }
+            else {
+                $('#ShippingLineDropdown :selected').val('').removeAttr('selected');
+                $('.divShippingLine').addClass('hide');
+
+            }
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetCostHead", "Combo")?RMCID=" + 0 + "&MoveCompID=" + RateComponentID + "&ModeID=" + Mode,
+                async: 'false',
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    $("#CostHeadDropdown").select2('destroy');
+                    $("#CostHeadDropdown").empty();
+                    $("#CostHeadDropdown").append($('<option>').text('--Select Cost Head--').attr('value', ''));
+                    $.each(data, function (number, municipe) {
+
+                        $("#CostHeadDropdown").append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+
+                    });
+                    $("#CostHeadDropdown").select2();
+                    //$("#CostHeadDropdown").removeClass("selectpicker");
+                    //$("#CostHeadDropdown").addClass("selectpicker");
+                    //$("#CostHeadDropdown").selectpicker();
+
+                    //$("#CostHeadDropdown").selectpicker('refresh');
+                    //$("#CostHeadDropdown").selectpicker('render');
+
+                    //var markup = "<option data-tokens='0'></option>";
+                    //for (var x = 0; x < data.length; x++) {
+                    //    markup += "<option data-tokens=" + data[x].Value + ">" + data[x].Text + "</option>";
+                    //}
+                    //$("#CostHeadDropdown").html(markup).show();
+
+
+                },
+                error: function (reponse) {
+                    alert("error : " + reponse);
+                }
+            });
+        });
+
+        $('#CostHeadDropdown').on('change', function () {
+            
+            var CostHeadID = $(this).val() ;
+            var RateComponentID = $('#RateComponentDropdown').val() ? $('#RateComponentDropdown').val() : 0;
+            var IsExist = JSON.parse(false);
+            if (RateComponentID<=0) {
+                alert('Please select Rate Component.');
+                $('#RateComponentDropdown').focus();
+                return false;
+            }
+
+            $('#CostHeadtable > TBODY > tr').each(function () {
+                var TDCostHeadID = $(this).find('td .TblHFVCostHead').val();
+                var TDRateCompID = $(this).find('td .TblRateComponent').val();
+                if (RateComponentID == TDRateCompID && CostHeadID == TDCostHeadID) {
+                    IsExist = JSON.parse(true);
+                }
+            });
+            if (CostHeadID && CostHeadID >= 0) {
+                if (JSON.parse(IsExist)) {
+                    alert("Selected CostHead With this already exists.");
+                    $(this).val(null).trigger('change');
+                    return false;
+                }
+                else {
+                    var route = '@Url.Action("IsSubCostHead", new { CostHeadID = "-1" })';
+                    route = route.replace("-1", CostHeadID);
+                    IsSubCostHead(route);
+                    var IsSubCost = $('#IsSubCost').val();
+                    if (JSON.parse(IsSubCost)) {
+                        //GetSubCost(CostHeadID, RateComponentID);
+                        var RateCompRateWtID = ($('#RateCompRateWtID').val()) ? $('#RateCompRateWtID').val() : 0;
+                        var RateCompRateWtBatchID = ($('#RateCompRateWtBatchID').val()) ? $('#RateCompRateWtBatchID').val() : 0;
+                        var SurveyID = ($('#SurveyID').val()) ? $('#SurveyID').val() : 0;
+                        var len = $('#SubCostHead .SubCost').length;
+                        url = '@Url.Action("GetSubCostDetails", new { CostHeadID = "-1", RateCompID = "-6", SurveyID = "-4", RateCompRateID = "-2", RateCompRateBatchID = "-3", ListLength = "-5", IsEdit = "-7" })';
+                        url = url.replace("-1", CostHeadID);
+                        url = url.replace("-2", RateCompRateWtID);
+                        url = url.replace("-3", RateCompRateWtBatchID);
+                        url = url.replace("-4", SurveyID);
+                        url = url.replace("-5", len);
+                        url = url.replace("-6", RateComponentID);
+                        url = url.replace("-7", 1);
+                        url = url.replace(/&amp;/g, "&");
+                        GetSubCostHead(url, CostHeadID, RateComponentID);
+                    }
+                }
+            }
+        });
+
+        function GetSubCost(element)
+        {
+            
+            var CostHeadID = $(element).closest('tr').find('td .TblHFVCostHead').val();
+            var RateCompID = $(element).closest('tr').find('td .TblRateComponent').val();
+            @*var RateCompRateWtID = ($('#RateCompRateWtID').val())?$('#RateCompRateWtID').val():0;
+            var RateCompRateWtBatchID = ($('#RateCompRateWtBatchID').val()) ? $('#RateCompRateWtBatchID').val() : 0;
+            var SurveyID = ($('#SurveyID').val()) ? $('#SurveyID').val() : 0;
+            var len=$('#SubCostHead .SubCost').length;
+            var route = '@Url.Action("GetSubCostDetails", new {CostHeadID = "-1", RateCompID = "-6", SurveyID = "-4",RateCompRateID = "-2",RateCompRateBatchID = "-3",ListLength="-5", IsEdit="-7"})';
+            route = route.replace("-1", CostHeadID);
+            route = route.replace("-2", RateCompRateWtID);
+            route = route.replace("-3", RateCompRateWtBatchID);
+            route = route.replace("-4", SurveyID);
+            route = route.replace("-5", len);
+            route = route.replace("-6", RateCompID);
+            route = route.replace("-7", 1);
+            route = route.replace(/&amp;/g, "&");*@
+            PopUpSubCost(CostHeadID, RateCompID,'0');
+        }
+        function SubCostRemove(CostHeadID, RateCompID) {
+            var route = '@Url.Action("RemoveSubCostDetails", new { CostHeadID = "-1", RateCompID = "-2"})';
+            route = route.replace("-1", CostHeadID);
+            route = route.replace("-2", RateCompID);
+            route = route.replace(/&amp;/g, "&");
+            SubCostRemoveJS(route, CostHeadID, RateCompID);
+        }
+        function SetAmount(control) {
+            var div = $(control).closest('.SubCost');
+            var rate = div.find('.txtrate').val();
+            var convrate = div.find('.txtconvrate').val();
+            div.find('.txtvalue').val(rate * convrate);
+        };
+
+        $('.CommRateCurr').on('change', function () {
+            debugger;
+            var Convurl = '@Url.Action("GetConvRate", "cost", new { FromCurrID = "-1", ToCurrID = "-2" })';
+            Convurl = Convurl.replace("-1", $('.CommBaseCurr').val());
+            Convurl = Convurl.replace("-2", $(this).val());
+            //link = Convurl.replace("-3", Batchid);
+            Convurl = Convurl.replace(/&amp;/g, "&");
+
+            AjaxFillConvRate(Convurl, $('.CommConvRate'));
+        });
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/TableSort")
+    @Scripts.Render("~/bundles/SubCostHead")
+
+    <script type="text/javascript" src="https://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
+}

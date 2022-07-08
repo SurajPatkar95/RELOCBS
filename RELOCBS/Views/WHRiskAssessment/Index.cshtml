@@ -1,0 +1,215 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.Common;
+@{
+
+    ViewBag.Title = "Warehouse Risk & Security Checklist";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string _PageID = "70";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+@using (Html.BeginForm(null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+{
+    @Html.AntiForgeryToken()
+    <div id="main" class="m-t-sm">
+        <div class="row no-gutters">
+            <div class="col-sm-3 col-md-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>From Date</label>
+                            <div class="input-group input-group-sm date" id="dtp_FromDate">
+                                @Html.Editor("FromDate", new { htmlAttributes = new { @placeholder = "From Date", @tooltip = "From Date", @class = "form-control input-sm datetimepicker onkeydtp", title = "From Date", id = "FromDate" } })
+                                <span class="input-group-addon" style="display: none">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>To Date</label>
+                            <div class="input-group input-group-sm date" id="dtp_ToDate">
+                                @Html.Editor("ToDate", new { htmlAttributes = new { @placeholder = "To Date", @tooltip = "To Date", @class = "form-control input-sm datetimepicker onkeydtp", title = "To Date", id = "ToDate" } })
+                                <span class="input-group-addon" style="display: none">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Warehouse</label>
+                    @Html.DropDownList("WarehouseId", new SelectList((System.Collections.IEnumerable)ViewData["WarehouseList"], "Value", "Text", ViewData["WarehouseList"]), "Select One", new { @class = "form-control input-sm enableselect" })
+                </div>
+            </div>
+            <div class="form-group col-md-2">
+                <div class="clearfix">
+                    <input type="submit" id="btnSearch" name="Search" class="btn btn-primary btn-sm filter-custom-margin" value="Search" />
+                    <a id="btnCreate" name="Create" class="btn btn-primary btn-sm filter-custom-margin" value="New Checklist" formnovalidate="formnovalidate" href="@Url.Action("Create", "WHRiskAssessment")" title="Create">Create</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+}
+<div id="mgrid">
+    @Html.Partial("_AjaxPartial")
+</div>
+
+<div id="mdlAddEdit" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+        </div>
+    </div>
+</div>
+
+
+@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            $('#FromDate,#ToDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            PagedOnCompleteBinds();
+
+            $('body').on('hidden.bs.modal', '.modal', function () {
+                $(this).removeData('bs.modal');
+            });
+
+            pageGrids.mainGrid.onRowSelect(function (e) {
+                console.log($('#pnlGridTopActions #btnEdit, #pnlGridTopActions #btnDelete').length)
+                $('#pnlGridTopActions #btnEdit, #pnlGridTopActions #btnDelete').removeAttr('disabled');
+                $('#pnlGridTopActions #btnEdit').on('click', function (ev) {
+                    ev.preventDefault();
+                    $('#mgrid tr.grid-row.grid-row-selected').find('.btnEdit').click();
+                });
+                $('#pnlGridTopActions #btnDelete').on('click', function (ev) {
+                    ev.preventDefault();
+                    $('#mgrid tr.grid-row.grid-row-selected').find('.btnDelete').click();
+                });
+            });
+
+            $('form#CustomFilter').on('submit', function (e) {
+                e.preventDefault();
+                $(this).ajaxSubmit({
+                    target: '#mgrid',
+                    success: function () {
+                        PagedOnCompleteBinds();
+                    }
+                });
+            });
+
+
+        });
+
+        function SelectDropdown() {
+            $('.enableselect').select2();
+
+        }
+        /////search form data
+        function PagedOnCompleteBinds() {
+            $(document).ready(function () {
+                SelectDropdown();
+                $('.grid-header-title a').on('click', function (e)
+                {
+                    e.preventDefault();
+                    var sturl = "@Url.Action("Index", "WHRiskAssessment")" + $(this).attr('href');
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('#mgrid .pagination li a').on('click', function (e) {
+                    e.preventDefault();
+
+                    e.stopImmediatePropagation();
+                    var sturl = $('#mgrid .sorted.grid-header-title a').attr('href');
+                    if (typeof sturl != 'undefined') {
+                        var gdir = url("?grid-dir", sturl);
+                        var gcol = url("?grid-column", sturl);
+                        sturl = sturl.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0) ? 1 : 0);
+                        sturl = sturl.replace('?', '&');
+                    }
+
+                    var sturl2 = $(this).attr('href');
+                    if (sturl2 == undefined) {
+                        sturl2 = "@Url.Action("Index", "WHRiskAssessment")?page=" + parseInt($(this).html());
+                    }
+
+                    if (sturl) {
+
+                        sturl = sturl2 + sturl.replace(/page=\d+/i, "");
+                    }
+                    else {
+
+                        sturl = sturl2;
+                    }
+                    //sturl = sturl2 + sturl ? sturl.replace(/page=\d+/i, "") : "";
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('form.frmRWDelete').on('submit', function (e) {
+                    e.preventDefault();
+                    $frmRWDelete = this;
+                    swal({
+                        title: "Are you sure you want to delete this record?",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Delete",
+                        cancelButtonText: "No",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                        function (isConfirm) {
+                            if (isConfirm) {
+                                $('#mgrid').mask("Loading...");
+                                $($frmRWDelete).ajaxSubmit({
+                                    success: function (data) {
+                                        if (data.Success) {
+                                            toastr.success("Record deleted successfully.");
+                                            $('#mgrid .pagination li.active a').trigger('click');
+                                        } else if (!data.Success) {
+                                            swal({
+                                                text: "Warehouse Checklist Delete Failed.",
+                                                type: "error"
+                                            });
+                                        }
+                                        $('#mgrid').unmask();
+                                    },
+                                    complete: function () {
+                                        $('#mgrid').unmask();
+                                    }
+                                });
+                            } else {
+                                swal("", "Warehouse Checklist Delete Cancelled.", "error");
+                            }
+                        });
+                });
+                $('.lnkExportToExcel').on('click', function () {
+                    var url = '@Url.Action("ExportToExcel", "WHRiskAssessment", new { })';
+                    window.location.href = url;
+                });
+            });
+        }
+
+        function PagedOnComplete(obj) {
+            $('#mgrid table').unmask();
+            PagedOnCompleteBinds();
+        }
+    </script>
+}

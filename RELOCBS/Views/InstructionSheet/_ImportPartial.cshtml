@@ -1,0 +1,350 @@
+﻿@model RELOCBS.Entities.InstructionSheet
+<div>
+    <div class="col-md-1 hide">@Html.RadioButtonFor(model => model.ComponentTypeID, "3", new { Checked = "checked" })<span>Destination</span></div>
+    <div class="row row-no-gutters">
+        <fieldset class="col-sm-6 border">
+            <legend>Destination Address</legend>
+            <div class="form-group row">
+                <label for="DestAddrss" class="col-sm-2 col-form-label">Address</label>
+                <div class="col-sm-10">
+                    @Html.TextAreaFor(a => a.DestAdd1, new { @class = "form-control input-sm", rows = "3", placeholder = "Address 1", title = "DestAddrss1", @id = "DestAddrss1" })
+                    @Html.ValidationMessageFor(a => a.DestAdd1, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="DestAddrss" class="col-sm-2 col-form-label">Address</label>
+                <div class="col-sm-10">
+                    @Html.TextAreaFor(a => a.DestAdd2, new { @class = "form-control input-sm", rows = "3", placeholder = "Address 2", title = "DestAddrss1", @id = "DestAddrss2" })
+                    @Html.ValidationMessageFor(a => a.DestAdd2, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="DestCityDropDown" class="col-sm-2 col-form-label">City</label>
+                <div class="col-sm-7">
+                    @Html.DropDownListFor(a => a.DestCityID, new SelectList((System.Collections.IEnumerable)Enumerable.Empty<SelectListItem>(), "Value", "Text"), "--Select One--", new { @class = "form-control enableselect", id = "DestCityDropDown", title = "DestCityDropDown" })
+                    @Html.ValidationMessageFor(a => a.DestCityID, "", new { @class = "text-danger" })
+                </div>
+                <label for="" class="col-sm-1 col-form-label">Pincode</label>
+                <div class="col-sm-2">
+                    @Html.TextBoxFor(a => a.DestPincode, new { @class = "form-control input-sm", placeholder = "Pincode", title = "DestPincode", @id = "DestPincode", onkeypress = "return OnlyInteger(this, event);" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="DestEmail" class="col-sm-1 col-form-label">Email</label>
+                <div class="col-sm-7">
+                    @Html.TextBoxFor(a => a.DestEmail, new { @class = "form-control input-sm", placeholder = "Email", title = "DestEmail", @id = "DestEmail" })
+                </div>
+                <label for="DestMobile" class="col-sm-1 col-form-label">Mobile</label>
+                <div class="col-sm-3">
+                    @Html.TextBoxFor(a => a.DestMobile, new { @class = "form-control input-sm", placeholder = "Mobile", title = "DestMobile", @id = "DestMobile" })
+                </div>
+            </div>
+            @*<div class="form-group row">    
+            </div>*@
+        </fieldset>
+        <fieldset class="col-sm-6 border m-r-5">
+            <legend>&nbsp;&nbsp;</legend>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Shipper</label>
+                <div class="col-sm-10">
+                    @Html.EditorFor(model => model.Shipper, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+                    @Html.ValidationMessageFor(model => model.Shipper, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Client</label>
+                <div class="col-sm-10">
+                    @Html.DropDownListFor(model => model.ClientID, new SelectList((System.Collections.IEnumerable)ViewData["ClientList"], "Value", "Text"), "--Select Client--", new { id = "ClientDropdown", @class = "form-control input-sm clearfix", disabled = "disabled" })
+                    @Html.HiddenFor(m => m.ClientID)
+                    @Html.ValidationMessageFor(model => model.ClientID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Mode</label>
+                <div class="col-sm-10">
+                    @Html.DropDownListFor(model => model.ModeID, new SelectList((System.Collections.IEnumerable)ViewData["ModeList"], "Value", "Text"), "--Select Mode--", new { id = "ModeDropdown", @class = "form-control input-sm clearfix", disabled = "disabled" })
+                    @Html.HiddenFor(m => m.ModeID)
+                    @Html.ValidationMessageFor(model => model.ModeID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Unit</label>
+                <div class="col-sm-3">
+                    @Html.DropDownListFor(model => model.WeightUnitID, new SelectList((System.Collections.IEnumerable)ViewData["WeightUnitList"], "Value", "Text"), "--Select Wt/Vol Unit--", new { @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.WeightUnitID, "", new { @class = "text-danger" })
+                </div>
+                <label class="col-sm-1 col-form-label">Wt/Vol</label>
+                <div class="col-sm-2">
+                    @Html.EditorFor(model => model.WeightUnitFrom, new { htmlAttributes = new { @class = "form-control input-sm clearfix WeightFrom", onkeypress = "return OnlyDouble(this, event);", onchange = "WeightCopy(this)" } })
+                    @Html.ValidationMessageFor(model => model.WeightUnitFrom, "", new { @class = "text-danger" })
+                </div>
+                <label class="col-sm-1 col-form-label hide">To</label>
+                <div class="col-sm-2 hide">
+                    @Html.EditorFor(model => model.WeightUnitTo, new { htmlAttributes = new { @class = "form-control input-sm clearfix WeightTo", onkeypress = "return OnlyDouble(this, event);" } })
+                    @Html.ValidationMessageFor(model => model.WeightUnitTo, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </fieldset>
+    </div>
+    @*
+        <div class="row row-no-gutters">
+            <div class="col-md-12 form-group">
+                <div class="row">
+                    <label> Instructions</label>
+                    @Html.DropDownListFor(model => model.SelectedMultiInstructionsId, Model.Instructions, new { id = "InstructionsDropdown", @class = "form-control input-sm clearfix multipleselect", @multiple = "multiple" })
+                </div>
+                <div class="pop-content">
+                    @for (int i = 0; i < Model.questions.Count; i++)
+                    {
+                        if (Model.questions[i].IsSubItem == true)
+                        {
+                            var modalID = "popover_content_" + Html.Raw(Model.questions[i].QuestionID);
+                            <div class="@modalID   hide">
+                                <div id="@modalID" class="_content m-n">
+                                    <div id="@modalID" class="well well-sm  m-n">
+                                        <div class="row m-n row-bordered">
+                                            <div class="col-md-12 form-group">
+                                                <label>@Html.Raw(Model.questions[i].Questions)</label>
+                                                @Html.HiddenFor(m => Model.questions[i].QuestionID)
+                                            </div>
+                                        </div>
+                                        @for (int j = 0; j < Model.questions[i].subQuestions.Count; j++)
+                                        {
+                                            var css = "row subcontent";
+                                            <div class="@css panel-body">
+                                                <div class="col-md-6">
+                                                    <label>@Html.Raw(Model.questions[i].subQuestions[j].SubQuestions)</label>
+                                                    @Html.HiddenFor(m => Model.questions[i].subQuestions[j].SubQuestionID)
+                                                </div>
+                                                <div class="col-md-6">
+                                                    @if (Model.questions[i].subQuestions[j].AnswerType.ToString().ToUpper() == "TEXT")
+                                                    {
+                                                        @Html.TextBoxFor(a => Model.questions[i].subQuestions[j].AnswerText, new { @class = "form-control input-sm clearfix Answer", placeholder = "" })
+                                                    }
+                                                    @if (Model.questions[i].subQuestions[j].AnswerType.ToString().ToUpper() == "DATE")
+                                                    {
+                                                        @Html.TextBoxFor(a => Model.questions[i].subQuestions[j].AnswerDate, new { @class = "form-control input-sm clearfix Answer datetimepicker", placeholder = "" })
+                                                    }
+                                                    @if (Model.questions[i].subQuestions[j].AnswerType.ToString().ToUpper() == "LIST")
+                                                    {
+                                                        @Html.DropDownListFor(model => Model.questions[i].subQuestions[j].IDtoRefer, Model.questions[i].subQuestions[j].AnswerDropdown, "--Select One--", new { @class = "form-control input-sm clearfix Answer" })
+                                                    }
+                                                </div>
+                                            </div>
+
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    *@
+    <fieldset class="row col-md-12 m-n pad-none">
+        <legend data-toggle="collapse" data-target="#CaseDim">
+            <i class="more-less glyphicon glyphicon-plus"></i>
+            Case Dimensions
+        </legend>
+        <div class="m-t-sm panel-collapse collapse CollapsingFieldSet" id="CaseDim">
+            <div class="row">
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>CaseType</label>
+                    @Html.DropDownList("CaseTypeID", new SelectList((System.Collections.IEnumerable)ViewData["CaseTypeList"], "Value", "Text"), "--Select CaseType--", new { id = "CaseTypeDropdown", @class = "form-control input-sm clearfix enableselect" })
+                </div>
+                <div class="col-sm-1 col-md-1 form-group">
+                    <label>Length</label>
+                    @Html.TextBox("Length", null, new { id = "Length", @class = "form-control input-sm clearfix Length" })
+                </div>
+                <div class="col-sm-1 col-md-1 form-group">
+                    <label>Breadth</label>
+                    @Html.TextBox("Breadth", null, new { id = "Breadth", @class = "form-control input-sm clearfix Breadth" })
+                </div>
+                <div class="col-sm-1 col-md-1 form-group">
+                    <label>Height</label>
+                    @Html.TextBox("Height", null, new { id = "Height", @class = "form-control input-sm clearfix Height" })
+                </div>
+                <div class="col-sm-1 col-md-1 form-group">
+                    <label>Unit</label>
+                    @Html.DropDownList("UnitID", new SelectList((System.Collections.IEnumerable)ViewData["UnitList"], "Value", "Text"), "--Select Unit--", new { id = "UnitDropdown", @class = "form-control input-sm clearfix" })
+                    @*@Html.ValidationMessageFor(model => model.jobVehicle.DriverID, "", new { @class = "text-danger" })*@
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>No Of Package</label>
+                    @Html.TextBox("PackageCount", null, new { id = "PackageCount", @class = "form-control input-sm clearfix PackageCount" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <div class="clearfix">
+                        <input type="button" id="btnAdd" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="AddCase()">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="table-responsive">
+                    <table id="tblCaseDimesions" class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>CaseType</th>
+                                <th>Length</th>
+                                <th>Breadth</th>
+                                <th>Height</th>
+                                <th>Unit</th>
+                                <th>No of Package</th>
+                                <th class="thRound cw30 thRoundLast" data-ng-if="seletedJob.WisStatus != 'Completed'">&nbsp;</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.Dimensions.Count; i++)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.TextBoxFor(model => Model.Dimensions[i].CaseType, new { @class = "form-control input-sm clearfix TblCaseType", @readonly = "readonly" })
+                                        @Html.HiddenFor(model => Model.Dimensions[i].CaseTypeID, new { @class = "TblCaseTypeID" })
+                                    </td>
+                                    <td>
+                                        @Html.TextBoxFor(model => Model.Dimensions[i].Length, new { @class = "form-control input-sm clearfix TblLength" })
+                                    </td>
+                                    <td>
+                                        @Html.TextBoxFor(model => Model.Dimensions[i].Breadth, new { @class = "form-control input-sm clearfix TblBreadth" })
+                                    </td>
+                                    <td>
+                                        @Html.TextBoxFor(model => Model.Dimensions[i].Height, new { @class = "form-control input-sm clearfix TblHeight" })
+                                    </td>
+                                    <td>
+                                        @Html.TextBoxFor(model => @Model.Dimensions[i].UnitName, new { @class = "form-control input-sm clearfix TblUnit", @readonly = "readonly" })
+                                        @Html.HiddenFor(model => Model.Dimensions[i].UnitID, new { @class = "TblUnitID" })
+                                    </td>
+                                    <td>
+                                        @Html.TextBoxFor(model => Model.Dimensions[i].NoOfPackages, new { @class = "form-control input-sm clearfix TblNoOfPackages" })
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveCase(this)"></button>
+                                        @Html.HiddenFor(model => Model.Dimensions[i].InActive, new { @class = "TblInActive" })
+                                    </td>
+                                </tr>
+
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+</div>
+
+<script type="text/javascript">
+
+    function checkCaseDimExists(CaseTypeID) {
+
+        var result = false;
+
+        $("#tblCaseDimesions > TBODY").find('.TblCaseTypeID').each(function () {
+
+            if (parseInt($(this).val()) === CaseTypeID) {
+                result = true;
+                return false;
+            }
+
+        });
+
+        return result;
+
+    }
+
+    function AddCase() {
+
+        var CaseTypeID = $("#CaseTypeDropdown option:selected");
+        var Length = $("#Length").val();
+        var Breadth = $("#Breadth").val();
+        var Height = $("#Height").val();
+        var UnitID = $("#UnitDropdown option:selected");
+        var PackageCount = $("#PackageCount").val();
+
+        if (parseInt(CaseTypeID.val()) > 0 && Length != null && Length != "" && Breadth != null && Breadth != "" && Height != null && Height != "" && Height != null && Height != "" && parseInt(UnitID.val())> 0) {
+
+            if (!checkCaseDimExists(parseInt(CaseTypeID.val()))) {
+
+                var tBody = $("#tblCaseDimesions > TBODY")[0];
+                var rowCount = $('#tblCaseDimesions > TBODY > tr').length;
+                var row = tBody.insertRow(-1);
+                row.className = "package-row";
+                var cell = $(row.insertCell(-1));
+                var td = '<input class="form-control input-sm clearfix TblCaseType valid" id="Dimensions_' + rowCount + '__CaseType" name="Dimensions[' + rowCount + '].CaseType" type="text" value="' + CaseTypeID.text() +'" autocomplete="off"  readonly="readonly">'
+                    + '<input class="TblCaseTypeID" data - val="true" data-val-number="The field CaseTypeID must be a number." data-val-required="The CaseTypeID field is required." id = "Dimensions_' + rowCount + '__CaseTypeID" name = "Dimensions[' + rowCount +'].CaseTypeID" type = "hidden" value = "'+CaseTypeID.val()+'" autocomplete = "off">'
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+
+                td = '<input class="form-control input-sm clearfix TblLength" data-val="true" data-val-number="The field Length must be a number." data-val-required="The Length field is required." id="Dimensions_' + rowCount + '__Length" name="Dimensions[' + rowCount + '].Length" type="text" value="'+Length+'" autocomplete="off">'
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+
+                td = '<input class="form-control input-sm clearfix TblBreadth" data-val="true" data-val-number="The field Breadth must be a number." data-val-required="The Breadth field is required." id="Dimensions_' + rowCount + '__Breadth" name="Dimensions[' + rowCount + '].Breadth" type="text" value="' + Breadth +'" autocomplete="off">'
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+
+                td = '<input class="form-control input-sm clearfix TblHeight" data-val="true" data-val-number="The field Height must be a number." data-val-required="The Height field is required." id="Dimensions_' + rowCount + '__Height" name="Dimensions[' + rowCount + '].Height" type="text" value="' + Height +'" autocomplete="off">'
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+
+                td = '<input class="form-control input-sm clearfix TblUnit" id="Dimensions_' + rowCount + '__UnitName" name="Dimensions[' + rowCount + '].UnitName" type="text" value="' + UnitID.text() +'" autocomplete="off" readonly="readonly">'
+                    + '<input class="TblUnitID" data-val="true" data-val-number="The field UnitID must be a number." data-val-required="The UnitID field is required." id = "Dimensions_' + rowCount + '__UnitID" name = "Dimensions[' + rowCount + '].UnitID" type = "hidden" value = "' + UnitID.val() + '" autocomplete = "off">'
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+
+                td = '<input class="form-control input-sm clearfix TblNoOfPackages" data-val="true" data-val-number="The field NoOfPackages must be a number." data-val-required="The NoOfPackages field is required." id="Dimensions_' + rowCount + '__NoOfPackages" name="Dimensions[' + rowCount + '].NoOfPackages" type="text" value="'+PackageCount+'" autocomplete="off">'
+
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+
+                var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveCase(this)"></button>'
+                    + '<input class="TblInActive" data-val="true" data-val-number="The field InActive must be a number." data-val-required="The InActive field is required." id="Dimensions_' + rowCount + '__InActive" name="Dimensions[' + rowCount + '].InActive" type="hidden" value="0" autocomplete="off">'
+                
+                cell.append(tdremove);
+
+            }
+            else {
+
+                alert('Same case type already exists');
+            }
+
+
+        }
+        else {
+            alert('CaseType,Length,Breadth,Height & Unit is required');
+        }
+
+
+
+        return false;
+    }
+
+    function RemoveCase(sender) {
+
+        //Determine the reference of the Row using the Button.
+        var row = $(sender).closest("TR");
+        var name = $("TD", row).find('.TblCaseType').val().trim();
+        if (confirm("Do you want to delete: " + name.trim())) {
+            //Get the reference of the Table.
+            var table = $("#tblCaseDimesions")[0];
+
+            //Delete the Table row using it's Index.
+            table.deleteRow(row[0].rowIndex);
+            //row.find('.InActive').val("1");
+            //row.toggle();
+            //$(sender).closest("TR").remove();
+            return false;
+        }
+
+        return false;
+
+        return false;
+    }
+
+</script>

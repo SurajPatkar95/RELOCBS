@@ -1,0 +1,623 @@
+﻿@using RELOCBS.Common
+@model RELOCBS.Entities.Billing_Collection
+@{
+    /**/
+
+    ViewBag.Title = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@using (@Html.BeginForm("Save", "Billing_Collection", FormMethod.Post))
+{
+    @Html.ValidationSummary(false, "")
+    <div class="ibox-content">
+        <div class="form-group col-md-12">
+            <div class="clearfix text-center">
+                <span class="pull-left  m-r-xl  m-l-xl"><h4>Enquiry No : @Model.EnqNo / @Model.EnqSeqID </h4></span>
+                <span class="pull-left  m-r-xl  m-l-xl">
+                    <h4>
+                        EnqDate : @Model.Entrydate
+                    </h4>
+                </span>
+                <span class=" pull-left  m-r-n ">
+                    <h4>Apply To Other Shipments</h4>
+                    @Html.DropDownListFor(a => a.EnquiryDetailIds, new SelectList((System.Collections.IEnumerable)ViewData["enquiryList"], "Value", "Text"), new { @class = "inpit-sm p-n pull-right m-l-n", id = "EnquiryDetailIds", title = "EnquiryDetailIds", autocomplete = "on", @multiple = "multiple" })
+                </span>
+
+                @*<input type="submit" id="btnAdd" name="Add" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Add" formnovalidate="formnovalidate" onclick="Add_click()"/>*@
+                <input type="submit" id="btnSubmit" name="Add" class="btn btn-primary btn-sm pull-right" value="Save" />
+                <a id="btnReport" class="btn btn-primary btn-sm pull-right" href="@Url.Action("GetReport","Billing_Collection",new {EnqDetailID = Model.EnqDetailID})" target="_blank">View Report</a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="tabs-container" id="tabEnquiry">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li role="presentation" class="active" id="Main"><a href="#main" aria-controls="Main" role="tab" data-toggle="tab" aria-expanded="true"><span class="t">Main</span></a></li>
+                        <li role="presentation" id="Detail"><a href="#details" aria-controls="Details" role="tab" data-toggle="tab" aria-expanded="false"><span class="t">Details</span></a></li>
+                    </ul>
+                    @Html.Hidden("BillData")
+                    @Html.HiddenFor(a => a.AccountId)
+                    @Html.HiddenFor(a => a.ClientId)
+                    @Html.HiddenFor(a => a.EnqDetailID)
+                    @Html.HiddenFor(a => a.BillingOnClientId)
+                    @Html.HiddenFor(a => a.ClientType)
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="main">
+                            <div class="row tab-panecontainer">
+                                <fieldset class="col-md-12 border  m-n">
+                                    <legend>Details</legend>
+                                    <div class="m-t-sm pad-none">
+                                        <div class="row">
+                                            <div class="col-sm-2 no-padding-r">
+                                                <div class="form-group">
+                                                    <label>Revenue Branch</label>
+                                                    @Html.TextBoxFor(a => a.RevenueBr, new { @class = "form-control", id = "RevenueBranch", title = "Revenue Branch", placeholder = "Revenue Branch", @readonly = "readonly" })
+                                                    @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })
+                                        @Html.ValidationMessageFor(model => model.OriginRate.AirPortName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-2  no-padding-r">
+                                                <div class="form-group">
+                                                    <label>Prepared By</label>
+                                                    @Html.TextBoxFor(a => a.PreparedBy, new { @class = "form-control", id = "PreparedBy", title = "Prepared By", placeholder = "Prepared By", @readonly = "readonly" })
+                                                    @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                        @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-2  no-padding-r">
+                                                <div class="form-group">
+                                                    <label>Service Line</label>
+                                                    @Html.TextBoxFor(a => a.ServiceLine, new { @class = "form-control", id = "ServiceLine", title = "Service Line", placeholder = "Service Line", @readonly = "readonly" })
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-2  no-padding-r">
+                                                <div class="form-group">
+                                                    <label>Bill To</label>
+                                                    @Html.DropDownListFor(a => a.BillingOn, CommonService.BillingOn, "Select One", new { @class = "form-control", id = "BillingOn", title = "Billing On" })
+                                                    @Html.ValidationMessageFor(model => model.BillingOn, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-2">
+                                                <div class="form-group pad-none">
+                                                    <label>Credit Approved</label>
+                                                    @Html.DropDownListFor(a => a.CreditApproved, CommonService.YesNo, "Select One", new { @class = "form-control ", id = "CreditApproved", title = "Credit Approved" })
+                                                    @Html.ValidationMessageFor(model => model.CreditApproved, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-4 no-padding-r">
+                                                <div class="form-group">
+                                                    <label>Attention</label>
+                                                    @Html.TextBoxFor(a => a.Attention, new { @class = "form-control", id = "Attention", title = "Attention", placeholder = "Attention" })
+                                                    @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })
+                                        @Html.ValidationMessageFor(model => model.OriginRate.AirPortName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                @*<hr />*@
+                                <fieldset class="col-md-12 border p-2  m-n collapse Client_fs">
+                                    <legend class="w-auto">Client Details</legend>
+                                    <div class="m-t-sm  m-n pad-none">
+                                        <div class="row Client">
+                                            <div class="col-sm-11 form-group no-padding-r width-auto">
+                                                <label>Client</label>
+                                                @Html.DropDownListFor(a => a.BillingOnClientId, new SelectList((System.Collections.IEnumerable)ViewData["CientList"], "Value", "Text", Model.BillingOnClientId), "Select One", new { @class = "form-control enableselect", id = "Client", title = "Client", autocomplete = "on" })
+                                                @*@Html.HiddenFor(model => model.OriginRate.CityID, new { id = "OCityID", name = "OCityID" })
+                                    @Html.ValidationMessageFor(model => model.OriginRate.CityName, "", new { @class = "text-danger" })*@
+
+                                            </div>
+                                            <div class="col-sm-11 form-group no-padding-r width-auto">
+                                                <label>GST/VAT/TIN No</label>
+                                                @Html.TextBoxFor(a => a.ClientGSTNO, new { @class = "form-control input-sm", placeholder = "GSTNO", title = "GSTNO", @id = "ClientGSTNO", @readonly = "readonly" })
+                                                @*@Html.HiddenFor(model => model.OriginRate.CityID, new { id = "OCityID", name = "OCityID" })
+                                    @Html.ValidationMessageFor(model => model.OriginRate.CityName, "", new { @class = "text-danger" })*@
+
+                                            </div>
+                                        </div>
+                                        <div class="row AccountMGR">
+                                            <div class="col-sm-11 form-group no-padding-r width-auto">
+                                                <label>Account</label>
+                                                @Html.DropDownListFor(a => a.BillingOnClientId, new SelectList((System.Collections.IEnumerable)ViewData["AccountList"], "Value", "Text", Model.BillingOnClientId), "Select One", new { @class = "form-control enableselect", id = "Account", title = "Account", autocomplete = "on" })
+                                                @*@Html.HiddenFor(model => model.OriginRate.CityID, new { id = "OCityID", name = "OCityID" })
+                                    @Html.ValidationMessageFor(model => model.OriginRate.CityName, "", new { @class = "text-danger" })*@
+
+                                            </div>
+                                        </div>
+                                        <div class="row AccountMGR">
+                                            <div class="col-sm-2 form-group no-padding-r width-auto">
+                                                <label>AccountMgr </label><a class="pull-right" href="javascript:void(0)" id="chg_AccMgr">Change</a>
+                                                @Html.TextBoxFor(a => a.AccountMgr, new { @class = "form-control input-sm", placeholder = "AccountMgr", title = "AccountMgr", @id = "AccountMgr", @readonly = "readonly" })
+                                                @Html.DropDownListFor(a => a.chgAccountMgr, new SelectList((System.Collections.IEnumerable)ViewData["AcctMgrList"], "Value", "Text", ViewData["AcctMgrList"]), "Select One", new { @class = "form-control", id = "chgAcctMgr", title = "AcctMgr" })
+                                                @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                    @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+                                            </div>
+                                            <div class="col-sm-2 form-group no-padding-r width-auto">
+                                                <label>GST/VAT/TIN NO</label>
+                                                @Html.TextBoxFor(a => a.AccountGSTNO, new { @class = "form-control input-sm", placeholder = "GSTNO", title = "GSTNO", @id = "AccountGSTNO", @readonly = "readonly" })
+                                                @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                    @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                @*<fieldset class="col-md-12 border p-2 m-n collapse Account_fs">
+                        <legend>Account Details</legend>
+                        <div class="m-t-sm  m-n pad-none">
+                            <div class="row">
+                                <div class="col-sm-11 form-group no-padding-r width-auto">
+                                    <label>Account</label>
+                                    @Html.DropDownListFor(a => a., new SelectList((System.Collections.IEnumerable)ViewData["AgentList"], "Value", "Text", ViewData["AgentList"]), "Select One", new { @class = "form-control auto-complete", id = "Account", title = "Account", autocomplete = "on" })
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>*@
+
+                                <fieldset class="col-md-12 border m-n collapse Shipper_fs">
+                                    <legend>Shipper Details</legend>
+                                    <div class="m-t-sm m-n pad-none">
+                                        <div class="row">
+                                            <div class="form-group col-sm-1 col-md-1 m-r-n no-padding-r width-auto">
+                                                <label @*style = "width:50px"*@></label>
+                                                @Html.DropDownListFor(a => a.Shipper.Title, CommonService.Title, new { @class = "form-control ", @style = "width:75%", id = "Title", title = "Title" })
+                                            </div>
+                                            <div class="form-group col-sm-3 col-md-2 no-padding-left-right width-auto">
+                                                <label>First Name</label>
+                                                @Html.TextBoxFor(a => a.Shipper.ShipperFName, new { @class = "form-control input-sm ", placeholder = "First Name", title = "First Name", @id = "ShipperFName" })
+                                                @Html.ValidationMessageFor(a => a.Shipper.ShipperFName, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group col-sm-3 col-md-2 no-padding-left-right width-auto">
+                                                <label>Last Name</label>
+                                                @Html.TextBoxFor(a => a.Shipper.ShipperLName, new { @class = "form-control input-sm", placeholder = "Last Name", title = "Last Name", @id = "ShipperLName" })
+                                            </div>
+                                            <div class="form-group col-sm-2 col-md-2 no-padding-r width-auto">
+                                                <label>Shipper Type</label>
+                                                @Html.DropDownListFor(a => a.Shipper.ShipCategoryID, new SelectList((System.Collections.IEnumerable)ViewData["ShipperTypeList"], "Value", "Text", ViewData["ShipperTypeList"]), "Select One", new { @class = "form-control input-sm m-n pad-none", id = "ShipperType", title = "Shipper Type" })
+                                                @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                    @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+                                            </div>
+                                            <div class="form-group col-sm-3 m-r-n">
+                                                <label>Email</label>
+                                                @Html.TextBoxFor(a => a.Shipper.Email, new { @class = "form-control input-sm", placeholder = "Email", title = "Email", @id = "Email" })
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="form-group col-sm-3 m-r-n">
+                                                <label>Address 1</label>
+                                                @Html.TextBoxFor(a => a.Shipper.Address1, new { @class = "form-control input-sm", placeholder = "Address1", title = "Address 1", @id = "Address1" })
+                                            </div>
+                                            <div class="form-group col-sm-3 m-r-n">
+                                                <label>Address 2</label>
+                                                @Html.TextBoxFor(a => a.Shipper.Address1, new { @class = "form-control input-sm", placeholder = "Address1", title = "Address 1", @id = "Address1" })
+                                            </div>
+                                            <div class="form-group col-sm-2 m-r-n">
+                                                <label>City</label>
+                                                @Html.DropDownListFor(a => a.Shipper.AddressCityID, new List<SelectListItem>(), new { @class = "form-control enableselect CityDropDown", id = "City", title = "City" })
+                                            </div>
+                                            <div class="form-group col-sm-2 m-r-n">
+                                                <label>Phone 1</label>
+                                                @Html.TextBoxFor(a => a.Shipper.Phone1, new { @class = "form-control input-sm", placeholder = "Phone1", title = "Phone 1", @id = "Phone1" })
+                                                @Html.ValidationMessageFor(a => a.Shipper.Phone1, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group col-sm-2 m-r-n">
+                                                <label>Phone 2</label>
+                                                @Html.TextBoxFor(a => a.Shipper.Phone2, new { @class = "form-control input-sm", placeholder = "Phone2", title = "Phone 2", @id = "Phone2" })
+                                                @Html.ValidationMessageFor(a => a.Shipper.Phone2, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+
+                        </div>
+
+                        <div role="tabpanel" class="tab-pane tab-panecontainer" id="details">
+                            <div class="row tab-panecontainer">
+                                <fieldset class="col-md-12 border  m-n">
+                                    <legend>Payment Term</legend>
+                                    <div class="m-t-sm pad-none">
+                                        <div class="row">
+                                            <div class="col-sm-1 no-padding-r">
+                                                <div class="form-group filter-custom-margin">
+                                                    @Html.CheckBoxFor(a => a.Advance, new { id = "RevenueBranch", title = "Revenue Branch", placeholder = "Revenue Branch" })
+                                                    <label>Advance</label>
+
+                                                    @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })
+                                        @Html.ValidationMessageFor(model => model.OriginRate.AirPortName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-2  no-padding-r ">
+                                                <div class="form-group">
+                                                    <label>Amount</label>
+
+                                                    @Html.TextBoxFor(a => a.Amount, new { @class = "form-control", id = "Amount", title = "Amount", placeholder = "Amount" })
+                                                    @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                        @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-2  no-padding-r paymentdel">
+                                                <div class="form-group">
+                                                    <label>Payment(Pre delivery) <a class="glyphicon glyphicon-refresh btn-xs" href="javascript:void(0)" onclick="refreshpayment()"></a></label>
+                                                    @Html.DropDownListFor(a => a.PaymentPreDelivery, CommonService.PaymentType, new { @class = "form-control input-sm", id = "PaymentPreDelivery", title = "PaymentPreDelivery" })
+
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-2 no-padding-r paymentdel">
+                                                <div class="form-group">
+                                                    <label>Payment(Post delivery)</label>
+                                                    @Html.DropDownListFor(a => a.PaymentPostDelivery, CommonService.PaymentType, new { @class = "form-control input-sm", id = "PaymentPostDelivery", title = "PaymentPostDelivery" })
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-2 Nod">
+                                                <div class="form-group">
+                                                    <label>No of Days</label>
+                                                    @Html.TextBoxFor(a => a.NoDays, new { @class = "form-control", id = "NoDays", title = "NoDays", placeholder = "No of Days" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <fieldset class="col-md-12 border  m-n">
+                                    <legend>Bill Supportings</legend>
+                                    <div class="m-t-sm pad-none">
+                                        <div class="row">
+                                            <div class="col-sm-2 no-padding-r">
+                                                <div class="form-group filter-custom-margin width-auto">
+                                                    @Html.CheckBoxFor(a => a.PurchaseOrder, new { id = "RevenueBranch", title = "Revenue Branch", placeholder = "Revenue Branch" })
+                                                    <label class="width-auto">Purchase Order</label>
+
+                                                    @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })
+                                        @Html.ValidationMessageFor(model => model.OriginRate.AirPortName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-2 no-padding-r">
+                                                <div class="form-group filter-custom-margin">
+                                                    @Html.CheckBoxFor(a => a.AthorizeQuote, new { id = "RevenueBranch", title = "Revenue Branch", placeholder = "Revenue Branch" })
+                                                    <label>AUTH/APVD Quote</label>
+
+                                                    @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })
+                                        @Html.ValidationMessageFor(model => model.OriginRate.AirPortName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-2 no-padding-r">
+                                                <div class="form-group filter-custom-margin">
+                                                    @Html.CheckBoxFor(a => a.Others, new { id = "RevenueBranch", title = "Revenue Branch", placeholder = "Revenue Branch" })
+                                                    <label>Others</label>
+
+                                                    @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })
+                                        @Html.ValidationMessageFor(model => model.OriginRate.AirPortName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-5  no-padding-r ">
+                                                <div class="form-group">
+                                                    <label>Specify</label>
+
+                                                    @Html.TextBoxFor(a => a.Specify, new { @class = "form-control", id = "Specify", title = "Specify", placeholder = "Specify" })
+                                                    @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                        @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+
+
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts{
+    <script type="text/javascript">
+        /*function toggleIcon(e) {
+            $(e.target).closest('fieldset').toggleClass('border');
+            $(e.target)
+                .prev('legend')
+                .find(".more-less")
+                .toggleClass('glyphicon-plus glyphicon-minus');
+        }
+
+        $('#Details, #EDetails').on('hidden.bs.collapse', toggleIcon);
+        $('#Details, #EDetails').on('shown.bs.collapse', toggleIcon);*/
+        //var j = jQuery.noConflict();
+
+        if ($('#chgAcctMgr').val()) {
+            $('#chgAcctMgr').show();
+            $('#chg_AccMgr').hide();
+            $('#AccountMgr').hide();
+        }
+        else {
+            $('#chgAcctMgr').hide();
+            $('#chg_AccMgr').show();
+        }
+
+        $(function () {
+            $('#EnquiryDetailIds').multiselect({
+                includeSelectAllOption: true,
+                buttonWidth: '250px'
+            });
+        });
+
+        $('.paymentdel select').on('change', function (e) {
+
+            var paydelcontrol = $(this).closest('.paymentdel').siblings('.paymentdel').find('select');
+            var nodcontrol = $(this).closest('.paymentdel').siblings('.Nod').find('#NoDays');
+            var val = $('option:selected', this).text();
+            var controlid = $(this).attr('Id');
+            if (val == 'Full') {
+                paydelcontrol.val('').attr('selected', 'selected');
+                paydelcontrol.attr('disabled', 'disabled');
+                if (controlid == 'PaymentPostDelivery') {
+                    nodcontrol.removeAttr('disabled');
+                }
+                else {
+                    nodcontrol.attr('disabled', 'disabled');
+                    nodcontrol.val(null);
+                }
+            }
+            if (val == 'Balance'){
+                $('.paymentdel').find('select').removeAttr('disabled');
+                paydelcontrol.val('').attr('selected', 'selected');
+                paydelcontrol.attr('disabled', 'disabled')
+                nodcontrol.removeAttr('disabled');
+            }
+        });
+
+        $(document).ready(function () {
+            debugger;
+            AjaxFillDropDown('.CityDropDown', "@Url.Action("GetCityList", "Billing_Collection")");
+            AjaxFillDropDown('#City', "@Url.Action("GetCityList", "Billing_Collection")",'@Model.Shipper.AddressCityID');
+            if (!('@Model.PaymentPreDelivery')) {
+                if (!('@Model.PaymentPostDelivery')) {
+                    $('#PaymentPreDelivery').removeAttr('disabled', 'disabled').val('').attr("selected", "selected");
+                }
+                else {
+                    $('#PaymentPreDelivery').attr('disabled', 'disabled').val('').attr("selected", "selected");
+                }
+
+            }
+
+            if (!('@Model.PaymentPostDelivery')) {
+                if (!('@Model.PaymentPreDelivery')) {
+                    $('#PaymentPostDelivery').removeAttr('disabled', 'disabled').val('').attr("selected", "selected");
+                }
+                else {
+                    $('#PaymentPostDelivery').attr('disabled', 'disabled').val('').attr("selected", "selected");
+                }
+            }
+
+            if (!('@Model.NoDays')) {
+                $('#NoDays').removeAttr('disabled', 'disabled').val('');
+            }
+
+            if ($('#BillData').val() == '' || $('#BillData').val() == null && $('#BillData').val() == undefined) {
+                $('#BillData').val(JSON.stringify(GetShipperDetails('get')));
+            }
+
+            if ($('#BillingOn').val() != undefined || $('#BillingOn').val() != '' || $('#BillingOn').val() != null) {
+                var BillingOn = $('option:selected', '#BillingOn').text();
+                ChangeBillingOn(BillingOn);
+            }
+            //Datepicker event....
+            $('#BalDate, #AdvDate, #EnqTentDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+
+            $('.datetimepicker1').datetimepicker({
+                format: 'DD-MMM-YYYY HH:mm',
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            //Account Mgr Change event
+            $('#chg_AccMgr').click(function () {
+                if ($('#chg_AccMgr').text() == 'Change') {
+                    $('#AccountMgr').hide();
+                    $('#chgAcctMgr').show();
+                    $('#chg_AccMgr').text('Revert');
+                }
+                else {
+                    $('#AccountMgr').show();
+                    $('#chgAcctMgr').hide();
+                    $('#chg_AccMgr').text('Change');
+                    $('#chgAcctMgr').val(null);
+                }
+            });
+
+            $('#Account').change(function () {
+                if (!$('.AccountMGR').hasClass('collapse')) {
+                var client = parseInt($(this).val());
+                $.get("@Url.Action("GetaJAXClientDetails", "Enquiry")", { ClientId: client, Mode: 'A' }, function (data) {
+                    //alert(data.AccountMgr);
+                    if (data.AccountMgr) {
+                        $("#AccountMgr").val(data.AccountMgr);
+                    }
+                    debugger;
+                    $("#AccountGSTNO").val(data.result.AccountGSTNO);
+                });
+                }
+                $('#BillingOnClientId').val($(this).val());
+            });
+            //Billing On change event...
+            $('#BillingOn').change(function () {
+                var BillingOn = $('option:selected', this).text();
+                ChangeBillingOn(BillingOn);
+            });
+        });
+
+        function ChangeBillingOn(BillingOn) {
+            if (BillingOn == 'Client')
+            {
+                //$('#ClentId').val($('.Client_fs').find('select').val());
+
+                $('.Client_fs').find('legend').html('Client Details');
+                $('#Client').prev('label').html('Client');
+                if (!$('.AccountMGR').hasClass('collapse')) {
+                    $('.AccountMGR').toggleClass('collapse');
+                }
+                if ($('.Client').hasClass('collapse')) {
+                    $('.Client').toggleClass('collapse');
+                }
+                if ($('.Client_fs').hasClass('collapse')) {
+                    $('.Client_fs').toggleClass('collapse');
+                }
+                if (!$('.Shipper_fs').hasClass('collapse')) {
+                    $('.Shipper_fs').toggleClass('collapse');
+                }
+                //$('#ClientId').val();
+                if ('@Model.ClientId' <= 0) {
+                    $("#Client").val('').attr("selected", "selected").change();
+                }
+                else {
+                    $("#Client").val('@Model.ClientId').attr("selected", "selected").change();
+                }
+                $('#BillingOnClientId').val($("#Client").val());
+            }
+            else if (BillingOn == 'Account')
+            {
+                debugger;
+                
+                if ($('.AccountMGR').hasClass('collapse')) {
+                    $('.AccountMGR').toggleClass('collapse');
+                }
+                if (!$('.Client').hasClass('collapse')) {
+                    $('.Client').toggleClass('collapse');
+                }
+
+                $('.Client_fs').find('legend').html('Account Details');
+                //$('#Client').prev('label').html('Account');
+                if ($('.Client_fs').hasClass('collapse')) {
+                    $('.Client_fs').toggleClass('collapse');
+                }
+                if (!$('.Shipper_fs').hasClass('collapse')) {
+                    $('.Shipper_fs').toggleClass('collapse');
+                }
+                if ('@Model.AccountId' <= 0) {
+                    $("#Account").val('').attr("selected", "selected").change();
+                }
+                else {
+                    $("#Account").val('@Model.AccountId').attr("selected", "selected").change();
+                }
+                $('#BillingOnClientId').val($("#Account").val());
+                    //$('#BillData').val('');
+                }
+                else if (BillingOn == 'Shipper') {
+                    $('.Shipper_fs').toggleClass('collapse');
+                    if (!$('.AccountMGR').hasClass('collapse')) {
+                        $('.AccountMGR').toggleClass('collapse');
+                    }
+                    if (!$('.Client_fs').hasClass('collapse')) {
+                        $('.Client_fs').toggleClass('collapse');
+                    }
+                    GetShipperDetails('set');
+                    //$('#BillData').val('');
+                }
+                else {
+                    if (!$('.Account_fs').hasClass('collapse')) {
+                        $('.Account_fs').toggleClass('collapse');
+                    }
+                    if (!$('.Client_fs').hasClass('collapse')) {
+                        $('.Client_fs').toggleClass('collapse');
+                    }
+                    if (!$('.Shipper_fs').hasClass('collapse')) {
+                        $('.Shipper_fs').toggleClass('collapse');
+                    }
+                    //$('#BillData').val('');
+
+                }
+        }
+
+        function GetShipperDetails(flag) {
+            //alert($('#Title').val());
+            var value;
+            if (flag == 'get') {
+
+                value = {
+                    title: $('#Title').val(),
+                    Fname: $('#ShipperFName').val(),
+                    Lname: $('#ShipperLName').val(),
+                    ShipperType: $('#ShipperType').val(),
+                    //City: $('#')
+                    Email: $('#Email').val(),
+                    Address1: $('#Address1').val(),
+                    Address2: $('#Address2').val(),
+                    Phone1: $('#Phone1').val(),
+                    Phone2: $('#Phone2').val(),
+                };
+
+            }
+            if (flag == 'set') {
+                value = JSON.parse($('#BillData').val());
+                $('#Title').val(value.title == undefined ? 'Mr' : value.title);
+                $('#ShipperFName').val(value.Fname);
+                $('#ShipperLName').val(value.Lname);
+                $('#ShipperType').val(value.ShipperType);
+                $('#Email').val(value.Email);
+                $('#Address1').val(value.Address1);
+                $('#Address2').val(value.Address2);
+                $('#Phone1').val(value.Phone1);
+                $('#Phone2').val(value.Phone2);
+            }
+
+            return value;
+        }
+
+        function refreshpayment() {
+            $('.paymentdel, #NoDays').each(function () {
+                debugger;
+                $('#PaymentPreDelivery').removeAttr('disabled', 'disabled').val('').attr("selected", "selected");
+                $('#PaymentPostDelivery').removeAttr('disabled', 'disabled').val('').attr("selected", "selected");
+                $('#NoDays').removeAttr('disabled', 'disabled').val('');
+            });
+        }
+
+
+
+            $('#Client').on('change',function () {
+                var client = parseInt($(this).val());
+
+                if (!isNaN(client)) {
+                    $.get("@Url.Action("GetaJAXClientDetails", "Enquiry")", { ClientId: client, Mode: 'A' },
+                function (data)
+                {
+                    if (data.result)
+                    {
+                        $("#ClientGSTNO").val(data.result.ClientGSTNO);
+                    }
+                });
+                }
+                $('#BillingOnClientId').val($(this).val());
+            });
+    </script>
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+}

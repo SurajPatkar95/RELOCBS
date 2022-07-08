@@ -1,0 +1,279 @@
+﻿@model RELOCBS.Entities.Employee
+
+@{
+    //Layout = null;
+    ViewBag.Title = "New Employee";
+}
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+@using (Html.BeginForm("Create", "Employee", FormMethod.Post, new { enctype = "multipart/form-data", id = "ModelForm" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-sm-12">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <div class="form-group row">
+                    <label class="control-label col-md-2 col-md-offset-1 requiredlabel">Name</label>
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.EmpName, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.EmpName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="control-label col-md-2 col-md-offset-1 requiredlabel">EmpCode</label>
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.CardEmpCode, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.CardEmpCode, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Company, htmlAttributes: new { @class = "control-label col-md-2 col-md-offset-1" })
+                    <div class="col-md-8">
+                        @Html.DropDownListFor(model => model.CompId, new SelectList((System.Collections.IEnumerable)ViewData["CompList"], "Value", "Text"), "Select One", new { @class = "form-control", title = "Company" }) @*enableselect*@
+                        @Html.ValidationMessageFor(model => model.CompId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Branch, htmlAttributes: new { @class = "control-label col-md-2 col-md-offset-1" })
+                    <div class="col-md-8">
+                        @Html.DropDownListFor(model => model.BranchID, new SelectList((System.Collections.IEnumerable)ViewData["BranchList"], "Value", "Text"), "Select One", new { @class = "form-control enableselect", title = "Branch" })
+                        @Html.ValidationMessageFor(model => model.BranchID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="control-label col-md-2 col-md-offset-1 requiredlabel">Designation</label>
+                    <div class="col-md-8">
+                        @Html.DropDownListFor(model => model.DesignationID, new SelectList((System.Collections.IEnumerable)ViewData["DesignationList"], "Value", "Text"), "Select One", new { @class = "form-control enableselect", title = "Designation" })
+                        @Html.ValidationMessageFor(model => model.DesignationID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.DOB, htmlAttributes: new { @class = "control-label col-md-1 col-md-offset-1" })
+                    <div class="col-md-2">
+                        @Html.EditorFor(model => model.DOB, new { htmlAttributes = new { @placeholder = "Date Of Birth", @tooltip = "Date Of Birth", @class = "form-control input-sm datetimepicker", title = "Date Of Birth", id = "txtDOB" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                        @Html.ValidationMessageFor(model => model.DOB, "", new { @class = "text-danger" })
+                    </div>
+                    @Html.LabelFor(model => model.DOJ, htmlAttributes: new { @class = "control-label col-md-1" })
+                    <div class="col-md-2">
+                        @Html.EditorFor(model => model.DOJ, new { htmlAttributes = new { @placeholder = "Date Of Joining", @tooltip = "Date Of Joining", @class = "form-control input-sm datetimepicker", title = "Date Of Joining", id = "txtDOJ" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                        @Html.ValidationMessageFor(model => model.DOJ, "", new { @class = "text-danger" })
+                    </div>
+                    @Html.LabelFor(model => model.DOL, htmlAttributes: new { @class = "control-label col-md-1" })
+                    <div class="col-md-2">
+                        @Html.EditorFor(model => model.DOL, new { htmlAttributes = new { @placeholder = "Date Of Leave", @tooltip = "Date Of Leave", @class = "form-control input-sm datetimepicker", title = "Date Of Leave", id = "txtDOL" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                        @Html.ValidationMessageFor(model => model.DOL, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Address, htmlAttributes: new { @class = "control-label col-md-2 col-md-offset-1" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.Address, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Address, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Address2, htmlAttributes: new { @class = "control-label col-md-2 col-md-offset-1" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.Address2, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Address2, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.CityName, htmlAttributes: new { @class = "control-label col-md-2 col-md-offset-1" })
+                    <div class="col-md-8">
+                        @*@Html.EditorFor(model => model.CityID, new { htmlAttributes = new { @class = "form-control input-sm" } })*@
+                        @Html.DropDownListFor(model => model.CityID, new SelectList((System.Collections.IEnumerable)Enumerable.Empty<SelectListItem>(), "Value", "Text"), "Select One", new { @class = "form-control enableselect", title = "City" })
+                        @Html.ValidationMessageFor(model => model.CityID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Pincode, htmlAttributes: new { @class = "control-label col-md-2 col-md-offset-1" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.Pincode, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Pincode, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Phone1, htmlAttributes: new { @class = "control-label col-md-2 col-md-offset-1" })
+                    <div class="col-md-3">
+                        @Html.EditorFor(model => model.Phone1, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Phone1, "", new { @class = "text-danger" })
+                    </div>
+                    @Html.LabelFor(model => model.Phone2, htmlAttributes: new { @class = "control-label col-md-1" })
+                    <div class="col-md-4">
+                        @Html.EditorFor(model => model.Phone2, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Phone2, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group row">
+
+
+                    @Html.LabelFor(model => model.Mobile, htmlAttributes: new { @class = "control-label col-md-2 col-md-offset-1" })
+                    <div class="col-md-3">
+                        @Html.EditorFor(model => model.Mobile, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Mobile, "", new { @class = "text-danger" })
+                    </div>
+                    @Html.LabelFor(model => model.Email, htmlAttributes: new { @class = "control-label col-md-1" })
+                    <div class="col-md-4">
+                        @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-12 col-md-offset-1">
+                        @Html.CheckBoxFor(model => model.IsActive, new { htmlAttributes = new { @class = "input-sm" } }) <span class="m-r-lg">Active</span>
+                        @Html.CheckBoxFor(model => model.IsContract, new { htmlAttributes = new { @class = " input-sm" } }) <span class="m-r-lg">Contract</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnCreate" />
+            <input type="button" class="btn btn-primary btn-sm" data-dismiss="modal" value="Close">
+        </div>
+    </div>
+
+}
+
+
+<script type="text/javascript">
+        $(document).ready(function () {
+            $("[data-val-required]").each(function () {
+                $("label[for=" + this.id + "]").addClass("requiredlabel")
+            });
+
+            $('.enableselect').select2();
+            AjaxFillDropDown('#CityID', "@Url.Action("GetCityList", "Employee")");
+        });
+    </script>
+
+<script type="text/javascript">
+        $(document).ready(function () {
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                sideBySide: true,
+                widgetPositioning: {
+                    vertical: 'bottom'
+                }
+
+            });
+
+        });
+    </script>
+<script>
+    $(document).ready(function () {
+
+        $("input").attr("autocomplete", "off");
+
+        var form = $("#mdlAddEdit form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+        
+
+
+        $('#mdlAddEdit').on('shown.bs.modal', function () {
+            //$('#EmpName').focus();
+        });
+        
+        AutoDropFill();
+        $('#mdlAddEdit form').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+
+            $('#mdlAddEdit .modal-content').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '#mdlAddEdit .modal-content',
+                success: function (data) {
+                    $('#mdlAddEdit .modal-content').html(data.Result);
+                    if (data.Success) {
+                        $('#mgrid .pagination li.active a').trigger('click');
+                        toastr.success("Employee saved successfully.");
+                        $('#mdlAddEdit').modal('hide');
+                    }
+                    $('#mdlAddEdit .modal-content').unmask();
+                }
+            });
+        });
+
+        $('#CompId').change(function () {
+            var id = $(this).val();
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("GetCompanyBranch", "Combo")' +'?CompID=' + id,
+                data: "{CompID:'" + id + "'}",
+                success: function (data) {
+
+                    if ($("#CompId").val() != "") {
+
+                        $("#BranchID").prop("disabled", true);
+                        $("#BranchID").empty();
+                        var s = '<option value="">--Select Branch--</option>';
+                        $("#BranchID").append(s);
+                        $.each(data, function (index, item) { // item is now an object containing properties ID and Text
+                            $("#BranchID").append($('<option></option>').text(item.Text).val(item.Value));
+                        });
+                        $("#BranchID").val("");
+                        $("#BranchID").trigger('change');
+                        $("#BranchID").prop("disabled", false);
+                        
+                    }
+                },
+                failure: function (data) {
+                    //alert('error occured');
+                }
+
+            });
+        });
+
+
+
+        function AutoDropFill() {
+            var returnResult = [];
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetAutoPopulateList", "Employee")",
+                method: 'GET',
+            async: 'false',
+            dataType: 'json',
+            success: function (result) {
+                var data = $.map(result, function (obj) {
+                    obj.value = obj.Text; // desired field
+                    obj.data = obj.Value; // desired field
+                    returnResult.push(obj);
+                    $("#EmpName").autocomplete({
+                        lookup: returnResult
+                    });
+
+                });
+            },
+            error: function () { }
+        });
+    }
+
+    });
+    
+</script>
+

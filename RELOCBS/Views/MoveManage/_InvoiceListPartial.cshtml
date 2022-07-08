@@ -1,0 +1,86 @@
+﻿@model RELOCBS.Entities.BillingList
+
+<div class="row m-t-sm">
+    <div class="col-sm-12 col-md-12">
+        <div class="ibox">
+            <div class="ibox-tools">
+                <a href="@Url.Action("EmailDetails","MoveManage",new { MoveID=@Model.MoveID})" target="_blank" class="">Emails</a>
+                <span class="m-l-sm m-r-sm"> | </span>
+                <a href="@Url.Action("FinalCostSheet","MoveManage",new { MoveID=@Model.MoveID})" target="_blank" class="">Cost Sheet</a>
+                <span class="m-l-sm m-r-sm"> | </span>
+                <a href="@Url.Action("DocumentDetails","MoveManage",new { MoveID=@Model.MoveID})" target="_blank" class="">Documents</a>
+                <span class="m-l-sm m-r-sm"> | </span>  <a href="@Url.Action("MovePricingDetails","MoveManage",new { MoveID=@Model.MoveID})" data-target="#mdlMovePricedData" data-toggle="modal">Move Priced At</a>
+                <span class="m-l-sm m-r-sm"> | </span> <a class="pull-right" id="DownloadSFR" href="@Url.Action("DownloadFinalPricing","Lead",new { MoveID=@Model.MoveID})" data-target="#mdlPricingDownload" data-toggle="modal" style="display: block;">Download Pricing</a>
+                <a href="@Url.Action("AdditionalInvoice",new { MoveID=@Model.MoveID})" target="_blank"><span class="pull-right">Additional Invoice </span></a>
+                <span class="m-l-sm m-r-sm"> | </span>
+                <span class="m-l-sm m-r-sm pull-right"> | </span><a href="@Url.Action("AdditionalCreditNote","MoveManage",new { MoveID=@Model.MoveID})" target="_blank"><span class="pull-right">Additional Credit Note </span></a>
+            </div>
+
+            <div class="panel panel-body">
+                <h4 class="pul-left">INVOICES</h4>
+                <hr>
+                <div class="">
+                    <table class="table table-responsive">
+                        <thead>
+                            <tr>
+                                <th class="col-sm-1 text-center">Bill Id</th>
+                                <th class="col-sm-1 text-center">Invoice Number</th>
+                                <th class="col-sm-1 text-center">Invoice Date</th>
+                                <th class="col-sm-1 text-center">Approved Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.InvoiceList)
+                            {
+                                <tr>
+                                    <td class="col-sm-1 text-center">                                        
+                                        <a href="@Url.Action("InvoiceGeneration", "MoveManage", new { MoveID = item.MoveID, BillID = item.BillID })"
+                                           type="submit" id="lnkInvoice" target="_blank">@item.BillID
+                                        </a>
+                                    </td>
+                                    <td class="col-sm-1 text-center">@item.InvoiceNo</td>
+                                    <td class="col-sm-1 text-center">@item.InvoiceDate</td>
+                                    <td class="col-sm-1 text-center">@item.InvoiceStatus</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel panel-body">
+                <h4 class="pul-left">CREDIT NOTE</h4>
+                <hr>
+                <div class="">
+                    <table class="table table-responsive">
+                        <thead>
+                            <tr>
+                                <th class="col-sm-1 text-center">Credit Note Id</th>
+                                <th class="col-sm-1 text-center">Credit Number</th>
+                                <th class="col-sm-1 text-center">Credit Note Date</th>
+                                <th class="col-sm-1 text-center">Bill Id</th>
+                                <th class="col-sm-1 text-center">Approved Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.CreditNoteList)
+                            {
+                            <tr>
+                                <td class="col-sm-1 text-center">
+                                    <a href="@Url.Action("CreditNoteGeneration", "MoveManage", new { MoveID = item.MoveID, CreditNoteID = item.CreditNoteID })"
+                                     type="submit" id="lnkCreditNote" target="_blank">@item.CreditNoteID
+                                    </a>
+                                </td>
+                                <td class="col-sm-1 text-center">@item.CreditNoteNo</td>
+                                <td class="col-sm-1 text-center">@item.CreditNoteDate</td>
+                                <td class="col-sm-1 text-center">@item.BillID</td>
+                                <td class="col-sm-1 text-center">@item.InvoiceStatus</td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

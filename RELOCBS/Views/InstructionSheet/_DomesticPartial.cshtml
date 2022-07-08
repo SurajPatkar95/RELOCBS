@@ -1,0 +1,154 @@
+﻿@model RELOCBS.Entities.InstructionSheet
+
+
+<div class="m-t-xs">
+    <div class="row">
+        <div class="col-md-2">
+            <label>Warehouse Instruction sheet</label>
+            @Html.ValidationMessageFor(model => model.ComponentTypeID, "", new { @class = "text-danger" })
+        </div>
+        <div class="col-md-1">@Html.RadioButtonFor(model => model.ComponentTypeID, "1")<span>Origin</span></div>
+        <div class="col-md-2">@Html.RadioButtonFor(model => model.ComponentTypeID, "3")<span>Destination</span>
+        </div>
+        <div class="col-md-7">
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Unit</label>
+                <div class="col-sm-3">
+                    @Html.DropDownListFor(model => model.WeightUnitID, new SelectList((System.Collections.IEnumerable)ViewData["WeightUnitList"], "Value", "Text"), "--Select Wt/Vol Unit--", new { @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(model => model.WeightUnitID, "", new { @class = "text-danger" })
+                </div>
+                <label class="col-sm-1 col-form-label">Wt/Vol</label>
+                <div class="col-sm-2">
+                    @Html.EditorFor(model => model.WeightUnitFrom, new { htmlAttributes = new { @class = "form-control input-sm clearfix WeightFrom", onkeypress = "return OnlyDouble(this, event);" , onchange = "WeightCopy(this)" } })
+                    @Html.ValidationMessageFor(model => model.WeightUnitFrom, "", new { @class = "text-danger" })
+                </div>
+                <label class="col-sm-1 col-form-label hide">To</label>
+                <div class="col-sm-2 hide">
+                    @Html.EditorFor(model => model.WeightUnitTo, new { htmlAttributes = new { @class = "form-control input-sm clearfix WeightTo", onkeypress = "return OnlyDouble(this, event);" } })
+                    @Html.ValidationMessageFor(model => model.WeightUnitTo, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3  form-group">
+            <label>Shipper</label>
+            @Html.EditorFor(model => model.Shipper, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+            @Html.ValidationMessageFor(model => model.Shipper, "", new { @class = "text-danger" })
+        </div>
+        <div class="col-md-3 form-group">
+            <label>Corporate</label>
+            @Html.DropDownListFor(model => model.CorporateID, new SelectList((System.Collections.IEnumerable)ViewData["CorporateList"], "Value", "Text"), "--Select Corporate--", new { id = "CorporateDropdown", @class = "form-control input-sm clearfix", disabled = "disabled" })
+            @Html.HiddenFor(m => m.CorporateID)
+            @Html.ValidationMessageFor(model => model.CorporateID, "", new { @class = "text-danger" })
+        </div>
+        <div class="col-md-3  form-group">
+            <label>From</label>
+            @Html.EditorFor(model => model.OriginCity, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+            @Html.ValidationMessageFor(model => model.OriginCity, "", new { @class = "text-danger" })
+        </div>
+        <div class="col-md-3 form-group">
+            <label>To</label>
+            @Html.EditorFor(model => model.DestinationCity, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+            @Html.ValidationMessageFor(model => model.DestinationCity, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    
+    <div class="row row-no-gutters">
+        <fieldset class="col-sm-6 border m-r-5">
+            <legend>Origin Address</legend>
+            <div class="form-group row">
+                <label for="OriginAddrs" class="col-sm-2 col-form-label">Address1</label>
+                <div class="col-sm-10">
+                    @Html.TextAreaFor(a => a.OrgAdd1, new { @class = "form-control input-sm", rows = "3", placeholder = "Address 1", title = "OriginAddrs1", @id = "OriginAddrs1" })
+                    @Html.ValidationMessageFor(a => a.OrgAdd1, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="OriginAddrs" class="col-sm-2 col-form-label">Address2</label>
+                <div class="col-sm-10">
+                    @Html.TextAreaFor(a => a.OrgAdd2, new { @class = "form-control input-sm", rows = "3", placeholder = "Address 2", title = "OriginAddrs2", @id = "OriginAddrs2" })
+                    @Html.ValidationMessageFor(a => a.OrgAdd2, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="DestCityDropDown" class="col-sm-2 col-form-label">City</label>
+                <div class="col-sm-10">
+                    @Html.DropDownListFor(a => a.OrgCityID, new SelectList((System.Collections.IEnumerable)Enumerable.Empty<SelectListItem>(), "Value", "Text", ViewData["DestCityID"]), "--Select One--", new { @class = "form-control enableselect", id = "OrgCityDropDown", title = "OrgCityDropDown" })
+                    @Html.ValidationMessageFor(a => a.OrgCityID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="" class="col-sm-1 col-form-label">Pincode</label>
+                <div class="col-sm-2">
+                    @Html.TextBoxFor(a => a.OrgPincode, new { @class = "form-control input-sm", placeholder = "Pincode", title = "OrgPincode", @id = "OrgPincode", onkeypress = "return OnlyInteger(this, event);" })
+                    @Html.ValidationMessageFor(a => a.OrgPincode, "", new { @class = "text-danger" })
+                </div>
+                <label for="" class="col-sm-1 col-form-label">Email</label>
+                <div class="col-sm-8">
+                    @Html.TextBoxFor(a => a.OrgEmail, new { @class = "form-control input-sm", placeholder = "Email", title = "OrgEmail", @id = "OrgEmail" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="" class="col-sm-1 col-form-label">Phone</label>
+                <div class="col-sm-5">
+                    @Html.TextBoxFor(a => a.OrgPhone, new { @class = "form-control input-sm", placeholder = "Origin Phone", title = "OrgPhone", @id = "OrgPhone" })
+                    @Html.ValidationMessageFor(a => a.OrgPhone, "", new { @class = "text-danger" })
+                </div>
+                <label for="" class="col-sm-1 col-form-label">Mobile</label>
+                <div class="col-sm-5">
+                    @Html.TextBoxFor(a => a.OrgMobile, new { @class = "form-control input-sm", placeholder = "Origin Mobile", title = "OrgMobile", @id = "OrgMobile", onkeypress = "return OnlyInteger(this, event);" })
+                    @Html.ValidationMessageFor(a => a.OrgMobile, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="col-sm-6 border">
+            <legend>Destination Address</legend>
+            <div class="form-group row">
+                <label for="DestAddrss" class="col-sm-2 col-form-label">Address</label>
+                <div class="col-sm-10">
+                    @Html.TextAreaFor(a => a.DestAdd1, new { @class = "form-control input-sm", rows = "3", placeholder = "Address 1", title = "DestAddrss1", @id = "DestAddrss1" })
+                    @Html.ValidationMessageFor(a => a.DestAdd1, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="DestAddrss" class="col-sm-2 col-form-label">Address</label>
+                <div class="col-sm-10">
+                    @Html.TextAreaFor(a => a.DestAdd2, new { @class = "form-control input-sm", rows = "3", placeholder = "Address 2", title = "DestAddrss1", @id = "DestAddrss2" })
+                    @Html.ValidationMessageFor(a => a.DestAdd2, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="DestCityDropDown" class="col-sm-2 col-form-label">City</label>
+                <div class="col-sm-10">
+                    @Html.DropDownListFor(a => a.DestCityID, new SelectList((System.Collections.IEnumerable)Enumerable.Empty<SelectListItem>(), "Value", "Text", ViewData["DestCityID"]), "--Select One--", new { @class = "form-control enableselect", id = "DestCityDropDown", title = "DestCityDropDown" })
+                    @Html.ValidationMessageFor(a => a.DestCityID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="" class="col-sm-1 col-form-label">Pincode</label>
+                <div class="col-sm-3">
+                    @Html.TextBoxFor(a => a.DestPincode, new { @class = "form-control input-sm", placeholder = "Pincode", title = "DestPincode", @id = "DestPincode", onkeypress = "return OnlyInteger(this, event);" })
+                </div>
+                <label for="" class="col-sm-1 col-form-label">Email</label>
+                <div class="col-sm-7">
+                    @Html.TextBoxFor(a => a.DestEmail, new { @class = "form-control input-sm", placeholder = "Email", title = "DestEmail", @id = "DestEmail" })
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="" class="col-sm-1 col-form-label">Phone</label>
+                <div class="col-sm-5">
+                    @Html.TextBoxFor(a => a.DestPhone, new { @class = "form-control input-sm", placeholder = "Destination Phone", title = "DestPhone", @id = "DestPhone" })
+                </div>
+                <label for="" class="col-sm-1 col-form-label">Mobile</label>
+                <div class="col-sm-5">
+                    @Html.TextBoxFor(a => a.DestMobile, new { @class = "form-control input-sm", placeholder = "Origin Mobile", title = "OrgMobile", @id = "OrgMobile", onkeypress = "return OnlyInteger(this, event);" })
+                    @Html.ValidationMessageFor(a => a.DestMobile, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group row">
+                
+            </div>
+        </fieldset>
+    </div>
+</div>

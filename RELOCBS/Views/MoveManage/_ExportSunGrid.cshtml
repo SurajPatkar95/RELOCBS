@@ -1,0 +1,96 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model StaticPagedList<RELOCBS.Entities.ExportSunJob>
+
+@{
+
+//string _PageID = "7";
+//bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+//bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+//bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+    columns.Add(o => o.AnalysisDimensionID)
+    .Titled("Analysis Dimension ID")
+    .Css("col-md-2 hide")
+    .SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+    columns.Add(o => o.AnalysisDimension)
+.Titled("Analysis Dimension")
+.Css("col-md-2 hide");
+    columns.Add(o => o.AnalysisCode)
+.Titled("Analysis Code")
+.Css("col-md-2");
+    columns.Add(o => o.Description)
+.Titled("Description")
+.Css("col-md-2");
+    columns.Add(o => o.Mode)
+.Titled("Mode")
+.Css("col-md-2");
+    columns.Add(o => o.LookupCode)
+    .Titled("Lookup Code")
+    .Css("col-md-2 hide");
+    columns.Add(o => o.Budgetcheck)
+    .Titled("Budget check")
+    .Css("col-md-2 hide");
+    columns.Add(o => o.Budgetstop)
+    .Titled("Budget stop")
+    .Css("col-md-2 hide");
+    columns.Add(o => o.Prohibitposting)
+    .Titled("Prohibit posting")
+    .Css("col-md-2 hide");
+    columns.Add(o => o.Navigationmethod)
+    .Titled("Navigation method")
+    .Css("col-md-2 hide");
+    columns.Add(o => o.Combinedbudgetcheck)
+    .Titled("Combined budget check")
+    .Css("col-md-2 hide");
+    columns.Add(o => o.DAG)
+    .Titled("DAG")
+    .Css("col-md-2 hide");
+    columns.Add(o => o.Status)
+    .Titled("Status")
+    .Css("col-md-2 hide");
+    columns.Add(o => o.Jobdate)
+    .Titled("Job date")
+    .Css("col-md-2 hide");
+    columns.Add(o => o.Controller)
+    .Titled("Controller")
+    .Css("col-md-2 hide");
+    columns.Add(o => o.DestinationCity)
+    .Titled("Destination City")
+    .Css("col-md-2 hide");
+    columns.Add(o => o.Agentrefno)
+    .Titled("Agent ref no")
+    .Css("col-md-2 hide");
+    columns.Add(o => o.CorporateGroup)
+    .Titled("Corporate Group")
+    .Css("col-md-2");
+    columns.Add(o => o.OriginCity)
+    .Titled("Origin City")
+    .Css("col-md-2 hide");
+    //columns.Add(o => o.EnqReceivedbyName)
+    //.Titled("Enquiry ReceivedBy").Css("col-md-2");
+
+
+    //columns.Add(o => o.SurveyConductedByName)
+    //.Titled("Survey By").Css("col-md-2");
+
+
+}).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("ExportSunIndex", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>
+

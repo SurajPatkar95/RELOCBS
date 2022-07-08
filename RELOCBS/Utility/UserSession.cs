@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Web;
 using RELOCBS.App_Code;
+using System.Web.SessionState;
 
 namespace RELOCBS.Utility
 {
@@ -24,6 +25,20 @@ namespace RELOCBS.Utility
                 return _usersession.Get<UserInformationModel>("UserSession");
             }
             
+            return null;
+        }
+
+        public static string GetPageSession()
+        {
+            //var session = HttpContext.Current.Session;
+
+            CustomSessionStore _pagesession = new CustomSessionStore();
+
+            if (_pagesession.Get<string>("PageSession") != null)
+            {
+                return _pagesession.Get<string>("PageSession");
+            }
+
             return null;
         }
 
@@ -114,6 +129,44 @@ namespace RELOCBS.Utility
             }
 
             return false;
+        }
+
+
+        public static void AbandonSession()
+        {
+            HttpContext.Current.Session.Clear();
+            HttpContext.Current.Session.Abandon();
+            HttpContext.Current.Session.RemoveAll();
+            if (HttpContext.Current.Request.Cookies["ASP.NET_SessionId"] != null)
+            {
+                HttpContext.Current.Response.Cookies["ASP.NET_SessionId"].Value = string.Empty;
+                HttpContext.Current.Response.Cookies["ASP.NET_SessionId"].Expires = DateTime.Now.AddMonths(-20);
+            }
+            
+            HttpContext.Current.Response.AddHeader("Cache-control", "no-store, must-revalidate, private, no-cache");
+            HttpContext.Current.Response.AddHeader("Pragma", "no-cache");
+            HttpContext.Current.Response.AddHeader("Expires", "0");
+            HttpContext.Current.Response.AppendToLog("window.location.reload();");
+        }
+
+        public static string CreateSessionId(HttpContext httpContext)
+        {
+            var manager = new SessionIDManager();
+
+            string newSessionId = manager.CreateSessionID(httpContext);
+
+            return newSessionId;
+        }
+
+        public static void SetSessionId(HttpContext httpContext, string newSessionId)
+        {
+            var manager = new SessionIDManager();
+
+            bool redirected;
+            bool cookieAdded;
+
+            manager.SaveSessionID(httpContext, newSessionId, out redirected, out cookieAdded);
+
         }
 
     }

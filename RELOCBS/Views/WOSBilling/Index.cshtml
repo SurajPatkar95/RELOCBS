@@ -1,0 +1,121 @@
+﻿@using RELOCBS.Common;
+@using RELOCBS.Utility;
+
+@{
+    ViewBag.Title = "WOS Billing";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string _PageID = "81";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="m-t-sm">
+        <div class="row">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Assignee Name</label>
+                    <div class="input-group">
+                        @Html.Editor("AssigneeName", new { htmlAttributes = new { @id = "AssigneeName", @class = "form-control input-sm", @placeholder = "Assignee Name", @tooltip = "Assignee Name", @title = "Assignee Name" } })
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Status</label>
+                    <div class="input-group">
+                        @Html.DropDownList("Status", new SelectList((System.Collections.IEnumerable)RELOCBS.Common.CommonService.WOSInvoiceStatus, "Value", "Text"), "Select Invoice Status", new { @placeholder = "Status", @tooltip = "Status", @class = "form-control input-sm ", @title = "Status", @id = "Status" })
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4 col-md-4">
+                <div class="form-group filter-custom-margin">
+                    <select name="SearchType" id="SearchType" class="form-control input-sm">
+                        <option value="BillNo" selected="selected">Bill No.</option>
+                        <option value="CreditNoteNo">Credit Note No.</option>
+                        <option value="JobNo">Job No.</option>
+                    </select>
+                </div>
+                @Html.Editor("SearchValue", new { htmlAttributes = new { @placeholder = "Search Value", @tooltip = "Search Value", @class = "form-control input-sm filter-custom-margin", @title = "Search Value", @id = "SearchValue" } })
+            </div>
+            <div class="form-group col-md-1">
+                <div class="clearfix">
+                    <input type="submit" id="btnSearch" name="Search" class="btn btn-default btn-sm filter-custom-margin" value="Search" />
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div id="mgrid">
+    @Html.Partial("_GridPartial")
+</div>
+
+<div id="mdlAddEdit" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#FromDate').datetimepicker({
+                defaultDate: new Date().setMonth(new Date().getMonth() - 1),
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+            $('#ToDate').datetimepicker({
+                defaultDate: new Date(),
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            OnCompleteBindPage();
+            $('form#CustomFilter').on('submit', function (e) {
+                e.preventDefault();
+                $(this).ajaxSubmit({
+                    target: '#mgrid',
+                    success: function () {
+                        OnCompleteBindPage();
+                    }
+                });
+            });
+        });
+        function OnCompleteBindPage() {
+            $('.grid-header-title a').on('click', function (e) {
+                e.preventDefault();
+                var url1 = "@Url.Action("Index", "WOSBilling")" + $(this).attr('href');
+                $('form#CustomFilter').attr('action', url1).submit();
+            });
+            $('#mgrid .pagination li a').on('click', function (e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                var url1 = $('#mgrid .sorted.grid-header-title a').attr('href');
+                if (typeof url1 != 'undefined') {
+                    var gdir = url("?grid-dir", url1);
+                    var gcol = url("?grid-column", url1);
+                    url1 = url1.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0) ? 1 : 0);
+                    url1 = url1.replace('?', '&');
+                }
+
+                var url2 = $(this).attr('href');
+                if (url2 == undefined) {
+                    url2 = "@Url.Action("Index", "WOSBilling")?page=" + parseInt($(this).html());
+                }
+                url1 = url2 + url1.replace(/page=\d+/i, "");
+                $('form#CustomFilter').attr('action', url1).submit();
+            });
+        }
+    </script>
+}

@@ -97,6 +97,8 @@ namespace RELOCBS.BL.Common
                                       CityID = Convert.ToInt32(rw["CityID"]),
                                       CountryID = Convert.ToInt32(rw["CountryID"]),
                                       CountryName = Convert.ToString(rw["CountryName"]),
+                                      StateID = string.IsNullOrWhiteSpace(Convert.ToString(rw["StateID"])) ? (int?)null  : Convert.ToInt32(rw["StateID"]),
+                                      StateName = Convert.ToString(rw["StateName"]),
                                       isActive = Convert.ToBoolean(rw["isActive"])
                                   }).First();
 

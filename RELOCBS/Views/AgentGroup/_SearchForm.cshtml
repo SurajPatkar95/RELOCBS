@@ -1,0 +1,50 @@
+﻿@using RELOCBS.Utility;
+@{
+
+    string _PageID = "37";
+    string AddTitle = "New Agent Group";
+    string Type = ViewData["Type"].ToString();
+    if (Type == "C")
+    {
+        _PageID = "38";
+        AddTitle = "New Corporate Group";
+    }
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@using (Html.BeginForm(null, null,new { Type = Type }, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+{
+
+
+    @Html.AntiForgeryToken()
+    <div class="form-group col-md-2">
+        <label class="marr-5"></label>
+        <div class="clearfix">
+            @Html.TextBox("SearchKey", null, new { @class = "form-control input-sm" })
+            @*@Html.DropDownList("CityID", new SelectList((System.Collections.IEnumerable)ViewData["CityList"], "Value", "Text"), I18N("Select City"), new { @class = "form-control input-sm" })*@
+        </div>
+    </div>
+    <div class="form-group col-md-1">
+        <div class="clearfix">
+            <input type="submit" class="btn btn-default btn-sm filter-custom-margin" value="Search" />
+        </div>
+    </div>
+    <a class="btn btn-default btn-sm lnkExportToExcel m-r-sm pull-right"><i class="fa fa-file-excel-o m-r-sm"></i>Export to Excel</a>
+    if (hasAddAccess)
+    {
+    <div class="pull-right col-md-2">
+        @Html.ActionLink(AddTitle, "Create", new { Type= Type },
+    new 
+    {
+        @class="btn btn-primary btn-sm pull-right",
+        @data_toggle= "modal",
+        @data_target= "#mdlAddEdit",
+        @data_cache= false,
+        @title=AddTitle
+    })
+    </div>
+    }
+}
+

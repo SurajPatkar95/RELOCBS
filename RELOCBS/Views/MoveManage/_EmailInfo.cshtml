@@ -1,0 +1,147 @@
+﻿
+
+@using RELOCBS.Entities;
+@using RELOCBS.Common;
+@model RELOCBS.Entities.MoveManageViewModel
+
+<div class="row" id="divEmailDet">
+    <div class="col-sm-4 p-lg">
+
+        @Html.HiddenFor(d => d.MoveEmail.ActivityID, new { @id = "hfActivityID" })
+        <div class="row">
+            <div class="form-group">
+                <label>Activity List</label>
+                @Html.DropDownList("ActivityID", new SelectList((System.Collections.IEnumerable)ViewData["JobActivityList"], "Value", "Text"), "--Select Activity--", new { @class = "form-control input-sm clearfix ddlActivity" })
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group">
+
+                <div class="container col-sm-12">
+                    <h3>Email History</h3>
+                    <div class="list-group" id="ActivityHistoryList" style="overflow:scroll; max-height: 300px;">
+                        @*@if (Model.EmailActivityhistory != null)
+                        {
+                            foreach (RELOCBS.Entities.EmailActiviryHistory row in Model.EmailActivityhistory)
+                            {
+                                <a href="#" class="list-group-item ActivityHistoryListItem">
+                                    <h4 class="list-group-item-heading"><span id="spanActivilty" class="hide">@row.ActivityID</span>@row.ActivityName</h4>
+                                    <p class="list-group-item-text"><b>Sent By:</b> @row.SentBy &emsp;&emsp;&emsp; <b>Sent On:</b>@row.SentDate</p>
+                                </a>
+                            }
+                        }*@
+
+                    </div>
+                </div>
+                @*@Html.DropDownListFor(d => d.MoveEmail.ActivityID, new SelectList((System.Collections.IEnumerable)ViewData["JobActivityList"], "Value", "Text"), "--Select Activity--", new { @class = "form-control input-sm clearfix" })*@
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-7">
+        <div class="form-group">
+            <div class="wrapper wrapper-content animated fadeInRight no-padding-b">
+                <div class="row">
+                    <div id="Emailsetting" class="col-sm-12">
+
+                        @*Email start Show*@
+                        <div class="animated" id="pnl-DocumentList">  </div>
+
+                        <div id="EmailReason" class="animated">
+                            <div class="border isEmailShow">
+                                <div class="row">
+                                    <div class="form-group col-sm-1">
+                                        @*<button id="sendComunicationEmail" type="submit" name="Save" class="btn btn-primary btn-sm">Send</button>*@
+                                    </div>
+                                    @*<div class="col-sm-2">
+                                            Single button
+                                            <div class="btn-group width-auto">
+                                                <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    Add <span class="caret"></span>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li id="AddCc"><a href="#">CC</a></li>
+                                                    <li id="AddBcc"><a href="#">BCC</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>*@
+                                </div>
+                                <div class="row" id="divEmailListGrid">
+
+                                    <div class="col-sm-12">
+                                        <input hidden id="TemplateIDhidden" />
+
+                                        <div class="form-group m-t-sm">
+                                            @*@foreach (var items in Model.Communication)  {*@
+
+                                            @*<input type="hidden" id="HiddenEmailBody" value="" />*@
+                                            <div class="row">
+                                                <label class="col-sm-1 control-label">To : </label>
+                                                <div class="col-sm-11">
+                                                    @Html.TextBoxFor(m => m.MoveEmail.EmailTo, new { @class = "form-control input-sm EmailTo", @id = "EmailTo" })
+                                                    @*<input type="text" name="EmailTo" class="form-control input-sm" id="EmailTo" value="" required="required" />*@
+                                                </div>
+                                            </div>
+                                            <div class="form-group m-t-sm" id="DivEmailCC">
+                                                <div class="row">
+                                                    <label class="col-sm-1 control-label">Cc : </label>
+                                                    <div class="col-sm-11">
+                                                        @Html.TextBoxFor(m => m.MoveEmail.EmailCC, new { @class = "form-control input-sm EmailCC", @id = "EmailCC" })
+                                                        @*<input type="text" name="EmailCC" class="form-control input-sm" id="EmailCC" value="" required />*@
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group m-t-sm" id="DivEmailBcc">
+                                                <div class="row">
+                                                    <label class="col-sm-1 control-label">Bcc : </label>
+                                                    <div class="col-sm-11">
+                                                        @Html.TextBoxFor(m => m.MoveEmail.EmailBCC, new { @class = "form-control input-sm EmailBCC", @id = "EmailBCC" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group m-t-sm" id="emaildivlistview">
+                                                <div class="row">
+                                                    <label class="col-sm-1 control-label">Subject:</label>
+                                                    <div class="col-sm-11">
+                                                        @Html.TextBoxFor(m => m.MoveEmail.Subject, new { @class = "form-control input-sm Subject", @id = "Subject" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row" id="EmailAttachemnt">
+                                                @*view email send with attachment partial*@
+                                            </div>
+                                            <div class="clear"></div>
+                                            <div class="form-group m-t-sm">
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                        @Html.HiddenFor(m => m.MoveEmail.Body, new { @class = "hfBody" })
+                                                        @*@Html.TextArea("taDescription", null, new { @class = "form-control input-xs clearfix taDescription" })*@
+                                                        <div class="summernote EmailBody" style="min-height:600px;max-height:800px;"></div>
+                                                        @*<textarea cols="50" rows="4" name="EmailBodyShow" id="EmailBodyShow"></textarea>*@
+                                                        @*@Html.TextArea("EmailBodyShow", null,4,50,new { @class="summernote" })*@
+                                                        @*</div>*@
+                                                        @*</div>*@
+                                                    </div>
+                                                </div>
+                                                @*}*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @*End Email*@
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+@section Scripts{
+    <script type="text/javascript">
+
+    </script>
+}

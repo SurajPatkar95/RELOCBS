@@ -1,0 +1,103 @@
+﻿@model IEnumerable<RELOCBS.Entities.Agent>
+@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+@{
+
+    string _PageID = "14";
+    string Type = Request.QueryString["Type"].ToString();
+    if (Type == "C")
+    {
+        _PageID = "36";
+    }
+
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+
+//columns.Add(o => o.ShortAgentName)
+//    .Titled("Short Name")
+//    .Css("col-md-2")
+//    .SetWidth(2);
+columns.Add(o => o.AgentName)
+.Titled("Name")
+.Css("col-md-3")
+.SetWidth(2);
+
+columns.Add(o => o.CityName)
+.Titled("City").Css("col-md-2");
+
+columns.Add(o =>o.Address1)
+.Encoded(false)
+.Sanitized(false)
+.RenderValueAs(d =>
+ @<span title='@d.Address1'> 
+      <div>@d.ShortAddress1 </div>
+  </span>
+)
+.Css("col-md-2")
+.Titled("Address1")
+.SetWidth(10);
+
+columns.Add(o => o.CreatedDate).Format("{0:dd-MMM-yyyy}")
+.Css("col-md-1")
+.Titled("Creation Date")
+.SetWidth(10);
+columns.Add(o => o.Isactive)
+.Titled("Active").Css("col-md-1")
+.Encoded(false)
+.Sanitized(false)
+.RenderValueAs(d =>
+@<span>
+    @if (d.Isactive == true)
+                {
+        <i class="fa fa-check text-navy"></i>
+                }
+</span>
+);
+
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("Actions")
+.RenderValueAs(d =>
+@<span>
+    @if (hasEditAccess)
+                {
+        <a href="@Url.Action("Edit/" + d.AgentID, "Agent")" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" data-toggle="modal" data-target="#mdlAddEdit" data-cache="false" title="Edit Agent"></a>
+        <a href="@Url.Action("FinanceDetails/" + d.AgentID, "Agent")" class="btnFinanceDetail btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" data-toggle="modal" data-target="#mdlAddEditFinance" data-cache="false" title="Finance Detail"></a>
+                }
+    
+
+    @if (d.Isactive == true && hasDeleteAccess)
+                {
+        <div class="pull-left">
+            <form method="post" action="@Url.Action("Delete/" + d.AgentID, "Agent")" class="frmRWDelete" title="Delete Company">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="AgentID" value="@d.AgentID" />
+                <button type="submit" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-right m-l-md m-t-xs m-b-xs"></button>
+            </form>
+        </div>
+                }
+
+</span>
+);
+    }).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page, Type= Type }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>
+
+

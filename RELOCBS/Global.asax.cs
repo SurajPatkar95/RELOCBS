@@ -1,12 +1,15 @@
 ﻿using RELOCBS.Common.ExceptionHandling;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.Security;
+using RELOCBS.App_Code;
 
 namespace RELOCBS
 {
@@ -14,10 +17,14 @@ namespace RELOCBS
     {
         protected void Application_Start()
         {
-            AreaRegistration.RegisterAllAreas();
+            //AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+            //ValueProviderFactories.Factories.Insert(0, new CryptoValueProviderFactory());
+            //DataAnnotationsModelValidatorProvider.AddImplicitRequiredAttributeForValueTypes = false;
+
+            MvcHandler.DisableMvcResponseHeader = true; //this line is to hide mvc header
         }
 
         protected void Application_PostAuthenticateRequest(Object sender, EventArgs e)
@@ -54,6 +61,34 @@ namespace RELOCBS
                     }
                 }
             }
+
+        }
+
+        protected void Application_BeginRequest(object sender, EventArgs e)
+        {
+            CultureInfo cInfo = new CultureInfo("en-IN");
+            cInfo.DateTimeFormat.ShortDatePattern = "dd-MMM-yyyy";
+            cInfo.DateTimeFormat.DateSeparator = "-";
+            Thread.CurrentThread.CurrentCulture = cInfo;
+            Thread.CurrentThread.CurrentUICulture = cInfo;
+
+            Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            Response.Cache.SetExpires(DateTime.UtcNow.AddHours(-1));
+            Response.Cache.SetNoStore();
+
+            ////Remove  Server header
+            var app = sender as HttpApplication;
+            if (app != null && app.Context != null)
+            {
+                app.Context.Response.Headers.Remove("Server");
+            }
+
+            /////Clickjacking Attack -security
+            HttpContext.Current.Response.AddHeader("X-Frame-Options", "DENY");
+            HttpContext.Current.Response.AddHeader("X-XSS-Protection", "1; mode=block");
+            HttpContext.Current.Response.AddHeader("X-Content-Type-Options", "nosniff ");
+
+
 
         }
 
@@ -105,5 +140,20 @@ namespace RELOCBS
 
         }
 
+        protected void Application_PreSendRequestHeaders(Object sender, EventArgs e)
+        {
+            //Response.Headers.Set("Cache-Control", "no-cache");
+
+            ////Hiding server Information
+            HttpContext.Current.Response.Headers.Remove("X-Powered-By");
+            HttpContext.Current.Response.Headers.Remove("X-AspNet-Version");
+            HttpContext.Current.Response.Headers.Remove("X-AspNetMvc-Version");
+            HttpContext.Current.Response.Headers.Remove("Server");
+        }
+
+        protected void Session_Start(object sender, EventArgs e)
+        {
+            Session.Timeout = 45;///// 30 minutes
+        }
     }
 }

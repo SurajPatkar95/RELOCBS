@@ -20,7 +20,7 @@
                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                         @Html.HiddenFor(model => model.CityID)
                         <div class="form-group row">
-                            @Html.LabelFor(model => model.CityCode, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                            @Html.LabelFor(model => model.CityCode, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
                             <div class="col-md-5">
                                 @Html.EditorFor(model => model.CityCode, new { htmlAttributes = new { @class = "form-control" } })
                                 @Html.ValidationMessageFor(model => model.CityCode, "", new { @class = "text-danger" })
@@ -36,10 +36,17 @@
                         </div>
 
                         <div class="form-group row">
-                            @Html.LabelFor(model => model.CountryName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                            @Html.LabelFor(model => model.CountryName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
                             <div class="col-md-5">
-                                @Html.DropDownListFor(model => model.CountryID, new SelectList((System.Collections.IEnumerable)ViewData["Country"], "Value", "Text"), "Select State", new { @class = "form-control input-sm clearfix" })
+                                @Html.DropDownListFor(model => model.CountryID, new SelectList((System.Collections.IEnumerable)ViewData["Country"], "Value", "Text"), "Select Country", new { @class = "form-control input-sm clearfix" })
                                 @Html.ValidationMessageFor(model => model.CountryID, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            @Html.LabelFor(model => model.StateName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                            <div class="col-md-5">
+                                @Html.DropDownListFor(model => model.StateID, new SelectList((System.Collections.IEnumerable)ViewData["State"], "Value", "Text"), "Select State", new { @class = "form-control input-sm clearfix" })
+                                @Html.ValidationMessageFor(model => model.StateID, "", new { @class = "text-danger" })
                             </div>
                         </div>
                         <div class="form-group row">
@@ -66,6 +73,29 @@
                     $("[data-val-required]").each(function () {
                         $("label[for=" + this.id + "]").addClass("requiredlabel")
                     });
+
+                    $('select#CountryID').select2();
+                    $('select#StateID').select2();
+                });
+
+                $('body').on('change', '#CountryID', function (e) {
+                    var CountryID = $(this).val();
+                    $("select#StateID").empty();
+                    $('#StateID').append($('<option>', {
+                        value: '',
+                        text: 'Select State'
+                    }));
+                    $.ajax({
+                        url: "@Url.Action("GetState", "City")?CountryID=" + CountryID,
+                        success: function (data) {
+                            var data = $.map(data, function (obj) {
+                                obj.text = obj.text || obj.Text;
+                                obj.id = obj.id || obj.Value;
+                                return obj;
+                            });
+                            $('select#StateID').select2({ data: data });
+                        }
+                    });
                 });
             </script>
             <script>
@@ -84,6 +114,8 @@
                     $('#mdlAddEdit form').on('submit', function (e) {
                         e.preventDefault();
                         if (!$(this).valid()) { return; }
+                        
+                        if ($('select#CountryID option:selected').text().toUpperCase() == "INDIA" && ($('select#StateID option:selected').val() == null || $('select#StateID option:selected').val() == "")) { alert('State is required'); return; }
 
                         $('#mdlAddEdit .modal-content').mask("Loading...");
                         $(this).ajaxSubmit({

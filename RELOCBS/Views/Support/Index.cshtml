@@ -1,0 +1,146 @@
+﻿@model RELOCBS.Entities.Support
+
+@{
+    ViewBag.Title = "Support";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string _PageID = "71";
+}
+
+<style type="text/css">
+</style>
+
+@using (Html.BeginForm("Index", "Support", FormMethod.Post, new { enctype = "multipart/form-data", @name = "formSupport", @id = "formSupport" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(false)
+
+    <div class="col-md-12 col-sm-12 well well-sm">
+        <div class="tabs-container">
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane tab-panecontainer active" id="Dashboard">
+                    <div class="row tab-panecontainer">
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>Remove Invoice Approval</legend>
+                            <div class="m-t-sm m-n pad-none">
+                                <div class="row">
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Inv No</label>
+                                            @Html.TextBoxFor(m => m.RemoveInvApproval.InvNo, new { @class = "form-control input-sm", @title = "Invoice No", @placeholder = "Invoice No" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 col-sm-12">
+                                        <div class="form-group clearfix text-center">
+                                            <input type="submit" name="SaveButton" id="btnRemoveInvApproval" value="Remove Inv Approval" title="Remove Inv Approval" class="btn btn-primary btn-sm" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>Change City In Job</legend>
+                            <div class="m-t-sm m-n pad-none">
+                                <div class="row">
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Org Or Dest</label>
+                                            <div class="radio">
+                                                <label>@Html.RadioButtonFor(m => m.ChangeCityInJob.OrgOrDest, "Org")Org</label>
+                                                <label>@Html.RadioButtonFor(m => m.ChangeCityInJob.OrgOrDest, "Dest")Dest</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Job No</label>
+                                            @Html.TextBoxFor(m => m.ChangeCityInJob.JobNo, new { @class = "form-control input-sm", @title = "Job No", @placeholder = "Job No" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>New City</label>
+                                            @*@Html.DropDownListFor(m => m.ChangeCityInJob.NewCityID, new SelectList((System.Collections.IEnumerable)ViewData["CityList"], "Value", "Text", ViewData["CityList"]), "Select One", new { @class = "form-control input-sm enableselect", @title = "New City ID" })*@
+                                            @Html.DropDownListFor(m => m.ChangeCityInJob.NewCityID, new List<SelectListItem>(), "Select One", new { @class = "form-control input-sm enableselect", @title = "New City ID" })
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 col-sm-12">
+                                            <div class="form-group clearfix text-center">
+                                                <input type="submit" name="SaveButton" id="btnChangeCityInJob" value="Change City In Job" title="Change City In Job" class="btn btn-primary btn-sm" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>Change Ref In Invoive</legend>
+                            <div class="m-t-sm m-n pad-none">
+                                <div class="row">
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Inv No</label>
+                                            @Html.TextBoxFor(m => m.ChangeRefInInv.InvNo, new { @class = "form-control input-sm", @title = "Invoice No", @placeholder = "Invoice No" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>New Ref No</label>
+                                            @Html.TextBoxFor(m => m.ChangeRefInInv.NewRefNo, new { @class = "form-control input-sm", @title = "New Ref No", @placeholder = "New Ref No" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 col-sm-12">
+                                        <div class="form-group clearfix text-center">
+                                            <input type="submit" name="SaveButton" id="btnChangeRefInInv" value="Change Ref In Inv" title="Change Ref In Inv" class="btn btn-primary btn-sm" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>Change Rev Br</legend>
+                            <div class="m-t-sm m-n pad-none">
+                                <div class="row">
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Job No</label>
+                                            @Html.TextBoxFor(m => m.ChangeRevBr.JobNo, new { @class = "form-control input-sm", @title = "Job No", @placeholder = "Job No" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Rev Branch</label>
+                                            @Html.DropDownListFor(m => m.ChangeRevBr.RevBrID, new SelectList((System.Collections.IEnumerable)ViewData["CompBranchList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm enableselect", @title = "Rev Br ID" })
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 col-sm-12">
+                                            <div class="form-group clearfix text-center">
+                                                <input type="submit" name="SaveButton" id="btnChangeRevBr" value="Change Rev Br" title="Change Rev Br" class="btn btn-primary btn-sm" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+    <script>
+        $(document).ready(function () {
+            AjaxFillDropDown('#ChangeCityInJob_NewCityID', '@Url.Action("GetCityList", "Support")');
+        });
+    </script>
+}

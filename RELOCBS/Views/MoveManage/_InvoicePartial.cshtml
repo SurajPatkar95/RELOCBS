@@ -1,0 +1,444 @@
+﻿@model RELOCBS.Entities.Billing
+
+@{
+
+
+    var BillItemNew = new RELOCBS.Entities.BillingItems();
+
+}
+
+@using (Html.BeginForm("Invoice", "MoveManage", FormMethod.Post, new { enctype = "multipart/form-data", @name = "Invoice", @id = "Invoice" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(a => a.BillID)
+    @Html.HiddenFor(a => a.MoveID)
+    <div class="col-sm-12 col-md-12">
+        <div class="ibox panel">
+            @*<div class="ibox-title panel-title">Invoive</div>*@
+            <div class="ibox-content bg-white panel-body">
+                <div class="col-sm-12 col-md-12">
+                    <div class="form-group">
+                        <input type="submit" id="BtnSave" name="SubmitInvoie" formaction=@Url.Action("SaveUploadRates") formmethod="post" class="btn btn-primary m-t-sm m-b-sm pull-right m-r-sm btn-sm BtnSave" value="Save Invoice" formnovalidate="formnovalidate" />
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-12 row">
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>Job No</label>
+                            @Html.DisplayFor(model => model.MoveID)
+                        </div>
+                    </div>
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>Invoice No</label>
+                            @Html.DisplayFor(model => model.InvoiceNo)
+                        </div>
+                    </div>
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>Invoice Date</label>
+                            @Html.DisplayFor(model => model.InvoiceDate)
+                        </div>
+                    </div>
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>Invoice Status</label>
+                            @Html.DisplayFor(model => model.InvoiceStatus)
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-12 row">
+                    <div class="col-md-1 col-sm-1">
+                        <div class="form-group">
+                            <label>Base Cur.</label>
+                            @Html.DropDownListFor(model => model.BaseCurrancyID, new SelectList((System.Collections.IEnumerable)ViewData["BaseCurrencyRate"], "Value", "Text"), "--Select Base Cur.--", new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="col-md-1 col-sm-1">
+                        <div class="form-group">
+                            <label>Rate Cur.</label>
+                            @Html.DropDownListFor(model => model.RateCurrancyID, new SelectList((System.Collections.IEnumerable)ViewData["RateCurrency"], "Value", "Text"), "--Select Rate Cur.--", new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-sm-2">
+                        <div class="form-group">
+                            <label>Conv.Rate</label>
+                            @Html.TextBoxFor(model => model.ConvRate, new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-md-2">
+                        <div class="form-group">
+                            <label>Wt Unit</label>
+                            @Html.DropDownListFor(model => model.WtUnitID, new SelectList((System.Collections.IEnumerable)ViewData["WeightUnit"], "Value", "Text"), "--Select Wt Unit--", new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-md-2">
+                        <div class="form-group">
+                            <label>Net Weight</label>
+                            @Html.TextBoxFor(model => model.WtValue, new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-md-2">
+                        <div class="form-group">
+                            <label>Volme Unit</label>
+                            @Html.DropDownListFor(model => model.WtUnitID, new SelectList((System.Collections.IEnumerable)ViewData["WeightUnit"], "Value", "Text"), "--Select Volme Unit--", new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-md-2">
+                        <div class="form-group">
+                            <label>Net Volume</label>
+                            @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-12 row">
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>Customer</label>
+                            @Html.DropDownListFor(model => model.CustomerID, new SelectList((System.Collections.IEnumerable)ViewData["AcctMgrList"], "Value", "Text"), "--Select Customer--", new { @class = "form-control enableselect" })
+                        </div>
+                    </div>
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>RMC</label>
+                            @Html.DropDownListFor(model => model.RMCID, new SelectList((System.Collections.IEnumerable)ViewData["RMC"], "Value", "Text"), "--Select RMC--", new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>Shipper</label>
+                            @Html.DropDownListFor(model => model.ShipperID, new SelectList((System.Collections.IEnumerable)ViewData["AcctMgrList"], "Value", "Text"), "--Select Shipper--", new { @class = "form-control enableselect" })
+                        </div>
+                    </div>
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-12">
+                    <table class="table table-bordered table-responsive table-hover" id="tblInvoiceItems">
+                        <thead>
+                            <tr data-id="0">
+                                <td>
+                                    @Html.EditorFor(x => BillItemNew.SacCode, new { htmlAttributes = new { @class = "form-control input-sm clearfix SacCode" } })
+                                </td>
+                                <td>
+                                    @Html.DropDownListFor(x => BillItemNew.ComponentID, new SelectList((System.Collections.IEnumerable)ViewData["RateComponent"], "Value", "Text", BillItemNew.ComponentID), "--Select Component--", new { @class = "form-control input-sm clearfix tdComponent" })
+                                </td>
+                                <td>
+                                    @Html.DropDownListFor(x => BillItemNew.CostHeadID, new SelectList((System.Collections.IEnumerable)ViewData["CostHeadList"], "Value", "Text", BillItemNew.CostHeadID), "--Select CostHead--", new { @class = "form-control input-sm clearfix enableselect tdCostHead" })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => BillItemNew.Description, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdDescription" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => BillItemNew.OriginalAmount, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdOriginalAmount", onkeypress = "return OnlyDouble(this, event);" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => BillItemNew.Amount, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdAmount", onkeypress = "return OnlyDouble(this, event);" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => BillItemNew.ConvRate, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdConvRate", onkeypress = "return OnlyDouble(this, event);", onchange = "return OnChange_ConvRate(this,event);" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => BillItemNew.ConvAmount, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdConvAmount", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => BillItemNew.GSTVATPercent, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdGSTVATPercent", onkeypress = "return OnlyDouble(this, event);", onchange = "return OnChange_GSTVATPercent(this,event);" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => BillItemNew.GSTVATAmount, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdGSTVATAmount", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => BillItemNew.TotalAmount, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdTotalAmount", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" } })
+                                </td>
+                                <td>
+                                    @Html.DropDownListFor(x => BillItemNew.BilledStatus, new SelectList((System.Collections.IEnumerable)ViewData["CostHeadList"], "Value", "Text", BillItemNew.BilledStatus), "--Select BilledStatus--", new { @class = "form-control input-sm clearfix tdBilledStatus" })
+                                </td>
+                                <td>
+                                    <button type="button" id="btnAdd" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="OnAdd_Click(this)">Add</button>
+                                    <button type="button" id="btnRemove" class="btn btn-danger btn-sm" onclick="Remove(this)" style="display:none">
+                                        <span class="glyphicon glyphicon-trash"></span>
+                                    </button>
+
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>SacCode</th>
+                                <th>Component</th>
+                                <th>CostHead</th>
+                                <th>Description</th>
+                                <th>Original Amount</th>
+                                <th>Amount</th>
+                                <th>Conv.Rate</th>
+                                <th>Conv.Amount</th>
+                                <th>GST/VAT %</th>
+                                <th>GST/VAT Amount</th>
+                                <th>Total Amount</th>
+                                <th>Bill Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.BlillItems.Count(); i++)
+                            {
+                                var TrNo = i + 1;
+                                <tr data-id="@TrNo">
+                                    <td>
+                                        @Html.HiddenFor(x => Model.BlillItems[i].BillItemID, new { @class = "tdBillItem" })
+                                        @Html.EditorFor(x => Model.BlillItems[i].SacCode, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdSacCode" } })
+                                    </td>
+                                    <td>
+
+                                        @Html.DropDownListFor(x => Model.BlillItems[i].ComponentID, new SelectList((System.Collections.IEnumerable)ViewData["RateComponent"], "Value", "Text", Model.BlillItems[i].ComponentID), "--Select Component--", new { @class = "form-control input-sm clearfix tdComponent" })
+                                    </td>
+                                    <td>
+                                        @Html.DropDownListFor(x => Model.BlillItems[i].CostHeadID, new SelectList((System.Collections.IEnumerable)ViewData["CostHeadList"], "Value", "Text", Model.BlillItems[i].CostHeadID), "--Select CostHead--", new { @class = "form-control input-sm clearfix enableselect tdCostHead" })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(x => Model.BlillItems[i].Description, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdDescription" } })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(x => Model.BlillItems[i].OriginalAmount, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdOriginalAmount", onkeypress = "return OnlyDouble(this, event);" } })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(x => Model.BlillItems[i].Amount, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdAmount", onkeypress = "return OnlyDouble(this, event);" } })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(x => Model.BlillItems[i].ConvRate, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdConvRate", onkeypress = "return OnlyDouble(this, event);", onchange = "return OnChange_ConvRate(this,event);" } })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(x => Model.BlillItems[i].ConvAmount, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdConvAmount", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" } })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(x => Model.BlillItems[i].GSTVATPercent, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdGSTVATPercent", onkeypress = "return OnlyDouble(this, event);", onchange = "return OnChange_GSTVATPercent(this,event);" } })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(x => Model.BlillItems[i].GSTVATAmount, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdGSTVATAmount", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" } })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(x => Model.BlillItems[i].TotalAmount, new { htmlAttributes = new { @class = "form-control input-sm clearfix tdTotalAmount", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" } })
+                                    </td>
+                                    <td>
+                                        @Html.DropDownListFor(x => Model.BlillItems[i].BilledStatus, new SelectList((System.Collections.IEnumerable)ViewData["CostHeadList"], "Value", "Text", Model.BlillItems[i].BilledStatus), "--Select BilledStatus--", new { @class = "form-control input-sm clearfix tdBilledStatus" })
+                                    </td>
+                                    <td>
+                                        <button type="button" id="btnRemove" class="btn btn-danger btn-sm" onclick="Remove(this)">
+                                            <span class="glyphicon glyphicon-trash"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5"></td>
+                                <td>
+                                    @Html.Editor("BlillItem_FinalAmount", "", new { @class = "form-control input-sm clearfix", @readonly = "readonly" })
+                                </td>
+                                <td colspan="3"></td>
+                                <td>
+                                    @Html.Editor("BlillItem_FinalGSTVATAmount", "", new { @class = "form-control input-sm clearfix", @readonly = "readonly" })
+                                </td>
+                                <td>
+                                    @Html.Editor("BlillItem_FinalTotalAmount", "", new { @class = "form-control input-sm clearfix", @readonly = "readonly" })
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+
+    function OnAdd_Click(Sender) {
+
+        var btn = $(Sender.id);
+
+        var itemsLength = $('#tblInvoiceItems tbody tr').length;
+
+        if (itemsLength != null && itemsLength >= 0) {
+
+            var drp1Value = $('#tblInvoiceItems thead tr').find('.tdComponent').val();
+
+            $("option[value=" + drp1Value + "]", $('#tblInvoiceItems thead tr').find('.tdComponent')).attr("selected", true)//.siblings()//.removeAttr("selected");
+
+            var drp2Value = $('#tblInvoiceItems thead tr').find('.tdCostHead').val();
+
+            $("option[value=" + drp2Value + "]", $('#tblInvoiceItems thead tr').find('.tdCostHead')).attr("selected", true)//.siblings()//.removeAttr("selected");
+
+            if ($('#tblInvoiceItems thead tr').find('.tdCostHead').data('select2')) {
+                debugger;
+                $('#tblInvoiceItems thead tr').find('.tdCostHead').select2('destroy');
+            }
+
+            var drp3Value = $('#tblInvoiceItems thead tr').find('.tdBilledStatus').val();
+
+            $("option[value=" + drp3Value + "]", $('#tblInvoiceItems thead tr').find('.tdBilledStatus')).attr("selected", true).select2();//.siblings()//.removeAttr("selected");
+
+
+            var firstTr = $('#tblInvoiceItems thead tr:first').clone();
+            $('#tblInvoiceItems tbody').append(firstTr);
+
+
+            $('#tblInvoiceItems thead tr').find('.tdCostHead').select2(); // Re-instrument original row
+
+            firstTr.find('.tdCostHead').select2();
+
+
+            $('#tblInvoiceItems tbody tr').each(function (i) {
+
+                //if (i === 0)
+                //    return;
+
+                debugger;
+
+                itemsLength = i;
+                var lasttr = $(this);
+
+                var RowNo = i + 1;
+                lasttr.attr("data-id", RowNo);
+                lasttr.find('.tdBillItem').attr('id', 'BlillItems_' + itemsLength + "__BillItem").attr('name', 'BlillItems[' + itemsLength + "]");
+                lasttr.find('.tdSacCode').attr('id', 'BlillItems_' + itemsLength + "__SacCode").attr('name', 'BlillItems[' + itemsLength + "].SacCode");
+                lasttr.find('.tdComponent').attr('id', 'BlillItems_' + itemsLength + "__ComponentID").attr('name', 'BlillItems[' + itemsLength + "].ComponentID");
+                lasttr.find('.tdCostHead').attr('id', 'BlillItems_' + itemsLength + "__CostHeadID").attr('name', 'BlillItems[' + itemsLength + "].CostHeadID");
+                lasttr.find('.tdDescription').attr('id', 'BlillItems_' + itemsLength + "__Description").attr('name', 'BlillItems[' + itemsLength + "].Description");
+                lasttr.find('.tdOriginalAmount').attr('id', 'BlillItems_' + itemsLength + "__OriginalAmount").attr('name', 'BlillItems[' + itemsLength + "].OriginalAmount");
+                lasttr.find('.tdAmount').attr('id', 'BlillItems_' + itemsLength + "__Amount").attr('name', 'BlillItems[' + itemsLength + "].Amount");
+                lasttr.find('.tdConvRate').attr('id', 'BlillItems_' + itemsLength + "__ConvRate").attr('name', 'BlillItems[' + itemsLength + "].ConvRate");
+                lasttr.find('.tdConvAmount').attr('id', 'BlillItems_' + itemsLength + "__ConvAmount").attr('name', 'BlillItems[' + itemsLength + "].ConvAmount");
+                lasttr.find('.tdGSTVATPercent').attr('id', 'BlillItems_' + itemsLength + "__GSTVATPercent").attr('name', 'BlillItems[' + itemsLength + "].GSTVATPercent");
+                lasttr.find('.tdGSTVATAmount').attr('id', 'BlillItems_' + itemsLength + "__GSTVATAmount").attr('name', 'BlillItems[' + itemsLength + "].GSTVATAmount");
+                lasttr.find('.tdTotalAmount').attr('id', 'BlillItems_' + itemsLength + "__TotalAmount").attr('name', 'BlillItems[' + itemsLength + "].TotalAmount");
+                lasttr.find('.tdBilledStatus').attr('id', 'BlillItems_' + itemsLength + "__BilledStatus").attr('name', 'BlillItems[' + itemsLength + "].BilledStatus");
+
+                lasttr.find("#btnAdd").remove();
+                lasttr.find("#btnRemove").removeAttr("style");
+
+            });
+
+
+
+
+
+        }
+        //else {
+
+        //    itemsLength = 0;
+        //    var firsttr = $('#tblInvoiceItems thead tr:first').clone();
+        //    firsttr.find('.tdBillItem').attr('id', 'BlillItems_' + itemsLength + "__BillItem").attr('name', 'BlillItems[' + itemsLength + "]");
+        //    firsttr.find('.tdSacCode').attr('id', 'BlillItems_' + itemsLength + "__SacCode").attr('name', 'BlillItems[' + itemsLength + "].SacCode");
+        //    firsttr.find('.tdComponent').attr('id', 'BlillItems_' + itemsLength + "__ComponentID").attr('name', 'BlillItems[' + itemsLength + "].ComponentID");
+        //    firsttr.find('.tdCostHead').attr('id', 'BlillItems_' + itemsLength + "__CostHeadID").attr('name', 'BlillItems[' + itemsLength + "].CostHeadID");
+        //    firsttr.find('.tdDescription').attr('id', 'BlillItems_' + itemsLength + "__Description").attr('name', 'BlillItems[' + itemsLength + "].Description");
+        //    firsttr.find('.tdOriginalAmount').attr('id', 'BlillItems_' + itemsLength + "__OriginalAmount").attr('name', 'BlillItems[' + itemsLength + "].OriginalAmount");
+        //    firsttr.find('.tdAmount').attr('id', 'BlillItems_' + itemsLength + "__Amount").attr('name', 'BlillItems[' + itemsLength + "].Amount");
+        //    firsttr.find('.tdConvRate').attr('id', 'BlillItems_' + itemsLength + "__ConvRate").attr('name', 'BlillItems[' + itemsLength + "].ConvRate");
+        //    firsttr.find('.tdConvAmount').attr('id', 'BlillItems_' + itemsLength + "__ConvAmount").attr('name', 'BlillItems[' + itemsLength + "].ConvAmount");
+        //    firsttr.find('.tdGSTVATPercent').attr('id', 'BlillItems_' + itemsLength + "__GSTVATPercent").attr('name', 'BlillItems[' + itemsLength + "].GSTVATPercent");
+        //    firsttr.find('.tdGSTVATAmount').attr('id', 'BlillItems_' + itemsLength + "__GSTVATAmount").attr('name', 'BlillItems[' + itemsLength + "].GSTVATAmount");
+        //    firsttr.find('.tdTotalAmount').attr('id', 'BlillItems_' + itemsLength + "__TotalAmount").attr('name', 'BlillItems[' + itemsLength + "].TotalAmount");
+        //    firsttr.find('.tdBilledStatus').attr('id', 'BlillItems_' + itemsLength + "__BilledStatus").attr('name', 'BlillItems[' + itemsLength + "].BilledStatus");
+
+        //    $('#tblInvoiceItems tbody').append(firsttr);
+
+        //}
+
+        CalGrossTotal();
+
+        return false;
+
+        //btn.preventDefault();
+    }
+
+
+
+    function Remove(button) {
+        //Determine the reference of the Row using the Button.
+        var row = $(button).closest("TR");
+        var name = row.attr("data-id");
+        if (confirm("Do you want to delete row " + name + " ?")) {
+            //Get the reference of the Table.
+            var table = $("#tblInvoiceItems")[0];
+
+            //Delete the Table row using it's Index.
+            table.deleteRow(row[0].rowIndex);
+
+            CalGrossTotal();
+
+
+        }
+    }
+
+    function CalGrossTotal() {
+
+
+        var FinalAmount = 0;
+        var FinalGSTVATAmount = 0;
+        var FinalTotalAmount = 0;
+        $('#tblInvoiceItems tbody tr').each(function (i) {
+
+            var lasttr = $(this);
+            var RowNo = i + 1;
+            lasttr.attr("data-id", RowNo);
+
+            var Amount = parseFloat(lasttr.find(".tdAmount").val());
+            var GSTVATAmount = parseFloat(lasttr.find(".tdGSTVATAmount").val());
+            var TotalAmount = parseFloat(lasttr.find(".tdTotalAmount").val());
+
+
+            FinalAmount = FinalAmount + Amount;
+            FinalGSTVATAmount = FinalGSTVATAmount + GSTVATAmount;
+            FinalTotalAmount = FinalTotalAmount + TotalAmount;
+
+        });
+        $('#tblInvoiceItems input[id^="BlillItem_FinalAmount"]').val(FinalAmount);
+        $('#tblInvoiceItems input[id^="BlillItem_FinalGSTVATAmount"]').val(FinalGSTVATAmount);
+        $('#tblInvoiceItems input[id^="#BlillItem_FinalTotalAmount"]').val(FinalGSTVATAmount);
+    }
+
+
+    function OnChange_ConvRate(sender, event) {
+
+        var row = $(sender).closest('TR');
+        var txtPercent = $(sender).val();
+
+        var tdAmount = $("TD", row).find('.tdAmount').val();
+        var tdConvRate = $("TD", row).find('.tdConvRate').val();
+        var tdConvAmount = $("TD", row).find('.tdConvAmount');
+
+        if (isNaN(parseFloat(tdAmount)) == false && isNaN(parseFloat(tdConvRate)) == false) {
+
+            var Result = (parseFloat(tdAmount) * parseFloat(tdConvRate));
+            tdConvAmount.val(Math.round(Result));
+
+        }
+    }
+
+    function OnChange_GSTVATPercent(sender, event) {
+        debugger;
+        var row = $(sender).closest('TR');
+        var txtPercent = $(sender).val();
+
+        var txtAmount = $("TD", row).find('.tdConvAmount').val();
+        var txtAmtPercentValue = $("TD", row).find('.tdGSTVATAmount');
+        var txtTotalAmount = $("TD", row).find('.tdTotalAmount');
+
+        if (isNaN(parseFloat(txtAmount)) == false && isNaN(parseFloat(txtPercent)) == false) {
+
+            var Result = (parseFloat(txtPercent) / 100) * parseFloat(txtAmount);
+            txtAmtPercentValue.val(Math.round(Result));
+            var totalAmount = parseFloat(txtAmount) + Math.round(Result);
+            txtTotalAmount.val(totalAmount);
+        }
+
+        CalGrossTotal();
+
+    }
+</script>

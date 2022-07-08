@@ -1,0 +1,176 @@
+﻿@model RELOCBS.Entities.WOSJobOpening
+
+@using System.Data;
+@using RELOCBS.Common;
+
+@{
+    Layout = null;
+}
+
+<style>
+    table.tblCostSheet {
+        border-collapse: collapse;
+    }
+
+        table.tblCostSheet td, th {
+            border: 1px solid Black;
+            padding: 5px 15px;
+        }
+
+        table.tblCostSheet thead > tr:nth-child(1) > th:nth-child(1) {
+            background-color: #e7eaec;
+        }
+
+        table.tblCostSheet thead > tr:nth-child(1) > th:nth-child(2) {
+            background-color: #e7eaec;
+        }
+
+        table.tblCostSheet thead > tr:nth-child(1) > th:nth-child(3) {
+            background-color: #e7eaec;
+        }
+
+        table.tblCostSheet thead > tr:nth-child(1) > th:nth-child(4) {
+            background-color: #e7eaec;
+        }
+
+        table.tblCostSheet thead > tr:nth-child(2) > th {
+            background-color: #fcf8e3;
+        }
+
+        /* Define the background color for all the odd table columns */
+        table.tblCostSheet thead > tr:nth-child(3) > th:nth-child(odd) {
+            background: #b8d1f3;
+        }
+        /* Define the background color for all the even table columns */
+        table.tblCostSheet thead > tr:nth-child(3) > th:nth-child(even) {
+            background: #dae5f4;
+        }
+
+        table.tblCostSheet tbody > tr td:first-child {
+            font-weight: bold;
+            width: 5px;
+        }
+
+            table.tblCostSheet tbody > tr td:first-child + td {
+                font-weight: bold;
+                width: 20%;
+            }
+
+    .Total {
+        background-color: #dff0d8;
+    }
+
+    .tdwidth {
+        width: 10%;
+    }
+
+    .GPNg {
+        color: red;
+        width: 10%;
+    }
+</style>
+
+<div class="col-sm-12 pad-none">
+    <div class="row m-sm">
+        <div class="col-sm-2 col-md-2">
+            <strong>Prepared By: @Model.CSPreparedBy</strong>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            <strong>Prepared Date: @Model.CSPreparedDate</strong>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <strong>Approved By: @Model.CSApprovedBy</strong>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            <strong>Approved Date: @Model.CSApprovedDate</strong>
+        </div>
+        <div class="col-sm-1 col-md-1 pull-right">
+            <input type="button" id="btnExportCS" name="Export" class="btn btn-primary m-t-sm pull-right m-r-sm btn-sm filter-custom-margin m-n" value="Export CostSheet" />
+        </div>
+    </div>
+</div>
+<div class="col-sm-12 pad-none">
+    <table class="table table-responsive table-bordered white-bg tblCostSheet" id="tblCostSheet" style="width:100%">
+        <thead>
+            <tr>
+                <th colspan="2" rowspan="2" scope="colgroup"></th>
+                <th colspan="2" scope="colgroup" class="text-center">Final</th>
+            </tr>
+            <tr>
+                <th align="left" scope="col" colspan="2">
+                    <span>Consultant - @Model.SDName</span><br />
+                    <span>Client Relations Consultant - @Model.SRName</span><br />
+                    <span>From City - @Model.FromCityName</span><br />
+                    <span>To City - @Model.ToCityName</span><br />
+                </th>
+            </tr>
+            <tr>
+                <th class="text-center">Component</th>
+                <th class="text-center">Cost Head</th>
+                <th class="text-center" scope="col">Cost</th>
+                <th class="text-center" scope="col">Revenue</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.dsCostSheet != null && Model.dsCostSheet.Tables.Count > 0 && Model.dsCostSheet.Tables[0].Rows.Count > 0)
+            {
+                foreach (DataRow row in Model.dsCostSheet.Tables[0].Rows)
+                {
+                    var Cls = Convert.ToString(row["MoveCompName"]) == "TOT" ? "Total" : "";
+                    var GP = Convert.ToString(row["MoveCompName"]) == "GP" || Convert.ToString(row["MoveCompName"]) == "GP%" ? "GP" : "";
+                    <tr class="@Cls">
+                        @foreach (DataColumn col in Model.dsCostSheet.Tables[0].Columns)
+                        {
+                            if (col.ColumnName == "MoveCompName" || col.ColumnName == "CostHeadName" || col.ColumnName == "Currency")
+                            {
+                                var CompCls = (string.IsNullOrWhiteSpace(Cls) && string.IsNullOrWhiteSpace(GP)) ? (col.ColumnName == "CompName" ? "background: #b8d1f3;" : "background: #dae5f4;") : "";
+                                <td style="@CompCls">@row[col.ColumnName]</td>
+                            }
+                            else
+                            {
+                                var RedStyle = !string.IsNullOrWhiteSpace(Convert.ToString(row[col.ColumnName])) && Convert.ToDecimal(row[col.ColumnName]) < 0 ? "class=GPNg" : "class=tdwidth";
+
+                                if (col.ColumnName == "DeliveryCostVal" || col.ColumnName == "DeliveryRevenVal")
+                                {
+                                    <td align="right" @RedStyle>@row[col.ColumnName]</td>
+                                }
+                            }
+                        }
+                        <td align="right" TDwidth="5"></td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("tblCostSheet tbody tr").each(function () {
+                var col_val = $(this).find("td:eq(0)").text();
+                if (col_val == "TOT") {
+                    $(this).addClass('Total'); //the selected class colors the row green
+                }
+            });
+
+            /////second last
+            $(".tblCostSheet tbody tr:last").prev().each(function () {
+                var value = parseInt($(this).html());
+                if (value < 0) {
+                    $(this).addClass('GPNg');
+                }
+            });
+
+            /////last row
+            $(".tblCostSheet tbody tr:last").each(function () {
+                var value = parseInt($(this).html());
+                if (value < 0) {
+                    $(this).addClass('GPNg');
+                }
+            });
+        });
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+}

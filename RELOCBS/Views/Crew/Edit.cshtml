@@ -1,0 +1,235 @@
+﻿@model RELOCBS.Entities.Crew
+
+@{
+    ViewBag.Title = "Edit Crew";
+
+}
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+
+@using (Html.BeginForm("Edit", "Crew", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.CrewID)
+    @Html.HiddenFor(model => model.CompID)
+    <div class="modal-body m-md">
+        <div class="row">
+            <div class="form-group col-md-3 col-sm-3">
+                <label class="control-label requiredlabel">CrewCode</label>
+                @Html.EditorFor(model => model.CrewCode, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.CrewCode, "", new { @class = "text-danger" })
+            </div>
+            <div class="form-group col-md-4 col-sm-4">
+                <label class="control-label requiredlabel">Superviser</label>
+                @Html.DropDownListFor(model => model.SuperviserID, new SelectList((System.Collections.IEnumerable)ViewData["SuperviserList"], "Value", "Text"), "--Select Superviser--", new { @class = "form-control input-sm" })
+                @Html.ValidationMessageFor(model => model.SuperviserID, "", new { @class = "text-danger" })
+            </div>
+            <div class="form-group col-md-3 col-sm-3">
+                <label class="control-label requiredlabel">ServiceLine</label>
+                @Html.DropDownListFor(model => model.ServiceLineID, new SelectList((System.Collections.IEnumerable)ViewData["ServiceLineList"], "Value", "Text"), "--Select ServiceLine--", new { @class = "form-control input-sm" })
+                @Html.ValidationMessageFor(model => model.ServiceLineID, "", new { @class = "text-danger" })
+            </div>
+            <div class="form-group col-md-2 col-sm-2">
+                <div class="col-md-offset-2 m-t-sm">
+                    <div class="col-md-2 col-sm-2 checkbox">
+                        <label>
+                            @Html.CheckBoxFor(model => model.IsActive, new { htmlAttributes = new { @class = "form-control input-sm" } }) &nbsp;@Html.DisplayNameFor(x => x.IsActive)
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 table-responsive m-t-sm" id="pnl-rates" style="overflow: auto;height: 340px">
+                <div class="row m-t-sm">
+                    <div class="col-md-2 col-sm-2">
+                        Employee
+                    </div>
+                    <div class="col-md-5 col-sm-5">
+                        @Html.DropDownList("Employee", new SelectList((System.Collections.IEnumerable)ViewData["EmployeeList"], "Value", "Text"), "--Select Employee--", new { @class = "form-control input-sm clearfix" })
+                    </div>
+                    <div class="col-md-3 col-sm-3">
+                        <input type="button" id="btnAdd" value="Add" class="btn btn-primary pull-left btn-sm" onclick="AddCrewMember()" />
+                    </div>
+                </div>
+                <table class="table table-striped m-t-sm" id="CostHeadtable">
+                    <thead class="ibox-title">
+                        <tr>
+                            <th class="tdNone"></th>
+                            <th>Emp Code</th>
+                            <th>Employee Name</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.members.Count; i++)
+                        {
+                            <tr>
+                                <td class="tdNone">
+                                    @Html.HiddenFor(model => Model.members[i].CWMID)
+                                    @Html.HiddenFor(model => Model.members[i].EmpID, new { @class = "EmpValue" })
+                                </td>
+                                <td class="CostHead">
+                                    @Html.TextBoxFor(model => Model.members[i].CardEmpCode, new { @class = "form-control input-sm clearfix cardemp", @readonly = "readonly" })
+                                </td>
+                                <td class="CostHead">
+                                    @Html.TextBoxFor(model => @Model.members[i].EmpName, new { @class = "form-control input-sm clearfix emp", @readonly = "readonly" })
+                                </td>
+                                <td><button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left m-n m-l-md" onclick="RemoveCrewMember(this)" /></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnCreate" />
+        </div>
+    </div>
+}
+
+<script>
+    $(document).ready(function () {
+        $("[data-val-required]").each(function () {
+            $("label[for=" + this.id + "]").addClass("requiredlabel")
+        });
+    });
+
+    function RemoveCrewMember(sender) {
+
+        //Determine the reference of the Row using the Button.
+        var row = $(sender).closest("TR");
+        var name = $("TD", row).eq(1).find('.cardemp').val().trim() + '-' + $("TD", row).eq(2).find('.emp').val().trim();
+        if (confirm("Do you want to delete: " + name.trim())) {
+            //Get the reference of the Table.
+            var table = $("#CostHeadtable")[0];
+
+            //Delete the Table row using it's Index.
+            table.deleteRow(row[0].rowIndex);
+
+        }
+
+        return false;
+    }
+
+    function checkEmpExists(Emp) {
+
+        var result = false;
+
+        $("#CostHeadtable > TBODY").find('.EmpValue').each(function () {
+
+            if ($(this).val() == Emp) {
+                result = true;
+                return false;
+            }
+
+        });
+
+        return result;
+
+    }
+
+
+    function AddCrewMember() {
+
+        var empComboText = $("#Employee option:selected").text();
+        var empComboValue = $("#Employee option:selected").val();
+
+        if (empComboValue > 0) {
+
+            if (!checkEmpExists(empComboValue)) {
+
+                var tBody = $("#CostHeadtable > TBODY")[0];
+                var rowCount = $('#CostHeadtable > TBODY > tr').length;
+                var row = tBody.insertRow(-1);
+                row.className = "package-row";
+
+                var cell = $(row.insertCell(-1));
+
+                var array = empComboText.split("-", 2);
+                var td = '<input data-val="true" data-val-number="The field CWMID must be a number." data-val-required="The CWMID field is required." id="members_' + rowCount + '__CWMID" name="members[' + rowCount + '].CWMID" type="hidden" value="-1" autocomplete="off">'
+                    + '<input data-val="true" data-val-number="The field EmpID must be a number." data-val-required="The EmpID field is required." id="members_' + rowCount + '__EmpID" name="members[' + rowCount + '].EmpID" type="hidden" value="' + empComboValue + '" autocomplete="off">';
+
+                cell.html(td);
+                cell.addClass("tdNone");
+
+                var tdCostHead1 = '';
+                var tdCostHead2 = '<input class="form-control input-sm clearfix emp" readonly="readonly" id="members_' + rowCount + '__EmpName" name="members[' + rowCount + '].EmpName" type="text" value="' + empComboText + '" autocomplete="off">';
+                if (array.length > 1) {
+
+                    tdCostHead1 = '<input class="form-control input-sm clearfix cardemp" readonly="readonly" id="members_' + rowCount + '__CardEmpCode" name="members[' + rowCount + '].CardEmpCode" type="text" value="' + array[0] + '" autocomplete="off">';
+                    tdCostHead2 = '<input class="form-control input-sm clearfix emp" readonly="readonly" id="members_' + rowCount + '__EmpName" name="members[' + rowCount + '].EmpName" type="text" value="' + array[1] + '" autocomplete="off">';
+                }
+
+                cell = $(row.insertCell(-1));
+
+                cell.html(tdCostHead1);
+                cell.addClass("CostHead");
+
+                cell = $(row.insertCell(-1));
+                cell.html(tdCostHead2);
+                cell.addClass("CostHead");
+
+                var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveCrewMember(this)" />'
+                cell = $(row.insertCell(-1));
+                cell.append(tdremove);
+
+            }
+            else {
+
+                alert('Employee already exists in list');
+                return false;
+
+            }
+
+        }
+        else {
+            alert('Employee is required');
+            return false;
+        }
+
+        return false;
+
+    }
+</script>
+<script>
+    $(document).ready(function () {
+
+        $("input").attr("autocomplete", "off");
+        $('select').select2();
+
+        var form = $("#mdlAddEdit form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+
+        $('#mdlAddEdit').on('shown.bs.modal', function () {
+            $('#CountryID').focus();
+        });
+        $('#mdlAddEdit form').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+
+            $('#mdlAddEdit .modal-content').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '#mdlAddEdit .modal-content',
+                success: function (data) {
+                    $('#mdlAddEdit .modal-content').html(data.Result);
+                    if (data.Success) {
+                        $('#mgrid .pagination li.active a').trigger('click');
+                        toastr.success("Crew updated successfully.");
+                        $('#mdlAddEdit').modal('hide');
+                    }
+                    $('#mdlAddEdit .modal-content').unmask();
+                }
+            });
+        });
+    });
+</script>

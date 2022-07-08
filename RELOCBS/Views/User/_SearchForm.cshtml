@@ -1,0 +1,63 @@
+﻿@using RELOCBS.Utility;
+
+@{
+    string _PageID = "7";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="form-group col-md-2">
+        <label class="marr-5">Show Records</label>
+        <div class="clearfix">
+            @Html.TextBox("SearchKey", null, new { @class = "form-control input-sm" })
+            @*@Html.DropDownList("CityID", new SelectList((System.Collections.IEnumerable)ViewData["CityList"], "Value", "Text"), I18N("Select City"), new { @class = "form-control input-sm" })*@
+        </div>
+    </div>
+    <div class="form-group col-md-1">
+        <div class="clearfix">
+            <input type="submit" class="btn btn-default btn-sm filter-custom-margin" value="Search" />
+        </div>
+    </div>
+    if (hasAddAccess)
+    {
+        <div class="form-group col-md-2">
+            <div class="clearfix">
+                <input type="button" id="RestAttempt" class="btn btn-warning btn-sm filter-custom-margin" value="Reset Attempt Count" />
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <div class="clearfix">
+                <input type="button" id="RestLastLogin" class="btn btn-warning btn-sm filter-custom-margin" value="Reset Last Login Datetime" />
+            </div>
+        </div>
+        <div class="form-group col-md-1">
+            <div class="clearfix">
+                <input type="button" id="RestPassword" class="btn btn-warning btn-sm filter-custom-margin" value="Reset Password" />
+            </div>
+        </div>
+        <div class="form-group col-md-1">
+            <div class="clearfix">                
+                <a id="btnOpenCopyUserRights" class="btn btn-warning btn-sm filter-custom-margin m-l-sm" data-cache="false" title="Copy User Rights"
+                   data-toggle="modal" data-target="#CopyUserRightsModal">Copy User Rights</a>
+            </div>
+        </div>
+
+        <a class="btn btn-default btn-sm lnkExportToExcel m-r-sm pull-right"><i class="fa fa-file-excel-o m-r-sm"></i>Export to Excel</a>
+
+        <div class="pull-right col-md-1">
+            @Html.ActionLink("New User", "Create", null,
+        new Dictionary<string, object>
+        {
+            { "class", "btn btn-primary btn-sm pull-right" },
+            { "data-toggle" , "modal"},
+            { "data-target", "#mdlAddEdit"},
+            { "data-cache", false},
+            { "title", "New City"}
+        })
+        </div>
+    }
+}

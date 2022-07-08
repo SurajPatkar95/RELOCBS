@@ -1,0 +1,607 @@
+﻿@model RELOCBS.Entities.JobAllocationModel
+@{
+    ViewBag.Title = "Job Allocation";
+    var JobActivity = new RELOCBS.Entities.JobActivity();
+}
+
+@Styles.Render("~/Content/bootstrap-selectcss")
+
+<div class="modal modal-wide fade" id="PJR_DJR_Modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog  width-100" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-heading">Job Report</div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            @using (Html.BeginForm("PJR_DJR", "JobAllocation", null, FormMethod.Post, new { enctype = "multipart/form-data", id = "CreateActivity", name = "CreateActivity" }))
+            {
+                <div class="modal-body">
+                    <div id="partialPJR_DJR" style="overflow-y:auto; height:480px"></div>
+                </div>
+                <div class="modal-footer">
+                    @*<button type="button" data-ng-show="isShown" class="btn btn-primary" data-ng-disabled="seletedJob.WisStatus == 'Completed'" data-ng-click="EditJobReport()">Edit</button>*@
+                    <button type="button" class="btn btn-primary" data-ng-show="!isShown" data-ng-click="JobReportCompleted(seletedJob)">Save & Completed</button>
+                    <button type="button" class="btn btn-primary" data-ng-show="!isShown" data-ng-click="SaveJob(seletedJob)">Save</button>
+                    <button type="button" class="btn btn-primary" data-ng-show="isShown" data-ng-click="Printreport(seletedJob)">Print</button>
+                    <button type="button" class="btn btn-primary" data-ng-show="!isShown" data-ng-click="CancelJob()">Cancel</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+<div>
+    <div class="modal modal-wide fade" id="myModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg width-100" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">Add/Edit Activity</h4>
+                </div>
+                @*<div id="frmEmp">
+            @Html.Partial("_ActivityDetail", JobActivity)
+        </div>*@
+                @*@using (Ajax.BeginForm("CreateActivity", "JobAllocation", new AjaxOptions() { HttpMethod = "POST", OnSuccess = "OnModalSuccess" }))*@
+                @using (Html.BeginForm("CreateActivity", "JobAllocation", null, FormMethod.Post, new { enctype = "multipart/form-data", id = "CreateActivity", name = "CreateActivity" }))
+                {
+                    <div class="modal-body" id="frmEmp" style="overflow-y:auto; height:480px">
+                        @Html.Partial("_ActivityDetail", JobActivity)
+                    </div>
+                    <div class="modal-footer">
+                        <input type="submit" name="submit" class="btn btn-primary" id="btnCreateActivity" value="Save" /> @*onclick="CreateActivity(this)"*@
+                        <button type="button" name="close" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="ibox-content">
+    @using (Html.BeginForm("Create", "JobAllocation", new { Indx = 0, MoveID = @Model.MoveID, InstID = @Model.InstID }, FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.ValidationSummary(true, "")
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(a => a.MoveID)
+        @Html.HiddenFor(a => a.InstID)
+        @Html.HiddenFor(a => a.activityList)
+        <div class="row m-b-xs">
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong>Job No. :</strong>&nbsp;<strong>@Model.JobNo</strong>
+                </div>
+            </div>
+            <div class="col-sm-5 col-md-5">
+                <div class="form-group">
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="clearfix">
+                    <button type="button" class="btn btn-primary pull-right m-l-xs" ng-click="JobScheduleClose(seletedJob)" data-ng-disabled="seletedJob.WisStatus == 'Completed'">Schedule Job</button>
+                    <button type="button" class="btn btn-primary pull-right m-l-xs" data-toggle="modal" data-target="#PJR_DJR_Modal" onclick="showPJR_DJRDetails(this)"> PJR/DJR </button>
+
+                </div>
+            </div>
+            <div class="col-sm-1 col-md-1">
+                <div>
+                    <input type="submit" class="btn btn-primary pull-right" name="submit" value="Save" id="btnSave" />
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <fieldset class="col-md-12 m-n pad-none">
+                <legend>Job Details</legend>
+                <div class="m-t-sm">
+                    <div class="row">
+
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <label>Expected Begin Date & Time</label>
+                                @Html.HiddenFor(a => a.InstID)
+                                @Html.EditorFor(a => a.ExpBeginDate, new { htmlAttributes = new { @class = "form-control input-sm clearfix datetimepicker", id = "ExpBeginDate", @readonly = "readonly" } })
+                                @*<div class="input-group">
+                                        <span class="input-group-addon" style="display: none">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                    </div>*@
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label>Expected Completion Date & Time</label>
+                                @Html.EditorFor(a => a.ExpCompDate, new { htmlAttributes = new { @class = "form-control input-sm clearfix datetimepicker", id = "ExpCompDate", @readonly = "readonly" } })
+
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <label>Actual Begin Date & Time</label>
+                                @Html.EditorFor(a => a.ActualBeginDate, new { htmlAttributes = new { @class = "form-control input-sm clearfix datetimepicker", id = "ActualBeginDate" } })
+                                @Html.ValidationMessageFor(a => a.ActualBeginDate, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label>Actual Completion Date & Time</label>
+                                @Html.EditorFor(a => a.ActulaCompleteDate, new { htmlAttributes = new { @class = "form-control input-sm clearfix datetimepicker", id = "ActulaCompleteDate" } })
+                                @Html.ValidationMessageFor(a => a.ActulaCompleteDate, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <label>Turnaround Time</label>
+                                @*<div class="input-group">*@
+                                @Html.EditorFor(a => a.TurnaroundTime, new { htmlAttributes = new { @placeholder = "Turnaround Time", @tooltip = "Turnaround Time", @class = "form-control input-sm clearfix timepicker", title = "Turnaround Time", id = "TurnaroundTime" } })
+                                @*<span class="input-group-addon">
+                                        <span class="fa fa-clock-o"></span>
+                                    </span>*@
+                                @*</div>*@
+                                @Html.ValidationMessageFor(a => a.TurnaroundTime, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label>Special Instructions</label>
+                                @Html.TextAreaFor(m => m.Special_Instructions, new { @class = "form-control customTxt" })
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label>Remarks</label>
+                                @Html.TextBoxFor(a => a.Remark, new { @class = "form-control input-sm", placeholder = "Remark", title = "Remark", @id = "Remark" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset class="col-md-12 m-n pad-none">
+                <legend>Activities</legend>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <table id="tblActivities" class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <td>
+                                        <button type="button" href="@Url.Action("CreateActivity", "JobAllocation", new {InstID = Model.InstID, ActivityID = -1 })" class="btn btn-primary btn-sm a-btn-slide-text" data-cache="false" onclick="ModelClick(this)">
+                                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                                            <span><strong>Add</strong></span>
+                                        </button>
+                                    </td>
+                                    <th>Activity Type</th>
+                                    <th>From Date</th>
+                                    <th>To Date</th>
+                                    <th>From Location</th>
+                                    <th>To Location</th>
+                                    <th>Rep Time</th>
+                                    <th>Remark</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody style="max-height:150px">
+                                @for (var i = 0; i < Model.activities.Count; i++)
+                                {
+
+                                    <tr>
+                                        <td>
+                                            <button type="button" href="@Url.Action("CreateActivity", "JobAllocation", new {InstID = Model.activities[i].InstID, ActivityID = Model.activities[i].ActivityID })" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" data-cache="false" title="Edit" onclick="ModelClick(this)"></button>
+                                        </td>
+                                        <td>
+                                            @Html.EditorFor(a => Model.activities[i].ActivityName, new { htmlAttributes = new { @placeholder = "Activity Type", @tooltip = "Activity Type", @class = "form-control input-sm ActType", title = "Activity Type", @readonly = "readonly" } })
+                                            @Html.HiddenFor(x => Model.activities[i].ActivityID, new { @class = "ActivityID" })
+                                            @Html.HiddenFor(x => Model.activities[i].InstID, new { @class = "InstID" })
+                                        </td>
+                                        <td>
+                                            @Html.EditorFor(a => Model.activities[i].FromDate, new { htmlAttributes = new { @placeholder = "From Date", @tooltip = "From Date", @class = "form-control input-sm datetimepicker ActFromDate", title = "From Date", @readonly = "readonly" } })
+                                        </td>
+                                        <td>
+                                            @Html.EditorFor(a => Model.activities[i].ToDate, new { htmlAttributes = new { @placeholder = "To Date", @tooltip = "To Date", @class = "form-control input-sm datetimepicker ActToDate", title = "To Date", @readonly = "readonly" } })
+                                        </td>
+                                        <td>
+                                            @Html.EditorFor(x => Model.activities[i].FromLocation, new { htmlAttributes = new { @class = "form-control input-sm clearfix ActFromLoc", @readonly = "readonly" } })
+                                        </td>
+                                        <td>
+                                            @Html.EditorFor(x => Model.activities[i].ToLocation, new { htmlAttributes = new { @class = "form-control input-sm clearfix ActToLoc", @readonly = "readonly" } })
+                                        </td>
+                                        <td>
+                                            @Html.EditorFor(a => Model.activities[i].RepTime, new { htmlAttributes = new { @placeholder = "Rep Time", @tooltip = "Rep Time", @class = "form-control input-sm clearfix timepicker ActRepTime", @readonly = "readonly" } })
+                                        </td>
+                                        <td>
+                                            @Html.EditorFor(x => Model.activities[i].Remark, new { htmlAttributes = new { @class = "form-control input-sm clearfix ActRemark", @readonly = "readonly" } })
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveActivity(this)"></button>
+                                        </td>
+                                    </tr>
+
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+
+        </div>
+
+
+
+    }
+</div>
+
+@section Scripts{
+
+    <script>
+        $(document).ready(function () {
+
+            DatePickerClass();
+            ////Adding reference of the SaveData 
+            $("#btnSave").bind("click", SaveData);
+            
+        });
+
+        function DatePickerClass() {
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY HH:mm",
+                sideBySide: true//,
+                //widgetPositioning: {
+                //    vertical: 'bottom'
+                //}
+
+            });
+
+            $('.timepicker').datetimepicker({
+                format: 'HH:mm',
+            });
+
+            $('.datetimepicker').each(function () {
+
+                if ($(this).val().includes("0001")) {
+                    $(this).val("");
+                }
+            });
+
+        }
+
+        function SaveData() {
+
+            $("#activityList").val(JSON.stringify(getAllData()));
+
+        }
+
+        function getAllData() {
+            var data = [];
+            $('#tblActivities tbody tr').each(function () {
+
+                var ActType = $(this).find('.ActType').val();
+                var ActivityID = $(this).find('.ActivityID').val();
+                var InstID = $(this).find('.InstID').val();
+                var ActFromDate = $(this).find('.ActFromDate').val();
+                var ActToDate = $(this).find('.ActToDate').val();
+                var ActFromLoc = $(this).find('.ActFromLoc').val();
+
+                var ActToLoc = $(this).find('.ActToLoc').val();
+                var ActRepTime = $(this).find('.ActRepTime').val();
+
+                var ActRemark = $(this).find('.ActRemark').val();
+                var alldata = {
+                    'ActivityName': ActType,
+                    'ActivityID': parseInt(ActivityID),
+                    'InstID': parseInt(InstID),
+                    'FromDate': ActFromDate,
+                    'ToDate': ActToDate,
+                    'FromLocation': ActFromLoc,
+                    'ToLocation': ActToLoc,
+                    'RepTime': ActRepTime,
+                    'Remark': ActRemark
+                }
+                data.push(alldata);
+            });
+
+            var pair = { 'Activities': data }
+            return pair;
+        }
+
+
+        function ClearMember() {
+
+            $("#CrewEmp").val('').trigger('change');
+            $("#CrewFromDate").val('');
+            $("#CrewToDate").val('');
+
+        }
+
+        function RemoveMember(sender) {
+            //Determine the reference of the Row using the Button.
+            var row = $(sender).closest("TR");
+            var name = $("TD", row).find('.CrewEmpList option:selected').text().trim();
+            if (confirm("Do you want to delete: " + name.trim())) {
+                //Get the reference of the Table.
+                var table = $("#tlbCrew")[0];
+
+                //Delete the Table row using it's Index.
+                table.deleteRow(row[0].rowIndex);
+
+            }
+
+            return false;
+        }
+
+        function checkMemberExists(Emp) {
+
+            var result = false;
+
+            $("#tlbCrew > TBODY").find('.CrewEmp').each(function () {
+
+                if ($(this).val() == Emp) {
+                    result = true;
+                    return false;
+                }
+
+            });
+
+            return result;
+
+        }
+
+        function checkEmpExists(Emp) {
+
+            var result = false;
+
+            $("#tlbCrew > TBODY").find('.CrewEmp').each(function () {
+
+                if ($(this).val() == Emp) {
+                    result = true;
+                    return false;
+                }
+
+            });
+
+            return result;
+
+        }
+
+
+        function AddCrewMember() {
+
+            $("#CrewEmp :selected").map(function (i, el) {
+
+                var empComboText = $(el).text();
+                var empComboValue = $(el).val();
+                var FromDate = $("#CrewFromDate").val();
+                var ToDate = $("#CrewToDate").val();
+
+                if (empComboValue > 0) {
+
+                    if (!checkEmpExists(empComboValue)) {
+
+                        var tBody = $("#tlbCrew > TBODY")[0];
+                        var rowCount = $('#tlbCrew > TBODY > tr').length;
+                        var row = tBody.insertRow(-1);
+                        //row.className = "package-row";
+                        var cell = $(row.insertCell(-1));
+
+                        var td = '<input class="form-control input-sm clearfix CrewEmpList" id="members_' + rowCount + '__EmpName" name="members[' + rowCount + '].EmpName" type="text" value="' + empComboText + '">'
+                            + '<input data-val="true" data-val-number="The field EmpID must be a number." data-val-required="The EmpID field is required." id="members_' + rowCount + '__EmpID" name="members[' + rowCount + '].EmpID" type="hidden" value="' + empComboValue + '" autocomplete="off">';
+                        cell.append(td);
+
+                        cell = $(row.insertCell(-1));
+                        td = '<input class="form-control input-sm clearfix CrewEmpFromDate datetimepicker" data-val="true" data-val-date="The field EffectiveFrom must be a date." id="members_' + rowCount + '__EffectiveFrom" name="members[' + rowCount + '].EffectiveFrom" type="text" value="' + FromDate + '">'
+                        cell.append(td);
+
+                        cell = $(row.insertCell(-1));
+                        td = '<input class="form-control input-sm clearfix CrewEmpToDate datetimepicker" data-val="true" data-val-date="The field EffectiveTo must be a date." id="members_' + rowCount + '__EffectiveTo" name="members[' + rowCount + '].EffectiveTo" type="text" value="' + ToDate + '">'
+                        cell.append(td);
+
+                        var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveMember(this)"></button>'
+                        cell = $(row.insertCell(-1));
+                        cell.append(tdremove);
+
+                        DatePickerClass();
+                        ClearMember();
+                    }
+                    else {
+
+                        alert('Employee already exists in list');
+                        return false;
+
+                    }
+
+                }
+                else {
+                    alert('Employee is required');
+                    return false;
+                }
+                //return $(el).val();
+
+
+            })
+            
+            return false;
+
+        }
+
+    </script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            $("form#CreateActivity").validate().settings.ignore = "";
+
+            $('form#CreateActivity').on('submit', function (e) {
+                e.preventDefault();
+                $(this).ajaxSubmit({
+                    target: '#frmEmp',
+                    success: function (data) {
+                        OnModalSuccess(data);
+                        DatePickerClass();
+                        
+                    }
+                });
+            });
+
+        });
+
+        function showPJR_DJRDetails(clickedElement) {
+
+            debugger;
+            var id = @Html.Raw(Model.MoveID);
+            var route = '@Url.Action("PJR_DJR", "JobAllocation", new { id="-1" })';
+            route = route.replace("-1", id);
+            $('#partialPJR_DJR').load(route, function () {
+
+                //alert('Success');
+            });
+
+            //return false;
+        }
+
+        function OnModalSuccess(data) {
+
+            debugger;
+            if (data != null && data.status == null) {
+                $('#frmEmp').html(data);
+            } else if (data != null && data.status === "success") {
+                toastr.success(data.Message);
+                $('#myModal').modal('hide');
+                location.reload();
+            }
+
+            //else {
+            //    if (data.Message != null && data.Message!="") {
+            //        toastr.error(data.Message);
+            //    }
+            //}
+
+            //$.each(data.formErrors, function () {
+            //    $("[data-valmsg-for=" + this.key + "]").html(this.errors.join());
+            //});
+
+
+        }
+
+        /////Material Live Search in table
+        function SearchMaterail(sender) {
+            
+            var value = $(sender).val().toLocaleLowerCase();
+            
+
+                $('#tblMaterial tr').each(function (index) {
+                    if (index != 0) {
+                        $row = $(this);
+                        var id = $row.find("td:first").find('.TblMaterail').val().toLocaleLowerCase();
+                        if (id.indexOf(value) != 0) {
+                            $(this).hide();
+                        }
+                        else {
+                            $(this).show();
+                        }
+
+                    }
+
+                })
+
+            
+        }
+
+        function ModelClick(sender) {
+            var button = $(sender);
+            var url = button.attr("href");
+
+            $.ajax({
+                url: url,
+                success: function (data) {
+
+                    $('#frmEmp').html(data);
+                    $('#myModal').modal({
+                        backdrop: 'static'
+                    });//modal('show');
+                    DatePickerClass();
+                    $('.enableselect').select2();
+                    $('.multipleselect').multiselect({
+                        includeSelectAllOption: false,
+                        enableFiltering: true,
+                        filterPlaceholder: 'Search',
+                        maxHeight: 250,
+                    });
+                    debugger;
+                    $('#VehicleTypeDropdown').trigger('change');
+                    return false;
+                }
+            });
+
+            return false;
+        }
+    </script>
+    @*Create Activity *@
+    <script type="text/javascript">
+        function CreateActivity(sender) {
+            var form = sender.form;
+            $.validator.unobtrusive.parse($('#' + form.id));
+            $('#' + form.id).validate();
+            if ($('#' + form.id).valid()) {
+
+                debugger;
+                $('#' + form.id).ajaxSubmit(
+                    {
+                        contentType: 'application/json; charset=utf-8', 
+                        crossDomain: true,
+                        data: { SubmitButton: sender.value },
+                        beforeSubmit: showRequest,
+                        success: function (result) {
+
+                            debugger;
+                            if (result.ok) {
+                                toastr.success(result.message);
+                                $('#myModal').modal('hide');
+                                location.reload();
+                            }
+                            else {
+                                toastr.error(result.message);
+                            }
+
+                            return false;
+                        },
+                        error: function (xhr, textStatus, errorThrown) {
+                            alert("Error : " + errorThrown.error);
+                            //updateTips("Error occured.Unable to update.");
+                        }
+
+                    }
+                );
+
+
+            }
+            ////else {
+            ////    var validator = $('#' + form.id).validate();
+            ////    validator.form();
+            ////}
+
+            return false;
+        }
+
+        function showRequest(formData, jqForm, options) {
+
+        }
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+    <script type="text/javascript" src="http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
+
+}

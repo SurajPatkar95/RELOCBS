@@ -1,0 +1,108 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using RELOCBS.Common;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model StaticPagedList<RELOCBS.Entities.ComplaintGrid>
+
+@{
+    
+    string _PageID = "75";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+    bool hasViewAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.VIEW);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+columns.Add(o => o.ComplaintId)
+.Titled("ComplaintId")
+.Css("col-md-1")
+.SetWidth(2);
+//.SortInitialDirection(GridMvc.Sorting.GridSortDirection.Descending);
+
+columns.Add(o => o.Classification)
+.Css("col-md-2")
+.Titled("Classification")
+.SetWidth(2);
+
+columns.Add(o => o.EnqNo)
+.Css("col-md-2")
+.Titled("EnqNo")
+.SetWidth(2);
+
+columns.Add(o => o.JoBNo)
+.Css("col-md-2")
+.Titled("JoBNo")
+.SetWidth(2);
+
+columns.Add(o => o.Shipper)
+.Css("col-md-2")
+.Titled("Shipper")
+.SetWidth(5);
+columns.Add(o => o.Logger_Name)
+.Css("col-md-2")
+.Titled("Logger_Name")
+.SetWidth(10);
+columns.Add(o => o.FromLocation)
+.Css("col-md-2")
+.Titled("FromCity")
+.SetWidth(10);
+
+columns.Add(o => o.ToLocation)
+.Css("col-md-2")
+.Titled("ToCity")
+.SetWidth(10);
+
+columns.Add(o => o.Mode)
+.Css("col-md-2")
+.Titled("Mode")
+.SetWidth(10);
+
+columns.Add(o => o.LastCreatedDate).Format("{0:dd-MMM-yyyy HH:mm}")
+.Css("col-md-3")
+.Titled("LastModifiedDate")
+.SetWidth(10);
+columns.Add(o => o.LastCreatedBy)
+.Css("col-md-3")
+.Titled("LastModifiedBy")
+.SetWidth(10);
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("Actions")
+.RenderValueAs(d =>
+@<span>
+  @if (hasEditAccess)
+   {
+      <a href="@Url.Action("Create", "Complaints", new { id =d.ComplaintId })" class="btn btn-xs btn-default pull-left" title="Edit" target="_blank">
+             <i class="fa fa-edit"></i>
+      </a>
+   }
+  @if(hasDeleteAccess)
+    {
+            <div class="pull-left">
+                <form method="post" action="@Url.Action("Delete/" + d.ComplaintId, "Complaints")" class="frmRWDelete" title="Delete Complaint">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@d.ComplaintId" />
+                    <button type="submit" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5"></button>
+                </form>
+            </div>
+    }
+</span>
+);
+}).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>

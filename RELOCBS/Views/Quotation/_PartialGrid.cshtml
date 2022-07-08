@@ -1,0 +1,165 @@
+﻿@using RELOCBS.Utility;
+@using System.Data;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model  List<RELOCBS.Entities.QuotingGrid>
+
+@{
+
+    string _PageID = "9";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+    var hasUsedJob = (from item in Model where item.UsedForJob == true select item).FirstOrDefault();
+
+    bool? IsUsedJob = hasUsedJob != null ? hasUsedJob.UsedForJob : null;
+
+}
+
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+
+columns.Add().Encoded(false)
+.Sanitized(false).Css("tdNone")
+.Sortable(false).RenderValueAs(d=>
+
+@<input type="hidden" name="Survey" id="Survey" class="tdSurvey" value="@d.SurveyID" />
+);
+            columns.Add().Encoded(false)
+.Sanitized(false).Css("tdNone")
+.Sortable(false).RenderValueAs(d =>
+
+@<input type="hidden" name="RateWt" id="RateWt" class="tdRateWt" value="@d.ratecompanyratewtid" />
+);
+//columns.Add(o => o.FromCity)
+//.Titled("From City")
+//.Css("col-md-2")
+//.SetWidth(2);
+columns.Add(o => o.ratecompratebatchid)
+.Titled("Estimation ID").Css("col-md-2").SetWidth(1);
+columns.Add(o => o.Exitport)
+.Titled("Exitport").Css("col-md-2").SetWidth(2);
+
+columns.Add(o => o.EntryPort)
+.Css("col-md-2")
+.Titled("EntryPort")
+.SetWidth(2);
+
+//columns.Add(o => o.ToCity)
+//.Titled("To City")
+//.Css("col-md-2").SetWidth(2);
+
+columns.Add(o => o.WeightFrom)
+.Titled("WeightFrom")
+.Css("col-md-1").SetWidth(1);
+
+columns.Add(o => o.WeightTo)
+.Titled("WeightTo")
+.Css("col-md-1").SetWidth(1);
+
+columns.Add(o => o.TotEstimate)
+.Titled("Total Estimate")
+.Css("col-md-2").SetWidth(2);
+
+columns.Add(o => o.TotQuote)
+.Titled("Total Qoute")
+.Css("col-md-2").SetWidth(2);
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(false)
+.Css("col-md-3").Titled("Actions")
+.RenderValueAs(d =>
+
+@<span>
+
+    @*@if (hasEditAccess)
+    {*@
+        <a href="@Url.Action("Create", "Quotation", new {SurveyID = d.SurveyID,RateCompRateWtID = d.ratecompanyratewtid,RateCompRateBatchID = d.ratecompratebatchid })" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" data-cache="false" title="Edit Rate"></a>
+    @*}*@
+    
+    <a onclick="showDetails(this);" id="Details_@d.ratecompanyratewtid" data-id="@d.SurveyID" class="btn btn-xs btn-default glyphicon glyphicon-eye-open" data-cache="false" title="Detail Rate"
+       data-assigned-id="@d.ratecompanyratewtid" data-batch-id="@d.ratecompratebatchid" data-toggle="modal" data-target="#exampleModalLong"></a>
+
+    <a id="btnReport" class="btn btn-xs btn-default fa fa-download" href="@Url.Action("GetReport","Quotation",new {surveyid = d.SurveyID, Wtid=d.ratecompanyratewtid,Batchid=d.ratecompratebatchid})" target="_blank"></a>
+
+</span>
+);
+
+columns.Add().Titled("ForJob Status")
+.Encoded(false)
+.Sanitized(false)
+.Sortable(false)
+.SetWidth(2).Css("col-md-3")
+.RenderValueAs(d =>
+@<span>
+    @if (d.UseForJob == true)
+    {
+        <span class="label label-success">Active</span>
+    }
+
+</span>
+);
+
+columns.Add().Titled("")
+.Encoded(false)
+.Sanitized(false)
+.Sortable(false)
+.SetWidth(2).Css("col-md-3")
+.RenderValueAs(d =>
+
+@<span>
+    @if (d.UseForJob == true)
+    {
+        <span class="font-bold">Booked</span>
+    }
+    else if (IsUsedJob == null || IsUsedJob == false)
+    {
+
+        if (!string.IsNullOrWhiteSpace(d.QuoteNo))
+        {
+            <a onclick="UpdateUseForJob(this,@d.TotQuote);" id="Details_@d.ratecompanyratewtid" data-UseForJob="@d.UseForJob"
+               class="btn btn-xs btn-default ForJobDetails" title="Open Job"
+               data-id="@d.ratecompanyratewtid" data-assigned-id="@d.SurveyID" data-batch-id="@d.ratecompratebatchid">Book</a>
+        }
+    }
+    @if (d.UseForJob == true)
+    {
+        <a href="@Url.Action("Create", "Billing_Collection", new { Enquirydetid = d.EnqDetailID})" class="btn btn-xs btn-default pull-left" title="BillCollection">Billing & Collection</a>
+    }
+
+</span>
+
+);
+
+ columns.Add()
+ .Encoded(false)
+ .Sanitized(false)
+ .Css("col-md-1").Titled("Delete").RenderValueAs((d) =>
+
+ @<span>
+
+     @if (IsUsedJob == null || IsUsedJob == false)
+     {
+         //using (Html.BeginForm("Delete", "Cost", new { SurveyID = d.SurveyID, RateCompRateWtID = d.ratecompanyratewtid }))
+         //{
+         //    new HtmlString("<input data-confirmprompt='Are you sure?' type='submit' name ='Delete' value='Delete' />");
+         //}*@
+         <form method="post" action="@Url.Action("Delete", "Quotation", new {SurveyID = d.SurveyID,RateCompRateWtID = d.ratecompanyratewtid,RateCompRateBatchID = d.ratecompratebatchid  })"  class="frmRWDelete" title="Delete Cost">
+          @Html.AntiForgeryToken()
+          <input type="hidden" name="SurveyID" value="@d.SurveyID" />
+          <input type="hidden" name="RateCompRateWtID" value="@d.ratecompanyratewtid" />
+          <button type="button" name="action:Delete" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5"></button>
+        </form>
+
+     }
+</span>
+
+   );
+
+}).Sortable(false).Selectable(false).SetRowCssClasses(item => item.Colour == "A" ? "important" : "nonimportant")
+

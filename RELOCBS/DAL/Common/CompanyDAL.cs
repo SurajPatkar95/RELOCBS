@@ -40,9 +40,9 @@ namespace RELOCBS.DAL.Common
                     {
 
                         conn.AddCommand("[Comm].[AddEditCompany]", QueryType.Procedure);
-                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CompanyID", SqlDbType.Int, 0, ParameterDirection.InputOutput, company.CompID);
+                        //conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CompanyID", SqlDbType.Int, 0, ParameterDirection.InputOutput, company.CompID);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CompanyName", SqlDbType.NVarChar, 100, ParameterDirection.Input, CSubs.PSafeValue(company.CompanyName));
-                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_ShortCompanyName", SqlDbType.NVarChar, 50, ParameterDirection.Input, CSubs.PSafeValue(company.ShortCompanyName));
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CompShortName", SqlDbType.NVarChar, 50, ParameterDirection.Input, CSubs.PSafeValue(company.ShortCompanyName));
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CityID", SqlDbType.Int, 0, ParameterDirection.Input, company.CityID);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_Address1", SqlDbType.VarChar, 100, ParameterDirection.Input, company.Address1);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_Address2", SqlDbType.VarChar, 100, ParameterDirection.Input, company.Address2);
@@ -51,14 +51,14 @@ namespace RELOCBS.DAL.Common
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_IsActive", SqlDbType.Bit, 0, ParameterDirection.Input, company.IsActive);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_LOGINID", SqlDbType.Int, 0, ParameterDirection.Input, UserSession.GetUserSession().LoginID);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@RETURNSTATUS", SqlDbType.SmallInt, 0, ParameterDirection.ReturnValue);
-                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_Message", SqlDbType.NVarChar, 500, ParameterDirection.Output);
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@Out_Message", SqlDbType.NVarChar, 500, ParameterDirection.Output);
                         conn.ExecuteProcedure(ProcedureReturnType.SingleValue);
 
 
                         if (!conn.IsError)
                         {
                             int ReturnStatus = Convert.ToInt32(conn.GetParameterValue(ParameterOF.PROCEDURE, "@RETURNSTATUS"));
-                            result = Convert.ToString(conn.GetParameterValue(ParameterOF.PROCEDURE, "@SP_Message"));
+                            result = Convert.ToString(conn.GetParameterValue(ParameterOF.PROCEDURE, "@Out_Message"));
 
                             if (ReturnStatus == 0)
                             {
@@ -96,9 +96,9 @@ namespace RELOCBS.DAL.Common
                     {
 
                         conn.AddCommand("[Comm].[AddEditCompany]", QueryType.Procedure);
-                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CompanyID", SqlDbType.Int, 0, ParameterDirection.InputOutput, company.CompID);
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CompID", SqlDbType.Int, 0, ParameterDirection.InputOutput, company.CompID);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CompanyName", SqlDbType.NVarChar, 100, ParameterDirection.Input, CSubs.PSafeValue(company.CompanyName));
-                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_ShortCompanyName", SqlDbType.NVarChar, 50, ParameterDirection.Input, CSubs.PSafeValue(company.ShortCompanyName));
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CompShortName", SqlDbType.NVarChar, 50, ParameterDirection.Input, CSubs.PSafeValue(company.ShortCompanyName));
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_CityID", SqlDbType.Int, 0, ParameterDirection.Input, company.CityID);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_Address1", SqlDbType.VarChar, 100, ParameterDirection.Input, company.Address1);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_Address2", SqlDbType.VarChar, 100, ParameterDirection.Input, company.Address2);
@@ -107,13 +107,13 @@ namespace RELOCBS.DAL.Common
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_IsActive", SqlDbType.Bit, 0, ParameterDirection.Input, company.IsActive);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@SP_LOGINID", SqlDbType.Int, 0, ParameterDirection.Input, UserSession.GetUserSession().LoginID);
                         conn.AddParameter(ParameterOF.PROCEDURE, "@RETURNSTATUS", SqlDbType.SmallInt, 0, ParameterDirection.ReturnValue);
-                        conn.AddParameter(ParameterOF.PROCEDURE, "@SP_Message", SqlDbType.NVarChar, 500, ParameterDirection.Output);
+                        conn.AddParameter(ParameterOF.PROCEDURE, "@Out_Message", SqlDbType.NVarChar, 500, ParameterDirection.Output);
                         conn.ExecuteProcedure(ProcedureReturnType.SingleValue);
 
                         if (!conn.IsError)
                         {
                             int ReturnStatus = Convert.ToInt32(conn.GetParameterValue(ParameterOF.PROCEDURE, "@RETURNSTATUS"));
-                            result = Convert.ToString(conn.GetParameterValue(ParameterOF.PROCEDURE, "@SP_Message"));
+                            result = Convert.ToString(conn.GetParameterValue(ParameterOF.PROCEDURE, "@Out_Message"));
                             if (ReturnStatus == 0)
                             {
                                 return true;
@@ -208,17 +208,16 @@ namespace RELOCBS.DAL.Common
 
         }
 
-        public IEnumerable<Company> GetCompanyList(int pPageIndex, int pPageSize, string pOrderBy, int pOrder, int? RateTypeGrpID, int? CountryID, int? CityID, int? pisActive, string SearchKey, int LoggedinUserID, out int TotalCount)
+        public IEnumerable<Company> GetCompanyList(int pPageIndex, int pPageSize, string pOrderBy, int pOrder, int? CountryID, int? CityID, int? pisActive, string SearchKey, int LoggedinUserID, out int TotalCount)
         {
             TotalCount = 0;
             try
             {
-                string query = string.Format("exec Comm.GETCompanyForGrid @SP_PageIndex={0},@SP_PageSize={1},@SP_OrderBy={2},@SP_Order={3},@SP_OriginCityID={4},@SP_DesitnationCityID={5},@SP_isActive={6},@SP_SearchString={7},@SP_LoginID={8}",
+                string query = string.Format("exec Comm.GETCompanyForGrid @SP_PageIndex={0},@SP_PageSize={1},@SP_OrderBy={2},@SP_Order={3},@SP_CountryID={4},@SP_CityID={5},@SP_isActive={6},@SP_SearchString={7},@SP_LoginID={8}",
                  CSubs.QSafeValue(Convert.ToString(pPageIndex)),
                 CSubs.QSafeValue(Convert.ToString(pPageSize)),
                 CSubs.QSafeValue(pOrderBy),
                 CSubs.QSafeValue(Convert.ToString(pOrder)),
-                 CSubs.QSafeValue(Convert.ToString(RateTypeGrpID)),
                 CSubs.QSafeValue(Convert.ToString(CountryID)),
                 CSubs.QSafeValue(Convert.ToString(CityID)),
                  CSubs.QSafeValue(Convert.ToString(pisActive)),
@@ -243,6 +242,7 @@ namespace RELOCBS.DAL.Common
                                   Address2 = Convert.ToString(rw["Address2"]),
                                   Address3 = Convert.ToString(rw["Address2"]),
                                   ZIPNO = Convert.ToInt32(rw["ZIPNO"]),
+                                  CityName = Convert.ToString(rw["CityName"]),
                                   IsActive = Convert.ToBoolean(rw["IsActive"])
                               }).ToList();
 

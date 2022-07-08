@@ -1,0 +1,105 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using RELOCBS.Common;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model StaticPagedList<RELOCBS.Entities.WHAssessmentGrid>
+
+@{
+    
+    string _PageID = "70";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+    bool hasViewAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.VIEW);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+    columns.Add(o => o.TransId)
+    .Titled("AssessmentId")
+    .Css("col-md-1")
+    .SetWidth(2);
+    columns.Add(o => o.WarehouseName)
+    .Titled("Warehouse")
+    .Css("col-md-2")
+    .SetWidth(2);
+    columns.Add(o => o.AuditDate)
+    .Css("col-md-2")
+    .Titled("AuditDate").Format("{0:dd-MMM-yyyy}")
+    .SetWidth(10);
+    columns.Add(o => o.NoOfLiftVan)
+    .Css("col-md-1")
+    .Titled("No.Of Liftvan")
+    .SetWidth(10);
+    columns.Add(o => o.TotalVolCFT)
+    .Css("col-md-1")
+    .Titled("Vol.CFT")
+    .SetWidth(10);
+    columns.Add(o => o.NoOfPeople)
+    .Css("col-md-1")
+    .Titled("No.Of People")
+    .SetWidth(10);
+    columns.Add(o => o.NoOfLiftVanStored)
+    .Css("col-md-1")
+    .Titled("No.Of Liftvan Stored")
+    .SetWidth(10);
+    columns.Add(o => o.CreatedDate)
+    .Css("col-md-3")
+    .Titled("LastModifiedDate").Format("{0:dd-MMM-yyyy}")
+    .SetWidth(10);
+    columns.Add(o => o.CreatedBy)
+    .Css("col-md-3")
+    .Titled("LastModifiedBy")
+    .SetWidth(10);
+
+    columns.Add()
+    .Encoded(false)
+    .Sanitized(false)
+    .Sortable(true)
+    .Css("col-md-2").Titled("Actions")
+    .RenderValueAs(d =>
+    @<span>
+        @if (hasEditAccess)
+         {
+                <a href="@Url.Action("Create", "WHRiskAssessment",new { id = d.TransId})" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" target="_blank" title="Edit"></a>
+         }
+        
+        @if (hasViewAccess && d.TransId > 0)
+        {
+            <a href="@Url.Action("GetReport", "WHRiskAssessment",new { id = d.TransId })" class="btnView btn btn-sm btn-primary glyphicon glyphicon-print   pull-right" target="_blank" title="View Report"></a>
+        }
+
+        @*@if (hasViewAccess)
+        {
+            <a href="@Url.Action("GetLoadChartPrint", "LoadChart", new { LoadChartID = d.LoadChartID })" class="btn btn-primary btn-xs View m-l-sm" title="Print LoadChart" target="_blank"><i class='glyphicon glyphicon-print'></i></a>
+        }*@
+    
+        @if (hasDeleteAccess)
+        {
+                <div class="pull-left">
+                    <form method = "post" action="@Url.Action("Delete/" + d.TransId, "WHRiskAssessment")" class="frmRWDelete" title="Delete">
+                        @Html.AntiForgeryToken()
+                        <input type = "hidden" name="TransId" value="@d.TransId" />
+                        <button type = "submit" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5"></button>
+                    </form>
+                </div>
+        }
+
+
+    </span>
+    );
+
+}).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>

@@ -1,0 +1,85 @@
+﻿@model RELOCBS.Entities.JobActivity
+
+
+@Html.ValidationSummary(false, "", new { @class = "text-danger" })
+@Html.AntiForgeryToken()
+@Html.HiddenFor(a => a.MoveID)
+@Html.HiddenFor(a => a.InstID)
+@Html.HiddenFor(a => a.ActivityID)
+<div class="row tabs-container">
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="@(Model.TabIndex == 0 ? "active" : "")"><a href="#AdditionalService" aria-controls="AdditionalService" role="tab" data-toggle="tab" aria-expanded="true">Activity Detail</a></li>
+        <li role="presentation" class="@(Model.TabIndex == 1 ? "active" : "")"><a href="#CrewAllocation" aria-controls="CrewAllocation" role="tab" data-toggle="tab" aria-expanded="true">Crew Allocation</a></li>
+        <li role="presentation" class="@(Model.TabIndex == 2 ? "active" : "")"><a href="#VehicleAllocation" aria-controls="VehicleAllocation" role="tab" data-toggle="tab" aria-expanded="true">Vehicle Allocation</a></li>
+        <li role="presentation" class="@(Model.TabIndex == 3 ? "active" : "")"><a href="#MaterialRequest" aria-controls="MaterialRequest" role="tab" data-toggle="tab" aria-expanded="true">Material Request</a></li>
+        @if (Model.ActivityID > 0)
+        {
+            <li role="presentation" class="@(Model.TabIndex == 4 ? "active" : "")"><a href="#DocumentUpload" aria-controls="DocumentUpload" role="tab" data-toggle="tab" aria-expanded="true">Document Upload</a></li>
+        }
+    </ul>
+    <div class="tab-content">
+        <div role="tabpanel" class="@(Model.TabIndex == 0 ? "tab-pane active" : "tab-pane")" id="AdditionalService">
+            <fieldset class="col-md-12 m-n pad-none">
+                <legend>Activity</legend>
+                <div class="row">
+                    <div class="col-sm-4 col-md-4 form-group">
+                        <label>Activity Type</label>
+                        @Html.DropDownListFor(model => model.ActivityTypeID, new SelectList((System.Collections.IEnumerable)ViewData["ActivityTypeList"], "Value", "Text"), "--Select Activity Type--", new { @class = "form-control input-sm clearfix enableselect" })
+                        @Html.ValidationMessageFor(a => a.ActivityTypeID, "", new { @class = "text-danger" })
+
+                    </div>
+                    <div class="col-sm-3 col-md-3 form-group">
+                        <label>From Date</label>
+                        @Html.TextBoxFor(model => model.FromDate, null, new { @class = "form-control input-sm clearfix AFromDate datetimepicker " })
+                        @Html.ValidationMessageFor(a => a.FromDate, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-sm-3 col-md-3 form-group">
+                        <label>To Date</label>
+                        @Html.TextBoxFor(model => model.ToDate, null, new { @class = "form-control input-sm clearfix AToDate datetimepicker" })
+                        @Html.ValidationMessageFor(a => a.ToDate, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-sm-2 col-md-2 form-group">
+                        <label>RepTime</label>
+                        @Html.TextBoxFor(model => model.RepTime, null, new { @class = "form-control input-sm clearfix ARepTime timepicker" })
+                        @Html.ValidationMessageFor(a => a.RepTime, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-3 col-md-3 form-group">
+                        <label>From Location</label>
+                        @Html.TextBoxFor(model => model.FromLocation, null, new { @class = "form-control input-sm clearfix AFromLoc" })
+                        @Html.ValidationMessageFor(a => a.FromLocation, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-sm-3 col-md-3 form-group">
+                        <label>To Location</label>
+                        @Html.TextBoxFor(model => model.ToLocation, null, new { @class = "form-control input-sm clearfix AToLoc" })
+                        @Html.ValidationMessageFor(a => a.ToLocation, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-sm-3 col-md-3 form-group">
+                        <label>Remark</label>
+                        @Html.TextBoxFor(model => model.Remark, null, new { @class = "form-control input-sm clearfix ARemark" })
+                    </div>
+                </div>
+            </fieldset>
+            @{ Html.RenderPartial("_AdditionalService", Model); }
+        </div>
+        <div role="tabpanel" class="@(Model.TabIndex == 1 ? "tab-pane active" : "tab-pane")" id="CrewAllocation">
+            @{ Html.RenderPartial("_CrewAllocation", Model); }
+        </div>
+        <div role="tabpanel" class="@(Model.TabIndex == 2 ? "tab-pane active" : "tab-pane")" id="VehicleAllocation">
+            @{ Html.RenderPartial("_VehicleAllocation", Model); }
+        </div>
+        <div role="tabpanel" class="@(Model.TabIndex == 3 ? "tab-pane active" : "tab-pane")" id="MaterialRequest">
+            @{ Html.RenderPartial("_MaterialRequest", Model); }
+        </div>
+        @if (Model.ActivityID > 0)
+        {
+            <div role="tabpanel" class="@(Model.TabIndex == 4 ? "tab-pane active" : "tab-pane")" id="DocumentUpload">
+                @{ Html.RenderPartial("DocUpload", Model); }
+            </div>
+        }
+    </div>
+</div>
+@*<script src="~/Scripts/jquery-1.10.2.js"></script>
+    <script src="~/Scripts/jquery.validate.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.js"></script>*@

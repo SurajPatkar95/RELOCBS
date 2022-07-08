@@ -1,0 +1,82 @@
+﻿@model  RELOCBS.Entities.ActivityAllocationModel
+
+@using RELOCBS.Extensions;
+
+<div class="row">
+    <div class="col-sm-3 col-md-3 form-group hide">
+        <label>Supervisor</label>
+        @Html.DropDownListFor(model => model.jobCrew.SuperviserID, new SelectList((System.Collections.IEnumerable)ViewData["SuperviserList"], "Value", "Text"), "--Select Superviser--", new { @class = "form-control input-sm clearfix enableselect", tabindex = "-1" })
+    </div>
+    <div class="col-sm-3 col-md-3 form-group">
+        <label>Employee</label>
+        @Html.ListBox("CrewEmp", new SelectList((System.Collections.IEnumerable)ViewData["EmployeeList"], "Value", "Text"), new { @class = "form-control input-sm clearfix multipleselect", @multiple = "multiple" })
+    </div>
+    <div class="col-sm-2 col-md-2 form-group">
+        <label>From Date</label>
+        @Html.TextBox("CrewFromDate", null, new { @class = "form-control input-sm clearfix EmpFromDate datetimepicker " })
+    </div>
+    <div class="col-sm-2 col-md-2 form-group">
+        <label>To Date</label>
+        @Html.TextBox("CrewToDate", null, new { @class = "form-control input-sm clearfix EmpToDate datetimepicker" })
+    </div>
+    <div class="col-sm-1 col-md-1 form-group">
+        <div class="clearfix">
+            <input type="button" id="btnAdd" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="AddCrewMember()">
+        </div>
+    </div>
+</div>
+<div class="table-responsive">
+    <table id="tlbCrew" class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Employee</th>
+                <th>From Date</th>
+                <th>To Date</th>
+                <th>Is Supervisor</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody style="max-height:380px;">
+            @for (int i = 0; i < Model.jobCrew.members.Count; i++)
+            {
+                var C_PJR_Status = Model.jobCrew.members[i].PJR_Status;
+                <tr>
+                    <td>
+                        <a href="#" class="myPopover" data-toggle="popover" data-title="Details" data-placement="top right" data-api-parameter="@Url.Action("GetEmployeeAllocationDetail", new { EmpID= Model.jobCrew.members[i].EmpID,FromDate = Model.jobCrew.members[i].EffectiveFrom,ToDate = Model.jobCrew.members[i].EffectiveTo,BatchID = (Model.BatchID !=null ? Model.BatchID : -1)  })" onclick="OnPopoverButtonViewClick(this)">View</a>
+                    </td>
+                    <td>
+                        @*@Html.DropDownListFor(model => Model.members[i].EmpID, new SelectList((System.Collections.IEnumerable)ViewData["EmployeeList"], "Value", "Text", Model.members[i].EmpID),null, new { @class = "form-control input-sm clearfix CrewEmpList" })*@
+                        @Html.TextBoxFor(model => Model.jobCrew.members[i].EmpName, new { @class = "form-control input-sm clearfix CrewEmpList", @readonly = "readonly" })
+                        @Html.HiddenFor(model => Model.jobCrew.members[i].EmpID, new { @class = "CrewEmp" })
+                        @Html.HiddenFor(model => Model.jobCrew.members[i].CWMID, new { @class = "CWMID" })
+                        @Html.HiddenFor(model => Model.jobCrew.members[i].PJR_Status, new { @class = "C_PJR_Status" })
+                    </td>
+                    <td>
+                        @Html.TextBoxFor(model => Model.jobCrew.members[i].EffectiveFrom, new { @class = "form-control input-sm clearfix CrewEmpFromDate datetimepicker" }).DisableIf(() => Model.jobCrew.members[i].PJR_Status == 1)
+                    </td>
+                    <td>
+                        @Html.TextBoxFor(model => Model.jobCrew.members[i].EffectiveTo, new { @class = "form-control input-sm clearfix CrewEmpToDate datetimepicker" }).DisableIf(() => Model.jobCrew.members[i].PJR_Status == 1)
+                    </td>
+                    <td>
+                        @if(Model.jobCrew.members[i].ShowIsSupervisor)
+                        {
+                            var DisableSupervisor = Model.PackInventID != null ? (object)new { @class = "form-control input-sm IsSupervisor", @onchange = "OnIsSupervisorChange(this)" ,@disabled= "disabled" }  : (object)new { @class = "form-control input-sm IsSupervisor", @onchange = "OnIsSupervisorChange(this)" };
+                            @Html.CheckBoxFor(model => Model.jobCrew.members[i].IsSupervisor, DisableSupervisor)
+                        }
+                    </td>
+                    <td>
+                        @if (Model.jobCrew.members[i].PJR_Status == 0)
+                        {
+                            <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveMember(this)" />
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script type="text/javascript" src="~/Scripts/bootstrap.min.js"></script>
+}

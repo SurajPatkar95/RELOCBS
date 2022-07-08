@@ -1,0 +1,339 @@
+﻿@model RELOCBS.Entities.ClaimPrint
+
+@using RELOCBS.Utility;
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Claim Print</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style type="text/css">
+
+        .ttop {
+            vertical-align: top !important;
+        }
+
+        body {
+        }
+
+        .floatLeft {
+            float: left;
+        }
+
+        .tcenter {
+            text-align: center !important;
+        }
+
+        .boxWraper {
+            border: 1px solid #7b7b7b;
+            display: block;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+            .boxWraper .padding tr td {
+                padding: 3px 6px;
+            }
+
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        tr.border_bottom td {
+            border-bottom: 1pt solid black;
+        }
+
+        .tableData {
+            border: 0 !important;
+            line-height: 16px;
+        }
+
+
+            .tableData tr td {
+                background: #fff;
+                height: 100%;
+                vertical-align: middle;
+                border: 1px solid #e3e7ee;
+            }
+
+        .boxWraper tr th {
+            border: 1px solid #e3e7ee;
+            text-align: center;
+            padding: 3px 6px;
+        }
+
+
+        .marginLR {
+            margin: 0 auto;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        /*table {
+            border-collapse: separate;
+            border-spacing: 2px;
+        }*/
+
+        table {
+            background-color: transparent;
+        }
+
+        /*table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+        }*/
+
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 14px;
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            color: #808080;
+            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: subpixel-antialiased;
+            background: #fff;
+        }
+
+        .cw100 {
+            width: 100px !important;
+        }
+
+        .cw150 {
+            width: 150px !important;
+        }
+
+        .cw200 {
+            width: 200px !important;
+        }
+
+        .cw110 {
+            width: 110px !important;
+        }
+
+        .cw80 {
+            width: 80px !important;
+        }
+
+        .cw120 {
+            width: 120px !important;
+        }
+
+        .cw140 {
+            width: 140px !important;
+        }
+
+        .cw130 {
+            width: 140px !important;
+        }
+
+        .tbold {
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            font-weight: 600;
+        }
+
+        .tright {
+            text-align: right !important;
+        }
+
+        label {
+            margin-bottom: 0;
+        }
+
+        .tcollapse {
+            border-collapse: collapse;
+        }
+
+
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+        .taW {
+            width: 100% !important;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: normal;
+            font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+        }
+    </style>
+    <style type="text/css">
+        @@media print {
+            .grid-header {
+                background: #eee;
+                font-size: 13px;
+            }
+
+            body {
+                font-family: Serif;
+            }
+
+            h2 {
+                font-size: 20px;
+                text-transform: uppercase;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            h4 {
+                font-size: 13px;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="col-lg-12 col-sm-12 col-md-12" style=" flex-align:center">
+        <table class="marginLR" style="width:20cm;">
+            <tbody>
+                <tr>
+                    <td>
+                        <table class="taW">
+                            <tbody>
+                                <tr>
+                                    <td style="border-bottom:1px solid #7b7b7b;">
+                                        <div class="floatLeft" style="margin-top:34px;">
+
+                                            <input type="hidden" id="hWisId" data-ng-model="hWisIdm" value="5866" autocomplete="off" class="ng-pristine ng-untouched ng-valid ng-not-empty">
+                                        </div>
+                                        <div class="tcenter hidden-print">
+                                            <img src="~/Content/images/logo-icon.png" width="100px" height="100px">
+                                        </div>
+                                        <div class="tcenter">
+                                            <h2>Writer Relocations</h2>
+                                        </div>
+                                        <div class="tcenter">
+                                            <h3>CLAIM APPROVAL</h3>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="height:5px;"></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="boxWraper">
+                                            <table class="taW tcollapse padding">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="left">
+                                                            <label class="cw80 tbold">Docket No.</label> :
+                                                            <span class="ng-binding tbold">@Html.Raw(Model.DocketNo)</span>
+                                                        </td>
+                                                        <td colspan="5" class="cw200">&nbsp;</td>
+                                                        <td class="right">
+                                                            <label class="cw80 tbold">Date</label> :
+                                                            <span class="ng-binding">@Html.Raw( Model.ClaimDate!=null ?Model.ClaimDate.ToString("dd-MMM-yyyy") : "")</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <table class="table table-bordered">
+                                                <tr>
+                                                    <td class="col-md-3">Job No.</td>
+                                                    <td></td>
+                                                    <td class="col-md-3">@Html.Raw(Model.JobNo)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="col-md-3">Shipper</td>
+                                                    <td></td>
+                                                    <td class="col-md-3">@Html.Raw(Model.Shipper)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="col-md-3">Corporate</td>
+                                                    <td></td>
+                                                    <td class="col-md-3">@Html.Raw(Model.Corporate)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="col-md-3">Amount Insured</td>
+                                                    <td></td>
+                                                    <td class="col-md-3">@Html.Raw(Model.Amount_Insured)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="col-md-3">Premium Recieved</td>
+                                                    <td></td>
+                                                    <td class="col-md-3">@Html.Raw(Model.Premium_Recieved)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="col-md-3">Premium Paid</td>
+                                                    <td></td>
+                                                    <td class="col-md-3">@Html.Raw(Model.Premium_Paid)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="col-md-3">Claim Amount</td>
+                                                    <td></td>
+                                                    <td class="col-md-3">@Html.Raw(Model.Claim_Amount)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="col-md-3">Writer Paid Amount</td>
+                                                    <td></td>
+                                                    <td class="col-md-3">@Html.Raw(Model.Writer_Amount)</td>
+                                                </tr>
+                                            </table>
+                                        
+                                            <table class="taW tcollapse padding">
+                                                <tr>
+                                                    <td>Total Revenue from Job :</td>
+                                                    <td>Rs.___________________</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Total Estimate Cost of the Job :</td>
+                                                    <td>Rs.___________________</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Gross Profit :</td>
+                                                    <td>Rs.___________________</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Reason :</td>
+                                                    <td></td>
+                                                </tr>
+                                                <tr style="border-bottom:2px solid #7b7b7b;">
+                                                    <td colspan="2">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2" style="padding-top:25px;padding-bottom:25px;font-weight:bold">
+                                                        Verified & Apporved Amount_______________________to be paid as claim
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+    </div>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jquery-ui")
+    @Scripts.Render("~/bundles/custom")
+</body>
+</html>

@@ -1,0 +1,595 @@
+﻿@using RELOCBS.Entities;
+@using RELOCBS.Common;
+@model RELOCBS.Entities.MoveManageViewModel
+@{
+
+    ReportView r = new ReportView();
+    r = Model.FreightReport;
+    
+}
+    @Html.HiddenFor(model =>model.FreightReport.HFTransitInvoiceList)
+    @Html.HiddenFor(model =>model.FreightReport.HFTransitInvJobList)
+    @Html.HiddenFor(model=>model.FreightReport.TransInvMasterID)
+    <div id="TransitInvoice" class="TransitInvoice">
+        <div class="row divtranshipInvoices">
+            <div class="col-sm-1">
+                <div class="form-group">
+                    <label>Inv/Cred</label>
+                    @Html.DropDownList("dll_TransitInvCredit", new SelectList((System.Collections.IEnumerable)CommonService.InvCredit, "Value", "Text"), "--Select Inv/Cred--", new { @class = "form-control input-sm", placeholder = "Inv/Cred", title = "Inv/Cred", @id = "dll_TransitInvCredit", @onchange = "GetInvType_Change(this)" })
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>Inv/Cred Type</label>
+                    @Html.DropDownList("dll_TransitInvType", new SelectList((System.Collections.IEnumerable)ViewData["TransitInvoiceTypeList"], "Value", "Text"), "--Select Type--", new { @class = "form-control input-sm", placeholder = "Type", title = "Type", @id = "dll_TransitInvType" })
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>Inv. No.</label>
+                    @Html.TextBox("txt_TransitInvNo", "", new { @class = "form-control input-sm", placeholder = "InvoiceNo", title = "InvoiceNo", @id = "txt_TransitInvNo" })
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>Inv. Date</label>
+                    @Html.TextBox("txt_TransitInvDate", "", new { @class = "form-control input-sm datepicker", placeholder = "Invoice Date", title = "Invoice Date", @id = "txt_TransitInvDate" })
+                </div>
+            </div>
+            <div class="col-sm-1">
+                <div class="form-group">
+                    <label>Inv. Amt</label>
+                    @Html.TextBox("txt_TransitInvAmt", "", new { @class = "form-control input-sm", placeholder = "Invoice Amt", title = "Invoice Amt", @id = "txt_TransitInvAmt", onkeypress = "return OnlyDouble(this, event);" })
+                </div>
+            </div>
+            @*<div class="col-sm-2">
+                <div class="form-group">
+                    <label>Job Amt</label>
+                    @Html.TextBox("txt_TransitInvJobAmt", "", new { @class = "form-control input-sm", placeholder = "Remark", title = "Remark", @id = "txt_TransitInvJobAmt" })
+                </div>
+        </div>*@
+            <div class="col-sm-1">
+                <div class="form-group">
+                    <label>Currency</label>
+                    @Html.DropDownList("dll_TransitInvoiceCurr", new SelectList((System.Collections.IEnumerable)ViewData["RateCurrency"], "Value", "Text"), "--Select Currency--", new { @class = "form-control input-sm", placeholder = "Currency", title = "Currency", @id = "dll_TransitInvoiceCurr" })
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label>Remark</label>
+                    @Html.TextBox("txt_TransitInvRemark", "", new { @class = "form-control input-sm", placeholder = "Remark", title = "Remark", @id = "txt_TransitInvRemark" })
+                </div>
+            </div>
+            <div class="col-sm-1">
+                <div class="form-group">
+                    <button type="button" id="Btn_AddTrasitInvoice" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="BtnAddTrasitInvoice(this)">Add</button>
+                </div>
+            </div>
+        </div>
+        <div class="row TranshipInvoicesTable">
+            <div class="table-responsive" id="pnl-rates">
+                <table id="TranshipInvoiceTable" class="ScrollTable table table-striped table-bordered ScrollTable" style="width:100%" cellspacing="0" width="100%">
+                    <thead>
+                        <tr>
+                            <th class="tdNone">
+                            </th>
+                            <th>Inv/Cred</th>
+                            <th>Inv/Cred Type</th>
+                            <th>Inv. No.</th>
+                            <th>Inv. Date</th>
+                            <th>Inv. Amt</th>
+                            @*<th>Job Amount</th>*@
+                            <th>Currency</th>
+                            <th>Remark</th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.FreightReport.transhipInvoices.Count; i++)
+                        {
+                            <tr>
+                                <td class="tdNone">
+                                    @Html.HiddenFor(x => Model.FreightReport.transhipInvoices[i].InvoiceId, new { @class = "Transit_InvoiceId" })
+                                    @Html.HiddenFor(x => Model.FreightReport.transhipInvoices[i].InvoiceTypeId, new { @class = "Transit_InvoiceTypeId" })
+                                    @Html.HiddenFor(x => Model.FreightReport.transhipInvoices[i].CurrID, new { @class = "Transit_CurrID" })
+                                    @Html.HiddenFor(x => Model.FreightReport.transhipInvoices[i].InvCredit, new { @class = "Transit_InvCredit" })
+                                    @Html.HiddenFor(x => Model.FreightReport.transhipInvoices[i].FirstInvID, new { @class = "Transit_FirstInvID" })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(a => Model.FreightReport.transhipInvoices[i].InvCreditName, new { htmlAttributes = new { @placeholder = "Inv/Credit", @tooltip = "Inv/Credit", @class = "form-control input-sm Transit_InvCredit", title = "Inv/Credit", @readonly = "readonly" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(a => Model.FreightReport.transhipInvoices[i].InvoiceType, new { htmlAttributes = new { @placeholder = "InvoiceType", @tooltip = "InvoiceType", @class = "form-control input-sm Transit_InvoiceType", title = "InvoiceType", @readonly = "readonly" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(a => Model.FreightReport.transhipInvoices[i].InvoiceNo, new { htmlAttributes = new { @placeholder = "InvoiceNo", @tooltip = "InvoiceNo", @class = "form-control input-sm Transit_InvoiceNo", title = "InvoiceNo", onblur = "GetTrasitInvoiceTotal()" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(a => Model.FreightReport.transhipInvoices[i].InvoiceDate, new { htmlAttributes = new { @placeholder = "Date", @tooltip = "Date", @class = "form-control input-sm datepicker Transit_InvoiceDate", title = "Date", onblur = "GetTrasitInvoiceTotal()" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(a => Model.FreightReport.transhipInvoices[i].InvoiceAmt, new { htmlAttributes = new { @placeholder = "Amount", @tooltip = "Amount", @class = "form-control input-sm Transit_InvoiceAmt", title = "Amount", onkeypress = "return OnlyDouble(this, event);", onblur = "OnInvAmount_Change(this)" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(a => Model.FreightReport.transhipInvoices[i].Currancy, new { htmlAttributes = new { @placeholder = "Currancy", @tooltip = "Currancy", @class = "form-control input-sm Transit_InvoiceCurrancy", title = "Currancy", @readonly = "readonly" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(a => Model.FreightReport.transhipInvoices[i].Remark, new { htmlAttributes = new { @placeholder = "Remark", @tooltip = "Remark", @class = "form-control input-sm Transit_InvoiceRemark", title = "Remark", onblur = "GetTrasitInvoiceTotal()" } })
+                                </td>
+                                <td></td>
+                                <td>
+                                    <button type="button" class="btnDeleteTransitInv btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-right" onclick="DeleteTransitInv(this)"></button>
+                                    @if (Model.FreightReport.transhipInvoices[i].FirstInvID > 0)
+                                    {
+                                        <a id="btnTransitDMSUpload" href="javascript:void(0);" data-id="@Model.FreightReport.transhipInvoices[i].FirstInvID" data-type="TranshipInvoice" data-doc="@Model.FreightReport.transhipInvoices[i].InvoiceType" class="btndmsUpload btn btn-sm btn-primary pull-left" title="DMS" onclick="OnBtnUpload(this)"><i class="glyphicon glyphicon-folder-open m-r-xs"></i><span>DMS</span></a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="tdNone"></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td><strong>Total Amount</strong></td>
+                            <td>
+                                @Html.TextBox("Transit_SumInvAmt", Model.FreightReport.transhipInvoices.Sum(x => x.InvoiceAmt), new { @placeholder = "Currancy", @tooltip = "Total Amount", @class = "form-control input-sm Transit_SumInvAmt", title = "Total Amount", @readonly = "readonly" })
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 m-t-xs m-b-xs">
+            <h4>Distribution of  Inv/Cred Amount Jobwise</h4>
+        </div>
+    </div>
+    <div class="row divTranshipInvoiceJob hide">
+        <div class="col-sm-2">
+            <div class="form-group">
+                <label>Job No.</label>
+                @Html.DropDownList("dll_TransitInvJobNo", new SelectList((System.Collections.IEnumerable)ViewData["TransitJobNoList"], "Value", "Text"), "--Select Job No--", new { @class = "form-control input-sm enableselect", placeholder = "Job No", title = "Job No", @id = "dll_TransitInvJobNo" })
+            </div>
+        </div>
+        <div class="col-sm-2">
+            <div class="form-group">
+                <label>Amount</label>
+                @Html.TextBox("txt_TransitInvJobAmt", "", new { @class = "form-control input-sm", placeholder = "Amount", title = "Amount", @id = "txt_TransitInvJobAmt", onkeypress = "return OnlyDouble(this, event);" })
+            </div>
+        </div>
+        <div class="col-sm-2">
+            <div class="form-group">
+                <label>Remark</label>
+                @Html.TextBox("txt_TransitInvJobRemark", "", new { @class = "form-control input-sm", placeholder = "Remark", title = "Remark", @id = "txt_TransitInvJobRemark" })
+            </div>
+        </div>
+        <div class="col-sm-1">
+            <div class="form-group">
+                <button type="button" id="Btn_AddTrasitInvJob" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="BtnAddTrasitInvJob(this)">Add</button>
+            </div>
+        </div>
+    </div>
+    <div class="row TranshipInvJobTable">
+        <div class="table-responsive" id="pnl-rates">
+            @*class="table table-striped table-bordered ScrollTable" style="width:100%" cellspacing="0" width="100%"*@
+            <table id="TranshipInvJobTable" class="ScrollTable table table-striped table-bordered ScrollTable" style="width:100%" cellspacing="0" width="100%">
+                @*class="table table-striped fixed_header tableScrollbar"*@
+                <thead>
+                    <tr>
+                        <th>Job No.</th>
+                        <th>Amount</th>
+                        <th>Remark</th>
+                        @*<th></th>*@
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.FreightReport.transhipInvoiceJobs.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                @Html.EditorFor(a => Model.FreightReport.transhipInvoiceJobs[i].JobNo, new { htmlAttributes = new { @placeholder = "JobNo", @tooltip = "JobNo", @class = "form-control input-sm TransitJob_JobNo", title = "JobNo", @readonly = "readonly" } })
+                                @Html.HiddenFor(x => Model.FreightReport.transhipInvoiceJobs[i].MoveId, new { @class = "TransitJob_MoveId" })
+                            </td>
+                            <td>
+                                @Html.EditorFor(a => Model.FreightReport.transhipInvoiceJobs[i].JobAmt, new { htmlAttributes = new { @placeholder = "Amount", @tooltip = "Amount", @class = "form-control input-sm TransitJob_Amt", title = "Amount", onkeypress = "return OnlyDouble(this, event);", onblur = "GetTrasitInvJobTotal()" } })
+                            </td>
+                            <td>
+                                @Html.EditorFor(a => Model.FreightReport.transhipInvoiceJobs[i].Remark, new { htmlAttributes = new { @placeholder = "Remark", @tooltip = "Remark", @class = "form-control input-sm TransitJob_Remark", title = "Remark", onblur = "GetTrasitInvJobTotal()" } })
+                            </td>
+                            @*<td>
+                                <button type="button" class="btnDeleteTransitInvJob btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="DeleteTransitInvJob(this)" />
+                            </td>*@
+                        </tr>
+
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td>
+                            <strong> Total Amount</strong>  
+                        </td>
+                        <td>
+                            @Html.TextBox("Transit_SumInvJobAmt", Model.FreightReport.transhipInvoiceJobs.Sum(x => x.JobAmt), new { @placeholder = "Currancy", @tooltip = "Total Amount", @class = "form-control input-sm Transit_SumInvAmt", title = "Total Amount", @readonly = "readonly" })
+                        </td>
+                        <td></td>
+                        @*<td></td>*@
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+    </div>
+
+<script type="text/javascript">
+    
+    function AddCurrentJobAuto(InvAmt) {
+        fn_AddCurrentJobAuto(InvAmt, '@Model.MoveID');
+    }
+    
+    function GetInvType_Change(sender) {
+
+        var Type = $('#dll_TransitInvCredit').val();
+        var Url = '@Url.Action("GetTransitInvTypeList", "Combo",new { type = "-1" })';
+        Url = Url.replace("-1", Type);
+        fn_GetInvType_Change(Type,Url);
+        
+    }
+
+    function fn_AddCurrentJobAuto(InvAmt, MoveID) {
+        var InvRowCount = $('#TranshipInvoiceTable > TBODY > tr').length;
+        var JobRowCount = $('#TranshipInvJobTable > TBODY > tr').length;
+        if (InvRowCount > 0 && JobRowCount <= 1) {
+
+            if (JobRowCount == 1) {
+
+                $('#TranshipInvJobTable > TBODY > tr').each(function () {
+
+                    if ($(this).find('.TransitJob_MoveId').val() == MoveID) {
+
+                        $(this).find('.TransitJob_Amt').val(InvAmt);
+                    }
+                });
+            }
+
+        }
+
+        GetTrasitInvJobTotal();
+    }
+
+    function CheckInvoiceExists(InvType, InvNo, InvDate) {
+
+        var result = false;
+        $('#TranshipInvoiceTable > TBODY > tr').each(function () {
+            debugger;
+            var self = $(this);
+            var PreviousInvNo = self.find(".Transit_InvoiceNo").val();
+            var PreviousInvDate = self.find(".Transit_InvoiceDate").val();
+            var PreviousInvType = self.find(".Transit_InvoiceTypeId").val();
+            //var IsActive = self.find('.TblIsActive').val();
+            if (PreviousInvType == InvType && PreviousInvNo == InvNo && PreviousInvDate == InvDate) {
+
+                result = true;
+            }
+        });
+
+        return result;
+
+    }
+
+    function BtnAddTrasitInvoice(sender) {
+
+
+        var InvCredit = $('#dll_TransitInvCredit').val();
+        var InvCreditName = $('#dll_TransitInvCredit option:selected').text();
+        var InvTypeID = $('#dll_TransitInvType').val();
+        var InvType = $('#dll_TransitInvType option:selected').text();
+        var InvNo = $('#txt_TransitInvNo').val();
+        var InvDate = $('#txt_TransitInvDate').val();
+        var InvAmt = (InvCredit == "C" && parseFloat($('#txt_TransitInvAmt').val()) > 0.00 ? (- parseFloat($('#txt_TransitInvAmt').val())) : parseFloat($('#txt_TransitInvAmt').val()));
+        var CurrID = $('#dll_TransitInvoiceCurr').val();
+        var Currency = $('#dll_TransitInvoiceCurr option:selected').text();
+        var Remark = $('#txt_TransitInvRemark').val();
+
+        if (InvCredit != null && InvCredit != "" && InvTypeID != null && InvTypeID != "" && InvNo != null && InvNo != "" && InvAmt != null && InvAmt != "" && CurrID != null && CurrID != "") {
+
+            if (!CheckInvoiceExists(InvType, InvNo, InvDate)) {
+
+                var tBody = $("#TranshipInvoiceTable > TBODY")[0];
+                var rowCount = $('#TranshipInvoiceTable > TBODY > tr').length + 1;
+                var row = tBody.insertRow(-1);
+                var tdHFVNone = '<input class="Transit_InvoiceId" data-val="true" data-val-number="The field InvoiceId must be a number." id="FreightReport_transhipInvoices_' + rowCount + '__InvoiceId" name="FreightReport.transhipInvoices[' + rowCount + '].InvoiceId" type="hidden" value="" autocomplete="off">'
+                    + '<input class="Transit_InvoiceTypeId" data-val="true" data-val-number="The field InvoiceTypeId must be a number." data-val-required="The InvoiceTypeId field is required." id="FreightReport_transhipInvoices_' + rowCount + '__InvoiceTypeId" name="FreightReport.transhipInvoices[' + rowCount + '].InvoiceTypeId" type="hidden" value="' + InvTypeID + '" autocomplete="off">'
+                    + '<input class="Transit_CurrID" data-val="true" data-val-number="The field CurrID must be a number." data-val-required="The CurrID field is required." id="FreightReport_transhipInvoices_' + rowCount + '__CurrID" name="FreightReport.transhipInvoices[' + rowCount + '].CurrID" type="hidden" value="' + CurrID + '" autocomplete="off">'
+                    + '<input class="Transit_InvCredit" data-val="true"  data-val-required="The InvCredit field is required." id="FreightReport_transhipInvoices_' + rowCount + '__InvCredit" name="FreightReport.transhipInvoices[' + rowCount + '].InvCredit" type="hidden" value="' + InvCredit + '" autocomplete="off" type="text" >'
+                    + '<input class="Transit_FirstInvID" data-val="true" data-val-number="The field FirstInvID must be a number." id="FreightReport_transhipInvoices_' + rowCount + '__FirstInvID" name="FreightReport.transhipInvoices[' + rowCount + '].FirstInvID" type="hidden" value="" autocomplete="off">';
+
+                var cell = $(row.insertCell(-1));
+                cell.html(tdHFVNone);
+                cell.addClass("tdNone");
+                var InvoiceCredit = '<input class="form-control input-sm Transit_InvCredit text-box single-line" id="FreightReport_transhipInvoices_' + rowCount + '__InvCreditName" name="FreightReport.transhipInvoices[' + rowCount + '].InvCreditName" placeholder="Inv/Credit" readonly="readonly" title="Inv/Credit" tooltip="Inv/Credit" type="text" value="' + InvCreditName + '" autocomplete="off">';
+                var cell = $(row.insertCell(-1));
+                cell.html(InvoiceCredit);
+
+                var InvoiceType = '<input class="form-control input-sm Transit_InvoiceType text-box single-line" id="FreightReport_transhipInvoices_' + rowCount + '__InvoiceType" name="FreightReport.transhipInvoices[' + rowCount + '].InvoiceType" placeholder="InvoiceType" readonly="readonly" title="InvoiceType" tooltip="InvoiceType" type="text" value="' + InvType + '" autocomplete="off">';
+                var cell = $(row.insertCell(-1));
+                cell.html(InvoiceType);
+
+                var InvoiceNo = '<input class="form-control input-sm Transit_InvoiceNo text-box single-line" id="FreightReport_transhipInvoices_' + rowCount + '__InvoiceNo" name="FreightReport.transhipInvoices[' + rowCount + '].InvoiceNo" placeholder="InvoiceNo" onblur="GetTrasitInvoiceTotal()" title="InvoiceNo" tooltip="InvoiceNo" type="text" value="' + InvNo + '" autocomplete="off">'
+                var cell = $(row.insertCell(-1));
+                cell.html(InvoiceNo);
+                var InvoiceDt = '<input class="form-control input-sm datepicker Transit_InvoiceDate text-box single-line" data-val="true" data-val-date="The field InvoiceDate must be a date." data-val-required="The InvoiceDate field is required." id="FreightReport_transhipInvoices_' + rowCount + '__InvoiceDate" name="FreightReport.transhipInvoices[' + rowCount + '].InvoiceDate" placeholder="Date" onblur="GetTrasitInvoiceTotal()" title="Date" tooltip="Date" type="datetime" value="' + InvDate + '" autocomplete="off">';
+                var cell = $(row.insertCell(-1));
+                cell.html(InvoiceDt);
+                var InvoiceAmt = '<input class="form-control input-sm Transit_InvoiceAmt text-box single-line valid" data-val="true" data-val-number="The field InvoiceAmt must be a number." data-val-required="The InvoiceAmt field is required." id="FreightReport_transhipInvoices_' + rowCount + '__InvoiceAmt" name="FreightReport.transhipInvoices[' + rowCount + '].InvoiceAmt" onkeypress="return OnlyDouble(this, event);" onblur = "OnInvAmount_Change(this)" placeholder="Amount" title="Amount" tooltip="Amount" type="text" value="' + InvAmt + '" autocomplete="off">';
+                var cell = $(row.insertCell(-1));
+                cell.html(InvoiceAmt);
+
+                var InvoiceCurr = '<input class="form-control input-sm Transit_InvoiceCurrancy text-box single-line" id="FreightReport_transhipInvoices_' + rowCount + '__Currancy" name="FreightReport.transhipInvoices[' + rowCount + '].Currancy" placeholder="Currancy" readonly="readonly" title="Currancy" tooltip="Currancy" type="text" value="' + Currency + '" autocomplete="off">';
+                var cell = $(row.insertCell(-1));
+                cell.html(InvoiceCurr);
+
+                var InvoiceRemark = '<input class="form-control input-sm Transit_InvoiceRemark text-box single-line" id="FreightReport_transhipInvoices_' + rowCount + '__Remark" name="FreightReport.transhipInvoices[' + rowCount + '].Remark" placeholder="Remark" onblur="GetTrasitInvoiceTotal()" title="Remark" tooltip="Remark" type="text" value="' + Remark + '" autocomplete="off">';
+                var cell = $(row.insertCell(-1));
+                cell.html(InvoiceRemark);
+                ////Edit Button
+                var cell = $(row.insertCell(-1));
+                cell.html('');
+
+                var BtnDelete = '<button type="button" class="btnDeleteTransitInv btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="DeleteTransitInv(this)"></button >';
+                var cell = $(row.insertCell(-1));
+                cell.html(BtnDelete);
+
+                GetTrasitInvoiceTotal();
+
+
+            }
+            else {
+                alert('Inv/Credit Type,Invoice No,Invoice Date already added in the list');
+            }
+
+        }
+        else {
+            alert('Inv/Credit , Inv/Credit Type,Invoice No,Amount,Currency required');
+        }
+
+
+
+        return false;
+    }
+
+    function CheckJobNoExists(MoveID) {
+
+        var result = false;
+        $('#TranshipInvJobTable > TBODY > tr').each(function () {
+            debugger;
+            var self = $(this);
+            var PreviousMoveID = self.find(".TransitJob_MoveId").val();
+            //var IsActive = self.find('.TblIsActive').val();
+            if (PreviousMoveID == MoveID) {
+
+                result = true;
+            }
+        });
+
+        return result;
+
+
+    }
+
+    function DeleteTransitInvJob(sender) {
+
+        var row = $(sender).closest("TR");
+        var table = $("#TranshipInvJobTable")[0];
+        var RowNo = row[0].rowIndex;
+
+        if (confirm("Do you want to delete row " + RowNo)) {
+
+            table.deleteRow(row[0].rowIndex);
+            GetTrasitInvJobTotal();
+            return false;
+        }
+        return false;
+    }
+
+    function BtnAddTrasitInvJob(sender) {
+
+        //if ($('#LCL_FCL option:selected').val() != null && $('#LCL_FCL option:selected').val() != "" && $('#LCL_FCL option:selected').val() =="GRPG") {
+
+        var tblInvoiceCount = $('#TranshipInvoiceTable > TBODY > tr').length;
+
+        if (tblInvoiceCount > 0) {
+
+            var MoveId = $('#dll_TransitInvJobNo').val();
+            var JobNo = $('#dll_TransitInvJobNo option:selected').text();
+            var Amt = $('#txt_TransitInvJobAmt').val();
+            var Remark = $('#txt_TransitInvJobRemark').val();
+
+            if (MoveId != null && MoveId != "" && Amt != null && Amt != "") {
+
+                if (!CheckJobNoExists(MoveId)) {
+
+                    var tBody = $("#TranshipInvJobTable > TBODY")[0];
+                    var rowCount = $('#TranshipInvJobTable > TBODY > tr').length + 1;
+                    var row = tBody.insertRow(-1);
+
+                    var JobMoveId = '<input class="form-control input-sm TransitJob_JobNo text-box single-line" id="FreightReport_transhipInvoiceJobs_' + rowCount + '__JobNo" name="FreightReport.transhipInvoiceJobs[' + rowCount + '].JobNo" placeholder="JobNo" readonly="readonly" title="JobNo" tooltip="JobNo" type="text" value="' + JobNo + '" autocomplete="off">'
+                        + '<input class="TransitJob_MoveId" data-val="true" data-val-number="The field MoveId must be a number." data-val-required="The MoveId field is required." id="FreightReport_transhipInvoiceJobs_' + rowCount + '__MoveId" name="FreightReport.transhipInvoiceJobs[' + rowCount + '].MoveId" type="hidden" value="' + MoveId + '" autocomplete="off">';
+                    var cell = $(row.insertCell(-1));
+                    cell.html(JobMoveId);
+
+                    var JobAmt = '<input class="form-control input-sm TransitJob_Amt text-box single-line" data-val="true" data-val-number="The field JobAmt must be a number." data-val-required="The JobAmt field is required." id="FreightReport_transhipInvoiceJobs_' + rowCount + '__JobAmt" name="FreightReport.transhipInvoiceJobs[' + rowCount + '].JobAmt" onkeypress="return OnlyDouble(this, event);"  onblur="GetTrasitInvJobTotal()" placeholder="Amount" title="Amount" tooltip="Amount" type="text" value="' + Amt + '" autocomplete="off">';
+                    var cell = $(row.insertCell(-1));
+                    cell.html(JobAmt);
+
+                    var JobRemark = '<input class="form-control input-sm TransitJob_Remark text-box single-line" id="FreightReport_transhipInvoiceJobs_' + rowCount + '__Remark" name="FreightReport.transhipInvoiceJobs[' + rowCount + '].Remark" placeholder="Remark" title="Remark" tooltip="Remark" type="text" value="' + Remark + '" autocomplete="off" onblur="GetTrasitInvJobTotal()">';
+                    var cell = $(row.insertCell(-1));
+                    cell.html(JobRemark);
+
+                    var BtnDelete = '<button type="button" class="btnDeleteTransitInvJob btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="DeleteTransitInvJob(this)">';
+                    var cell = $(row.insertCell(-1));
+                    cell.html(BtnDelete);
+
+                    GetTrasitInvJobTotal();
+
+                }
+                else {
+
+                    alert('Job No. already added in the list');
+                }
+
+
+            }
+            else {
+
+                alert('Job No,Amount required');
+            }
+
+        }
+        else {
+            alert('Add Atleast One Invoice');
+        }
+
+        //}
+        //else {
+        //    alert('Job Can be added for the GRPG');
+        //}
+
+
+        return false;
+    }
+
+    function DeleteTransitInv(sender) {
+
+        var row = $(sender).closest("TR");
+        var table = $("#TranshipInvoiceTable")[0];
+        var RowNo = row[0].rowIndex;
+
+        if (confirm("Do you want to delete row " + RowNo)) {
+
+            table.deleteRow(row[0].rowIndex);
+            GetTrasitInvoiceTotal();
+            return false;
+        }
+        return false;
+    }
+
+    function GetTrasitInvoiceTotal() {
+
+        var data = [];
+        var TotalAmt = 0;
+        $("#TranshipInvoiceTable > TBODY > tr").each(function () {
+
+            var InvoiceTypeId = $(this).find('.Transit_InvoiceTypeId').val() && $(this).find('.Transit_InvoiceTypeId').val() != "undefined" ? $(this).find('.Transit_InvoiceTypeId').val() : 0;
+            var InvNo = $(this).find(".Transit_InvoiceNo").val();
+            var InvDt = $(this).find(".Transit_InvoiceDate").val();
+            var Amount = $(this).find(".Transit_InvoiceAmt").val() ? $(this).find(".Transit_InvoiceAmt").val() : 0;
+            var CurrId = $(this).find('.Transit_CurrID').val() && $(this).find('.Transit_CurrID').val() != "undefined" ? $(this).find('.Transit_CurrID').val() : 0;
+            var Remark = $(this).find(".Transit_InvoiceRemark").val();
+            var FirstInvID = $(this).find('.Transit_FirstInvID').val() && $(this).find('.Transit_FirstInvID').val() != "undefined" ? $(this).find('.Transit_FirstInvID').val() : null;
+
+            var alldata = {
+                'InvoiceTypeID': InvoiceTypeId,
+                'InvoiceNo': InvNo,
+                'InvoiceDate': InvDt,
+                'InvoiceAmount': Amount,
+                'CurrencyID': CurrId,
+                'Remark': Remark,
+                'FirstInvID': FirstInvID
+            }
+
+            data.push(alldata);
+
+            TotalAmt = TotalAmt + (Number.isNaN(parseFloat(Amount)) ? 0 : parseFloat(Amount));
+
+        });
+
+        $('#FreightReport_HFTransitInvoiceList').val(JSON.stringify({ 'InvDetail': data }));
+        $("#TranshipInvoiceTable > tfoot > tr").find("#Transit_SumInvAmt").val(TotalAmt);
+
+        if (TotalAmt >= 0) {
+
+            ////Auto add the current Job
+            AddCurrentJobAuto(TotalAmt);
+        }
+
+        datepickerInit();
+
+
+        return TotalAmt;
+    }
+
+    function GetTrasitInvJobTotal() {
+
+        var data = [];
+        var TotalAmt = 0;
+        $("#TranshipInvJobTable > TBODY > tr").each(function () {
+
+            var MoveID = $(this).find('.TransitJob_MoveId').val() && $(this).find('.TransitJob_MoveId').val() != "undefined" ? $(this).find('.TransitJob_MoveId').val() : 0;
+            var Amount = $(this).find(".TransitJob_Amt").val() ? $(this).find(".TransitJob_Amt").val() : 0;
+            var Remark = $(this).find(".TransitJob_Remark").val();
+            var alldata = {
+                'MoveID': MoveID,
+                'InvoiceAmount': Amount,
+                'Remark': Remark
+            }
+            data.push(alldata);
+
+            TotalAmt = TotalAmt + (Number.isNaN(parseFloat(Amount)) ? 0 : parseFloat(Amount));
+        });
+
+        $('#FreightReport_HFTransitInvJobList').val(JSON.stringify({ 'JobIDDetail': data }));
+        $("#TranshipInvJobTable > tfoot > tr").find("#Transit_SumInvJobAmt").val(TotalAmt);
+    }
+
+    function OnInvAmount_Change(sender) {
+
+
+        var InvAmt = $(sender);
+        var InvRow = InvAmt.parent().parent();
+        var InvCredit = InvRow.find('.Transit_InvCredit').val();
+        if (InvCredit == 'C' && !Number.isNaN(parseFloat(InvAmt.val())) && parseFloat(InvAmt.val()) > 0) {
+
+            InvAmt.val(- parseFloat(InvAmt.val()));
+        }
+        GetTrasitInvoiceTotal();
+        return false;
+    }
+
+    function datepickerInit() {
+
+        $('.datepicker').datetimepicker({
+            format: "DD-MMM-YYYY",
+            useCurrent: false,
+            widgetPositioning: {
+                horizontal: 'right',
+                vertical: 'bottom'
+            },
+        });
+    }
+
+    function fn_GetInvType_Change(Type, Url) {
+        $.get(Url, function (data, status) {
+
+            var rows = data.CountryList;
+            if (rows != null && rows.length > 0) {
+                $("#dll_TransitInvType").empty();
+                $("#dll_TransitInvType").append('<option value="">Select Type</option>');
+                $.each(rows, function (i, row) {
+                    $("#dll_TransitInvType").append('<option value="' + row.Value + '">' + row.Text + '</option>');
+                });
+            }
+
+        });
+
+        return false;
+    }
+</script>

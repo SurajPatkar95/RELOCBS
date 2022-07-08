@@ -1,0 +1,52 @@
+﻿@model StaticPagedList<RELOCBS.Entities.WOSCustomer>
+
+@using RELOCBS.Utility;
+@using RELOCBS.Common;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@{
+    string _PageID = "78";
+    string param = "CustServMapMasterID=ParamValue0";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+columns.Add(m => m.Client).Titled("Client Name").SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+
+columns.Add(m => m.Account).Titled("Account Name");
+
+columns.Add(m => m.OriginCountry).Titled("Org. Country");
+
+columns.Add(m => m.DestinationCountry).Titled("Dest. Country");
+
+columns.Add(m => m.CostCurrency).Titled("Cost Currency");
+
+columns.Add(m => m.RevenueCurrency).Titled("Rev. Currency");
+
+columns.Add(m => m.EffectiveFrom).Titled("Effective From").SetWidth("5%").Format("{0:dd-MMM-yyyy}");
+
+columns.Add(m => m.EffectiveTo).Titled("Effective To").SetWidth("5%").Format("{0:dd-MMM-yyyy}");
+
+columns.Add().Titled("Actions").SetWidth("5%").Encoded(false).Sanitized(false).Sortable(true).RenderValueAs(m =>
+@<span>
+    @if (hasAddAccess)
+    {
+        <a href="@Url.Action("Create", "WOSCustomer", new { Key = CommonService.GenerateQueryString(param, new string[] { m.CustServMapMasterID.ToString() }) })" class="btnEditCustServMap btn btn-xs btn-primary glyphicon glyphicon-pencil" title="Edit Cust Serv Map"></a>        
+    }    
+</span>);
+}).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "dvWOSCustomerGrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>

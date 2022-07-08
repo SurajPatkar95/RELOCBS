@@ -1,0 +1,331 @@
+﻿@model  RELOCBS.Entities.ScheduleSurveyDashboard
+@using System.Data;
+@using RELOCBS.Common;
+@{
+    ViewBag.Title = "Survey Dashboard";
+}
+
+<style>
+    table.tblCostSheet {
+        border-collapse: collapse;
+    }
+
+        table.tblCostSheet th {
+            border: 1px solid Black;
+            text-align: center;
+            text-transform: uppercase;
+            line-height: 20px;
+            border: none !important;
+            padding: 5px 3px;
+            color: #fff;
+            font-size: 13px;
+            background-color: #e7eaec;
+        }
+
+        table.tblCostSheet tbody > td {
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+        }
+
+        table.tblCostSheet thead > tr > th {
+            /*background-color: #e7eaec;*/
+            background: #8e352e;
+        }
+
+        table.tblCostSheet tbody > tr td:first-child {
+            background: #b8d1f3;
+            font-weight: bold;
+            width: 5px;
+        }
+
+
+    .tblCostSheet .event {
+        flex: 0 0 auto;
+        font-size: 13px;
+        border-radius: 50%;
+        padding: 2px;
+        margin-bottom: 5px;
+        line-height: 14px;
+        background: #e4f2f2;
+        border: 1px solid #b5dbdc;
+        color: #009aaf;
+        text-decoration: none;
+        text-align: center;
+        max-height: 25px;
+        max-width: 25px;
+    }
+
+    .tblCostSheet .event-desc {
+        color: #009aaf;
+        margin: 3px 0 7px 0;
+        text-decoration: none;
+    }
+
+    
+   .tblCostSheet .leave {
+       flex: 0 0 auto;
+       font-size: 13px;
+       border-radius: 50%;
+       padding: 2px;
+       margin-bottom: 5px;
+       line-height: 14px;
+       background: #ffb6c1;
+       border: 1px solid #ff1493;
+       color: white;
+       text-decoration: none;
+       text-align: center;
+       max-height: 25px;
+       max-width: 25px;
+   }
+
+    .tblCostSheet .leave-desc {
+        color: white;
+        margin: 3px 0 7px 0;
+        text-decoration: none;
+    }
+
+    .tblCostSheet .holiday {
+        flex: 0 0 auto;
+        font-size: 13px;
+        border-radius: 50%;
+        padding: 2px;
+        margin-bottom: 5px;
+        line-height: 14px;
+        background: #fffdd0;
+        border: 1px solid #c49102;
+        color: #c49102;
+        text-decoration: none;
+        text-align: center;
+        max-height: 25px;
+        max-width: 25px;
+    }
+
+    .tblCostSheet .holiday-desc {
+        color: #daa520;
+        margin: 3px 0 7px 0;
+        text-decoration: none;
+    }
+
+    .fixTableHead {
+        overflow: scroll;
+        max-height: 500px;
+    }
+
+        .fixTableHead thead {
+            position: -webkit-sticky; /* for Safari */
+            position: sticky;
+            top: 0;
+        }
+
+        .fixTableHead tbody > tr td:first-child {
+            position: -webkit-sticky;
+            position: sticky;
+            left: 0;
+        }
+
+        .fixTableHead thead th:first-child {
+            left: 0;
+            z-index: 2;
+        }
+
+    /*.fixTableHead thead th:first-child {
+              position: -webkit-sticky;
+              position: sticky;
+              left: 0px;
+          }*/
+
+    /*.fixTableHead thead th:nth-child(2) {
+             left: 0;
+             z-index: 2;
+        }*/
+</style>
+
+
+@using (Ajax.BeginForm("Survey", "Dashboard", new { Page = ViewBag.Page }, new AjaxOptions { HttpMethod = "POST", UpdateTargetId = "divEmp" }, new { @class = "inline-form" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="row m-t-sm">
+        <div class="form-group m-t-sm">
+            <div class="col-md-3">
+                <label for="ForMonthDate">For Month:</label>
+                @Html.TextBoxFor(m => m.ForMonthDate, new { placeholder = "Select For Month", @class = "form-control input-sm datepicker" })
+                @Html.ValidationMessageFor(m => m.ForMonthDate, "", new { @class = "text-danger custom-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-3">
+                <label for="WarehoseId">Handling Branch:</label>
+                @Html.DropDownListFor(m => m.BranchId, new SelectList(ViewBag.BranchList, "Value", "Text", Model.BranchId), "Select Branch", new { @class = "form-control input-sm enableSelect" })
+                @Html.ValidationMessageFor(m => m.BranchId, "", new { @class = "text-danger custom-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-2">
+                <button type="submit"
+                        class="btn btn-warning btn-sm m-t-md"
+                        value="Process">
+                    <span class="ladda-label">Process</span>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (Model.data != null && Model.data.Tables.Count > 1)
+{
+    <div id="divEmp" class="m-t-md fixTableHead">
+        <table class="table table-bordered white-bg tblCostSheet" id="tblCostSheet">
+            <thead>
+                <tr>
+
+                    @if (Model.data.Tables[0] != null)
+                    {
+                        foreach (DataRow row in Model.data.Tables[0].Rows)
+                        {
+                            for (int i = 1; i < Model.data.Tables[0].Columns.Count; i++)
+                            {
+                                <th>@Convert.ToString(row[Model.data.Tables[0].Columns[i].ColumnName])</th>
+                            }
+                        }
+                    }
+
+                </tr>
+                <tr>
+                    @if (Model.data.Tables[1] != null)
+                    {
+                        for (int i = 1; i < Model.data.Tables[1].Columns.Count; i++)
+                        {
+                            <th>@Model.data.Tables[1].Columns[i].Caption</th>
+                        }
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.data.Tables[1] != null)
+                {
+                    foreach (DataRow row in Model.data.Tables[1].Rows)
+                    {
+                        <tr>
+                            @for (int i = 1; i < Model.data.Tables[1].Columns.Count; i++)
+                            {
+                                string Event = Convert.ToString(row[Model.data.Tables[1].Columns[i].ColumnName]);
+                                string EventClass = "";
+                                string EventDescClass = "";
+                                if (i != 1 && !string.IsNullOrWhiteSpace(Event) && !Event.Contains("L") && !Event.Contains("H"))
+                                {
+                                    EventClass = "event";
+                                    EventDescClass = "event-desc";
+                                }
+                                if (i != 1 && Event.Contains("L"))
+                                {
+                                    EventClass = "leave";
+                                    EventDescClass = "leave-desc";
+                                }
+                                if (i != 1 && Event.Contains("H"))
+                                {
+                                    EventClass = "holiday";
+                                    EventDescClass = "holiday-desc";
+                                }
+                                <td>
+                                    <div class="@EventClass">
+                                        <div class="@EventDescClass">
+                                            @{ 
+                                                string EmployeeId = Convert.ToString(row["EmployeeId"]);
+
+                                                DateTime FromDate = ViewBag.FromDate;
+                                                DateTime FromMonthDate = ViewBag.FromDate;
+                                                if (i != 1)
+                                                {
+                                                        FromMonthDate = new DateTime(FromDate.Year, FromDate.Month, Convert.ToInt32(Model.data.Tables[1].Columns[i].ColumnName));
+                                                }
+                                            }
+
+                                             @if (i != 1)
+                                             {
+                                              <a href="@Url.Action("SurveyorEvents", "Dashboard", new { id = EmployeeId,fromDate=FromMonthDate })" class="btnModal">@Event</a>
+                                             }
+                                             else
+                                             {
+                                              <span>@Event </span>
+                                             }
+
+
+                                        </div>
+                                    </div>
+                                </td>
+                                                 }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+    <div id="mdlAddEdit" class="modal fade" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div id="mlEmployee">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            //$('.datepicker').datetimepicker({
+            //    format: "DD-MMM-YYYY",
+            //    widgetPositioning: {
+            //        horizontal: 'right',
+            //        vertical: 'bottom'
+            //    }
+            //});
+
+
+            $(".datepicker").datetimepicker({
+                viewMode: 'months',
+                format: 'DD-MMM-YYYY',
+                useCurrent: false,
+                dayViewHeaderFormat: 'MMMM YYYY',
+                showTodayButton: false,
+                //minDate: false,
+                //maxDate : new Date()
+            });
+
+            $(".datepicker").on("dp.change", function (e) {
+                let CurrentDate = new Date(e.date._d);
+                e.date._d = new Date(CurrentDate.getFullYear(), CurrentDate.getMonth() , 1);
+                $(this).val(moment(new Date(CurrentDate.getFullYear(), CurrentDate.getMonth(), 1)).format('DD-MMM-YYYY'));
+                $(this).datepicker('hide');
+            });
+
+            //$("#datepicker").datepicker({
+            //    format: "mm-yyyy",
+            //    viewMode: "months",
+            //    minViewMode: "months"
+            //});
+
+            $('.enableSelect').select2();
+            
+        });
+
+        $('.btnModal').on('click', function (event) {
+
+            debugger;
+            $("#mdlAddEdit").modal();
+            var route = this.href;
+            $('#mlEmployee').load(route, function () { });
+            event.preventDefault();
+        });
+        
+    </script>
+
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    
+
+}

@@ -1,0 +1,72 @@
+﻿@using System.Data;
+
+@model DataSet
+
+
+<div id="divEmp" class="m-t-md fixTableHead">
+    <table class="table table-bordered white-bg tblCostSheet" id="tblCostSheet">
+        <thead>
+            <tr>
+
+                @if (Model.Tables[0] != null)
+                {
+                    foreach (DataRow row in Model.Tables[0].Rows)
+                    {
+                        for (int i = 0; i < Model.Tables[0].Columns.Count; i++)
+                        {
+                            <th>@Convert.ToString(row[Model.Tables[0].Columns[i].ColumnName])</th>
+                        }
+                    }
+                }
+
+            </tr>
+            <tr>
+                @if (Model.Tables[1] != null)
+                {
+                    for (int i = 0; i < Model.Tables[1].Columns.Count; i++)
+                    {
+                        <th>@Model.Tables[1].Columns[i].Caption</th>
+                    }
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Tables[1] != null)
+            {
+                foreach (DataRow row in Model.Tables[1].Rows)
+                {
+                    <tr>
+                        @for (int i = 0; i < Model.Tables[1].Columns.Count; i++)
+                        {
+                            string Event = Convert.ToString(row[Model.Tables[1].Columns[i].ColumnName]);
+                            string EventClass = "";
+                            string EventDescClass = "";
+                            if (i != 0 && !string.IsNullOrWhiteSpace(Event) && !Event.Contains("L") && !Event.Contains("H"))
+                            {
+                                EventClass = "event";
+                                EventDescClass = "event-desc";
+                            }
+                            if (i != 0 && Event.Contains("L"))
+                            {
+                                EventClass = "leave";
+                                EventDescClass = "leave-desc";
+                            }
+                            if (i != 0 && Event.Contains("H"))
+                            {
+                                EventClass = "holiday";
+                                EventDescClass = "holiday-desc";
+                            }
+                            <td>
+                                <div class="@EventClass">
+                                    <div class="@EventDescClass">
+                                        @Event
+                                    </div>
+                                </div>
+                            </td>
+                        }
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

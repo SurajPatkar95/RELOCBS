@@ -1,0 +1,119 @@
+﻿@using RELOCBS.Utility;
+@{
+
+    string _PageID = "18";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+}
+
+<div class="col-lg-12 col-sm-12 col-md-12" style="padding-right:20px;">
+    <div class="pnl-gridtop clearfix">
+        <div id="divJobAllocation">
+            @using (Html.BeginForm("JobAllocationReport", "JobAllocation", FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+            {
+                @*@Html.AntiForgeryToken()*@
+                <div class="clearfix pnl-filter row no-gutters">
+                    <div class="form-group col-md-2">
+                        <label>Estimated start From</label>
+                        @Html.TextBox("FromDate", null, new { @class = "form-control input-sm joballocation_datepicker" })
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label>To</label>
+                        <div class="clearfix">
+                            @Html.TextBox("ToDate", null, new { @class = "form-control input-sm joballocation_datepicker" })
+                        </div>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label class="marr-5">Shipper</label>
+                        <div class="clearfix">
+                            @Html.TextBox("Shipper", null, new { @class = "form-control input-sm" })
+                        </div>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label class="marr-5">Activity Status</label>
+                        <div class="clearfix">
+                            @Html.DropDownList("AllocationStatus", new SelectList((System.Collections.IEnumerable)ViewData["AllocationStatusList"], "Value", "Text"), "Select Activity Status", new { @class = "form-control input-sm enableselect" })
+                        </div>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label class="marr-5">Warehouse</label>
+                        <div class="clearfix">
+                            @Html.DropDownList("WarehouseID", new SelectList((System.Collections.IEnumerable)ViewData["WarehouseList"], "Value", "Text", Convert.ToString(ViewData["WarehouseID"])), "Select Warehouse", new { @class = "form-control input-sm enableselect" })
+                        </div>
+                    </div>
+                    <div class="form-group col-md-1 clearfix">
+                        <input type="submit" id="btnSearch" name="Search" class="btn btn-primary btn-sm filter-custom-margin" value="Download" />
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+@section Scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+    <script>
+        $(document).ready(function () {
+
+            $('.multipleselect').multiselect({
+                includeSelectAllOption: false,
+                enableFiltering: true,
+                filterPlaceholder: 'Search',
+                maxHeight: 250,
+                buttonWidth: '150px'
+            });
+
+            //$('#DropdownJobNo').addClass('hide');
+
+            $('.joballocation_datepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('#FromDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+
+            $('#ToDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+
+            AutoDropFill();
+
+        });
+
+        function AutoDropFill() {
+            var returnResult = [];
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetShipperNameList", "Combo")",
+                method: 'GET',
+            async: 'false',
+            dataType: 'json',
+            success: function (result) {
+                var data = $.map(result, function (obj) {
+                    obj.value = obj.Text; // desired field
+                    obj.data = obj.Value; // desired field
+                    returnResult.push(obj);
+                    $("#Shipper").autocomplete({
+                        lookup: returnResult
+                    });
+
+                });
+            },
+            error: function () { }
+        });
+    }
+
+    </script>
+
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+} 

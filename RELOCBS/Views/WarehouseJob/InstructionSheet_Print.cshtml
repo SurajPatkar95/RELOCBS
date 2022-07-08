@@ -1,0 +1,522 @@
+﻿@model RELOCBS.Entities.WHJob_InstructionSheet
+
+@using RELOCBS.Utility;
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>InstructionSheet_Print</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style type="text/css">
+
+        .ttop {
+            vertical-align: top !important;
+        }
+
+        body {
+        }
+
+        .floatLeft {
+            float: left;
+        }
+
+        .tcenter {
+            text-align: center !important;
+        }
+
+        .boxWraper {
+            border: 1px solid #7b7b7b;
+            display: block;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+            .boxWraper .padding tr td {
+                padding: 3px 6px;
+            }
+
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        tr.border_bottom td {
+            border-bottom: 1pt solid black;
+        }
+
+        .tableData {
+            border: 0 !important;
+            line-height: 16px;
+        }
+
+
+            .tableData tr td {
+                background: #fff;
+                height: 100%;
+                vertical-align: middle;
+                border: 1px solid #e3e7ee;
+            }
+
+        .boxWraper tr th {
+            border: 1px solid #e3e7ee;
+            text-align: center;
+            padding: 3px 6px;
+        }
+
+
+        .marginLR {
+            margin: 0 auto;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        /*table {
+            border-collapse: separate;
+            border-spacing: 2px;
+        }*/
+
+        table {
+            background-color: transparent;
+        }
+
+        /*table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+        }*/
+
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            color: #808080;
+            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: subpixel-antialiased;
+            background: #fff;
+        }
+
+        .cw100 {
+            width: 100px !important;
+        }
+
+        .cw110 {
+            width: 110px !important;
+        }
+
+        .cw80 {
+            width: 80px !important;
+        }
+
+        .cw120 {
+            width: 120px !important;
+        }
+
+        .cw140 {
+            width: 140px !important;
+        }
+
+        .cw130 {
+            width: 140px !important;
+        }
+
+        .tbold {
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            font-weight: 600;
+        }
+
+        .tright {
+            text-align: right !important;
+        }
+
+        label {
+            margin-bottom: 0;
+        }
+
+        .tcollapse {
+            border-collapse: collapse;
+        }
+
+
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+        .taW {
+            width: 100% !important;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: normal;
+            font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+        }
+    </style>
+    <style type="text/css">
+        @@media print {
+            .grid-header {
+                background: #eee;
+                font-size: 13px;
+            }
+
+            body {
+                font-family: Serif;
+            }
+
+            h2 {
+                font-size: 20px;
+                text-transform: uppercase;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            h4 {
+                font-size: 13px;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="col-lg-12 col-sm-12 col-md-12" style=" flex-align:center">
+        <table class="marginLR" style="width:20cm;">
+            <tr>
+                <td>
+                    <table class="taW"> 
+                        <tbody>
+                            <tr>
+                                <td style="border-bottom:1px solid #7b7b7b;">
+                                    <div class="floatLeft" style="margin-top:34px;">
+                                    </div>
+                                    <div class="tcenter hidden-print">
+                                        <img src="~/Content/images/logo-icon.png" width="100px" height="100px">
+                                    </div>
+                                    <div class="tcenter">
+                                        <h2>Writer Relocations</h2>
+                                        <h4>@Html.Raw(Model.InsType)</h4>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="height:5px;"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr class="border_bottom">
+                                                    <td class="grid-header tbold" colspan="4">Job Information</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw100 tbold">Job No.</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.JobNo)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw100 tbold">Job Date</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.JobOpenDate.ToString("dd/MM/yyyy"))</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw100 tbold">Instruction Branch</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.BranchName)</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw100 tbold">Volume/Weight</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.WeightUnitFrom) @Html.Raw(Model.WeightUnit)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw100 tbold">BusinessLine</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.BusinessLine)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw100 tbold">Handling Branch</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.HandlingBranch)</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr class="border_bottom">
+                                                    <td class="grid-header tbold" colspan="4">Activity Details</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="ttop" colspan="4">
+                                                        <table class="tableData taW">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th class="cw100">Job to be done</th>
+                                                                    <th class="cw50">From Date</th>
+                                                                    <th class="cw50">To Date</th>
+                                                                    <th class="cw50">Days</th>
+                                                                    <th class="cw50">Reporting Time</th>
+                                                                    <th class="cw50">From Place</th>
+                                                                    <th class="cw50">To Place</th>
+                                                                    <th class="cw140">Remark</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody style="max-height:100%">
+                                                                @for (int i = 0; i < Model.activities.Count; i++)
+                                                                {
+                                                                    <!-- Repeat: row in LabourCostList -->
+                                                                    <tr class="ng-scope">
+                                                                        <td class="cw100">
+                                                                            @Html.Raw(Model.activities[i].ActivityTypeName)
+                                                                        </td>
+                                                                        <td class="cw50 tright">
+                                                                            @Html.Raw(Model.activities[i].FromDate)
+                                                                        </td>
+                                                                        <td class="cw50 tright">
+                                                                            @Html.Raw(Model.activities[i].ToDate)
+                                                                        </td>
+                                                                        <td class="cw50 tright">
+                                                                            <label>@Html.Raw(Model.activities[i].NumberOfDays)</label>
+                                                                        </td>
+                                                                        <td class="cw50 tright">
+                                                                            @Html.Raw(Model.activities[i].RepTime)
+                                                                        </td>
+                                                                        <td class="cw50 tright">
+                                                                            @Html.Raw(Model.activities[i].FromLocation)
+                                                                        </td>
+                                                                        <td class="cw50 tright">
+                                                                            @Html.Raw(Model.activities[i].ToLocation)
+                                                                        </td>
+                                                                        <td class="cw140 tright">
+                                                                            @Html.Raw(Model.activities[i].Remark)
+                                                                        </td>
+                                                                    </tr>
+                                                                    <!-- end Repeat: row in LabourCostList -->
+                                                                }
+
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr class="border_bottom">
+                                                    <td class="grid-header tbold" colspan="4">Special Instruction</td>
+                                                </tr>
+                                                <tr class="border_bottom">
+                                                    <td colspan="4">
+                                                        <span class="ng-binding">@Html.Raw(Model.SpecialInstructions)</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table class='table border-0'>
+                                        <tbody>
+                                            <tr>
+                                                <td style="border: none;" colspan="2">
+                                                    <label class="cw100 tbold">APPROVED BY</label> :
+                                                    <span class="ng-binding">@Html.Raw(Model.CreatedBy)</span>
+                                                </td>
+                                                <td style="border: none;" colspan="2">
+                                                    <label class="cw100 tbold">SIGNATURE</label> :
+                                                    <span class="ng-binding">____________________</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border: none;" colspan="4">
+                                                    <label class="tbold">(TO BE FILLED & APPROVED BY THE WAREHOUSE IN CHARGE)</label>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="grid-header tbold" colspan="4">Vehicle Details</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="ttop" colspan="4">
+                                                        <table class="tableData taW ">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th class="cw100">Vehicle No</th>
+                                                                    <th class="cw100">Vehicle Type</th>
+                                                                    <th class="cw50">Volume</th>
+                                                                    <th class="cw100">Transporter</th>
+                                                                    <th class="cw100">Remark</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody style="max-height:100%">
+                                                                @for (int i = 0; i < 3; i++)
+                                                                {
+                                                                    <!--Repeat: row in LocalTransportList -->
+                                                                    <tr class="ng-scope">
+                                                                        <td class="cw100">&nbsp;</td>
+                                                                        <td class="cw100">&nbsp;</td>
+                                                                        <td class="cw50">&nbsp;</td>
+                                                                        <td class="cw100">&nbsp;</td>
+                                                                        <td class="cw100">&nbsp;</td>
+                                                                    </tr>
+                                                                }
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table class='table border-0'>
+                                        <tbody>
+                                            <tr>
+                                                <td style="border: none;" colspan="4">
+                                                    <label class="tbold">KINDLY BILL YOUR CHARGES TO WRITER AS PER AGREED RATE ________________</label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border: none;" colspan="2">
+                                                    <label class="cw100 tbold">APPROVED BY</label> :
+                                                    <span class="ng-binding">____________________</span>
+                                                </td>
+                                                <td style="border: none;" colspan="2">
+                                                    <label class="cw100 tbold">SIGNATURE</label> :
+                                                    <span class="ng-binding">____________________</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border: none;" colspan="4">
+                                                    <label class="tbold">(TO BE FILLED & APPROVED BY TO SUPERVISOR / ESCORT / TRANSPORTER)</label>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="ttop" colspan="4">
+                                                        <table class="tableData taW ">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th class="cw100">From Place</th>
+                                                                    <th class="cw100">Time(Hrs)</th>
+                                                                    <th class="cw100">To Place</th>
+                                                                    <th class="cw100">Time(Hrs)</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody style="max-height:100%">
+                                                                @for (int i = 0; i < 3; i++)
+                                                                {
+                                                                    <tr>
+                                                                        <td class="cw100">&nbsp;</td>
+                                                                        <td class="cw100">&nbsp;</td>
+                                                                        <td class="cw100">&nbsp;</td>
+                                                                        <td class="cw100">&nbsp;</td>
+                                                                    </tr>
+                                                                }
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table class='table border-0'>
+                                        <tbody>
+                                            <tr>
+                                                <td style="border: none;" colspan="2">
+                                                    <label class="cw100 tbold">APPROVED BY</label> :
+                                                    <span class="ng-binding">____________________</span>
+                                                </td>
+                                                <td style="border: none;" colspan="2">
+                                                    <label class="cw100 tbold">SIGNATURE</label> :
+                                                    <span class="ng-binding">____________________</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                    <td>
+                                        <div class="boxWraper">
+                                            <table class="taW tcollapse padding">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="grid-header tbold ng-binding" colspan="3">Generated By : @Html.Raw(UserSession.GetUserSession().UserName)&nbsp;</td>
+                                                        <td class="grid-header tbold ng-binding">
+                                                            Generated On :
+                                                            <script>document.write(new Date().toDateString() + " " + new Date().toLocaleTimeString());</script>
+                                                        </td>
+                                                    </tr>
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                             </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+ @Scripts.Render("~/bundles/jquery")
+ @Scripts.Render("~/bundles/bootstrap")
+
+ @Scripts.Render("~/bundles/jqueryval")
+
+ @Scripts.Render("~/bundles/jquery-ui")
+
+ @Scripts.Render("~/bundles/custom")
+</body>
+</html>

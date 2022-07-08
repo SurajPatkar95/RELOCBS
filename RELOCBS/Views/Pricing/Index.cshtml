@@ -1,0 +1,481 @@
+﻿
+@model RELOCBS.Entities.RMCPricing
+@using Newtonsoft.Json;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int orgcount = Model.OrgVendorID == null ? 0 : ((System.Collections.Generic.List<SelectListItem>)ViewData["OriginVendorList"]).Count() == Model.OrgVendorID.Length ? 0 : Model.OrgVendorID.Length;
+    int destcount = Model.DestVendorID == null ? 0 : ((System.Collections.Generic.List<SelectListItem>)ViewData["DestVendorList"]).Count() == Model.DestVendorID.Length ? 0 : Model.DestVendorID.Length;
+    var CalculationMappingList = Html.Raw(Json.Encode(ViewBag.CalculationMappingList));
+    var OrgVendor = Convert.ToString(Model.OrgVendorID);
+    var DestVendor = Convert.ToString(Model.DestVendorID);
+    if (orgcount > 0)
+    {
+        OrgVendor = String.Join(",", Model.OrgVendorID);
+    }
+    if (destcount > 0)
+    {
+        DestVendor = String.Join(",", Model.DestVendorID);
+    }
+    //var CalculationMapping = CalculationMappingList.ToArray();
+}
+<style>
+    .modal.modal-wide .modal-dialog {
+        width: 100%;
+    }
+
+    .modal-wide .modal-body {
+        overflow-y: auto;
+    }
+
+    .tblbuffer > tbody > tr > th {
+        padding: 5px;
+    }
+
+    .tblbuffer > tbody > tr > td {
+        padding: 5px;
+    }
+</style>
+@using (Html.BeginForm("Index", "Pricing", new { OriginId = Model.FromCityId, DestinationId = Model.ToCityId, RMCId = Model.RMCID, IsRoad = Model.IsRoad }, FormMethod.Post))
+{
+    <div class="ibox pad-none">
+        <div class="row m-n pad-none">
+            <div class="panel panel-default no-mar pad-none">
+                <div class="panel-body m-n p-xs">
+                    @Html.HiddenFor(model => model.FromCityId)
+                    @Html.HiddenFor(model => model.ToCityId)
+                    @Html.HiddenFor(model => model.IsRoad)
+                    <h3 class="text-center mar-none">@Html.TextBoxFor(model => model.Origin, new { @class = "no-borders text-right", @readonly = "true" }) <i class="fa fa-chevron-right m-l-sm m-r-sm"></i>@Html.TextBoxFor(model => model.Destination, new { @class = "no-borders", @readonly = "true" })</h3>
+                </div>
+            </div>
+        </div>
+        <div class="row m-t-sm m-n">
+            <div class="panel panel-default no-mar">
+                <div class="panel-body m-xs pad-none">
+                    <div class="row">
+                        <div class="col-sm-12 border-right">
+                            <div class="row m-t-xs">
+                                <div class="col-sm-1">
+                                    <div class="form-group">
+                                        <label>NormalRev</label>
+                                        @Html.DropDownListFor(a => a.NormalRev, RELOCBS.Common.CommonService.NormalRev, new { @class = "form-control", id = "NormalRev", title = "NormalRev" })
+                                    </div>
+                                </div>
+                                <div class="col-sm-2">
+                                    <div class="form-group">
+                                        <label>Calculation Method</label>
+                                        @Html.DropDownListFor(a => a.CalculationMethod, new SelectList((System.Collections.IEnumerable)ViewData["CalculationMethodList"], "Value", "Text", ViewData["CalculationMethodList"]), new { @class = "form-control", id = "CalculationMethod", title = "Calculation Method" })
+                                    </div>
+                                </div>
+                                @if (!Model.IsRoad)
+                                {
+
+                                    <div class="col-sm-4 m-r-lg">
+                                        @Html.LabelFor(model => model.OrgVendorID, new { @class = "control-label" })
+                                        <div class="ov">
+                                            @Html.DropDownListFor(model => model.OrgVendorID, new MultiSelectList((System.Collections.IEnumerable)ViewData["OriginVendorList"], "Value", "Text", Model.OrgVendorID), null, new { @class = "form-control OrgVendorID MultiSelect", @name = "OrgVendorID", @multiple = "multiple" })
+                                        </div>
+                                        @Html.ValidationMessageFor(model => model.OrgVendorID, "", new { @class = "text-danger" })
+                                    </div>
+
+                                    <div class="col-sm-4">
+                                        @Html.LabelFor(model => model.DestVendorID, new { @class = "control-label" })
+                                        <div class="">
+                                            @*@Html.DropDownListFor(model => model.OrgVendorID, new SelectList((System.Collections.IEnumerable)ViewData["OriginVendorList"], "Text", "Value", Model.OrgVendorID), null, new { @class = "OrgVendorID MultiSelect", @name = "OrgVendorID", @multiple = "multiple" })*@
+                                            @Html.DropDownListFor(model => model.DestVendorID, new SelectList((System.Collections.IEnumerable)ViewData["DestVendorList"], "Value", "Text"), null, new { @class = "DestVendorID MultiSelect", @name = "DestVendorID", @multiple = "multiple" })
+                                        </div>
+                                        @Html.ValidationMessageFor(model => model.DestVendorID, "", new { @class = "text-danger" })
+
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="row m-t-xs pad-none">
+                                <div class="form-group">
+                                    <div class="col-sm-4">
+                                        <h5>Charges Details</h5>
+                                        <table class="table table-bordered tblbuffer">
+                                            <tbody>
+                                                <tr>
+                                                    <th class="label-success col-sm-2 ">Charges</th>
+                                                    <th class="label-success col-sm-2 p-xs ">Amount</th>
+                                                    <th class="label-success col-sm-2 p-xs">Percent</th>
+                                                </tr>
+                                                @if (Model.RMCFees != null)
+                                                {
+                                                    for (int i = 0; i < Model.RMCFees.Count; i++)
+                                                    {
+                                                        <tr class="m-n pad-none">
+                                                            <td class="m-n pad-none">
+                                                                @Html.HiddenFor(item => Model.RMCFees[i].CostHeadId)@Html.HiddenFor(item => Model.RMCFees[i].CostHeadName)@Html.HiddenFor(item => Model.RMCFees[i].BAFlag)
+                                                                @Model.RMCFees[i].CostHeadName
+                                                            </td>
+                                                            <td class="m-n pad-none">@Html.TextBoxFor(item => Model.RMCFees[i].Amount, new { @class = "form-control input-sm m-n pad-none charge", placeholder = "", title = "" })</td>
+                                                            <td class="m-n pad-none">@Html.TextBoxFor(item => Model.RMCFees[i].Percent, new { @class = "form-control input-sm m-n pad-none charge", placeholder = "", title = "" })</td>
+                                                        </tr>
+                                                    }
+                                                }
+
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        @{
+                                            string strRoad = Model.IsRoad ? "Road" : "Sea";
+                                            string cssRoad = Model.IsRoad ? "col-sm-4 hide" : "col-sm-4";
+
+                                        }
+                                        <h5> @strRoad Buffer WeightSlabwise</h5>
+                                        <table class="table table-bordered tblbuffer">
+                                            <tbody>
+                                                <tr>
+                                                    <th class="label-success col-sm-2">Slabs</th>
+                                                    <th class="label-success col-sm-2 p-xs thbuffer">Buffer Amount</th>
+                                                </tr>
+                                                @if (Model.PricingSeaBuffer != null)
+                                                {
+                                                    for (int i = 0; i < Model.PricingSeaBuffer.Count; i++)
+                                                    {
+                                                        <tr class="m-n pad-none">
+                                                            <td class="m-n pad-none">@Html.HiddenFor(item => Model.PricingSeaBuffer[i].BufferSlab)@Html.HiddenFor(item => Model.PricingSeaBuffer[i].ModeId)@Model.PricingSeaBuffer[i].BufferSlab</td>
+                                                            <td class="m-n pad-none">@Html.TextBoxFor(item => Model.PricingSeaBuffer[i].BufferCost, new { @class = "form-control input-sm m-n pad-none", placeholder = "", title = "", value = "0.00" })</td>
+                                                        </tr>
+                                                    }
+                                                }
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class='@cssRoad'>
+                                        <h5>Air Buffer WeightSlabwise</h5>
+                                        <table class="table table-bordered tblbuffer">
+                                            <tbody>
+                                                <tr>
+                                                    <th class="label-success col-sm-2">Slabs</th>
+                                                    <th class="label-success col-sm-2 p-xs thbuffer">Buffer Amount</th>
+                                                </tr>
+                                                @if (Model.PricingAirBuffer != null)
+                                                {
+                                                    for (int i = 0; i < Model.PricingAirBuffer.Count; i++)
+                                                    {
+                                                        <tr class="m-n pad-none">
+                                                            <td class="m-n pad-none">@Html.HiddenFor(item => Model.PricingAirBuffer[i].BufferSlab)@Html.HiddenFor(item => Model.PricingAirBuffer[i].ModeId)@Model.PricingAirBuffer[i].BufferSlab</td>
+                                                            <td class="m-n pad-none">@Html.TextBoxFor(item => Model.PricingAirBuffer[i].BufferCost, new { @class = "form-control input-sm m-n pad-none", placeholder = "", title = "", value = "0.00" })</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                            <div class="row pad-none m-n">
+                                <button id="btnCalculate" class="btn btn-sm btn-info m-t-xs pull-right pull-right " type="submit" disabled>Calculate SFR</button>
+                            </div>
+                            <div>
+                                @Html.Partial("_CombinationPartial", Model)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+<div id="mdlAddEdit" class="modal fade modal-wide" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog width-100">
+
+        <div class="modal-content p-md pad-top-none">
+
+            <div class="modal-header pad-bot-none">
+                <h3>Amend SFR/Reverse SFR Rates<button type="button" class="close" data-dismiss="modal">&times;</button></h3>
+            </div>
+            @using (Html.BeginForm("SaveAmendRates", "Pricing", FormMethod.Post, new { id = "modaldetails" }))
+            {
+                @Html.HiddenFor(model => model.FromCityId)
+                @Html.HiddenFor(model => model.ToCityId)
+                @Html.HiddenFor(model => model.RMCID)
+                @Html.HiddenFor(model => model.IsRoad)
+                @Html.HiddenFor(model => model.NormalRev)
+                if (Model.IsRoad)
+                {
+                    <div class="row">
+
+                        <div class="col-sm-5 text-right m-t-xs">
+                            <span class="font-bold"> @Model.Origin</span><br />
+                        </div>
+                        <div class="col-sm-2 text-center">
+                            <h3><span class="fa fa-arrow-right"></span></h3>
+                        </div>
+                        <div class="col-sm-5 text-left m-t-xs">
+                            <span class="font-bold"> @Model.Destination</span><br />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 text-center">
+                            <span id="origin" class="font-sm">Agent:</span>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="row">
+
+                        <div class="col-sm-5 text-right">
+                            <span class="font-bold"> @Model.Origin</span><br />
+                            <span id="origin" class="font-sm">Origin Agent:</span>
+                        </div>
+                        <div class="col-sm-2 text-center">
+                            <h3><span class="fa fa-arrow-right"></span></h3>
+                        </div>
+                        <div class="col-sm-5 text-left">
+                            <span class="font-bold"> @Model.Destination</span><br />
+                            <span id="destination" class="font-sm"></span>
+                        </div>
+                    </div>
+                }
+                <div class="row">
+                    <div class="col-sm-12">
+                        @Html.HiddenFor(a => a.SFRGridList)
+                        <div class="modal-body" id="partial" style="overflow-y:auto; height:420px">
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 pull-right">
+                        <button id="btnCancel" class="btn btn-sm btn-danger m-t-xs m-l-xs  pull-right filter-custom-margin" type="button" data-dismiss="modal">Cancel</button>
+                        <button id="btnSaveAmendRates" class="btn btn-sm btn-info m-t-xs pull-right filter-custom-margin pull-right" type="submit" form="modaldetails">Save Amend Rates</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(function () {
+            $('.MultiSelect').multiselect({
+                buttonWidth: 450, maxHeight: 200, enableFiltering: true, enableCaseInsensitiveFiltering: true, numberDisplayed: 0
+            });
+        });
+        $('#CalculationMethod').change(
+
+            function ()
+            {
+                var method = $(this).val();
+                var CalculationMapping = [];
+
+                CalculationMapping = @CalculationMappingList;
+
+                //$.grep(CalculationMapping, function (n, i) {
+                //    return n > 0;
+                //});
+                if (CalculationMapping != null) {
+                    var text = CalculationMapping.filter(
+                        function (item) {
+                            return item.Value == method;
+                        }
+                    );
+                    $('.thbuffer').html("Buffer " + text[0].Text);
+                }
+
+                //if (method == 1) {
+                //    $('.thbuffer').html($('.thbuffer').html().replace('Percent', 'Amount'));
+                //}
+                //else {
+                //    $('.thbuffer').html($('.thbuffer').html().replace('Amount', 'Percent'));
+                //}
+            }
+        );
+        $(document).ready(function () {
+            $('#CombinationNo').val(null);
+            $('#CalculationMethod').change();
+            
+            if ('@orgcount' <=0) {
+                $('select.OrgVendorID').find("option").each(function () {
+
+                    $(this).prop('selected', true);
+                    $("select.OrgVendorID").multiselect('selectAll', false);
+                    $("select.OrgVendorID").multiselect('updateButtonText');
+                });
+
+
+            }
+            else {
+                $('select.OrgVendorID').find("option").each(function () {
+                    $("select.OrgVendorID").multiselect('updateButtonText');
+                });
+                var data = '@OrgVendor';
+                if (data != 'null') {
+                    //data = data.replace(/&quot;/g, '');
+
+                    var valArr = data.split(",");
+                    var i = 0, size = valArr.length;
+                    for (i; i < size; i++) {
+                        
+                        //alert(valArr[i].toString());
+                        $('select.OrgVendorID').multiselect('select', valArr[i]);
+                    }
+                }
+            }
+            
+            if (parseInt('@destcount') <= 0) {
+                $('select.DestVendorID').find("option").each(function () {
+                    $(this).prop('selected', true);
+                    $("select.DestVendorID").multiselect('selectAll', false);
+                    $("select.DestVendorID").multiselect('updateButtonText');
+                 });
+            }
+            else {
+                $('select.DestVendorID').find("option").each(function () {
+                    $("select.DestVendorID").multiselect('updateButtonText');
+                    $("select.DestVendorID").multiselect('selectAll', true);
+                });
+
+                var data = '@DestVendor';
+                if (data != 'null') {
+                    //data = data.replace(/&quot;/g, '');
+
+                    var valArr = data.split(",");
+                    var i = 0, size = valArr.length;
+                    for (i; i < size; i++) {
+                        
+                        //alert(valArr[i].toString());
+                        $('select.DestVendorID').multiselect('select', valArr[i]);
+                    }
+                }
+
+            }
+
+            $('select.OrgVendorID,select.DestVendorID').trigger('change');
+
+            $('.charge').on('blur', function () {
+                var value = $(this).val();
+                if (value && parseInt(value) != 0) {
+
+                    $(this).parent().siblings().find('.charge').val(0.00);
+                }
+            })
+
+            $("select,input[type='text']").on('change keyup',
+                function () {
+                    if (!($(this).hasClass('OrgVendorID') || $(this).hasClass('DestVendorID'))) {
+                        $('#btnCalculate').removeAttr('disabled');
+                        $('#lnk-ar,#lnk-dtr').attr('disabled', 'disabled');
+                    }
+                });
+        });
+
+        $('select.OrgVendorID,select.DestVendorID').change(function () {
+
+            if ('@Model.IsRoad') {
+                var a = $('select.OrgVendorID').val();
+                var d = $('select.DestVendorID').val();
+                $('#tbl-pricingcombinations tr').each(function () {
+                    $(this).find('th:not(:first-child),td:not(:first-child)').hide();
+                });
+                if (a != null) {
+                    for (var i = 0; i < a.length; i++) {
+
+                        if (d != null) {
+                            for (var j = 0; j < d.length; j++) {
+                                $('#tbl-pricingcombinations tr th').each(function () {
+                                    var b = 0;
+                                    
+                                    if ($(this).find('.OA').text() == a[i] && $(this).find('.DA').text() == d[j] && $(this).find('.OA,.DA').html()) {
+                                        b = $(this).index();
+                                        $('#tbl-pricingcombinations tr').each(function () { $(this).find('th,td').eq(b).show() });
+                                    }
+                                    else {
+                                        //console.log();
+                                        if ($(this).find("span input[type='radio']").is(':checked')) {
+                                            $(this).find("span input[type='radio']").removeAttr("checked");
+                                            $('#CombinationNo').val(null);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        $('#lnk-dtr').on('click', function () {
+            var list = '@Model.SFRCalculationList';
+            LoadSFRPartial(false);
+        });
+
+        $('#lnk-ar').on('click', function () {
+            var list = '@Model.SFRCalculationList';
+            LoadSFRPartial(true);
+        });
+
+        $("#modaldetails").submit(function ()
+        {
+            
+            var data = SFRXML();
+            $('#SFRGridList').val(JSON.stringify(data));
+        });
+
+        function SFRXML() {
+
+                var list = [];
+                $('#partial .grid-mvc table tbody tr').each(function () {
+                    var alldata = {
+                        'ModeID': $(this).find('td.ModeID').html(),
+                        'WeightFrom': $(this).find('td.WeightFrom').html(),
+                        'OrgCost': $(this).find('td.OrgCost').html(),
+                        'FrtCost': $(this).find('td.FrtCost').html(),
+                        'DestCost': $(this).find('td.DestCost').html(),
+                        'DtDCost': $(this).find('td.DtDCost').html(),
+                        'Buff': $(this).find('td.Buff').html(),
+                        'SFRAmt': $(this).find('td.SFRAmt').html(),
+                        'SFR': $(this).find('td.SFR').html(),
+                        'RevSFR': $(this).find('td.RevSFR').html(),
+                        'FSFR': $(this).find('td.FSFR').find('.txtFSFR').val(),
+                        'FSFRAmt': $(this).find('td.FSFRAmt').html(),
+                        'NetRev': $(this).find('td.NetRev').html(),
+                        'GPVal': $(this).find('td.GPVal').html(),
+                        'GPPercent': $(this).find('td.GPPercent').html(),
+                        'TransitDaysFrom': $(this).find('td.TimeFrom').find('.txtTimeFrom').val(),
+                        'TransitDaysTo': $(this).find('td.TimeTo').find('.txtTimeTo').val()
+                    }
+                    list.push(alldata);
+                });
+                return list.length > 0 ? { 'SFRDetail': list } : '';
+        }
+
+        function LoadSFRPartial(isAmend)
+        {
+            var CombinationId = $('#CombinationNo').val();
+            if (CombinationId) {
+                var route = '@Url.Action("SFRCalculation", "Pricing", new { CombinationId = "-1" })';
+                route = route.replace("-1", CombinationId);
+
+                $('#partial').load(route, function () {
+
+                    if (isAmend) {
+                        $('#mdlAddEdit').modal();
+                    }
+                    else {
+                        $('#btnSaveAmendRates').trigger('click');
+                    }
+                });
+
+            }
+            else {
+                alert('Please select any one combination.');
+            }
+        }
+    </script>
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+}

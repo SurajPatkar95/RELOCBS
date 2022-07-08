@@ -1,0 +1,467 @@
+﻿@using RELOCBS.Utility;
+
+@model RELOCBS.Entities.LoadCharts
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Truck Load Chart</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style type="text/css">
+
+        .ttop {
+            vertical-align: top !important;
+        }
+
+        body {
+        }
+
+        .floatLeft {
+            float: left;
+        }
+
+        .tcenter {
+            text-align: center !important;
+        }
+
+        .boxWraper {
+            border: 1px solid #7b7b7b;
+            display: block;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+            .boxWraper .padding tr td {
+                padding: 3px 6px;
+            }
+
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        tr.border_bottom td {
+            border-bottom: 1pt solid black;
+        }
+
+        .tableData {
+            border: 0 !important;
+            line-height: 16px;
+        }
+
+
+            .tableData tr td {
+                background: #fff;
+                height: 100%;
+                vertical-align: middle;
+                border: 1px solid #e3e7ee;
+            }
+
+        .boxWraper tr th {
+            border: 1px solid #e3e7ee;
+            text-align: center;
+            padding: 3px 6px;
+        }
+
+
+        .marginLR {
+            margin: 0 auto;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        /*table {
+            border-collapse: separate;
+            border-spacing: 2px;
+        }*/
+
+        table {
+            background-color: transparent;
+        }
+
+        /*table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+        }*/
+
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            color: #808080;
+            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: subpixel-antialiased;
+            background: #fff;
+        }
+
+        .cw100 {
+            width: 100px !important;
+        }
+
+        .cw110 {
+            width: 110px !important;
+        }
+
+        .cw80 {
+            width: 80px !important;
+        }
+
+        .cw120 {
+            width: 120px !important;
+        }
+
+        .cw140 {
+            width: 140px !important;
+        }
+
+        .cw150 {
+            width: 150px !important;
+        }
+
+        .cw160 {
+            width: 160px !important;
+        }
+
+        .cw170 {
+            width: 170px !important;
+        }
+
+        .cw180 {
+            width: 180px !important;
+        }
+
+        .cw130 {
+            width: 140px !important;
+        }
+
+        .tbold {
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            font-weight: 600;
+        }
+
+        .tright {
+            text-align: right !important;
+        }
+
+        label {
+            margin-bottom: 0;
+        }
+
+        .tcollapse {
+            border-collapse: collapse;
+        }
+
+
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+        .taW {
+            width: 100% !important;
+        }
+
+        .table_3Col {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .table_3Col td {
+            width: 50%;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: normal;
+            font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+        }
+
+        .tunderline {
+            text-decoration: underline;
+        }
+
+    </style>
+    <style type="text/css">
+        @@media print {
+            .grid-header {
+                background: #eee;
+                font-size: 13px;
+            }
+
+            body {
+                font-family: Serif;
+            }
+
+            h2 {
+                font-size: 20px;
+                text-transform: uppercase;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            h4 {
+                font-size: 13px;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="col-lg-12 col-sm-12 col-md-12" style="-ms-flex-align:center">
+        <table class="marginLR" style="width:20cm;">
+            <tr>
+                <td>
+                    <table class="taW">
+                        <tbody>
+                            <tr>
+                                <td style="border-bottom:1px solid #7b7b7b;">
+                                    <div class="floatLeft" style="margin-top:34px;">
+                                    </div>
+                                    <div class="tcenter hidden-print">
+                                        <img src="~/Content/images/logo-icon.png" width="100px" height="100px">
+                                    </div>
+                                    <div class="tcenter">
+                                        <h2 class="tunderline tbold">WRITER RELOCATIONS</h2>
+                                        <h3 class="tunderline tbold">TRUCK LOAD CHART</h3>
+                                    </div>
+                                </td>
+
+                            </tr>
+                            <tr>
+                                <td style="height:5px;"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="boxWraper">
+                                        <table class="table_3Col tcollapse padding">
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw100 tbold">TLC Id</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.TLCID)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw100 tbold">Job Date</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.LoadChartDate.ToString("dd/MM/yyyy"))</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw50 tbold">Branch</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.BranchName)</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw100 tbold">Truck No.</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.TruckNo)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw100 tbold">Seal No.</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.SealNo)</span>
+                                                    </td>
+
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw100 tbold">Dispatched on</label>:
+                                                        <span class="ng-binding">@Html.Raw(Model.Transporter)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw100 tbold">Vehicle Type</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.VehicleType)</span>
+                                                    </td>
+                                                    @*<td>
+                                                        <label class="cw100 tbold">Tot.Capacity</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.VehicleCapacity)</span>
+                                                    </td>*@
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw100 tbold">Escorted by</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.EscortedBy)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw100 tbold">Branch</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.EscortedByBranch)</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="3">
+                                                        <label class="cw100 tbold">Left on</label> :
+                                                        <span class="ng-binding">@Html.Raw(Convert.ToDateTime(Model.LeftOnDate).ToString("dd/MM/yyyy"))</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw100 tbold">Loaded At</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.LoadedAtBranchID)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw100 tbold">Loaded To</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.LoadedToBranchID)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw50 tbold">Via</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.LoadedViaBranchID)</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw100 tbold">Outside Vehicle</label>:
+                                                        <span class="ng-binding">@Html.Raw(Model.IsOutSideVehicle == true ? "Yes" : "")</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw100 tbold">Cost Of Vehicle</label>:
+                                                        <span class="ng-binding">@Html.Raw(Model.CostForVehicle)</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="3">
+                                                        <label class="cw140 tbold">Vehicle Direct Delivery</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.IsDirectDelivery == true ? "Yes" : "")</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw140 tbold">Tally chart prepared</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.IsTallyChartPrepared == true ? "Yes" : "")</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw170 tbold">Tally Chart Sent To Destination</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.IsTallyChartSentToLoc == true ? "Yes" : "")</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="3">
+                                                        <label class="cw50 tbold">Remark</label>:
+                                                        <span class="ng-binding">@Html.Raw(Model.Remarks)</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="3">
+                                                        <label class="cw50 tbold">Notes</label>:
+                                                        <span class="ng-binding">@Html.Raw(Model.Notes)</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                @*<tr class="border_bottom">
+                                                        <td class="grid-header tbold" colspan="4">Activity Details</td>
+                                                    </tr>*@
+                                                <tr>
+                                                    <td class="ttop" colspan="4">
+                                                        <table class="tableData taW">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th class="cw100">Job No</th>
+                                                                    <th class="cw100">Shipper</th>
+                                                                    <th class="cw100">Account</th>
+                                                                    <th class="cw50">Mode</th>
+                                                                    <th class="cw100">NoOfPackages</th>
+                                                                    <th class="cw50">Vol(cft)</th>
+                                                                    <th class="cw50">Revenue</th>
+                                                                    <th class="cw50">ApproxCost</th>
+                                                                    <th class="cw100">Shpt Loaded at</th>
+                                                                    <th class="cw80">Loaded By Supv</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody style="max-height:100%">
+                                                                @for (int i = 0; i < Model.loadChartShipments.Count; i++)
+                                                                {
+                                                                    <!-- Repeat: row in LabourCostList -->
+                                                                    <tr class="ng-scope">
+                                                                        <td class="cw100">
+                                                                            @Html.Raw(Model.loadChartShipments[i].JobNo)
+                                                                        </td>
+                                                                        <td class="cw50">
+                                                                            @Html.Raw(Model.loadChartShipments[i].Shipper)
+                                                                        </td>
+                                                                        <td class="cw50">
+                                                                            @Html.Raw(Model.loadChartShipments[i].AccountName)
+                                                                        </td>
+                                                                        <td class="cw50">
+                                                                            @Html.Raw(Model.loadChartShipments[i].Mode)
+                                                                        </td>
+                                                                        <td class="cw50">
+                                                                            @Html.Raw(Model.loadChartShipments[i].NoOfPacsDetails)
+                                                                        </td>
+                                                                        <td class="cw50 tright">
+                                                                            @Html.Raw(Model.loadChartShipments[i].Vol)
+                                                                        </td>
+                                                                        <td>
+                                                                            @Model.loadChartShipments[i].Revenue
+                                                                            
+                                                                        </td>
+                                                                        <td>
+                                                                            @Model.loadChartShipments[i].ApproxCost
+                                                                        </td>
+                                                                        <td class="cw50">
+                                                                            @Html.Raw(Model.loadChartShipments[i].LoadAt)
+                                                                        </td>
+                                                                        <td class="cw140">
+                                                                            @Html.Raw(Model.loadChartShipments[i].LoadedBySupervisor)
+                                                                        </td>
+                                                                    </tr>
+                                                                    <!-- end Repeat: row in LabourCostList -->
+                                                                }
+
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                @*class="hidden-print"*@
+                                <td>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="grid-header tbold ng-binding" colspan="3">Generated By : @Html.Raw(UserSession.GetUserSession().UserName)&nbsp;</td>
+                                                    <td class="grid-header tbold ng-binding">
+                                                        Generated On :
+                                                        <script>document.write(new Date().toDateString() + " " + new Date().toLocaleTimeString());</script>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

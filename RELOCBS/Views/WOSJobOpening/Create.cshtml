@@ -1,0 +1,1142 @@
+﻿@model RELOCBS.Entities.WOSJobOpening
+
+@using RELOCBS.Utility;
+
+@{
+    ViewBag.Title = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string _PageID = "71";
+
+    int ApprovalCount = ViewBag.ApprovalCount;
+    Model.ActiveTab = Model.ActiveTab ?? "Dashboard";
+    string ActiveTab = Model.ActiveTab;
+
+    int USDCurrID = 1;
+    int INRCurrID = 2;
+}
+
+<style type="text/css">
+    .bg {
+        border-left: 3px solid red;
+    }
+</style>
+
+@using (Html.BeginForm("Create", "WOSJobOpening", FormMethod.Post, new { enctype = "multipart/form-data", @name = "formWOSJobOpening", @id = "formWOSJobOpening" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(false)
+
+    @Html.HiddenFor(m => m.WOSMoveID, new { @id = "WOSMoveID" })
+    @Html.HiddenFor(m => m.MoveID, new { @id = "MoveID" })
+    @Html.HiddenFor(m => m.WOSBilling.BillID, new { @id = "BillID" })
+    @Html.HiddenFor(m => m.CSSentToApproveUser, new { @id = "CSSentToApproveUser" })
+    @Html.HiddenFor(m => m.ActiveTab, new { @id = "ActiveTab" })
+    @Html.HiddenFor(m => m.JobCancelRemark, new { @id = "JobCancelRemark" })
+
+    <div class="modal modal-wide fade" id="APIModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>
+                        Result
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </h3>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 APIResult" style="padding-bottom:10px">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal modal-wide fade" id="SendLinkModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    Send Link
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body" id="SendLink" style="height:300px;">
+                    <div class="m-t-sm pad-none">
+                        <div class="row">
+                            <div class="col-sm-offset-1 col-md-offset-1 col-sm-10 col-md-10">
+                                <div class="form-group">
+                                    <label class="requiredlabel">Email To</label>
+                                    @Html.TextBoxFor(m => m.EmailTo, new { @class = "form-control input-sm", @id = "txtEmailTo", @placeholder = "Email To", @title = "Email To" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-offset-1 col-md-offset-1 col-sm-10 col-md-10">
+                                <div class="form-group">
+                                    <label>Email CC</label>
+                                    @Html.TextBoxFor(m => m.EmailCc, new { @class = "form-control input-sm", @id = "txtEmailCc", @placeholder = "Email Cc", @title = "Email Cc" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-offset-1 col-md-offset-1 col-sm-10 col-md-10">
+                                <div class="form-group">
+                                    <label>Email BCC</label>
+                                    @Html.TextBoxFor(m => m.EmailBcc, new { @class = "form-control input-sm", @id = "txtEmailBcc", @placeholder = "Email Bcc", @title = "Email Bcc" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-offset-1 col-md-offset-1 col-sm-10 col-md-10 text-center">
+                                <input type="button" id="btnSendLink" class="btn btn-primary m-t-sm m-r-sm btn-sm filter-custom-margin m-n" value="Send Link" form="ModalSendLink" onclick="SendLink()" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="mdlBillPrepare" class="modal fade" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content  p-xl pad-top-none">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <label>Invoices</label>
+                        @Html.DropDownList("InvoiceList", new List<SelectListItem>(), new { @class = "form-control InvoiceList" })
+                    </div>
+                    <div class="col-sm-6">
+                        <input type="submit" name="Save" value="Proceed" class="btn btn-sm btn-primary filter-custom-margin" id="btnProceed" form="formWOSJobOpening" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="mdlSendtoApproval" class="modal fade" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <button type="button" class="close danger" data-dismiss="modal" aria-label="Close" style="background: red; opacity: unset; width:50px;color:white;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-content  p-xl">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <label>Select User for Approval</label>
+                        @if (ApprovalCount > 1)
+                        {
+                            @Html.DropDownList("SendToApprovalList", new SelectList((System.Collections.IEnumerable)ViewData["ApprovalUserList"], "Value", "Text"), "--Select Approval User--", new { @class = "form-control" })
+                        }
+                        else
+                        {
+                            @Html.DropDownList("SendToApprovalList", new SelectList((System.Collections.IEnumerable)ViewData["ApprovalUserList"], "Value", "Text"), new { @class = "form-control" })
+                        }
+                    </div>
+                    <div class="col-sm-6">
+                        <input type="submit" name="Save" value="Proceed for Approval" class="btn btn-sm btn-primary filter-custom-margin" id="btnSendToCSApprove" form="formWOSJobOpening" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="CancelJobModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    Cancel Job
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="CancelJob" style="height:300px;">
+                    <div class="m-t-sm pad-none">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12">
+                                <div class="form-group">
+                                    <label>Cancel Remark</label>
+                                    @Html.TextBox("txtJobCancelRemark", null, new { @class = "form-control input-sm ", placeholder = "Cancel Remark", title = "Cancel Remark", @id = "txtJobCancelRemark" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-offset-3 col-md-offset-3 col-sm-6 col-md-6 text-center">
+                                <input type="submit" name="Save" value="Cancel Job" class="btn btn-sm btn-primary filter-custom-margin" id="btnCancelJob"
+                                       form="formWOSJobOpening" onclick="Set_ModalCancelJob()" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    if (Model.JobStatus != "Cancelled")
+    {
+        <div class="row m-t-sm">
+            <input type="submit" id="btnSave" name="Save" class="btn btn-sm btn-primary m-r-md pull-right" value="Save" />
+            @if (Model.WOSMoveID > 0)
+            {
+                <input type="button" id="btnRequestDocs" class="btn btn-sm btn-primary m-r-md pull-right" value="Request Docs" onclick="OpenRequestDocs();" />
+                <a id="btnSendLink" class="btn btn-sm btn-primary m-r-md pull-right" data-cache="false" title="Send Link" data-toggle="modal" data-target="#SendLinkModal">Send Link</a>
+                <a id="CancelJob" class="btn btn-sm btn-danger m-r-md pull-right" data-cache="false" title="Cancel Job" data-toggle="modal" data-target="#CancelJobModal">Cancel Job</a>
+            }
+        </div>
+    }
+    <div class="row">
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label>Move Id : </label>@Model.WOSMoveID
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label>Job Id : </label>@Model.WOSJobID
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-3">
+            <div class="form-group">
+                <label>Assignee Name : </label>@(Model.AssigneeFName + " " + Model.AssigneeLName)
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-3">
+            <div class="form-group">
+                <label>Job Opened Date : </label>@if (Model.WOSJobOpenedDate != null)
+                {
+                    @(((DateTime)Model.WOSJobOpenedDate).ToString("dd-MMM-yyyy"))
+                }
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label>Job Status : </label>@Model.JobStatus
+            </div>
+        </div>
+    </div>
+    if (Model.JobStatus == "Cancelled")
+    {
+        <div class="row">
+            <div class="col-md-6 col-sm-6">
+                <div class="form-group">
+                    <label>Cancel Remarks : </label>@Model.JobCancelRemark
+                </div>
+            </div>
+        </div>
+    }
+    <div class="col-md-12 col-sm-12 well well-sm">
+        <div id="dvTabList" class="tabs-container">
+            <ul class="nav nav-tabs" role="tablist">
+                @if (Model.TabList.Find(r => r.TabIndex == 0) != null)
+                {
+                    <li role="presentation" class="@(ActiveTab == "Dashboard" ? "active" : "")"><a href="#Dashboard" aria-controls="Dashboard" role="tab" data-toggle="tab" aria-expanded="true"><span class="t">Dashboard</span></a></li>
+                }
+                @if (Model.WOSMoveID > 0)
+                {
+                    if (Model.TabList.Find(r => r.TabIndex == 1) != null)
+                    {
+                        <li role="presentation" class="@(ActiveTab == "Housing Preference" ? "active" : "")"><a href="#HousingPreference" aria-controls="HousingPreference" role="tab" data-toggle="tab" aria-expanded="true"><span class="t">Housing Preference</span></a></li>
+                    }
+                    if (Model.TabList.Find(r => r.TabIndex == 2) != null)
+                    {
+                        <li role="presentation" class="@(ActiveTab == "Service Cost Details" ? "active" : "")"><a href="#ServiceCostDetails" aria-controls="ServiceCostDetails" role="tab" data-toggle="tab" aria-expanded="true"><span class="t">Service Cost Details</span></a></li>
+                    }
+                    if (Model.TabList.Find(r => r.TabIndex == 3) != null)
+                    {
+                        <li role="presentation" class="@(ActiveTab == "Cost Sheet" ? "active" : "")"><a href="#CostSheet" aria-controls="CostSheet" role="tab" data-toggle="tab" aria-expanded="true"><span class="t">Cost Sheet</span></a></li>
+                    }
+                    if (Model.TabList.Find(r => r.TabIndex == 4) != null)
+                    {
+                        <li role="presentation" class="@(ActiveTab == "DMS (Internal)" ? "active" : "")"><a href="#DMS" aria-controls="DMS" role="tab" data-toggle="tab" aria-expanded="true"><span class="t">DMS (Internal)</span></a></li>
+                    }
+                }
+            </ul>
+            <div class="tab-content">
+                <div role="tabpanel" class="@(ActiveTab == "Dashboard" ? "tab-pane tab-panecontainer active" : "tab-pane tab-panecontainer")" id="Dashboard">
+                    <div class="row tab-panecontainer">
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>Dashboard</legend>
+                            <div id="dvDashboard" class="m-t-sm m-n pad-none">
+                                <div class="row">
+                                    @*<div class="col-md-2 col-sm-2">
+                                            <div class="form-group">
+                                                <label class="requiredlabel">Is RMC</label>
+                                                @Html.DropDownListFor(m => m.IsRMCBus, new SelectList((System.Collections.IEnumerable)ViewData["BusinessList"], "Value", "Text", ViewData["BusinessList"]), "Select One", new { @class = "form-control input-sm", @title = "Is RMC Buss", @id = "IsRMCBus" })
+                                                @Html.HiddenFor(m => m.IsRMCBus)
+                                                @Html.ValidationMessageFor(m => m.IsRMCBus, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>*@
+                                    <div class="col-md-6 col-sm-6">
+                                        <div class="form-group">
+                                            <label class="requiredlabel">Client</label>
+                                            @Html.DropDownListFor(m => m.ClientID, new List<SelectListItem>(), "Select One", new { @class = "form-control input-sm enableselect", @id = "ClientID", @title = "Client" })
+                                            @Html.HiddenFor(m => m.ClientID)
+                                            @Html.ValidationMessageFor(m => m.ClientID, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-sm-6">
+                                        <div class="form-group">
+                                            <label class="requiredlabel">Account</label>
+                                            @Html.DropDownListFor(m => m.AccountID, new List<SelectListItem>(), "Select One", new { @class = "form-control input-sm enableselect", @id = "AccountID", @title = "Account" })
+                                            @Html.ValidationMessageFor(m => m.AccountID, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label class="requiredlabel">Service Line</label>
+                                            @Html.DropDownListFor(m => m.ServiceLineID, new SelectList((System.Collections.IEnumerable)ViewData["ServiceLineList"], "Value", "Text", ViewData["ServiceLineList"]), "Select One", new { @class = "form-control input-sm enableselect", @title = "Service Line", @id = "ServiceLineID" })
+                                            @Html.HiddenFor(m => m.ServiceLineID)
+                                            @Html.ValidationMessageFor(m => m.ServiceLineID, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label class="requiredlabel">Rev. Branch</label>
+                                            @Html.DropDownListFor(m => m.RevBranchID, new SelectList((System.Collections.IEnumerable)ViewData["RevBranchList"], "Value", "Text", ViewData["RevBranchList"]), "Select One", new { @class = "form-control input-sm enableselect", @title = "Rev Branch", @id = "RevBranchID" })
+                                            @Html.HiddenFor(m => m.RevBranchID)
+                                            @Html.ValidationMessageFor(m => m.RevBranchID, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label class="requiredlabel">Service Branch</label>
+                                            @Html.DropDownListFor(m => m.JobBrID, new SelectList((System.Collections.IEnumerable)ViewData["RevBranchList"], "Value", "Text", ViewData["RevBranchList"]), "Select One", new { @class = "form-control input-sm enableselect", @title = "Job Br", @id = "JobBrID" })
+                                            @Html.ValidationMessageFor(m => m.JobBrID, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label class="requiredlabel">Consultant</label>
+                                            @Html.DropDownListFor(m => m.SDId, new SelectList((System.Collections.IEnumerable)ViewData["EmployeeList"], "Value", "Text", ViewData["EmployeeList"]), "Select One", new { @class = "form-control input-sm enableselect", @title = "Consultant", @id = "SDId" })
+                                            @Html.ValidationMessageFor(m => m.SDId, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label class="requiredlabel">Client Relations Consultant</label>
+                                            @Html.DropDownListFor(m => m.SRId, new SelectList((System.Collections.IEnumerable)ViewData["EmployeeList"], "Value", "Text", ViewData["EmployeeList"]), "Select One", new { @class = "form-control input-sm enableselect", @title = "Client Relations Consultant", @id = "SRId" })
+                                            @Html.ValidationMessageFor(m => m.SRId, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label class="requiredlabel">KAM</label>
+                                            @Html.DropDownListFor(m => m.KAM, new SelectList((System.Collections.IEnumerable)ViewData["EmployeeList"], "Value", "Text", ViewData["EmployeeList"]), "Select One", new { @class = "form-control input-sm enableselect", @title = "KAM", @id = "KAM" })
+                                            @Html.ValidationMessageFor(m => m.KAM, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label class="requiredlabel">Assignee First Name</label>
+                                            @Html.TextBoxFor(m => m.AssigneeFName, new { @class = "form-control input-sm", @placeholder = "Assignee First Name", @title = "Assignee First Name", @id = "AssigneeFName" })
+                                            @Html.ValidationMessageFor(m => m.AssigneeFName, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label class="requiredlabel">Assignee Last Name</label>
+                                            @Html.TextBoxFor(m => m.AssigneeLName, new { @class = "form-control input-sm", @placeholder = "Assignee Last Name", @title = "Assignee Last Name", @id = "AssigneeLName" })
+                                            @Html.ValidationMessageFor(m => m.AssigneeLName, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>From City</label>
+                                            @Html.DropDownListFor(m => m.FromCityID, new List<SelectListItem>(), "Select One", new { @class = "form-control input-sm enableselect", @title = "From City", @id = "FromCityID" })
+                                            @Html.ValidationMessageFor(m => m.FromCityID, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label class="requiredlabel">To City</label>
+                                            @Html.DropDownListFor(m => m.ToCityID, new List<SelectListItem>(), "Select One", new { @class = "form-control input-sm enableselect", @title = "To City", @id = "ToCityID" })
+                                            @Html.ValidationMessageFor(m => m.ToCityID, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>File No</label>
+                                            @Html.TextBoxFor(m => m.FileNo, new { @class = "form-control input-sm", @placeholder = "File No", @title = "File No", @id = "FileNo" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>WO Number</label>
+                                            @Html.TextBoxFor(m => m.WONumber, new { @class = "form-control input-sm", @placeholder = "WO Number", @title = "WO Number", @id = "WONumber" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Old Job No</label>
+                                            @Html.TextBoxFor(m => m.OldJobNo, new { @class = "form-control input-sm", @placeholder = "Old Job No", @title = "Old Job No", @id = "OldJobNo" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label class="requiredlabel">Tentative Billing Month</label>
+                                            @Html.TextBoxFor(m => m.TentativeBillingMonth, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Tentative Billing Month", @title = "Tentative Billing Month", @id = "TentativeBillingMonth" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.TentativeBillingMonth, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Job Remarks</label>
+                                            @Html.TextAreaFor(m => m.JobRemarks, new { @class = "form-control input-sm", @placeholder = "Job Remarks", @title = "Job Remarks", @id = "JobRemarks", @style = "height:50px;" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div role="tabpanel" class="@(ActiveTab == "Housing Preference" ? "tab-pane tab-panecontainer active" : "tab-pane tab-panecontainer")" id="HousingPreference">
+                    <div class="row tab-panecontainer">
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>Arrival Housing Preference</legend>
+                            <div id="dvArrivalHousingPartial" class="m-t-sm m-n pad-none">
+                                <div class="row">
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>House</label>
+                                            @Html.DropDownListFor(m => m.WOSHouseDetails.HouseMasterID, new SelectList((System.Collections.IEnumerable)ViewData["HouseList"], "Value", "Text", ViewData["HouseList"]), "Select One", new { @class = "form-control input-sm", @title = "House Master", @id = "HouseMasterID" })
+                                            @Html.HiddenFor(m => m.WOSHouseDetails.HouseMasterID)
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.HouseMasterID, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Lease Signed Date</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.LeaseSignedDate, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Lease Signed Date", @title = "Lease Signed Date", @id = "LeaseSignedDate" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.LeaseSignedDate, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Lease Renewed Until Date</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.LeaseRenewedUntilDate, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Lease Renewed Until Date", @title = "Lease Renewed Until Date", @id = "LeaseRenewedUntilDate" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.LeaseRenewedUntilDate, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Lease Expiry Date</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.LeaseExpiryDate, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Lease Expiry Date", @title = "Lease Expiry Date", @id = "LeaseExpiryDate" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.LeaseExpiryDate, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Is Fixed Period</label>
+                                            <div>@Html.CheckBoxFor(m => m.WOSHouseDetails.IsFixedPeriod, new { @class = "", @id = "IsFixedPeriod" })</div>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.IsFixedPeriod, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Final Arrival Date</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.FinalArrDate, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Final Arr Date", @title = "Final Arr Date", @id = "FinalArrDate" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.FinalArrDate, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Household Goods Arr Date</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.HHGArrDate, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "HHG Arr Date", @title = "HHG Arr Date", @id = "HHGArrDate" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.HHGArrDate, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Work Start Date</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.WorkStartDate, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Work Start Date", @title = "Work Start Date", @id = "WorkStartDate" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.WorkStartDate, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Official Handover Property Date</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.OfficialHandoverPropertyDate, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Official Handover of Property Date", @title = "Official Handover of Property Date", @id = "OfficialHandoverPropertyDate" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.OfficialHandoverPropertyDate, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Inspection Date In</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.InspectionDateIn, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Inspection Date In", @title = "Inspection Date In", @id = "InspectionDateIn" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.InspectionDateIn, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Short Term Inspection Date</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.ShortTermInspDate, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Short Term Inspection Date", @title = "Short Term Inspection Date", @id = "ShortTermInspDate" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.ShortTermInspDate, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Settling Date</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.SettlingDate, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Settling Date", @title = "Settling Date", @id = "SettlingDate" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.SettlingDate, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>Departure Housing Preference</legend>
+                            <div id="dvDepartureHousingPartial" class="m-t-sm m-n pad-none">
+                                <div class="row">
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Expected Move Out Date</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.ExpMoveOutDate, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Exp Move Out Date", @title = "Exp Move Out Date", @id = "ExpMoveOutDate" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.ExpMoveOutDate, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Actual Move Out Date</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.ActMoveOutDate, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Act Move Out Date", @title = "Act Move Out Date", @id = "ActMoveOutDate" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.ActMoveOutDate, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Inspection Date Out</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.InspectionDateOut, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Inspection Date Out", @title = "Inspection Date Out", @id = "InspectionDateOut" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.InspectionDateOut, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Propery Release By Date</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.ProperyReleaseByDate, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Propery Release By Date", @title = "Propery Release By Date", @id = "ProperyReleaseByDate" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.ProperyReleaseByDate, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Official Handback Property Date</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.OfficialHandbackPropertyDate, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Official Handback Property Date", @title = "Official Handback Property Date", @id = "OfficialHandbackPropertyDate" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.OfficialHandbackPropertyDate, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Inactive Date</label>
+                                            @Html.TextBoxFor(m => m.WOSHouseDetails.InactiveDate, new { @class = "form-control input-sm datepicker onkeydtp", @placeholder = "Inactive Date", @title = "Inactive Date", @id = "InactiveDate" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.InactiveDate, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1 col-sm-1">
+                                        <div class="form-group">
+                                            <label>Is Closed</label>
+                                            <div>@Html.CheckBoxFor(m => m.WOSHouseDetails.IsClosed, new { @class = "", @id = "IsClosed" })</div>
+                                            @Html.ValidationMessageFor(m => m.WOSHouseDetails.IsClosed, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div role="tabpanel" class="@(ActiveTab == "Service Cost Details" ? "tab-pane tab-panecontainer active" : "tab-pane tab-panecontainer")" id="ServiceCostDetails">
+                    <div class="row tab-panecontainer">
+                        <div class="col-sm-2 col-md-2">
+                            <strong>Prepared By: @Model.CSPreparedBy</strong>
+                        </div>
+                        <div class="col-sm-3 col-md-3">
+                            <strong>Prepared Date: @Model.CSPreparedDate</strong>
+                        </div>
+                        <div class="col-sm-2 col-md-2">
+                            <strong>Approved By: @Model.CSApprovedBy</strong>
+                        </div>
+                        <div class="col-sm-3 col-md-3">
+                            <strong>Approved Date: @Model.CSApprovedDate</strong>
+                        </div>
+                        <div class="col-sm-2 col-md-2 pull-right">
+                            @if (Model.IsCostSheetApproved == true)
+                            {
+                                <input type="button" id="btnBillPrepare" name="Save" class="btn btn-primary m-t-sm pull-right m-r-sm btn-sm filter-custom-margin m-n BillPrepare" value="Prepare Bill" disabled />
+                            }
+                            @if (Model.IsCSSentToApprove == true)
+                            {
+                                <input type="submit" id="btnApproveCostSheet" name="Save" class="btn btn-primary m-t-sm pull-right m-r-sm btn-sm filter-custom-margin m-n Showspinner" value="@Model.CostSheetApproved" />
+                            }
+                            else if (Model.IsCostSheetSaved == true)
+                            {
+                                <input type="button" id="btnSendToApprove" name="Save" class="btn btn-primary m-t-sm pull-right m-r-sm btn-sm filter-custom-margin m-n" value="Send For Approval" />
+                            }
+                        </div>
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>Service Cost Details</legend>
+                            <div id="dvServicePartial" class="m-t-sm m-n pad-none">
+                                @Html.Partial("_ServicePartial")
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div role="tabpanel" class="@(ActiveTab == "Cost Sheet" ? "tab-pane tab-panecontainer active" : "tab-pane tab-panecontainer")" id="CostSheet">
+                    <div class="row tab-panecontainer">
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>Cost Sheet</legend>
+                            <div id="dvCostSheetPartial" class="m-t-sm m-n pad-none">
+                                @Html.Partial("_CostSheetPartial")
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div role="tabpanel" class="@(ActiveTab == "DMS (Internal)" ? "tab-pane tab-panecontainer active" : "tab-pane tab-panecontainer")" id="DMS">
+                    <div class="row tab-panecontainer">
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>DMS</legend>
+                            <div id="dvDocUploadPartial" class="m-t-sm m-n pad-none">
+                                @Html.Partial("_DocUploadPartial")
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts{
+    <link href="https://nightly.datatables.net/css/jquery.dataTables.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.datatables.net/rowgroup/1.0.2/css/rowGroup.dataTables.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://nightly.datatables.net/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.datatables.net/rowgroup/1.0.2/js/dataTables.rowGroup.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("li").click(function () {
+                $("#ActiveTab").val($(this).text());
+            });
+            $('.datepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            //to allow editing if saved field
+            AjaxFillDropDown('#ClientID', '@Url.Action("GetAgentList", "WOSJobOpening", new { AgentType = "W" })');//W-WOS
+            AjaxFillDropDown('#AccountID', '@Url.Action("GetAgentList", "WOSJobOpening", new { AgentType = "C" })');
+            AjaxFillDropDown('#FromCityID', '@Url.Action("GetCityList", "WOSJobOpening")');
+            AjaxFillDropDown('#ToCityID', '@Url.Action("GetCityList", "WOSJobOpening")');
+
+            //Bind Dropdown Controls
+            AjaxFillDropDown('#ClientID', '@Url.Action("GetAgentList", "WOSJobOpening", new { AgentType = "W" })', '@Model.ClientID');//W-WOS
+            AjaxFillDropDown('#AccountID', '@Url.Action("GetAgentList", "WOSJobOpening", new { AgentType = "C" })', '@Model.AccountID');
+            AjaxFillDropDown('#FromCityID', '@Url.Action("GetCityList", "WOSJobOpening")', '@Model.FromCityID');
+            AjaxFillDropDown('#ToCityID', '@Url.Action("GetCityList", "WOSJobOpening")', '@Model.ToCityID');
+
+            //Bind events to controls
+            //$("#IsRMCBus").change(function () {
+            //    GetRMCList();
+            //});
+            //GetRMCList();
+
+            BindServicePartialScript();
+
+            EnableDisableControl();
+
+            $('#btnSave').click(function (e) {
+                if ($("#ActiveTab").val() == "Service Cost Details") {
+                    $('#tableCostSheet').dataTable().fnFilter('')
+
+                    var checkedRowCount = $('#tableCostSheet tbody tr .tdIsChecked:input[type="checkbox"]:checked').length;
+                    if (checkedRowCount == 0) {
+                        swal({ title: "Error!", text: "Please select atleast one service.", type: "error" });
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            });
+        });
+        function EnableDisableControl() {
+            if ('@Model.WOSMoveID' > 0) {
+                //$("#IsRMCBus").prop('disabled', true);
+
+                //$('#ClientID').prop('disabled', true).removeClass('enableselect');
+                //if ($('#ClientID').data('select2')) {
+                //    $('#ClientID').select2('destroy');
+                //}
+
+                $('#ServiceLineID').prop('disabled', true).removeClass('enableselect');
+                if ($('#ServiceLineID').data('select2')) {
+                    $('#ServiceLineID').select2('destroy');
+                }
+
+                $('#RevBranchID').prop('disabled', true).removeClass('enableselect');
+                if ($('#RevBranchID').data('select2')) {
+                    $('#RevBranchID').select2('destroy');
+                }
+            }
+            //disable btnBillPrepare
+            $("#btnBillPrepare").prop('disabled', true);
+
+            if ('@Model.IsCostSheetApproved' == 'True') {
+                $("#btnCostSheetForJob").prop('disabled', true);
+
+                $('#CostCurrencyID').prop('disabled', true).removeClass('enableselect');
+                if ($('#CostCurrencyID').data('select2')) {
+                    $('#CostCurrencyID').select2('destroy');
+                }
+
+                $('#RevenueCurrencyID').prop('disabled', true).removeClass('enableselect');
+                if ($('#RevenueCurrencyID').data('select2')) {
+                    $('#RevenueCurrencyID').select2('destroy');
+                }
+
+                $("#AuditFee").prop('disabled', true);
+                $("#AdminFee").prop('disabled', true);
+                $("#BillCommissionPercent").prop('disabled', true);
+            }
+        }
+        @*function GetRMCList() {
+            var RMC = $('#IsRMCBus option:selected').text().toUpperCase();
+            if (RMC == "RMC-BUSINESS") {
+                $('#ClientID').prop('disabled', false).addClass('enableselect').select2();
+                $('#ClientID').val('');
+                AjaxFillDropDown('#ClientID', '@Url.Action("GetAgentList", "WOSJobOpening", new { AgentType = "R" })');
+                AjaxFillDropDown('#ClientID', '@Url.Action("GetAgentList", "WOSJobOpening", new { AgentType = "R" })', '@Model.ClientID');
+            }
+            else if (RMC == "NON RMC-BUSINESS") {
+                $('#ClientID').prop('disabled', false).addClass('enableselect').select2();
+                $('#ClientID').val('');
+                AjaxFillDropDown('#ClientID', '@Url.Action("GetAgentList", "WOSJobOpening")');//For All Agent and Corporate pass AgentType = null
+                AjaxFillDropDown('#ClientID', '@Url.Action("GetAgentList", "WOSJobOpening")', '@Model.ClientID');
+            }
+            else {
+                $('#ClientID').prop('disabled', true).removeClass('enableselect');
+                $('#ClientID').val('');
+                if ($('#ClientID').data('select2')) {
+                    $('#ClientID').select2('destroy');
+                }
+            }
+        }*@
+        function SendLink() {
+            var WOSMoveID = $("#WOSMoveID").val();
+            var EmailTo = $("#txtEmailTo").val();
+            var EmailCc = $("#txtEmailCc").val();
+            var EmailBcc = $("#txtEmailBcc").val();
+
+            if (EmailTo == "") {
+                swal({ title: "Error!", text: "Please enter to email id.", type: "error" });
+                return false;
+            }
+
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("SendLink", "WOSJobOpening")",
+                data: "{WOSMoveID:'" + WOSMoveID + "',EmailTo:'" + EmailTo + "',EmailCc:'" + EmailCc + "',EmailBcc:'" + EmailBcc + "'}",
+                async: false,
+                success: function (result) {
+                    if (result) {
+                        swal({ title: "Success!", text: "Link sent successfully.", type: "success" });
+                    }
+                    else {
+                        swal({ title: "Error!", text: "Error occured.", type: "error" });
+                    }
+                },
+                failure: function () {
+                    alert('error occured');
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert('error occured');
+                }
+            });
+            $('#SendLinkModal').modal('hide');
+        }
+        function OpenRequestDocs() {
+            var url = "@Url.Action("RequestDocs", "WOSJobOpening", new { WOSMoveID = Model.WOSMoveID.ToString() })";
+            url = url.replace(/&amp;/g, "&");
+            return !window.open(url);
+        }
+        function GetCostSheetForJob() {
+            var WOSMoveID = $("#WOSMoveID").val();
+            var CostCurrencyID = $("#CostCurrencyID").val();
+            var RevenueCurrencyID = $("#RevenueCurrencyID").val();
+
+            if (CostCurrencyID == "") {
+                swal({ title: "Error!", text: "Please select cost currency.", type: "error" });
+                return false;
+            }
+            if (RevenueCurrencyID == "") {
+                swal({ title: "Error!", text: "Please select revenue currency.", type: "error" });
+                return false;
+            }
+
+            var param = "WOSMoveID=" + WOSMoveID + "&RevenueCurrencyID=" + RevenueCurrencyID + "&CostCurrencyID=" + CostCurrencyID;
+            var url = "@Url.Action("GetCostSheetForJob", "WOSJobOpening")" + "?" + param;
+
+            $("#dvServicePartial").load(url, function () {
+                BindServicePartialScript();
+            });
+        }
+        function BindServicePartialScript() {
+            $(document).ready(function () {
+                var IsFirstPageLoad = true;
+                var collapsedGroups = {};
+
+                var table = $('#tableCostSheet').DataTable({
+                    //scrollY: '350px',
+                    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    pageLength: -1,
+                    ordering: false,
+                    rowGroup: {
+                        // Uses the 'row group' plugin
+                        dataSrc: 1,
+                        startRender: function (rows, group) {
+                            if (IsFirstPageLoad && group.split("_")[1] == "3") {
+                                collapsedGroups[group] = !collapsedGroups[group];
+                            }
+                            var collapsed = !!collapsedGroups[group];
+
+                            var toggleClass = collapsed ? 'fa-plus-square' : 'fa-minus-square';
+                            var groupName = rows.data()[0][2];
+
+                            rows.nodes().each(function (r) {
+                                r.style.display = collapsed ? 'none' : '';
+                            });
+
+                            // Add category name to the <tr>
+                            return $('<tr/>')
+                                .append('<td colspan="' + rows.columns()[0].length + '">' + '<span class="fa fa-fw ' + toggleClass + ' toggler"/> ' + groupName + ' (' + rows.count() + ')</td>')
+                                .attr('data-name', group)
+                                .toggleClass('collapsed', collapsed);
+                        }
+                    }
+                });
+
+                $('.dataTables_filter input[type="search"]').css({ 'width': '250px', 'display': 'inline-block' });
+
+                $('#tableCostSheet tbody').on('click', 'tr.group-start', function () {
+                    var name = $(this).data('name');
+                    collapsedGroups[name] = !collapsedGroups[name];
+                    table.draw(false);
+                });
+
+                IsFirstPageLoad = false;
+            });
+            $(document).ready(function () {
+                $('.tdCheckAllCostList').change(function () {
+                    CheckUncheckAll();
+                });
+                $('.tdIsChecked').change(function () {
+                    if ('@Model.IsCostSheetApproved' == 'True') {
+                        $(this).prop('checked', !($(this).prop('checked')));
+                        return;
+                    }
+                    if ($(this).prop('checked')) {
+                        var MastCostAmount = $(this).closest('tr').find('.tdMastCostAmount').val();
+                        var MastRevenueAmount = $(this).closest('tr').find('.tdMastRevenueAmount').val();
+                        var UnbilledAmount = $(this).closest('tr').find('.tdUnbilledAmount').val();
+
+                        $(this).closest('tr').find('.tdBillCostAmount').val(MastCostAmount).prop('readonly', false);
+                        $(this).closest('tr').find('.tdBillRevenueAmount').val(MastRevenueAmount).prop('readonly', false);
+
+                        var BillRevenueAmount = $(this).closest('tr').find('.tdBillRevenueAmount').val();
+
+                        if (BillRevenueAmount > 0 && UnbilledAmount > 0) {
+                            $(this).closest('tr').find('.tdToBill').prop('checked', false).prop('disabled', false);
+                        }
+                    }
+                    else {
+                        $(this).closest('tr').find('.tdBillCostAmount').val('').prop('readonly', true);
+                        $(this).closest('tr').find('.tdBillRevenueAmount').val('').prop('readonly', true);
+                        $(this).closest('tr').removeClass("bg");
+                        $(this).closest('tr').find('.tdToBill').prop('checked', false).prop('disabled', true);
+                    }
+                    EditSum();
+                });
+                $('.tdBillRevenueAmount').change(function () {
+                    var UnbilledAmount = $(this).closest('tr').find('.tdUnbilledAmount').val();
+                    var BillRevenueAmount = $(this).closest('tr').find('.tdBillRevenueAmount').val();
+
+                    if (BillRevenueAmount > 0 && UnbilledAmount > 0) {
+                        $(this).closest('tr').find('.tdToBill').prop('checked', false).prop('disabled', false);
+                    }
+                    else {
+                        $(this).closest('tr').find('.tdToBill').prop('checked', false).prop('disabled', true);
+                    }
+                });
+                $('.tdToBill').change(function () {
+                    //enable btnBillPrepare
+                    if ($(".tdToBill:checked").length > 0) {
+                        $("#btnBillPrepare").prop('disabled', false);
+                    }
+                    else {
+                        $("#btnBillPrepare").prop('disabled', true);
+                    }
+                });
+
+                @*if ($('#CostCurrencyID').val() == '') {
+                    $('#CostCurrencyID').val(@INRCurrID).trigger('change');
+                }
+
+                if ($('#RevenueCurrencyID').val() == '') {
+                    var RMC = $('#IsRMCBus option:selected').text().toUpperCase();
+                    if (RMC == "RMC-BUSINESS") {
+                        $('#RevenueCurrencyID').val(@USDCurrID).trigger('change');
+                    }
+                    else if (RMC == "NON RMC-BUSINESS") {
+                        $('#RevenueCurrencyID').val(@INRCurrID).trigger('change');
+                    }
+                }
+                $('#RevenueCurrencyID').prop('disabled', true).removeClass('enableselect');
+                if ($('#RevenueCurrencyID').data('select2')) {
+                    $('#RevenueCurrencyID').select2('destroy');
+                }*@
+            });
+        }
+        function CheckUncheckAll() {
+            $('#tableCostSheet tbody tr').each(function () {
+                if ($('.tdCheckAllCostList').prop('checked')) {
+                    var MastCostAmount = $(this).find('.tdMastCostAmount').val();
+                    var MastRevenueAmount = $(this).find('.tdMastRevenueAmount').val();
+
+                    $(this).find('.tdIsChecked').prop('checked', true);
+                    $(this).find('.tdBillCostAmount').val(MastCostAmount).prop('readonly', false);
+                    $(this).find('.tdBillRevenueAmount').val(MastRevenueAmount).prop('readonly', false);
+                    $(this).find('.tdToBill').prop('checked', false).prop('disabled', false);
+                }
+                else {
+                    $(this).find('.tdIsChecked').prop('checked', false);
+                    $(this).find('.tdBillCostAmount').val('').prop('readonly', true);
+                    $(this).find('.tdBillRevenueAmount').val('').prop('readonly', true);
+                    $(this).removeClass("bg");
+                    $(this).find('.tdToBill').prop('checked', false).prop('disabled',true);
+                }
+            });
+        }
+        function EditSum() {
+            var table = $("#tableCostSheet");
+            var totalBillCostAmount = 0;
+            var totalBillRevenueAmount = 0;
+            var totalUnbilledAmount = 0;
+
+            $('#tableCostSheet tbody tr input[type="checkbox"]:checked').each(function () {
+                totalBillCostAmount += parseFloat($(this).closest('tr').find('.tdBillCostAmount').val() ? $(this).closest('tr').find('.tdBillCostAmount').val() : 0);
+                totalBillRevenueAmount += parseFloat($(this).closest('tr').find('.tdBillRevenueAmount').val() ? $(this).closest('tr').find('.tdBillRevenueAmount').val() : 0);
+                totalUnbilledAmount += parseFloat($(this).closest('tr').find('.tdUnbilledAmount').val() ? $(this).closest('tr').find('.tdUnbilledAmount').val() : 0);
+            });
+            table.find('tfoot tr .SumCost').html(parseFloat(totalBillCostAmount).toFixed(2));
+            table.find('tfoot tr .SumRevenue').html(parseFloat(totalBillRevenueAmount).toFixed(2));
+            table.find('tfoot tr .SumUnbilled').html(parseFloat(totalUnbilledAmount).toFixed(2));
+        }
+        $("#btnExportCS").on("click", function (e) {
+            var WOSMoveID = '@Model.WOSMoveID';
+            var url = '@Url.Action("ExportToExcel", new { WOSMoveID = "-1" })';
+            url = url.replace("-1", WOSMoveID);
+
+            var tab_text = "<table border='2px'><tr >";
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: url,
+                async: 'false',
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    if (parseInt(data.ColCount) > 0) {
+                        tab_text = tab_text + "<tr style='border: 0px'><td colspan='" + data.ColCount + "' bgcolor='#B0C4DE'><b>Shipper : @Model.AssigneeFName @Model.AssigneeLName</b></td></tr>";
+                        tab_text = tab_text + "<tr><td colspan='" + data.ColCount + "' bgcolor='#B0C4DE'><b>Consultant : @Model.SDName</b></td></tr>";
+                        tab_text = tab_text + "<tr><td colspan='" + data.ColCount + "' bgcolor='#B0C4DE'><b>Client Relations Consultant : @Model.SRName</b></td></tr>";
+                        tab_text = tab_text + "<tr><td colspan='" + data.ColCount + "' bgcolor='#B0C4DE'><b>From City : @Model.FromCityName</b ></td ></tr > ";
+                        tab_text = tab_text + "<tr><td colspan='" + data.ColCount + "' bgcolor='#B0C4DE'><b>To City : @Model.ToCityName</b></td></tr>";
+                    }
+
+                    tab_text = tab_text + data.htmlstring;
+                    tab_text = tab_text.replace(/<tr>/g, "");
+                    tab_text = tab_text + "</table>";
+                    tab_text = tab_text.replace(/<A[^>]*>|<\/A>/g, ""); // remove if u want links in your table
+                    tab_text = tab_text.replace(/<img[^>]*>/gi, ""); // remove if u want images in your table
+                    tab_text = tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // remove input params
+
+                    var ua = window.navigator.userAgent;
+                    var msie = ua.indexOf("MSIE ");
+
+                    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) // If Internet Explorer
+                    {
+                        txtArea1.document.open("txt/html", "replace");
+                        txtArea1.document.write(tab_text);
+                        txtArea1.document.close();
+                        txtArea1.focus();
+                        sa = txtArea1.document.execCommand("SaveAs", true, "CostSheet.xls");
+                    }
+                    else // other browser not tested on IE 11
+                        sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+
+                    return (sa);
+                },
+                error: function (reponse) {
+                    alert("error : " + reponse);
+                }
+            });
+        });
+        $('#btnSendToApprove').on('click', function () {
+            var count = $('#SendToApprovalList option').length;
+            var control = $(this).attr('id');
+            var ddlControl = $('#CSSentToApproveUser');
+            if (control == 'btnSendToApprove') {
+                $('#btnSendToCSApprove').attr('form', 'formWOSJobOpening');
+            }
+            if (count > 1) {
+                $('#mdlSendtoApproval').modal();
+            }
+            else {
+                $(ddlControl).val($('#SendToApprovalList').val());
+                $('#btnSendToCSApprove').click();
+            }
+        });
+        $('#SendToApprovalList').on('change', function () {
+            if ($('#btnSendToCSApprove').attr('form') == 'formWOSJobOpening') {
+                $('#CSSentToApproveUser').val($('#SendToApprovalList').val());
+            }
+        });
+        $('.BillPrepare').on('click', function (e) {
+            var control = $(this);
+            var controlid = $(this).attr('id');
+            var IsStatement = controlid == 'btnStatementCharges';
+            var param = "MoveID=@Model.MoveID&IsStatement=" + IsStatement;
+            var url = "@Url.Action("GetInvoice", "MoveManage")" + "?" + param;
+            $.get(url, function (data) {
+                if (data.errormsg != null && data.errormsg != '') {
+                    toastr.error(data.errormsg);
+                }
+                else {
+                    var modal_id = "#mdlBillPrepare";
+                    var formcontrol = control.closest('.row');
+                    if (data.InvoiceList.length > 1) {
+                        $(modal_id + ' .InvoiceList option').remove();
+                        $.each(data.InvoiceList, function (i) {
+                            $(modal_id + ' .InvoiceList').append($('<option></option>').val(data.InvoiceList[i].Value).html(data.InvoiceList[i].Text));
+                        });
+                        $(modal_id + ' .InvoiceList').trigger('change');
+
+                        //if (controlid == 'btnStatementCharges') {
+                        //    $(modal_id + ' #btnProceed').addClass('hide');
+                        //    $('#ShowStatementCharges').removeClass('hide');
+                        //    $(modal_id + " .InvoiceList option[html='New Invoice']").remove();
+                        //}
+                        //else {
+                        $(modal_id + ' #btnProceed').removeClass('hide');
+                        $('#ShowStatementCharges').addClass('hide');
+                        //}
+                        $(modal_id).modal();
+                    }
+                    else if (data.InvoiceList.length == 1) {
+                        $(modal_id + ' .InvoiceList option').remove();
+                        $.each(data.InvoiceList, function (i) {
+                            $(modal_id + ' .InvoiceList').append($('<option></option>').val(data.InvoiceList[i].Value).html(data.InvoiceList[i].Text));
+                            $(modal_id + ' .InvoiceList').val(data.InvoiceList[i].Value);
+                            formcontrol.find('#BillID').val(data.InvoiceList[i].Value);
+                        });
+                        //if (controlid == 'btnStatementCharges') {
+                        //    $(modal_id).modal();
+                        //    $(modal_id + ' #btnProceed').addClass('hide');
+                        //    $('#ShowStatementCharges').removeClass('hide');
+                        //}
+                        //else {
+                        $(modal_id + ' #btnProceed').trigger('click');
+                        $(modal_id + ' #btnProceed').removeClass('hide');
+                        $('#ShowStatementCharges').addClass('hide');
+                        //}
+                    }
+                }
+            });
+        });
+        $('.InvoiceList').on('change', function () {
+            var BillID = $(this).attr('selected', 'selected').val();
+            $('#BillID').val(BillID);
+        });
+        $('form#DocCustomFilter').submit(function (e) {
+            e.preventDefault();
+            $(this).ajaxSubmit({
+                target: '#docgrid',
+                success: function () {
+                }
+            });
+        });
+        $("#btnDocSearch").click(function (e) {
+            e.preventDefault();
+            $("#DocTypeID").val($("#DocTypeDropdown").val());
+            $("#DocNameID").val($("#DocNameDropdown").val());
+            $("#DocDescription").val($("#jobDocUpload_DocDescription").val());
+            $("form#DocCustomFilter").submit();
+        });
+        function Set_ModalCancelJob() {
+            $('#JobCancelRemark').val($('#txtJobCancelRemark').val());
+        }
+    </script>
+}

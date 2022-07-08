@@ -1,0 +1,242 @@
+﻿@using RELOCBS.Common;
+
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+@using RELOCBS.App_Code;
+@using RELOCBS.Utility;
+
+@model RELOCBS.Entities.LeadViewModel
+
+@{
+    string Sea = null;
+    string Air = null;
+    string Road = null;
+    IEnumerable<SelectListItem> modelist = (IEnumerable<SelectListItem>)ViewData["ModeList"];
+    if (modelist != null)
+    {
+        Sea = modelist.Where(x => x.Text == "Sea").First().Value;
+        Air = modelist.Where(x => x.Text == "Air").First().Value;
+        Road = modelist.Where(x => x.Text == "Road").First().Value;
+    }
+
+    var List = (StaticPagedList<RELOCBS.Entities.Lead>)ViewData["PagedList"];
+    string _PageID = "17";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+    int IsRoad = @Model.IsRoad?1:0;
+}
+@if (List != null)
+{
+    @Html.Grid(List).Named("mainGrid").Columns(columns =>
+{
+//columns.Add(o => o.).Css("col-md-2")
+//    .Titled("Origin Country");
+
+//columns.Add(o => o.pricing.FSFRLeadDetailsID).Css("col-md-2")
+//.Titled("SFR Id");
+
+columns.Add(o => o.pricing.WeightFrom).Css("col-md-2")
+.Titled("Weight From");
+
+columns.Add(o => o.pricing.FSFR).Css("col-md-2")
+.Titled("FSFR");
+
+columns.Add(o => o.CreatedDate).Css("col-md-2")
+.Titled("Created Date");
+columns.Add().Css("col-md-2")
+.Titled("Actions")
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.RenderValueAs(d =>
+@<span>
+    @if (hasEditAccess)
+                    {
+        <a class="btnFSFR btn btn-xs btn-success pull-left" title="FSFR" onclick="GetFSFRDet(@d.pricing.UpdatedBatchID,@IsRoad)">FSFR</a>
+
+                    }
+
+    @*@if (hasDeleteAccess)
+        {
+            <div class="pull-left">
+                <form method="post" action="@Url.Action("Delete/" + d.LeadID, "Lead")" class="frmRWDelete" title="Delete Lane">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="LaneId" value="@d.LeadID" />
+                    <button type="submit" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5"></button>
+                </form>
+            </div>
+        }*@
+
+    @if (hasEditAccess)
+    {
+        <a class="btnJob btn btn-xs btn-success pull-left" title="Open Job" data-toggle="modal" data-target="#mdlJobAddEdit" onclick="$('#manageDet_FSFRLeadDetailsID').val(@d.pricing.FSFRLeadDetailMastrID);
+            $('#manageDet_UpdatedBatchID').val(@d.pricing.UpdatedBatchID); OnJobOpening(@IsRoad); GetBrookJobDetails(null)">Open Job</a>
+        <a class="btnSFRDet btn btn-xs btn-success pull-left" title="SFR Details" onclick="GetSFRDet(@d.pricing.UpdatedBatchID)">SFR Details</a>
+    }
+</span>
+        );
+            }).Sortable()
+
+    <div class="clearfix pnl-pagination">
+        <div class="pull-right">
+
+            @Html.PagedListPager((IPagedList)List, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+
+            @if (Model.LeadGrid.Count() == 0)
+            {
+                <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+            }
+        </div>
+    </div>
+}
+<div id="mdlAddEdit" class="modal fade modal-wide" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog ">
+
+        <div class="modal-content p-md pad-top-none" style="width:1000px" id="partial">
+            @*<div class="modal-header pad-bot-none">
+                    <h3>Amended Rates<button type="button" class="close" data-dismiss="modal">&times;</button></h3>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="modal-body" ></div>
+                    </div>
+
+                </div>*@
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="modal-body" id="partial"></div>
+                </div>
+
+            </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+        function OnJobOpening(IsRoad)
+        {
+
+            AjaxFillDropDown('.CityDropDown', '@Url.Action("GetCityList", "Lead")');
+            debugger;
+            if (parseInt(IsRoad)>0) {
+                $('.div_Mode_Road').removeClass('hide');
+                $('.div_Mode_Sea').addClass('hide');
+                $('.div_Mode_Air').addClass('hide');
+            }
+            else {
+                $('.div_Mode_Road').addClass('hide');
+                $('.div_Mode_Sea').removeClass('hide');
+                $('.div_Mode_Air').removeClass('hide');
+            }
+        }
+
+        function GetFSFRDet(UpdatedBatchId, IsRoad) {
+            var road = parseInt(IsRoad) > 0;
+            var route = '@Url.Action("GetFSFRDet", "Lead", new { UpdatedBatchId = "-1", IsRoad = "-2", IsDisplay = "-3" })';
+            route = route.replace("-1", UpdatedBatchId);
+            route = route.replace("-2", road);
+            route = route.replace("-3", 0);
+            route = route.replace(/&amp;/g, "&");
+            $('#partial').load(route, function () {});
+            $('#mdlAddEdit').modal();
+    }
+
+    function GetSFRDet(UpdatedBatchId)
+    {
+        var params = "UpdatedBatchId=" + UpdatedBatchId +"&View=1";
+
+                            var url = "@Url.Action("JobSFRCalculation", "Pricing")" + "?" + params;
+
+                            return !window.open(url);
+    }
+
+
+        $('#SchMoveDate,#SchSurveyDate').on('focus', function () {
+            $(this).siblings('.input-group-addon').click();
+        });
+        $('.datetimepicker').datetimepicker({
+            format: "DD-MMM-YYYY",
+            widgetPositioning: {
+                horizontal: 'right',
+                vertical: 'bottom'
+            }
+        });
+
+        function GenerateXML(element)
+        {
+            //debugger;
+            var control = $(element);
+            var data = getAllData(control);
+            if (data)
+                $("#HFEnqDet").val(JSON.stringify(data));
+            else
+                $("#HFEnqDet").val(null);
+        }
+
+        function getAllData(control) {
+            var mode, modename;
+            var data = [];
+            control.closest('.mode').find('.chk_Mode').each(function ()
+            {
+                modename = $(this).closest('label').find('span').html();
+                if ($(this).is(':checked')) {
+                    if ($(this).attr('id').includes('Sea'))
+                        mode = '@Sea';
+                    else if ($(this).attr('id').includes('Air'))
+                        mode = '@Air';
+                    else
+                        mode = '@Road';
+
+                    var alldata = {
+                        'EnqDetailID': null,
+                        'EnqID': null,
+                        'HandlingBrId': '@Model.manageDet.HandlingBrId',
+                        'ServiceLineID': '@Model.manageDet.ServiceLnId',
+                        'FromCity': '@Model.FromCityID',
+                        'ToCityID': '@Model.ToCityID',
+                        'Mode': modename.trim(),
+                        'ModeID': parseInt(mode),
+                        'ShipmentTypeID': '@Model.manageDet.ShipmentTypeId',
+                        'GoodsDescId': '@Model.manageDet.CommodityId',
+                        'WtUnitid': null,
+                        'WtNet': null,
+                        'WtGross': null,
+                        'WtACWT': null,
+                        'VolumeUnitID': null,
+                        'VolumeToPack': null,
+                        'VolumeNet': null,
+                        'VolumeGross': null,
+                        'LooseCased': null,
+                        'DensityFact': null,
+                        'LCLorFCL': null,
+                        'ContainerTypeID': null,
+                        'Remarks': null,
+                        'TentativeMovedate': null,//moment().format('DD-MMM-YYYY'),
+                        'SchSurveyorID': null,
+                        'SchSurveyDate': null,
+                        'SchSurveyorRemarks': null,
+                        'IsActive': true
+                }
+                data.push(alldata);
+                }
+                else {
+                    var parentelement = $(this).closest('.mode').siblings('#' + modename);
+                    parentelement.find('input,select').val('');//.each(function{ });
+                }
+            });
+            return data.length > 0 ? { 'EnqDetail': data } : '';
+        }
+</script>
+<style>
+    .modal.modal-wide .modal-dialog {
+        width: 80%;
+    }
+
+    .modal-wide .modal-body {
+        overflow-y: auto;
+    }
+</style>

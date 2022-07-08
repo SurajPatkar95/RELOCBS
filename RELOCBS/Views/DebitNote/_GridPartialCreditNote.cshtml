@@ -1,0 +1,40 @@
+﻿@model List<RELOCBS.Entities.DebitNote>
+
+@using RELOCBS.Utility;
+@using RELOCBS.Common;
+@using GridMvc.Html
+
+@{
+    string _PageID = "67";
+    string param = "DebitNoteId=ParamValue0&DNCreditNoteId=ParamValue1";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+    var CreditNoteList = (List<RELOCBS.Entities.DebitNote>)ViewBag.CreditNoteList;
+}
+
+@Html.Grid(Model).Named("CNmainGrid").Columns(columns =>
+{
+columns.Add(m => m.DNCreditNoteId).Titled("Credit Note Id").SetWidth("12%").SortInitialDirection(GridMvc.Sorting.GridSortDirection.Descending);
+
+columns.Add(m => m.CreditNoteNo).Titled("Credit Note No").SetWidth("12%");
+
+columns.Add(m => m.CreditNoteDate).Titled("Credit Note Date").SetWidth("12%").Format("{0:dd-MMM-yyyy}");
+
+columns.Add(m => m.DNType).Titled("Credit Note Type").SetWidth("12%");
+
+columns.Add(m => m.CreditNoteStatus).Titled("Credit Note Status").SetWidth("12%");
+
+columns.Add().Titled("Actions").Css("col-md-2").SetWidth("20%").Encoded(false).Sanitized(false).Sortable(true).RenderValueAs(m =>
+@<span>
+    @if (hasAddAccess)
+    {
+        <a href="@Url.Action("Create", "DebitNote", new { Key = CommonService.GenerateQueryString(param, new string[] { m.DebitNoteId.ToString(), m.DNCreditNoteId.ToString() }), DrOrCrNote = "C" })" class="btnEdit btn btn-xs btn-primary glyphicon glyphicon-pencil" title="Edit Cr. Note"></a>
+        if (hasDeleteAccess && m.CreditNoteStatus != "Finalized" && m.CreditNoteStatus != "Exported")
+        {
+            <a href="@Url.Action("Delete", "DebitNote", new { Key = CommonService.GenerateQueryString(param, new string[] { m.DebitNoteId.ToString(), m.DNCreditNoteId.ToString() }), DrOrCrNote = "C" })" class="btnDeleteDebitNote btn btn-xs btn-danger glyphicon glyphicon-trash" data-target="#mdlAddEdit" data-cache="false" title="Delete Cr. Note"></a>
+        }
+    }
+</span>);
+}).Sortable()

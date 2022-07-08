@@ -1,8 +1,10 @@
 ﻿using PagedList;
 using RELOCBS.App_Code;
 using RELOCBS.BL.Common;
+using RELOCBS.Common;
 using RELOCBS.CustomAttributes;
 using RELOCBS.Entities;
+using RELOCBS.Extensions;
 using RELOCBS.Utility;
 using System;
 using System.Collections.Generic;
@@ -156,6 +158,29 @@ namespace RELOCBS.Controllers.Common
             {
                 return View();
             }
+        }
+
+        public ActionResult ExportToExcel()
+        {
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            try
+            {
+
+                string SearchKey = string.Empty;
+                if (Request.Form["SearchKey"] != null && Request.Form["SearchKey"].Trim() != "")
+                {
+                    param.Add("@SP_SearchString", Request.Form["SearchKey"]);
+                }
+
+                param.Add("@SP_LoginID", Convert.ToString(UserSession.GetUserSession().LoginID));
+
+                CommonService.GenerateExcel(this.Response, "Continent", "[Comm].[GETContinentForGrid_ExpToExl]", param);
+            }
+            catch (Exception ex)
+            {
+                this.AddToastMessage("RELOCBS", "UnExpected Error occured", ToastType.Error);
+            }
+            return View();
         }
     }
 }

@@ -1,0 +1,686 @@
+﻿@model RELOCBS.Entities.StorageBill
+
+@using RELOCBS.Common;
+@using RELOCBS.Utility;
+
+@{
+    ViewBag.Title = "Create Storage Bill";
+    string _PageID = "33";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+    //Model.Client = "BGRS";
+}
+<style type="text/css">
+    .bg {
+        border-left: 5px solid red;
+    }
+
+    input.Text-50 {
+        max-width: 50px;
+    }
+
+    input.Text-100 {
+        max-width: 100px;
+    }
+
+    input.Text-150 {
+        max-width: 150px;
+    }
+
+    .toggleDisplay {
+        display: none;
+    }
+</style>
+
+@using (Html.BeginForm("Create", "StorageBilling", new { MoveID = @Model.MoveID, BillID = @Model.BillID, StorageID = Model.StorageID, Type = Model.InvType }, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline", enctype = "multipart/form-data" }))
+{
+    @Html.ValidationSummary(false, "")
+    @Html.HiddenFor(a => a.StorageID)
+    @Html.HiddenFor(a => a.MoveID)
+    @Html.HiddenFor(a => a.BillID)
+    @Html.HiddenFor(a => a.BillType)
+    @Html.HiddenFor(a => a.MainInvID)
+    @Html.HiddenFor(a => a.InvType)
+
+    @Html.Hidden("IsProcessChange")
+
+    @Html.AntiForgeryToken()
+    <fieldset class="col-md-12 border-grey m-t-none">
+        <legend>Job Detail</legend>
+        <div class="row m-t-xs">
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong>Job No. :</strong>&nbsp;<strong>@Html.Raw(Model.JobNo)</strong>
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong>ServiceLine:</strong>&nbsp;<strong>@Html.Raw(Model.ServiceLine)</strong>
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong>Controller:</strong>&nbsp;<strong>@Html.Raw(Model.Controller)</strong>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="clearfix">
+                    <input type="submit" id="btnSave" name="SubmitInvoice" class="btn btn-primary btn-sm m-n BtnSaveInvoice pull-left" value="Save" />
+                    @if (Model.BillID > 0)
+                    {
+                        string type = (Model.MainInvID != null && Model.MainInvID > 0) ? "AI" : "NI";
+                        Int64 key = (Model.MainInvID != null && Model.MainInvID > 0) ? Convert.ToInt64(Model.MainInvID) : Model.MoveID;
+
+                        if (type == "NI" || (type == "AI" && (string.IsNullOrWhiteSpace(Model.MainInvStatus) || Model.MainInvStatus.Equals("Draft", StringComparison.OrdinalIgnoreCase) || Model.InvoiceStatus.Equals("Send To SD", StringComparison.OrdinalIgnoreCase))))
+                        {
+                            @Html.ActionLink("Invoice", "Create", "Billing", new { key = key, PageIndex = 3, type = type, StrgKey = Model.BillID }, new { @class = "btn btn-primary btn-sm m-n pull-right", id = "btnGotoInvoice" })
+                        }
+                    }
+                </div>
+            </div>
+            @*@if (Model.BillID > 0 || Model.InvoiceStatus == "Draft")
+                {
+                    <div class="col-sm-1 col-md-1">
+                        <div class="clearfix">
+                            <input type="submit" id="BtnApproved" name="SubmitInvoice" class="btn btn-primary m-n pull-right btn-sm BtnApproved" value="Approve" />
+                        </div>
+                    </div>
+                }
+                @if (Model.InvoiceStatus == "Approved")
+                {
+                    <div class="col-sm-1 col-md-1 pull-right">
+                        <div class="clearfix">
+                            <input type="submit" id="BtnFinalApprove" name="SubmitInvoice" class="btn btn-primary m-n pull-right btn-sm BtnFinalApprove" value="Final Approve" />
+                        </div>
+                    </div>
+                }*@
+        </div>
+        <div class="row m-t-xs">
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong>Quotation :</strong>&nbsp;<strong>@Html.Raw(Model.QuotationID)</strong>
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong>Shipper :</strong>&nbsp;<strong>@Html.Raw(Model.ShipperName)</strong>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-6">
+                <div class="form-group">
+                    <strong>Shipper Address:</strong>&nbsp;<strong>@Html.Raw(Model.ShipperAddress)</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="row m-t-xs">
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong>Corporate :</strong>&nbsp;<strong>@Html.Raw(Model.Corporate)</strong>
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <strong>Client :</strong>&nbsp;<strong>@Html.Raw(Model.Client)</strong>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-6">
+                <div class="form-group">
+                    <strong>Commodity :</strong>&nbsp;<strong>@Html.Raw(Model.JobCommodity)</strong>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    <fiedset class="col-md-12 border-grey">
+        <div class="row no-gutters">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>BillTo Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_FromDate">
+                        @Html.EditorFor(model => model.BillToDate, new { htmlAttributes = new { @placeholder = "BillTo", @tooltip = "BillTo", @class = "form-control input-sm EndMonthpicker", title = "BillTo", id = "BillTo" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-md-1">
+                <div class="clearfix">
+                    <input type="submit" id="btnSearch" name="SubmitInvoice" class="btn btn-primary btn-sm filter-custom-margin" value="Process Invoice" />
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Additional Billing</label>
+                    @Html.DropDownList("AddBillCostHead", new SelectList((System.Collections.IEnumerable)ViewData["AddBillCostHeadList"], "Value", "Text"), "--Select CostHead--", new { @class = "form-control input-sm enableselect AddBillCostHead" })
+                </div>
+            </div>
+            <div class="form-group col-md-1">
+                <div class="clearfix">
+                    <input type="button" id="btnAddBillCostHead" name="btnAddBillCostHead" class="btn btn-primary btn-sm filter-custom-margin" value="Add" onclick="Add()" />
+                </div>
+            </div>
+        </div>
+
+        <div id="mgrid">
+            @Html.Partial("_ProcessBillGrid", Model)
+        </div>
+    </fiedset>
+
+}
+
+
+@section Scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            ApplyCustomClass();
+            CalGrossTotal(null);
+            $("#btnSave").on("click", function (event) {
+
+                debugger;
+                if ($("#IsProcessChange").val() == "1") {
+
+                    alert('Do process costhead before save');
+                    event.preventDefault();
+                }
+
+            });
+
+        });
+
+        function ApplyCustomClass() {
+
+            $('.enableselect').select2();
+
+            $('.datetimepicker').datetimepicker({
+                format: 'DD-MMM-YYYY',
+                widgetPositioning:
+                {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+
+            $(".EndMonthpicker").datetimepicker({
+                //viewMode: 'months',
+                format: 'DD-MMM-YYYY',
+                useCurrent: false,
+                ////dayViewHeaderFormat: 'MMMM YYYY',
+                showTodayButton: false,
+                //minDate: false,
+                //maxDate : new Date()
+            });
+
+
+
+            //.on("dp.show", function (e) {
+            //$(e.target).data("DateTimePicker").viewMode("months");
+            //})
+            $(".EndMonthpicker").on("dp.change", function (e) {
+
+                let CurrentDate = new Date(e.date._d);
+                //$(this).val(moment(new Date(CurrentDate.getFullYear(), CurrentDate.getMonth() + 1, 0)).format('DD-MMM-YYYY'));
+
+                /////On change of date or amount set process value to 1 for validation
+                let OldDate = new Date($(e.currentTarget).parent().parent().find('.TblOldBillToDate').val());
+                let newDate = new Date($(this).val());
+
+                if (e.target.name.includes("BillToDate")) {
+
+                    if ($(e.currentTarget).parent().parent().find('.btnProcess[data-id="btnProcessIndv"]').length > 0) {
+
+                        if (OldDate.toDateString() != newDate.toDateString()) {
+                            $("#IsProcessChange").val("1");
+                            $('#btnSave').prop('disabled', true);
+                            $('#btnGotoInvoice').attr('disabled', true);
+                        }
+                        else {
+
+                            $("#IsProcessChange").val(null);
+                            $('#btnSave').removeProp('disabled', true);
+                            $('#btnGotoInvoice').removeAttr('disabled', true);
+                        }
+
+                    }
+                }
+
+                $(this).datepicker('hide');
+
+            }).on("dp.show", function (e) {
+                debugger;
+                //$(this).datepicker('hide');
+                if (e.target.name.includes("BillToDate")) {
+                    if ($("input[name='" + e.target.name.replace("BillToDate", "BillStartDate") + "']").val()) {
+                        var minDate = new Date($("input[name='" + e.target.name.replace("BillToDate", "BillStartDate") + "']").val());
+                        $(e.target).data("DateTimePicker").minDate(minDate);
+                    }
+
+                }
+                //$(this).datepicker('show');
+            });
+
+
+        }
+
+
+        function getLastDayOfYearAndMonth(year, month) {
+            return (new Date((new Date(year, month + 1, 1)) - 1)).getDate();
+        }
+
+        function CalGrossTotal(Button) {
+
+            if (Button != null) {
+                debugger;
+                var row = $(Button).closest('tr');
+                var control = row.find('td .TblActualAmount');
+                var ogcontrol = row.find('td .TblHfvActualAmount');
+                var Amount = $(control).val();
+                var ogAmount = $(ogcontrol).val();
+                var OriginalAmount = row.find('td .TblAmount').val();
+                $(control).val(Amount);
+                    //if (parseFloat(Amount) > parseFloat(OriginalAmount)) {
+                    //    alert("Amount cannot be Greater than Original Amt");
+                    //    if (parseFloat(ogAmount) > parseFloat(OriginalAmount))
+                    //        $(control).val(ogAmount);
+                    //    else
+                    //        $(control).val(0);
+                    //    $(control).focus();
+                    //    return false;
+                    //}
+                    //else {
+                    //    $(ogcontrol).val(Amount);
+                    //}
+
+                    var GSTVATPercent = row.find('td .TblTax_Percent').val();
+                    var ConvAmount = parseFloat(Amount);
+                    @*if ('@Model.TaxType' == "IGST")
+                    {
+                        var GSTVATAmount =  ConvAmount * parseFloat(GSTVATPercent) / 100;
+                        var TotalAmount = GSTVATAmount + ConvAmount;
+                        row.find('td .TblIGST').val(GSTVATAmount);
+
+                    }
+                    if ('@Model.TaxType' == "CGST")
+                    {
+                        var GSTVATAmount = ConvAmount * parseFloat(GSTVATPercent/2) / 100;
+                        var TotalAmount = (GSTVATAmount * 2) + ConvAmount;
+                        row.find('td .TblSGST').val(GSTVATAmount);
+                        row.find('td .TblCGST').val(GSTVATAmount);
+
+                    }
+                    if ('@Model.TaxType' == "VAT")
+                    {
+                        var GSTVATAmount = ConvAmount * parseFloat(GSTVATPercent) / 100;
+                        var TotalAmount = GSTVATAmount + ConvAmount;
+                        row.find('td .TblVAT').val(GSTVATAmount);
+
+
+                    }
+                    if ('@Model.TaxType' == "NIL")
+                    {
+                        //var GSTVATAmount = ConvAmount;
+                        var TotalAmount =  ConvAmount;
+                        //row.find('td .VatAmt').val(GSTVATAmount);
+                        //row.find('td .VatAmt').siblings('span').html(GSTVATAmount);
+
+                    }*@
+                var TotalAmount = Amount;
+                if ('@Model.Client'!=null && '@Model.Client'!="" && '@Model.Client'.toUpperCase() == "BGRS") {
+                    var CommAmt = row.find('td .TblCommAmt').val() == undefined ? 0 : row.find('td .TblCommAmt').val();
+                    var AdminAmt = row.find('td .TblAdminAmt').val() == undefined ? 0 : row.find('td .TblAdminAmt').val();  
+                    var AuditAmt = row.find('td .TblAuditAmt').val() == undefined ? 0 : row.find('td .TblAuditAmt').val();
+
+                    TotalAmount = parseFloat(TotalAmount)+parseFloat(CommAmt) + parseFloat(AuditAmt) + parseFloat(AdminAmt);
+                }
+                row.find('td .TblTotal').val(isNaN(TotalAmount)?0:TotalAmount);
+
+
+            }
+
+            var FinalAmount = 0;
+
+            var FinalTotalAmount = 0;
+            let FinalCostAmount = 0;
+            $('#DetailTable tbody tr').each(function (i) {
+
+                var lasttr = $(this);
+                var RowNo = i + 1;
+                lasttr.attr("data-id", RowNo);
+                var Amount = parseFloat(lasttr.find(".TblActualAmount").val());
+
+                var TotalAmount = parseFloat(lasttr.find("td .TblTotal").val());
+                FinalAmount = FinalAmount + Amount;
+
+                FinalTotalAmount = FinalTotalAmount + TotalAmount;
+
+                var CostAmount = parseFloat(lasttr.find("td .TblCostAmt").val());
+                FinalCostAmount = FinalCostAmount + CostAmount;
+            });
+            $('#DetailTable input[id^="BillItems__FinalAmount"]').val(FinalAmount.toFixed(4));
+            $('#DetailTable input[id^="BlillItem_FinalTotalAmount"]').val(FinalTotalAmount.toFixed(4));
+            $('#DetailTable input[id^="BillItems__FinalCostAmount"]').val(FinalCostAmount.toFixed(4));
+        }
+
+        function BtnProcess(sender) {
+
+            var row = $(sender).closest("TR");
+            $('#ProcessRowIndex').val(row[0].rowIndex);
+
+
+        }
+
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        }
+
+        function replaceAll(str, term, replacement) {
+            return str.replace(new RegExp(escapeRegExp(term), 'g'), replacement);
+        }
+
+
+        function Add() {
+
+            var CostHead = $('#AddBillCostHead option:selected');
+
+
+
+
+                if (parseInt(CostHead.val()) > 0) {
+
+                    if (!CheckExists(CostHead.val())) {
+
+
+                        $.post('@Url.Action("GetAddCostHeadTax", "StorageBilling")',
+                            { CostHeadID: CostHead.val() },
+                            function (response) {
+
+                                var RowCount = $('#DetailTable > TBODY > tr').length;
+
+                                var tBody = $("#DetailTable > TBODY")[0];
+
+                                var row = tBody.insertRow(-1);
+                                row.className = "package-row";
+                                var cell = $(row.insertCell(-1));
+                                cell.addClass("VolumeUnit");
+                                cell.addClass("toggleDisplay");
+                                var VolumeUnit = "<span>CFT</span>"+
+                                    '<input class="TblVolumeUnit" id = "DetailList_0__VolumeUnit" name = "DetailList[0].VolumeUnit" type = "hidden" value = "CFT" autocomplete = "off">'+
+                                    '<input data-val="true" data-val-number="The field BillDetailId must be a number." id="DetailList_0__BillDetailId" name="DetailList[0].BillDetailId" type="hidden"  autocomplete="off">';
+                                VolumeUnit = VolumeUnit.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                VolumeUnit = replaceAll(VolumeUnit, "DetailList[0]", "DetailList[" + RowCount + "]");
+
+                                cell.append(VolumeUnit);
+
+                                var cell = $(row.insertCell(-1));
+                                cell.addClass("VolumeWt");
+                                cell.addClass("toggleDisplay");
+                                var VolumeWt = '<span>0</span>'+
+                                    '<input class="TblVolumeWt" data-val="true" data-val-number="The field VolumeWt must be a number." data-val-required="The VolumeWt field is required." id = "DetailList_2__VolumeWt" name = "DetailList[2].VolumeWt" type = "hidden" value = "0" autocomplete = "off" >';
+                                VolumeWt = VolumeWt.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                VolumeWt = replaceAll(VolumeWt, "DetailList[0]", "DetailList[" + RowCount + "]");
+
+                                cell.append(VolumeWt);
+
+                                var cell = $(row.insertCell(-1));
+                                cell.addClass("StorageType");
+                                var StorageType = '<span class="TblCostHeadLbl">PACKING/ORIGIN SERVICES</span>'+
+                                    '<input class="TblCostHead" id = "DetailList_0__CostHead" name = "DetailList[0].CostHead" type = "hidden" value = "PACKING/ORIGIN SERVICES" autocomplete = "off" >'+
+                                        '<input class="TblCostHeadId" data-val="true" data-val-number="The field CostHeadID must be a number." data-val-required="The CostHeadID field is required." id="DetailList_0__CostHeadID" name="DetailList[0].CostHeadID" type="hidden" value="4" autocomplete="off">'+
+                                            '<input class="TblTaxType" id="DetailList_0__TaxType" name="DetailList[0].TaxType" type="hidden" value="IGST" autocomplete="off">';
+                                StorageType = StorageType.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                StorageType = replaceAll(StorageType, "DetailList[0]", "DetailList[" + RowCount + "]");
+
+                                cell.append(StorageType);
+
+                                $(row).find('.TblCostHeadLbl').html(CostHead.text());
+                                $(row).find('.TblCostHead').val(CostHead.text());
+                                $(row).find('.TblCostHeadId').val(CostHead.val());
+
+                                var cell = $(row.insertCell(-1));
+                                cell.addClass("BillStartDate");
+                                var BillStartDate = '<span class="TblBillStartDateLbl">20-Jan-2021</span>'+
+                                    '<input class="TblBillStartDate" data-val="true" data-val-date="The field BillStartDate must be a date." id = "DetailList_0__BillStartDate" name = "DetailList[0].BillStartDate" type = "hidden" value = "20-Jan-2021 00:00:00" autocomplete = "off">';
+                                BillStartDate = BillStartDate.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                BillStartDate = replaceAll(BillStartDate, "DetailList[0]", "DetailList[" + RowCount + "]");
+                                cell.append(BillStartDate);
+                                $(row).find('.TblBillStartDateLbl').html("");
+                                $(row).find('.TblBillStartDate').val("");
+
+                                var cell = $(row.insertCell(-1));
+                                cell.addClass("BillToDate");
+                                var BillToDate = '<input class="form-control input-sm TblBillToDate Text-100 datetimepicker" data-val="true" data-val-date="The field BillToDate must be a date." id="DetailList_0__BillToDate" name="DetailList[0].BillToDate" type="text" value="22-Jan-2021 00:00:00" autocomplete="off">';
+                                BillToDate = BillToDate.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                BillToDate = replaceAll(BillToDate, "DetailList[0]", "DetailList[" + RowCount + "]");
+                                cell.append(BillToDate);
+
+
+                                var cell = $(row.insertCell(-1));
+                                cell.addClass("Amount");
+                                var Amount = '<span class="TblAmountLbl">4500</span>'+
+                                '<input class="TblAmount" data-val="true" data-val-number="The field Amount must be a number." data-val-required="The Amount field is required." id="DetailList_0__Amount" name="DetailList[0].Amount" type="hidden" value="4500" autocomplete="off">';
+                                Amount = Amount.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                Amount = replaceAll(Amount, "DetailList[0]", "DetailList[" + RowCount + "]");
+                                cell.append(Amount);
+                                $(row).find('.TblAmountLbl').html(0);
+                                $(row).find('.TblAmount').val(0);
+
+                                var cell = $(row.insertCell(-1));
+                                cell.addClass("ActualAmount");
+                                var ActualAmount = '<input class="form-control input-sm TblActualAmount Text-100" data-val="true" data-val-number="The field ActualAmount must be a number." data-val-required="The ActualAmount field is required." id="DetailList_0__ActualAmount" name="DetailList[0].ActualAmount" onblur="CalGrossTotal(this);" type="text" value="4600" autocomplete="off">'+
+                                    '<input class="TblHfvActualAmount" id = "DetailList_0__ActualAmount" name = "DetailList[0].ActualAmount" type = "hidden" value = "4600" autocomplete = "off" >';
+                                ActualAmount = ActualAmount.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                ActualAmount = replaceAll(ActualAmount, "DetailList[0]", "DetailList[" + RowCount + "]");
+                                cell.append(ActualAmount);
+                                $(row).find('.TblActualAmount').val(0);
+
+
+                                var cell = $(row.insertCell(-1));
+                                cell.addClass("BaseCurr");
+                                var CurrName = '<span class="TblCurrLbl">INR</span>';
+                                cell.append(CurrName);
+                                $(row).find('.TblCurrLbl').html($('.HfvBaseCurr').val());
+
+                                var cell = $(row.insertCell(-1));
+                                cell.addClass("Tax_Percent tdNone");
+                                var Tax_Percent = '<input class="form-control input-sm Text-50 TblTax_Percent" data-val="true" data-val-number="The field Tax_Percent must be a number."  id="DetailList_0__Tax_Percent" name="DetailList[0].Tax_Percent" readonly="readonly" type="text" value="18" autocomplete="off">';
+                                Tax_Percent = Tax_Percent.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                Tax_Percent = replaceAll(Tax_Percent, "DetailList[0]", "DetailList[" + RowCount + "]");
+                                cell.append(Tax_Percent);
+
+
+                                if (!response) {
+
+                                    $(row).find('.TblTax_Percent').val(0);
+
+                                }
+
+                                var IGST = '<input class="form-control input-sm Text-100 TblIGST" data-val="true" data-val-number="The field IGST must be a number."  id="DetailList_0__IGST" name="DetailList[0].IGST" readonly="readonly" type="text"  autocomplete="off">';
+                                if (IGST != null && IGST != "") {
+
+                                    var cell = $(row.insertCell(-1));
+                                    cell.addClass("IGST tdNone");
+                                    IGST = IGST.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                    IGST = replaceAll(IGST, "DetailList[0]", "DetailList[" + RowCount + "]");
+                                    cell.append(IGST);
+                                    $(row).find('.TblIGST').val(0);
+                                }
+
+                                var CGST = '<input class="form-control input-sm Text-100 TblCGST" data-val="true" data-val-number="The field CGST must be a number." id="DetailList_0__CGST" name="DetailList[0].CGST" readonly="readonly" type="text" autocomplete="off">';
+                                if (CGST != null && CGST != "") {
+
+                                    var cell = $(row.insertCell(-1));
+                                    cell.addClass("CGST tdNone");
+                                    CGST = CGST.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                    CGST = replaceAll(CGST, "DetailList[0]", "DetailList[" + RowCount + "]");
+                                    cell.append(CGST);
+                                    $(row).find('.TblCGST').val(0);
+                                }
+
+                                var SGST = '<input class="form-control input-sm Text-100 TblSGST" data-val="true" data-val-number="The field SGST must be a number." id="DetailList_0__SGST" name="DetailList[0].SGST" readonly="readonly" type="text"  autocomplete="off">';
+                                if (SGST != null && SGST != "") {
+
+                                    var cell = $(row.insertCell(-1));
+                                    cell.addClass("SGST tdNone");
+                                    SGST = SGST.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                    SGST = replaceAll(SGST, "DetailList[0]", "DetailList[" + RowCount + "]");
+                                    cell.append(SGST);
+                                    $(row).find('.TblSGST').val(0);
+                                }
+
+                                var VAT = '<input class="form-control input-sm Text-100 TblVAT" data-val="true" data-val-number="The field VAT must be a number."  id="DetailList_0__VAT" name="DetailList[0].VAT" readonly="readonly" type="text"  autocomplete="off">';
+
+                                if (VAT != null && VAT != "") {
+
+                                    var cell = $(row.insertCell(-1));
+                                    cell.addClass("VAT tdNone");
+                                    VAT = VAT.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                    VAT = replaceAll(VAT, "DetailList[0]", "DetailList[" + RowCount + "]");
+                                    cell.append(VAT);
+                                    $(row).find('.TblVAT').val(0);
+                                }
+                                if ('@Model.Client' != null && '@Model.Client' != "" && '@Model.Client'.toUpperCase() == 'BGRS') {
+                                    var CommAmt = '<input class="form-control input-sm Text-100 TblCommAmt" data-val="true" data-val-number="The field CommissionAmt must be a number."  id="DetailList_0__CommissionAmt" name="DetailList[0].CommissionAmt" type="text"  autocomplete="off" , onblur = "CalGrossTotal(this);">';
+
+                                    if (CommAmt != null && CommAmt != "") {
+
+                                        var cell = $(row.insertCell(-1));
+                                        cell.addClass("CommAmt");
+                                        CommAmt = CommAmt.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                        CommAmt = replaceAll(CommAmt, "DetailList[0]", "DetailList[" + RowCount + "]");
+                                        cell.append(CommAmt);
+                                        $(row).find('.TblCommAmt').val(0);
+                                    }
+
+                                    var AdminAmt = '<input class="form-control input-sm Text-100 TblAdminAmt" data-val="true" data-val-number="The field AdminAmt must be a number."  id="DetailList_0__AdminAmt" name="DetailList[0].AdminAmt" type="text"  autocomplete="off", onblur = "CalGrossTotal(this);">';
+
+                                    if (AdminAmt != null && AdminAmt != "") {
+
+                                        var cell = $(row.insertCell(-1));
+                                        cell.addClass("AdminAmt");
+                                        AdminAmt = AdminAmt.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                        AdminAmt = replaceAll(AdminAmt, "DetailList[0]", "DetailList[" + RowCount + "]");
+                                        cell.append(AdminAmt);
+                                        $(row).find('.TblAdminAmt').val(0);
+                                    }
+
+                                    var AuditAmt = '<input class="form-control input-sm Text-100 TblAuditAmt" data-val="true" data-val-number="The field AuditAmt must be a number."  id="DetailList_0__AuditAmt" name="DetailList[0].AuditAmt" type="text"  autocomplete="off">';
+
+                                    if (AuditAmt != null && AuditAmt != "") {
+
+                                        var cell = $(row.insertCell(-1));
+                                        cell.addClass("AuditAmt");
+                                        AuditAmt = AuditAmt.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                        AuditAmt = replaceAll(AuditAmt, "DetailList[0]", "DetailList[" + RowCount + "]");
+                                        cell.append(AuditAmt);
+                                        $(row).find('.TblAuditAmt').val(0);
+                                    }
+
+                                    var cell = $(row.insertCell(-1));
+                                    cell.addClass("Total");
+                                    var Total = '<input class="form-control input-sm clearfix TblTotal Text-100" data-val="true" data-val-number="The field Total must be a number." id="DetailList_0__Total" name="DetailList[0].Total" readonly="readonly" type="text" autocomplete="off", onblur = "CalGrossTotal(this);">';
+                                    Total = Total.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                    Total = replaceAll(Total, "DetailList[0]", "DetailList[" + RowCount + "]");
+
+                                    cell.append(Total);
+                                    $(row).find('.TblTotal').val(0);
+                                }
+                                else {
+                                    var cell = $(row.insertCell(-1));
+                                    cell.addClass("Total tdNone");
+                                    var Total = '<input class="form-control input-sm clearfix TblTotal Text-100" data-val="true" data-val-number="The field Total must be a number." id="DetailList_0__Total" name="DetailList[0].Total" readonly="readonly" type="text" autocomplete="off">';
+                                    Total = Total.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                    Total = replaceAll(Total, "DetailList[0]", "DetailList[" + RowCount + "]");
+
+                                    cell.append(Total);
+                                    $(row).find('.TblTotal').val(0);
+                                }
+
+                                var cell = $(row.insertCell(-1));
+                                cell.addClass("Total tdNone");
+                                var Total = '<input class="form-control input-sm clearfix TblTotal Text-100" data-val="true" data-val-number="The field Total must be a number." id="DetailList_0__Total" name="DetailList[0].Total" readonly="readonly" type="text" autocomplete="off">';
+                                Total = Total.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                Total = replaceAll(Total, "DetailList[0]", "DetailList[" + RowCount + "]");
+
+                                cell.append(Total);
+                                $(row).find('.TblTotal').val(0);
+
+                                var tdremove = '<input class="TblIsActive" id = "DetailList_0__IsActive" name = "DetailList[0].IsActive" type = "hidden" value = "true" autocomplete = "off" >'+
+                                '<button type="button" class="btnDelete btn btn-xs btn-danger m-n pad-top-none glyphicon glyphicon-trash" onclick="Remove(this)" />';
+                                tdremove = tdremove.replace(/DetailList_0/g, "DetailList_" + RowCount);
+                                tdremove = replaceAll(tdremove, "DetailList[0]", "DetailList[" + RowCount + "]");
+
+                                var cell = $(row.insertCell(-1));
+                                cell.append(tdremove);
+                                //$('#DetailTable tbody').append($clone);
+                                ApplyCustomClass();
+                                CalGrossTotal(null);
+                            }
+                        );
+
+                    }
+                    else {
+                        alert('Cost Head already exists');
+                    }
+
+                }
+                else {
+                    alert('Cost Head is required');
+                }
+
+
+        }
+
+        function CheckExists(CostHead) {
+
+            var result = false;
+
+            $("#DetailTable > TBODY").find('.TblCostHeadId').each(function () {
+
+                if (parseInt($(this).val()) == CostHead) {
+                    result = true;
+                    return false;
+                }
+            });
+
+            return result;
+
+
+        }
+
+        function Remove(sender) {
+
+            var row = $(sender).closest("TR");
+            var name = row[0].rowIndex;
+            if (confirm("Do you want to delete row " + name)) {
+
+                var table = $("#DetailTable")[0];
+                //table.deleteRow(row[0].rowIndex);
+                row.find('td .TblIsActive').val(false);
+
+
+                $('.BtnSaveInvoice').click();
+                return false;
+            }
+
+            return false;
+
+
+        }
+
+
+
+
+
+    </script>
+    <link type="text/css" href="~/Content/bootstrap-datetimepicker.min.css" />
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+

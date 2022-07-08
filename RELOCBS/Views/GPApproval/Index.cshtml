@@ -1,0 +1,691 @@
+﻿@model RELOCBS.Entities.GPApproval
+@using System.Data;
+@using RELOCBS.Common;
+@{
+    /**/
+    ViewBag.Title = "GP Approval";
+    Layout = "~/Views/Shared/_LayoutNonLogin.cshtml";
+    int OriginRateComp = Convert.ToInt32(CommonService.RateComp.Origin);
+    int FreightRateComp = Convert.ToInt32(CommonService.RateComp.Freight);
+    int DestinationRateComp = Convert.ToInt32(CommonService.RateComp.Destination);
+    bool IsOrg = Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).Count() > 0;
+    bool IsDest = Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).Count() > 0;
+}
+
+<style>
+    table.tblCostSheet {
+        border-collapse: collapse;
+    }
+
+        table.tblCostSheet td, th {
+            border: 1px solid Black;
+            padding: 5px 15px;
+        }
+
+        table.tblCostSheet thead > tr:nth-child(1) > th:nth-child(1) {
+            background-color: #e7eaec;
+        }
+
+        table.tblCostSheet thead > tr:nth-child(1) > th:nth-child(2) {
+            background-color: #e7eaec;
+        }
+
+        table.tblCostSheet thead > tr:nth-child(1) > th:nth-child(3) {
+            background-color: #e7eaec;
+        }
+
+        table.tblCostSheet thead > tr:nth-child(1) > th:nth-child(4) {
+            background-color: #e7eaec;
+        }
+
+        table.tblCostSheet thead > tr:nth-child(2) > th {
+            background-color: #fcf8e3;
+        }
+
+        /*  Define the background color for all the ODD table columns  */
+        table.tblCostSheet thead > tr:nth-child(3) > th:nth-child(odd) {
+            background: #b8d1f3;
+        }
+        /*  Define the background color for all the EVEN table columns  */
+        table.tblCostSheet thead > tr:nth-child(3) > th:nth-child(even) {
+            background: #dae5f4;
+        }
+
+        table.tblCostSheet tbody > tr td:first-child {
+            /*background: #b8d1f3;*/
+            font-weight: bold;
+            width: 5px;
+        }
+
+            table.tblCostSheet tbody > tr td:first-child + td {
+                /*background: #dae5f4;*/
+                font-weight: bold;
+                width: 20%;
+            }
+
+    .Total {
+        background-color: #dff0d8;
+    }
+
+    .tdwidth {
+        width: 10%;
+    }
+
+    .GPNg {
+        color: red;
+        width: 10%;
+    }
+
+    .BTRlogo {
+        visibility: hidden;
+    }
+
+    table.tdRowColor {
+        background-color: #d3d3d3;
+        color: black;
+    }
+
+    .modal.modal-wide .modal-dialog {
+        width: 90%;
+    }
+
+    .modal-wide .modal-body {
+        overflow-y: auto;
+    }
+
+
+    .modal-dialog {
+        width: 50%;
+    }
+
+    #FollowUpModal, #SubCostHeadModal, InsuranceModal .modal-dialog {
+        width: 50%;
+    }
+</style>
+<div class="modal modal-wide" id="GPApprovalListModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                GP Approval Details
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="FollowUp" style="height:300px;">
+                <div class="m-t-sm pad-none">
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12">
+                            <table class="table table-bordered tblbuffer">
+                                <tbody>
+                                    <tr>
+                                        <th class="label-success col-sm-3">Remarks</th>
+                                        <th class="label-success col-sm-2 p-xs">Status</th>
+                                        <th class="label-success col-sm-2 p-xs">Sent By</th>
+                                        <th class="label-success col-sm-2 p-xs">Sent On</th>
+                                        <th class="label-success col-sm-1 p-xs">GP Percent</th>
+                                        <th class="label-success col-sm-2 p-xs">Revenue Amount</th>
+                                    </tr>
+                                    @if (Model.GPApprovalDisplayList != null)
+                                    {
+                                        foreach (var item in Model.GPApprovalDisplayList)
+                                        {
+                                            string Desc = "<p>" + item.Remark.Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>";
+                                            //string Desc = "<p>" + (desc).Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>";
+                                            if (Desc.Contains("</p><p><br></p><p>"))
+                                            {
+                                                Desc = Desc.Substring(0, Desc.LastIndexOf("</p><p><br></p><p>"));
+                                            }
+                                            <tr class="m-n pad-none">
+                                                <td class="m-n pad-none">
+                                                    @Html.Raw(Desc)
+                                                </td>
+                                                <td class="m-n pad-none">@item.Status</td>
+                                                <td class="m-n pad-none">@item.CreatedBy</td>
+                                                <td class="m-n pad-none">@item.CreatedDate</td>
+                                                <td class="m-n pad-none">@item.GPPercent</td>
+                                                <td class="m-n pad-none">@item.RevAmount</td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@if (Model.dsCostSheet != null)
+{
+    var colspan = 0;
+    if (Model.dsCostSheet.Tables.Count > 0)
+    {
+        @Html.Hidden("IsGPDirectSave", 0)
+        using (Html.BeginForm("SaveApproval", "GPApproval", new { Indx = 0, SurveyID = @Model.SurveyID, MoveID = @Model.MoveID }, FormMethod.Post, new { enctype = "multipart/form-data", id = "ModalApproveAdvanceCaution" }))
+        {
+            <div id="mdlGPPApproval" class="modal fade" data-backdrop="static" data-keyboard="false">
+                <div class="modal-dialog">
+                    <div class="modal-content  p-xl">
+
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <label><label>Select User for Approval</label></label>
+                                @Html.DropDownList("SendtoGPApprovalList", new SelectList((System.Collections.IEnumerable)ViewData["GPApprovalUserList"], "Value", "Text"), "--Select Approval User--", new { @class = "form-control" })
+                            </div>
+                            <div class="col-sm-6 ">
+                                <input type="button" name="Save" value="Send for Approval" class="btn btn-sm btn-primary filter-custom-margin" id="btnSendToGPApprove" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @Html.HiddenFor(x => x.MoveID)
+            @Html.HiddenFor(x => x.GPPercent)
+            @Html.HiddenFor(x => x.GPMasterID)
+            @Html.HiddenFor(x => x.GPSendForApprovalUser, new { @class = "GPSendForApprovalUser" });
+            @Html.HiddenFor(model => model.HoSdEmpID)@Html.HiddenFor(model => model.BrSdEmpID)@Html.HiddenFor(model => model.DestBrSdEmpID)@Html.HiddenFor(model => model.InsurBy)
+            <div class="row">
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>Remark</label>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        @Html.HiddenFor(a => Model.GPApprovalRemark, new { @class = "Description" })
+                        @Html.TextArea("taDescription", new { @class = "td-amtwidth form-control input-xs clearfix taDescription" })
+                        @*@Html.TextBoxFor(x => x.GPApprovalRemark, null, new { htmlAttributes = new { @placeholder = "Remark", @tooltip = "Remark", @class = "form-control input-sm", title = "Remark", id = "txtRemark" } })*@
+                    </div>
+                </div>
+
+                <div class="col-sm-2"><input type="submit" name="btnGPApproval" value="Send to SD" class="input-sm btn btn-primary" /> </div>
+                @if (Model.IsApporvalFlag)
+                {
+                    <div class="col-sm-2"><input type="submit" name="btnGPApproval" value="Approve" class="input-sm btn btn-primary" /> </div>
+                }
+                else
+                {
+                    <div class="col-sm-2"><input type="submit" name="btnGPApproval" value="Send for approval" class="input-sm btn btn-primary btnGPSendApproval" /> </div>
+                }
+                    <div class="col-sm-2">
+                        <input type="button" id="btnGPDetail" name="GPDetail" data-placement="bottom" class="btn btn-success pull-right m-r-sm btn-xs btnGPDetail" value="GP Approval Detail" formnovalidate="formnovalidate"
+                               data-toggle="modal" data-target="#GPApprovalListModal" />
+                    </div>
+                
+
+            </div>
+        }
+        <div class="col-sm-12 pad-none">
+            <table class="table table-responsive table-bordered white-bg tblCostSheet" id="tblCostSheet" style="width:100%">
+                <thead>
+                    <tr>
+                        <th colspan="2" scope="colgroup" rowspan="2"></th>
+                        @if (Model.MoveJob.MoveRateCompList != null && Model.MoveJob.MoveRateCompList.Count > 0)
+                        {
+                            <th colspan="2" scope="colgroup" class="text-center">Pricing</th>
+                        }
+                        else
+                        {
+                            colspan += 2;
+                        }
+                        @if (Model.SurveyReport.Surveydate != null && Model.MoveJob.MoveRateCompList != null && Model.MoveJob.MoveRateCompList.Count > 0 &&
+                Model.SurveyCostList.CostListSaved && Model.RMCType != "Other Type")
+                        {
+                            <th colspan="2" scope="colgroup" class="text-center">Survey</th>
+                        }
+                        else
+                        {
+                            colspan += 2;
+                        }
+                        @if (Model.PackingCostList.CostListSaved && Model.PackingReport.Packdate != null && Model.RMCType != "Other Type")
+                        {
+                            <th colspan="2" scope="colgroup" class="text-center">Packing</th>
+                        }
+                        else
+                        {
+                            colspan += 2;
+                        }
+                        @if (Model.DeliveryCostList.CostListSaved && (Model.DeliveryReport.DeliveryDate != null || Model.RMCType == "Other Type"))
+                        {
+                            string label = Model.RMCType != "Other Type" ? "Delivery" : "Final";
+                            <th colspan="2" scope="colgroup" class="text-center">@label</th>
+                        }
+                        else
+                        {
+                            colspan += 2;
+                        }
+                    </tr>
+
+                    <tr>
+                        @if (Model.MoveJob.MoveRateCompList != null && Model.MoveJob.MoveRateCompList.Count > 0)
+                        {
+                            if ((Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).Count() > 0 &&
+                                Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).Count() > 0) || Model.MoveJob.ModeName == "Road")
+                            {
+                                <th align="left" scope="col" colspan="2">
+                                    @if (Model.CompanyID == 2 && Model.RMCType == "Brookfield Type" && Model.MoveJob.ModeID == 3)
+                                    {
+                                        if (Model.MoveJob.MoveRateCompList.First().RateComponentID == 4)
+                                        {
+                                            <span>@Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == 4).First().AgentName</span> <br />
+                                        }
+                                        else
+                                        {
+                                            if (IsOrg)
+                                            {
+                                                <span>Origin Agent - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).First().AgentName</span> <br />
+                                            }
+                                            if (IsDest)
+                                            {
+                                                <span>Destination Agent - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).First().AgentName</span> <br />
+                                            }
+                                            if (IsOrg)
+                                            {
+                                                <span>Exit Port - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).First().ActExitPort</span> <br />
+                                            }
+                                            if (IsDest)
+                                            {
+                                                <span>Entry Port - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).First().ActEntryPort</span> <br />
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (Model.MoveJob.ModeID != 3)
+                                        {
+                                            if (IsOrg)
+                                            {
+                                                <span>Origin Agent - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).First().AgentName</span> <br />
+                                            }
+                                            if (IsDest)
+                                            {
+                                                <span>Destination Agent - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).First().AgentName</span> <br />
+                                            }
+                                            if (IsOrg)
+                                            {
+                                                <span>Exit Port - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).First().ActExitPort</span> <br />
+                                            }
+                                            if (IsDest)
+                                            {
+                                                <span>Entry Port - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).First().ActEntryPort</span> <br />
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (Model.MoveJob.MoveRateCompList.First().RateComponentID == 4)
+                                            {
+                                                <span>@Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == 4).First().AgentName</span> <br />
+                                            }
+                                            else
+                                            {
+                                                if (IsOrg)
+                                                {
+                                                    <span>Origin Agent - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).First().AgentName</span> <br />
+                                                }
+                                                if (IsDest)
+                                                {
+                                                    <span>Destination Agent - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).First().AgentName</span> <br />
+                                                }
+                                                if (IsOrg)
+                                                {
+                                                    <span>Exit Port - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).First().ActExitPort</span> <br />
+                                                }
+                                                if (IsDest)
+                                                {
+                                                    <span>Entry Port - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).First().ActEntryPort</span> <br />
+                                                }
+                                            }
+                                        }
+                                    }
+                                    <span>Weight - @Model.MoveJob.WeightUnitFrom @Model.MoveJob.WeightUnitName</span> <br />
+                                </th>
+                            }
+                        }
+                        @if (Model.SurveyReport.Surveydate != null && Model.MoveJob.MoveRateCompList != null && Model.MoveJob.MoveRateCompList.Count > 0 && Model.RMCType != "Other Type")
+                        {
+                            if (Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).Count() > 0 &&
+                                Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).Count() > 0)
+                            {
+                                <th align="left" scope="col" colspan="2">
+                                    @if (Model.CompanyID == 2 && Model.RMCType == "Brookfield Type" && Model.MoveJob.ModeID == 3)
+                                    {
+                                        if (Model.MoveJob.MoveRateCompList.First().RateComponentID == 4)
+                                        {
+                                            <span> @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == 4).First().AgentName </span> <br />
+                                        }
+                                        else
+                                        {
+                                            if (IsOrg)
+                                            {
+                                                <span>Origin Agent - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).First().JobAgentName</span> <br />
+                                            }
+                                            if (IsDest)
+                                            {
+                                                <span>Destination Agent - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).First().JobAgentName</span> <br />
+                                            }
+                                            if (IsOrg)
+                                            {
+                                                <span>Exit Port - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).First().ExitPort</span> <br />
+                                            }
+                                            if (IsDest)
+                                            {
+                                                <span>Entry Port - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).First().EntryPort</span>
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (Model.MoveJob.ModeID != 3)
+                                        {
+                                            if (IsOrg)
+                                            {
+                                                <span>Origin Agent - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).First().JobAgentName</span> <br />
+                                            }
+                                            if (IsDest)
+                                            {
+                                                <span>Destination Agent - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).First().JobAgentName</span> <br />
+                                            }
+                                            if (IsOrg)
+                                            {
+                                                <span>Exit Port - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).First().ExitPort</span> <br />
+                                            }
+                                            if (IsDest)
+                                            {
+                                                <span>Entry Port - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).First().EntryPort</span> <br />
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (Model.MoveJob.MoveRateCompList.First().RateComponentID == 4)
+                                            {
+                                                <span>@Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == 4).First().AgentName</span> <br />
+                                            }
+                                            else
+                                            {
+                                                if (IsOrg)
+                                                {
+                                                    <span>Origin Agent - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).First().AgentName</span> <br />
+                                                }
+                                                if (IsDest)
+                                                {
+                                                    <span>Destination Agent - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).First().AgentName</span> <br />
+                                                }
+                                                if (IsOrg)
+                                                {
+                                                    <span>Exit Port - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == OriginRateComp).First().ActExitPort</span> <br />
+                                                }
+                                                if (IsDest)
+                                                {
+                                                    <span>Entry Port - @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == DestinationRateComp).First().ActEntryPort</span> <br />
+                                                }
+                                            }
+                                        }
+                                    }
+
+
+                                    <span>Weight - @Model.SurveyReport.NetWt</span>&emsp;<span>Volume - @Model.SurveyReport.NetVol</span> <br />
+
+                                </th>
+                            }
+                            else
+                            {
+                                if (Model.MoveJob.MoveRateCompList.First().RateComponentID == 4 && Model.CompanyID == 2)
+                                {
+                                    if (Model.MoveJob.MoveRateCompList.First().RateComponentID == 4)
+                                    {
+                                        <th align="left" scope="col" colspan="2">
+                                            <span> @Model.MoveJob.MoveRateCompList.Where(x => x.RateComponentID == 4).First().AgentName </span>
+                                            <br />
+                                        </th>
+                                    }
+                                }
+                            }
+                        }
+                        @if (Model.PackingCostList.CostListSaved && Model.PackingReport.Packdate != null && Model.RMCType != "Other Type")
+                        {
+                            <th align="left" scope="col" colspan="2">
+                                @if (Model.MoveJob.ModeID != 3)
+                                {
+                                    <span>Origin Agent - @Model.PackingDetail.OrgAgentName</span> <br />
+                                    <span>Destination Agent -@Model.PackingDetail.DestAgentName</span> <br />
+                                    <span>Exit Port - @Model.PackingDetail.ExitPortName</span> <br />
+                                    <span>Entry Port - @Model.PackingDetail.EntryPortName</span> <br />
+                                }
+                                else
+                                {
+                                    <span>@Model.PackingDetail.OrgAgentName</span> <br />
+                                }
+
+                                <span>Weight - @Model.PackingReport.NetWt</span>&emsp;<span>Volume - @Model.PackingReport.NetVol</span> <br />
+                            </th>
+                        }
+                        @if (Model.DeliveryCostList.CostListSaved && (Model.DeliveryReport.DeliveryDate != null || Model.RMCType == "Other Type"))
+                        {
+                            <th align="left" scope="col" colspan="2">
+                                @if (Model.MoveJob.ModeID != 3)
+                                {
+                                    <span>Origin Agent - @Model.DeliveryDetail.OrgAgentName</span> <br />
+                                    <span>Destination Agent -@Model.DeliveryDetail.DestAgentName</span> <br />
+                                    <span>Exit Port - @Model.DeliveryDetail.ExitPortName</span> <br />
+                                    <span>Entry Port - @Model.DeliveryDetail.EntryPortName</span> <br />
+                                }
+                                else
+                                {
+                                    <span>@Model.DeliveryDetail.OrgAgentName</span> <br />
+                                }
+
+                                <span>Weight - @Model.DeliveryReport.NetWt</span>&emsp;<span>Volume - @Model.DeliveryReport.NetVol</span> <br />
+                            </th>
+                        }
+                    </tr>
+                    <tr>
+                        <th>Component</th>
+                        <th>Cost Head</th>
+                        @if (Model.MoveJob.MoveRateCompList != null && Model.MoveJob.MoveRateCompList.Count > 0)
+                        {
+                            <th scope="col">Cost</th>
+                            <th scope="col">Revenue</th>
+                        }
+                        @if (Model.SurveyReport.Surveydate != null && Model.MoveJob.MoveRateCompList != null && Model.MoveJob.MoveRateCompList.Count > 0
+                && Model.SurveyCostList.CostListSaved && Model.RMCType != "Other Type")
+                        {
+                            <th scope="col">Cost</th>
+                            <th scope="col">Revenue</th>
+                        }
+                        @if (Model.PackingReport.Packdate != null && Model.PackingCostList.CostListSaved && Model.RMCType != "Other Type")
+                        {
+                            <th scope="col">Cost</th>
+                            <th scope="col">Revenue</th>
+                        }
+                        @if ((Model.DeliveryReport.DeliveryDate != null || Model.RMCType == "Other Type") && Model.DeliveryCostList.CostListSaved)
+                        {
+                            <th scope="col">Cost</th>
+                            <th scope="col">Revenue</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (DataRow row in Model.dsCostSheet.Tables[0].Rows)
+                    {
+                        var Cls = Convert.ToString(row["MoveCompName"]) == "TOT" ? "Total" : "";
+
+                        var GP = Convert.ToString(row["MoveCompName"]) == "GP" || Convert.ToString(row["MoveCompName"]) == "GP%" ? "GP" : "";
+
+                        <tr class="@Cls">
+                            @foreach (DataColumn col in Model.dsCostSheet.Tables[0].Columns)
+                            {
+                                if (col.ColumnName == "MoveCompName" || col.ColumnName == "CostHeadName" || col.ColumnName == "Currency")
+                                {
+                                    var CompCls = (string.IsNullOrWhiteSpace(Cls) && string.IsNullOrWhiteSpace(GP)) ? (col.ColumnName == "CompName" ? "background: #b8d1f3;" : "background: #dae5f4;") : "";
+
+                                    <td style="@CompCls">@row[col.ColumnName]</td>
+                                }
+                                else
+                                {
+                                    //var colspan = 0;
+                                    var RedStyle = !string.IsNullOrWhiteSpace(Convert.ToString(row[col.ColumnName])) && Convert.ToDecimal(row[col.ColumnName]) < 0 ? "class=GPNg" : "class=tdwidth";
+                                    if (Model.MoveJob.MoveRateCompList != null && Model.MoveJob.MoveRateCompList.Count > 0 && (col.ColumnName == "PricingCostVal" || col.ColumnName == "PricingRevenVal"))
+                                    {
+                                        <td align="right" @RedStyle>@row[col.ColumnName]</td>
+                                    }
+
+                                    if (Model.MoveJob.MoveRateCompList != null && Model.MoveJob.MoveRateCompList.Count > 0 && (col.ColumnName == "SurveyCostVal" || col.ColumnName == "SurveyRevenVal")
+                                        && Model.SurveyCostList.CostListSaved && Model.SurveyReport.Surveydate != null && Model.RMCType != "Other Type")
+                                    {
+                                        <td align="right" @RedStyle>@row[col.ColumnName]</td>
+                                    }
+                                    if ((col.ColumnName == "PackCostVal" || col.ColumnName == "PackRevenVal")
+                                        && Model.PackingCostList.CostListSaved && Model.PackingReport.Packdate != null && Model.RMCType != "Other Type")
+                                    {
+                                        <td align="right" @RedStyle>@row[col.ColumnName]</td>
+                                    }
+                                    if ((col.ColumnName == "DeliveryCostVal" || col.ColumnName == "DeliveryRevenVal")
+                                        && Model.DeliveryCostList.CostListSaved && (Model.DeliveryReport.DeliveryDate != null || Model.RMCType == "Other Type"))
+                                    {
+                                        <td align="right" @RedStyle>@row[col.ColumnName]</td>
+                                    }
+
+                                }
+                            }
+                            @if (colspan > 0)
+                            {
+                                var spanwidth = 10 * colspan;
+                                <td align="right" TDwidth="@spanwidth"></td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    }
+}
+
+
+
+@section Scripts{
+    <script type="text/javascript">
+        
+        $(document).ready(function () {
+            $('.taDescription').summernote({
+                height: 1,                 // set editor height
+                minHeight: null,             // set minimum height of editor
+                maxHeight: null,             // set maximum height of editor
+                //focus: true,
+                toolbar: []
+            });
+            $('.note-editable').on('blur',
+                function () {
+
+                    var Description = '';
+                    $(this).find('p').each(
+                        function () {
+                            Description = Description + $(this).html() + " \n";
+                        });
+
+                    Description = Description.replace(/&amp;/g, "");
+                    Description = Description.replace(/&nbsp;/g, "");
+                    Description = Description.replace(/<br>/g, "");
+
+
+                    //$(this).find('br').each(
+                    //    function () {
+                    //        Description = Description.replace("<br>","");
+                    //    });
+                    if (!(Description)) {
+                        Description = $(this).html();
+                    }
+                    $('.Description').val(Description);
+                    //alert($(this).closest('tr').find('td .Description').val());
+                }
+            );    
+            $("tblCostSheet tbody tr").each(function () {
+                var col_val = $(this).find("td:eq(0)").text();
+                debugger;
+
+                if (col_val == "TOT") {
+                    $(this).addClass('Total');  //the selected class colors the row green//
+                }
+            });
+
+            /////second last
+            $(".tblCostSheet tbody tr:last").prev().each(function () {
+
+                var value = parseInt($(this).html());
+                if (value < 0) {
+                    $(this).addClass('GPNg');
+                }
+
+            });
+
+            /////last row
+            $(".tblCostSheet tbody tr:last").each(function () {
+                var value = parseInt($(this).html());
+                if (value < 0) {
+                    $(this).addClass('GPNg');
+                }
+            });
+
+            $('#SendtoGPApprovalList').change(
+                function () {
+                    var SendToApprUser = $(this).val();
+                    $(".GPSendForApprovalUser").each(function () { $(this).val(SendToApprUser); });
+                });
+
+            $('#btnSendToGPApprove').on('click',
+                function () {
+                    //var button = $('#BtnSubmit').val();
+                    $('.btnGPSendApproval').click();
+                });
+
+            $('.btnGPSendApproval').on('click', function () {
+                //var MasterGPPercent = parseFloat('@Model.DefaultGPPercent');
+                debugger;
+                $('#overlay').fadeOut();
+                event.preventDefault();
+                if ($('#IsGPDirectSave').val() == 0) {
+                    
+                    swal({
+                        title: "The GP Percent of costsheet is low. Do you want to send the costsheet for GP approval?",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Send for Approval",
+                        cancelButtonText: "No",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                        function (isConfirm) {
+                            if (isConfirm) {
+                                //$('#GPSendForApproval').val(true);
+
+                                $('#IsGPDirectSave').val('1');
+
+                                    //$(".GPSendForApproval").each(function () { $(this).val(true); });
+                                    $(".GPPercent").val(GPPercent);
+                                    //$('#BtnSubmit').val(button);
+                                    //$('#mdlGPPApproval').modal();
+                                    $('.btnGPSendApproval').click();
+
+                            }
+                            else {
+                                
+                            }
+                        });
+                }
+            });
+
+            //$('tblCostSheet tbody tr.alt td:contains("-")').addClass('GPNg');//.css('background-color', '#cd0000');
+            //$('tblCostSheet tbody tr.alt td:contains("-")').parent('tr').addClass('GPNg');//.css('background-color', '#cd0000');
+        });
+    </script>
+
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+
+}
+
+
+
+

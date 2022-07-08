@@ -1,0 +1,160 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html;
+
+@model StaticPagedList<RELOCBS.Entities.JobInstGrid>
+
+@{
+
+    string _PageID = "19";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+    WebGrid grid = new WebGrid(source: Model, canSort: false, canPage: false);
+
+}
+
+<style type="text/css">
+
+    .subT a:link {
+        color: black;
+        font-weight: bold;
+    }
+
+    th, td {
+        padding: 5px;
+    }
+
+    th {
+        background-color: rgb(248, 248, 248);
+    }
+
+    #gridT, #gridT tr {
+        border: 1px solid #0D857B;
+    }
+
+    .subT, .subT tr {
+        border: 1px solid #f3f3f3;
+    }
+
+    .subT {
+        margin: 0px 0px 0px 10px;
+        padding: 5px;
+        width: 95%;
+    }
+
+        .subT th {
+            font-size: 14px;
+        }
+
+    .hoverEff {
+        cursor: pointer;
+    }
+
+        .hoverEff:hover {
+            background-color: rgb(248, 242, 242);
+        }
+
+    .expands {
+        background-image: url(./Images/expand.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        width: 100px;
+    }
+
+    .collapses {
+        background-image: url(./Images/collapse.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        width: 100px;
+    }
+</style>
+
+@{
+
+    var gridColumns = new List<WebGridColumn>();
+    gridColumns.Add(grid.Column("JobNo", "JobNo"));
+    gridColumns.Add(grid.Column("JobOpenDate", "JobOpenDate"));
+    gridColumns.Add(grid.Column("Mode", "Mode"));
+    gridColumns.Add(grid.Column("ServiceLine", "ServiceLine"));
+    gridColumns.Add(grid.Column("Shipper", "Shipper"));
+    gridColumns.Add(grid.Column("Corporate", "Corporate"));
+    gridColumns.Add(grid.Column("Client", "Client"));
+    gridColumns.Add(grid.Column("Status", "Status"));
+
+    var SubGridColumns = new List<WebGridColumn>();
+
+    SubGridColumns.Add(grid.Column("InstID", "Inst.No."));
+    SubGridColumns.Add(grid.Column("InstDate", "Inst.Date"));
+    //SubGridColumns.Add(grid.Column("InstType", "Inst.Type"));
+    //SubGridColumns.Add(grid.Column("ExpectedBeginDateTime", "ExpectedBeginDateTime"));
+    SubGridColumns.Add(grid.Column("BranchName", "Branch"));
+    SubGridColumns.Add(grid.Column("WarehouseName", "Warehouse"));
+    SubGridColumns.Add(grid.Column("Wt_Vol", "Wt/Vol"));
+    SubGridColumns.Add(grid.Column("Inst_Status", "Status"));
+    SubGridColumns.Add(grid.Column("CreatedBy", "CreatedBy"));
+    //SubGridColumns.Add(grid.Column("CreatedDate", "CreatedDate"));
+    SubGridColumns.Add(grid.Column("ModifiedBy", "LastModifiedBy"));
+    SubGridColumns.Add(grid.Column("ModifiedDate", "LastModifiedDate"));
+
+    if (hasEditAccess)
+    {
+        //SubGridColumns.Add(grid.Column("Edit", "Edit", style: "btnEdit"));
+        SubGridColumns.Add(grid.Column("", header: "Edit",
+             format:@<text>
+                <span>
+                    @if (item.InstID != null && item.InstID > 0)
+                    {
+                        <a href="@Url.Action("Create", "InstructionSheet", new { MoveID = item.MoveID,InstID = item.InstID })" class="btn btn-primary btn-sm Edit m-n" title="Edit Instruction Sheet"><i class='glyphicon glyphicon-pencil'></i></a>
+                    }
+                </span>
+            </text>
+            ));
+    }
+    if (hasEditAccess)
+    {
+        //SubGridColumns.Add(grid.Column("View", "View", style: "btnView"));
+        SubGridColumns.Add(grid.Column("", header: "Print",
+             format:@<text>
+                <span>
+                    @if (item.InstID != null && item.InstID > 0 && item.IsSentToWarehouse == 1)
+                    {
+                        <a href="@Url.Action("GetInstructionSheetPrint", "InstructionSheet", new { MoveID = item.MoveID,InstID = item.InstID })" class="btn btn-primary btn-sm View m-n" title="Print Instruction Sheet" target="_blank"><i class='glyphicon glyphicon-print'></i></a>
+                    }
+                </span>
+             </text>
+            ));
+    }
+
+    SubGridColumns.Add(grid.Column("InstID", null, style: "InstID hide"));
+    SubGridColumns.Add(grid.Column("MoveID", null, style: "InstID hide"));
+    @*subGrid.Column("SpecialInstructions", "SpecialInstructions")*@
+
+    gridColumns.Add(grid.Column(format: (item) =>
+    {
+        WebGrid subGrid = new WebGrid(source: item.instructionSheetGrids, canSort: false, canPage: false);
+        return subGrid.Table(
+            tableStyle: "ChildGrid subT table table-responsive table-bordered table-condensed",
+            htmlAttributes: new { id = "SubT", width = "700px" },
+            columns: subGrid.Columns(SubGridColumns.ToArray()));
+    }));
+
+
+}
+
+@grid.Table(tableStyle: "Grid table table-responsive table-bordered table-condensed",
+            htmlAttributes: new { id = "gridT", width = "700px" },
+           columns: grid.Columns(gridColumns.ToArray()))
+
+
+  <div class="clearfix pnl-pagination">
+      <div class="pull-right">
+          @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+          @if (Model.Count() == 0)
+          {
+              <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+          }
+      </div>
+  </div>

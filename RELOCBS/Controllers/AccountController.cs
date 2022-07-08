@@ -9,6 +9,11 @@ using System.Web.Security;
 using RELOCBS.Entities;
 using RELOCBS.BL.Account;
 using System.Web.Routing;
+using RELOCBS.BL;
+using RELOCBS.Extensions;
+using RELOCBS.Utility;
+using RELOCBS.CustomAttributes;
+using RELOCBS.AjaxHelper;
 
 namespace RELOCBS.Controllers
 {
@@ -34,46 +39,63 @@ namespace RELOCBS.Controllers
             }
         }
 
-        //
-        // POST: /Account/Login
-        [HttpPost]
+        private ComboBL _comboBL;
+
+        public ComboBL comboBL
+        {
+            get
+            {
+                if (this._comboBL == null)
+                    this._comboBL = new ComboBL();
+                return this._comboBL;
+            }
+        }
+
+		private CommanBL _commonBL;
+
+		public CommanBL commonBL
+		{
+			get
+			{
+				if (this._commonBL == null)
+					this._commonBL = new CommanBL();
+				return this._commonBL;
+			}
+		}
+
+		//
+		// POST: /Account/Login
+
+		[HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public  ActionResult Login(LoginViewModel model, string returnUrl)
+        public  ActionResult Login(LoginViewModel model, string returnUrl, string CompId)
         {
             if (ModelState.IsValid)
             {
                 UserInformationModel user;
+                string Msg = "Incorrect credentials.";
 
-                if (userBL.ValidateUser(model.Username, model.Password, out user))
+                if (userBL.ValidateUser(model.Username, model.Password, out user, out Msg))
                 {
                     //sign in user
-                    userBL.SignIn(user, model.RememberMe);
+                    user.CompanyID = model.CompId;
+                    user.CompanyName = model.CompName;
+                    user.BussinessLine = model.BussinessLine;
+					user.BaseCurrID = commonBL.GetBaseCurrByRMC(!model.BussinessLine.Equals("NON RMC-BUSINESS"), null, model.CompId);
 
-                    //if (user.IsFirstLogin || user.PasswordExpired == "Y")
-                    //{                        
-                    //        return RedirectToAction("ResetPassword",new RouteValueDictionary(
-                    //        new { controller = "Account", action = "ResetPassword", Code = Guid.NewGuid()}));
-                    //}
-                    
-
-
-                    if (!String.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                        return Redirect(returnUrl);
-                    else
-                        return RedirectToAction("Index", "Home");
-
+					userBL.SignIn(user, model.RememberMe);
+					userBL.UpdateCompany(user);
+                    return RedirectToAction("Index", "Home");
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Incorrect credentials.");
+                    ModelState.AddModelError("", Msg);
+                    this.AddToastMessage("RELOCBS", Msg, ToastType.Error);
                 }
             }
-
             return View(model);
         }
-
-
 
         //
         // GET: /Account/ForgotPassword
@@ -131,7 +153,6 @@ namespace RELOCBS.Controllers
 
             return View(model);
         }
-
 
         //
         // GET: /Account/ResetPassword
@@ -224,21 +245,101 @@ namespace RELOCBS.Controllers
             return View();
         }
 
+        [AuthorizeUser]
         public ActionResult profile()
         {
 
             return View();
         }
 
-
         // GET: /Accounts/LogOut
         /// <summary>
         /// The log out.
         /// </summary>
+
+        [AuthorizeUser]
         public ActionResult LogOut()
         {
             userBL.SignOut();
             return RedirectToAction("Index", "Home");
+        }
+
+        public JsonResult GetCompany(string UserName, string Password)
+        {
+            try
+            {
+                List<SelectListItem> CompanyList = new List<SelectListItem>();
+                List<SelectListItem> BussinessLineList = new List<SelectListItem>();
+                string errormsg = null;
+                if (ModelState.IsValid)
+                {
+                    UserInformationModel user;
+                    if (userBL.ValidateUser(UserName, Password, out user,out errormsg))
+                    {
+                        errormsg = null;
+                        CompanyList = comboBL.GetUserCompanyMapDropdown(user.LoginID).ToList();
+
+                        BussinessLineList = comboBL.GetUserBussinessLineDropdown(user.LoginID).ToList();
+                        //CompanyList.Add(new SelectListItem() { Text = "Suraj", Value = "2" });
+                        if (CompanyList.Count() == 0 )
+                        {
+                            errormsg = "No Company is mapped for this login Credentials.";
+                        }
+                        if (BussinessLineList.Count() == 0 )
+                        {
+                            errormsg += " \n No BussinessLine is mapped for this login Credentials.";
+                        }
+                    }
+                }
+                return Json(new { CompanyList = CompanyList, BussinessLineList = BussinessLineList, errormsg = errormsg }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+
+        [AuthorizeUser]
+        public ActionResult ChangePassword()
+        {
+
+            ChangePasswordViewModel model = new ChangePasswordViewModel();
+            model.UserID = UserSession.GetUserSession().LoginID;
+            return View(model);
+        }
+
+        //
+        // POST: /Account/ResetPassword
+        [HttpPost]
+        [AuthorizeUser]
+        [ValidateAntiForgeryToken]
+        public ActionResult ChangePassword(ChangePasswordViewModel data)
+        {
+            if (ModelState.IsValid)
+            {
+                AjaxResponse result = new AjaxResponse();
+                if (ModelState.IsValid)
+                {
+                    
+                    string message=string.Empty;
+                    result.Success = userBL.ChangePassword(data,out message);
+                    if (result.Success)
+                    {
+                        this.AddToastMessage("RELOCBS", message, ToastType.Success);
+                        return RedirectToAction("Index","Home");
+                    }
+                    else
+                    {
+                        this.AddToastMessage("RELOCBS", message,ToastType.Error);
+                        ModelState.AddModelError(string.Empty, message);
+                    }
+                }
+
+            }
+
+            return View(data);
+
         }
     }
 }

@@ -1,0 +1,720 @@
+﻿@using RELOCBS.Entities;
+@model RELOCBS.Entities.MoveManageViewModel
+@{
+    string Flag = Model.Flag;
+    string name = string.Empty;
+    ReportView r = new ReportView();
+    if (Flag == "Packing")
+    {
+        r = Model.PackingReport;
+        name = "PackingReport";
+    }
+    else if (Flag == "Freight")
+    {
+        r = Model.FreightReport;
+        name = "FreightReport";
+    }
+    else if (Flag == "Delivery")
+    {
+        r = Model.DeliveryReport;
+        name = "DeliveryReport";
+    }
+    else if (Flag == "Survey")
+    {
+        r = Model.SurveyReport;
+        name = "SurveyReport";
+    }
+    string mode = Model.MoveJob.ModeName;
+    string Label = string.Empty;
+    string HideWt = mode == "Road" ? "hide" : "";
+    string HideBillNo = mode == "Road" ? "hide" : "";
+}
+<style>
+    .TransitWt_NoOfPacks {
+        width:80px;
+    }
+</style>
+
+<div class="row divtranshipWtVol">
+    <div class="col-sm-3 @HideBillNo">
+        <div class="form-group">
+            @{ Label = mode == "Sea" ? "BL Release On" : "Airway BL Release On";
+
+            }
+            <label>@Html.Raw(Label)</label>
+            <div class="input-group input-group-sm date" id="dtp_ToDate">
+                @Html.TextBoxFor(model => model.FreightReport.BLReleaseOn, new { @placeholder = "BL Release On", @tooltip = "BL Release On", @class = "form-control input-sm datepicker", title = "SB Given On", id = "dt_BLReleaseOn", onfocus = "ShowDatePicker(this)" })
+                <span class="input-group-addon" style="display: none">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-2 @HideBillNo">
+        <div class="form-group">
+            @{ Label = mode == "Sea" ? "BL No." : "Airway Bill No.";}
+            <label>
+                @Html.Raw(Label)
+            </label>
+            @Html.TextBoxFor(model => Model.FreightReport.Bill_No, new { @class = "form-control input-sm", placeholder = "Bill No", title = "Bill No", @id = "txt_Bill_No" })
+        </div>
+    </div>
+    <div class="col-sm-2">
+        <div class="form-group">
+            <label>Job No.</label>
+            @Html.DropDownList("dll_TransitDistJobNo", new SelectList((System.Collections.IEnumerable)ViewData["TransitJobNoList"], "Value", "Text"), "--Select Job No--", new { @class = "form-control input-sm enableselect", placeholder = "Job No", title = "Job No", @id = "dll_TransitDistJobNo", @onchange = "TransitDistJobNo_Change(this)" })
+        </div>
+    </div>
+    <div class="col-sm-2">
+        <div class="form-group">
+            <label>Shipper</label>
+            @Html.TextBox("txt_TransitJobShipperName", "", new { @class = "form-control input-sm", placeholder = "Shipper Name", title = "Shipper Name", @id = "txt_TransitJobShipperName", @readonly = "readonly" })
+        </div>
+    </div>
+    @if (mode == "Sea")
+    {
+        <div class="col-sm-2 form-group">
+            @*<div class="form-group">*@
+            <label>Container No.</label>
+            @Html.TextBox("txt_ContainerNo", "", new { @class = "form-control input-sm", placeholder = "Container No", title = "Container No", @id = "txt_ContainerNo" })
+            @*</div>*@
+        </div>
+        <div class="col-sm-2 form-group">
+            @*<div class="form-group">*@
+            <label>Seal No.</label>
+            @Html.TextBox("txt_SealNo", "", new { @class = "form-control input-sm", placeholder = "Seal No", title = "SealNo", @id = "txt_SealNo" })
+            @*</div>*@
+        </div>
+        <div class="col-sm-1">
+            <div class="form-group">
+                <label>LCL/FCL</label>
+                @Html.DropDownList("dll_LCLFCLId", new SelectList((System.Collections.IEnumerable)RELOCBS.Common.CommonService.FreightLCLFCL, "Value", "Text", "LCL"), "--Select LCLFCL--", new { @class = "form-control dll_LCLFCLId", id = "dll_LCLFCLId", title = "LCL FCL" })
+            </div>
+        </div>
+        <div class="col-sm-2">
+            <div class="form-group">
+                <label>Cont. Type</label>
+                @Html.DropDownList("dll_ContainerTypeId", new SelectList((System.Collections.IEnumerable)ViewData["ContainerUnitList"], "Value", "Text"), "--Select Cont. Type--", new { @class = "form-control", id = "dll_ContainerTypeId", title = "Container Type" })
+            </div>
+        </div>
+        @*<div class="col-sm-2">
+                <div class="form-group">
+                    <label>No Of Pkgs</label>
+                    @Html.TextBox("txt_NoOfPacks", "", new { @class = "form-control input-sm", placeholder = "NoOfPack", title = "NoOfPack", @id = "txt_NoOfPacks" })
+                </div>
+            </div>*@
+    }
+    @if (mode == "Air")
+    {
+        <div class="col-sm-4 form-group hide">
+            @*<div class="form-group">*@
+            <label>Air Line</label>
+            @Html.DropDownList("dll_AirLine", new SelectList((System.Collections.IEnumerable)ViewData["ShippingLineList"], "Value", "Text"), "--Select AirLine--", new { @class = "form-control input-sm", placeholder = "Air Line", title = "Air Line", @id = "dll_AirLine" })
+            @*</div>*@
+        </div>
+        <div class="col-sm-2 form-group">
+            @*<div class="form-group">*@
+            <label>Courier</label>
+            @Html.DropDownListFor(model => model.FreightReport.Courier, new SelectList((System.Collections.IEnumerable)ViewData["CourierList"], "Value", "Text"), "--Select Courier--", new { @class = "form-control input-sm dll_Courier", placeholder = "Courier", title = "Courier" })
+            @*</div>*@
+        </div>
+
+    }
+    @if (mode == "Air" || mode == "Sea")
+    {
+        <div class="col-sm-2">
+            <div class="form-group">
+                <label>No Of Pkgs</label>
+                @Html.TextBox("txt_NoOfPacks", "", new { @class = "form-control input-sm", placeholder = "NoOfPack", title = "NoOfPack", @id = "txt_NoOfPacks" })
+            </div>
+        </div>
+    }
+    <div class="col-sm-1 form-group @HideWt">
+        @*<div class="form-group">*@
+        <label>Wt.Unit</label>
+        @Html.DropDownList("dll_WtUnit", new SelectList((System.Collections.IEnumerable)ViewData["WeightUnitList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm", placeholder = "Wt Unit", title = "Wt Unit", @id = "dll_WtUnit" })
+        @*</div>*@
+    </div>
+    <div class="col-sm-1 @HideWt">
+        <div class="form-group">
+            @{var WtLable = mode == "Air" ? "Net Wt" : "Weight"; }
+            <label>@Html.Raw(WtLable) </label>
+            @Html.TextBox("txt_WtVol", "", new { @class = "form-control input-sm", placeholder = "Wt", title = "Wt", @id = "txt_WtVol" })
+        </div>
+    </div>
+    
+    @if (mode == "Sea")
+    {
+        <div class="col-sm-1 form-group">
+            @*<div class="form-group">*@
+            <label>Vol.Unit</label>
+            @Html.DropDownList("dll_VolUnit", new SelectList((System.Collections.IEnumerable)ViewData["VolumeUnitList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm", placeholder = "Vol Unit", title = "Vol Unit", @id = "dll_VolUnit" })
+            @*</div>*@
+        </div>
+        <div class="col-sm-1">
+            <div class="form-group">
+                <label>Volume</label>
+                @Html.TextBox("txt_Vol", "", new { @class = "form-control input-sm", placeholder = "Vol", title = "Vol", @id = "txt_Vol" })
+            </div>
+        </div>
+    }
+    @if (mode == "Air")
+    {
+
+        <div class="col-sm-1">
+            <div class="form-group">
+                <label>Gross Wt</label>
+                @Html.TextBox("txt_GrossWt", "", new { @class = "form-control input-sm", placeholder = "GrossWt", title = "GrossWt", @id = "txt_GrossWt" })
+            </div>
+        </div>
+        <div class="col-sm-1">
+            <div class="form-group">
+                <label>ACWT Wt</label>
+                @Html.TextBox("txt_ACWTWt", "", new { @class = "form-control input-sm", placeholder = "ACWT Wt", title = "ACWT Wt", @id = "txt_ACWTWt" })
+            </div>
+        </div>
+
+        <div class="col-sm-1">
+            <div class="form-group">
+                <label>Length</label>
+                @Html.TextBox("txt_Length", "", new { @class = "form-control input-sm", placeholder = "Length", title = "Length", @id = "txt_Length" })
+            </div>
+        </div>
+        <div class="col-sm-1">
+            <div class="form-group">
+                <label>Breadth</label>
+                @Html.TextBox("txt_Breadth", "", new { @class = "form-control input-sm", placeholder = "Breadth", title = "Breadth", @id = "txt_Breadth" })
+            </div>
+        </div>
+        <div class="col-sm-1">
+            <div class="form-group">
+                <label>Height</label>
+                @Html.TextBox("txt_Height", "", new { @class = "form-control input-sm", placeholder = "Height", title = "Height", @id = "txt_Height" })
+            </div>
+        </div>
+    }
+    <div class="col-sm-1">
+        <div class="form-group">
+            <button type="button" id="Btn_Add" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="BtnAdd(this)">Add</button>
+        </div>
+    </div>
+</div>
+<div class="row TranshipWtVolTable">
+    <div class="col-sm-12 m-b-lg">
+        <div class="table-responsive" id="pnl-rates">
+            @Html.Hidden(name + ".HFTransitWtVolList", null, new { @id = "HFTransitWtVolList" })
+            <table id="MoveTranshipWtVoltable" class="ScrollTable table table-striped table-bordered ScrollTable" style="width:100%" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th class="tdNone"></th>
+                        @{ Label = mode == "Sea" ? "BL Release On" : "Airway BL Release On";}
+                        <th class="hide">BillNo</th>
+                        <th class="hide">@Label</th>
+                        <th>Job No</th>
+                        <th>Shipper</th>
+                        @if (mode == "Sea")
+                        {
+
+                            <th>Container No.</th>
+                            <th>Seal No.</th>
+                            <th>LCLFCL</th>
+                            <th>Cont. Type</th>
+                            <th>No Of Pkgs</th>
+                        }
+                        @if (mode == "Air")
+                        {
+                            <th class="hide">Air Line</th>
+                            <th class="hide">Courier</th>
+                            <th>No Of Pkgs</th>
+                        }
+                        <th class="@HideWt">Wt Unit</th>
+                        <th class="@HideWt">@Html.Raw(WtLable)</th>
+                        @if (mode == "Sea")
+                        {
+                            <th>Vol Unit</th>
+                            <th>Volume</th>
+                        }
+                        @if (mode == "Air")
+                        {
+                            <th>Gross Wt</th>
+                            <th>ACWT Wt</th>
+                            <th>Length</th>
+                            <th>Breadth</th>
+                            <th>Height</th>
+                        }
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int i = 0;}
+                    @foreach (RELOCBS.Entities.TranShipmentWtVol row in r.TranShipmentWtVolList)
+                    {
+                        <tr>
+                            <td class="tdNone">
+                                @Html.HiddenFor(x => row.ContainerTypeId, new { @class = "hfContainerTypeId" })
+                                @Html.HiddenFor(x => row.AirLineID, new { @class = "hfAirLineID" })
+                                @Html.HiddenFor(x => row.CourierID, new { @class = "hfCourierID" })
+                                @Html.HiddenFor(x => row.WtVolUnitId, new { @class = "hfWtVolUnitId" })
+                                @Html.HiddenFor(x => row.VolUnitId, new { @class = "hfVolUnitId" })
+                                @Html.HiddenFor(x => row.Isactive, new { @class = "TblIsActive" })
+                                @Html.HiddenFor(x => row.MoveID, new { @class = "hfMoveID" })
+                            </td>
+                            <td class="tdBillNo hide">@row.Bill_No </td>
+                            <td class="tdBLReleaseOn hide">@row.BLReleaseOn </td>
+                            <td class="tdJobNo">@row.JobNo</td>
+                            <td class="tdShipper">@row.Shipper</td>
+                            @if (mode == "Sea")
+                            {
+
+                                <td class="tdContainerNo">@row.ContainerNo</td>
+                                <td class="tdSealNo">@row.SealNo </td>
+                                <td class="tdLCLFCL">@row.LCLorFCL</td>
+                                <td class="tdContainerType">@row.ContainerType </td>
+                                <td class="tdNoOfPacks">
+                                    @Html.EditorFor(a => r.TranShipmentWtVolList[i].NoOfPacks, new { htmlAttributes = new { @placeholder = "NoOfPacks", @tooltip = "NoOfPacks", @class = "form-control TransitWt_NoOfPacks valid", title = "NoOfPacks", onkeypress = "return OnlyInteger(this, event);", onblur = "GetTranshipWtColList(null)" } })
+                                </td>
+                            }
+                            @if (mode == "Air")
+                            {
+                                <td class="tdAirLine hide">@row.AirLine </td>
+                                <td class="tdCourier hide">@row.Courier </td>
+                                <td class="tdNoOfPacks">
+                                    @Html.EditorFor(a => r.TranShipmentWtVolList[i].NoOfPacks, new { htmlAttributes = new { @placeholder = "NoOfPacks", @tooltip = "NoOfPacks", @class = "form-control TransitWt_NoOfPacks valid", title = "NoOfPacks", onkeypress = "return OnlyInteger(this, event);", onblur = "GetTranshipWtColList(null)" } })
+                                </td>
+                            }
+                            <td class="tdWtVolUnit @HideWt">@row.WtVolUnit</td>
+                            <td class="tdWtVol @HideWt">@row.WtVol</td>
+                            @if (mode == "Sea") { 
+                            <td class="tdVolUnit">@row.VolUnit</td>
+                            <td class="tdVol">@row.Vol</td>
+                            }
+                            @if (mode == "Air")
+                            {
+                                <td class="tdGrossWt">@row.GrossWt</td>
+                                <td class="tdACWTWt"> @row.ACWTWt</td>
+                                <td class="tdLength">@row.Length</td>
+                                <td class="tdBreadth">@row.Breadth</td>
+                                <td class="tdHeight">@row.Height</td>
+                            }
+                            <td class="tdEdit">
+                                <button type="button" class="btnEditTransit btn btn-xs btn-default glyphicon glyphicon-pencil marl-5 pull-left hide" onclick="EditTransit(this)" />
+                            </td>
+                            <td class="tdDelete">
+                                <button type="button" class="btnDeleteTransit btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveTransit(this)" />
+                            </td>
+                        </tr>
+
+                        i += 1;
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td class="tdNone"></td>
+                        <td class="tdBillNo hide"></td>
+                        <td class="tdBLReleaseOn hide"></td>
+                        <td class="tdJobNo"></td>
+                        <td class="tdShipper"></td>
+                        @if (mode == "Sea")
+                        {
+                            <td class="tdContainerNo"></td>
+                            <td class="tdSealNo"></td>
+                            <td class="tdLCLFCL"></td>
+                            <td class="tdContainerType"><strong>Total Pkgs</strong></td>
+                            <td class="tdNoOfPacks">
+                                @Html.TextBox("TransitSumPkgs", r.TranShipmentWtVolList.Sum(x => x.NoOfPacks), new { @placeholder = "NoOfPacks", @tooltip = "Total No.Pkgs", @class = "form-control input-sm TransitSumPkgs", title = "Total No.Pkgs", @readonly = "readonly" })
+                            </td>
+                        }
+                        else if (mode == "Air")
+                        {
+                            <td class="tdCourier hide"></td>
+                            <td class="tdAirLine hide"><strong>Total Pkgs</strong> </td>
+                            <td class="tdNoOfPacks">
+                                @Html.TextBox("TransitSumPkgs", r.TranShipmentWtVolList.Sum(x => x.NoOfPacks), new { @placeholder = "NoOfPacks", @tooltip = "Total No.Pkgs", @class = "form-control input-sm TransitSumPkgs", title = "Total No.Pkgs", @readonly = "readonly" })
+                            </td>
+                        }
+                        <td class="tdWtVolUnit @HideWt"><strong>Total Wt</strong></td>
+                        <td class="tdWtVol @HideWt">
+                            @Html.TextBox("TransitSumWt", r.TranShipmentWtVolList.Sum(x => x.WtVol), new { @placeholder = "Total Wt", @tooltip = "Total Wt", @class = "form-control input-sm TransitSumWt", title = "Total Wt", @readonly = "readonly" })
+                        </td>
+
+                        @if (mode == "Sea")
+                        {
+                            <td class="tdVolUnit"><strong>Total Vol</strong></td>
+                            <td class="tdVol">
+                                @Html.TextBox("TransitSumVol", r.TranShipmentWtVolList.Sum(x => x.Vol), new { @placeholder = "Total Vol", @tooltip = "Total Vol", @class = "form-control input-sm TransitSumVol", title = "Total Vol", @readonly = "readonly" })
+                            </td>
+                        }
+                        @if (mode == "Air")
+                        {
+                            <td class="tdGrossWt">
+                                @Html.TextBox("TransitSumGrossWt", r.TranShipmentWtVolList.Sum(x => x.GrossWt), new { @placeholder = "Total GrossWt", @tooltip = "Total GrossWt", @class = "form-control input-sm TransitSumGrossWt", title = "Total GrossWt", @readonly = "readonly" })
+                            </td>
+                            <td class="tdACWTWt">
+                                @Html.TextBox("TransitSumACWTWt", r.TranShipmentWtVolList.Sum(x => x.ACWTWt), new { @placeholder = "Total GrossWt", @tooltip = "Total ACWTWt", @class = "form-control input-sm TransitSumACWTWt", title = "Total ACWTWt", @readonly = "readonly" })
+                            </td>
+                            <td class="tdLength"></td>
+                            <td class="tdBreadth"></td>
+                            <td class="tdHeight"></td>
+                        }
+                        <td class="tdEdit"></td>
+                        <td class="tdDelete"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+</div>
+</div>
+
+<script>
+    function BtnAdd(control)
+    {
+        var mode = '@Model.MoveJob.ModeName'.toUpperCase();
+        var HideWt = '@HideWt';
+        fn_BtnAdd(control, mode, HideWt);
+    }
+    
+
+    function EditTransit(sender) {
+
+
+
+    }
+
+    
+
+    function TransitDistJobNo_Change(sender) {
+        var Url = '@Url.Action("GetJobWt", "MoveManage",new { id = "-1" })';
+        Url = Url.replace("-1", '@Model.MoveID');
+        fn_TransitDistJobNo_Change(sender, Url);
+        
+    }
+
+
+    function fn_TransitDistJobNo_Change(sender, Url) {
+        var MoveID = parseInt($('#dll_TransitDistJobNo option:selected').val());
+        if (MoveID != null && MoveID != "" && !isNaN(MoveID)) {
+
+
+            $.get(Url, function (data, status) {
+                //debugger;
+                var row = data.data;
+                if (parseInt(row.MoveID) > 0) {
+
+                    $('#txt_NoOfPacks').val(row.NoOfPacks);
+                    $('#txt_TransitJobShipperName').val(row.Shipper);
+                    $('#dll_WtUnit').val(row.WtVolUnitId);
+                    $('#dll_VolUnit').val(row.VolUnitId);
+                    $('#txt_WtVol').val(row.WtVol);
+                    $('#txt_Vol').val(row.Vol);
+
+                }
+
+            });
+
+        }
+        else {
+
+
+            $('#txt_NoOfPacks').val('');
+            $('#txt_TransitJobShipperName').val('');
+            $('#dll_WtUnit').val('');
+            $('#dll_VolUnit').val('');
+            $('#txt_WtVol').val('');
+            $('#txt_Vol').val('');
+
+        }
+        return false;
+    }
+
+    function RemoveTransit(sender) {
+
+        var row = $(sender).closest("TR");
+        var table = $("#MoveTranshipWtVoltable")[0];
+        var RowNo = row[0].rowIndex;
+
+        if (confirm("Do you want to delete row " + RowNo)) {
+
+            table.deleteRow(row[0].rowIndex);
+            GetTranshipWtColList(null);
+            return false;
+        }
+        return false;
+    }
+
+    function GetTranshipWtColList(table) {
+        var data = [];
+        var TransitSumPkgs = 0;
+        var TransitSumWt = 0;
+        var TransitSumVol = 0;
+        var TransitSumGrossWt = 0;
+        var TransitSumACWTWt = 0;
+
+        if (table == null) {
+
+            table = $('.TranshipWtVolTable');
+        }
+
+        table.find("#MoveTranshipWtVoltable > TBODY > tr").each(function () {
+
+           // debugger;
+            var ContainerTypeId = $(this).find('.tdNone .hfContainerTypeId').val() && $(this).find('.tdNone .hfContainerTypeId').val() != "undefined" ? $(this).find('.tdNone .hfContainerTypeId').val() : 0;
+            var WtVolUnitId = $(this).find('.tdNone .hfWtVolUnitId').val() && $(this).find('.tdNone .hfWtVolUnitId').val() != "undefined" ? $(this).find('.tdNone .hfWtVolUnitId').val() : 0;
+            var AirLineID = $(this).find('.tdNone .hfAirLineID').val() && $(this).find('.tdNone .hfAirLineID').val() != "undefined" ? $(this).find('.tdNone .hfAirLineID').val() : 0;
+            var CourierID = $(this).find('.tdNone .hfCourierID').val() && $(this).find('.tdNone .hfCourierID').val() != "undefined" ? $(this).find('.tdNone .hfCourierID').val() : 0;
+            var BillNo = $(this).find(".tdBillNo").html() ? $(this).find(".tdBillNo").html().trim() : '';
+            var BillReleaseOn = $(this).find(".tdBLReleaseOn").text().trim() ? $(this).find(".tdBLReleaseOn").text().trim() : null;
+            var SealNo = $(this).find(".tdSealNo").html() ? $(this).find(".tdSealNo").html().trim() : 0;
+            var ContainerNo = $(this).find(".tdContainerNo").html() ? $(this).find(".tdContainerNo").html() : 0;
+            var NoOfPacks = $(this).find(".TransitWt_NoOfPacks").val() ? $(this).find(".TransitWt_NoOfPacks").val() : 0;
+            var LCLFCL = $(this).find(".tdLCLFCL").html() ? $(this).find(".tdLCLFCL").html() : "";
+            //var ContainerType = $(this).find(".tdContainerType").val() ? $(this).find(".tdContainerType").val():0;
+            //var AirLine = $(this).find(".tdAirLine").val() ? $(this).find(".tdAirLine").val(): 0;
+            //var Courier = $(this).find(".tdCourier").val() ? $(this).find(".tdCourier").val() : 0;
+            //var WtVolUnit = $(this).find(".tdWtVolUnit").val() ? $(this).find(".tdWtVolUnit").val() : 0;
+            var VolUnitId = $(this).find('.tdNone .hfVolUnitId').val() && $(this).find('.tdNone .hfVolUnitId').val() != "undefined" ? $(this).find('.tdNone .hfVolUnitId').val() : 0;
+            var WtVol = $(this).find(".tdWtVol").html() ? $(this).find(".tdWtVol").html() : 0;
+            var Vol = $(this).find(".tdVol").html() ? $(this).find(".tdVol").html() : 0;
+
+            var tdLength = $(this).find(".tdLength").html() ? $(this).find(".tdLength").html() : null;
+            var tdBreadth = $(this).find(".tdBreadth").html() ? $(this).find(".tdBreadth").html() : null;
+            var tdHeight = $(this).find(".tdHeight").html() ? $(this).find(".tdHeight").html() : null;
+
+            var tdGrossWt = $(this).find(".tdGrossWt").html() ? $(this).find(".tdGrossWt").html() : 0;
+            var tdACWTWt = $(this).find(".tdACWTWt").html() ? $(this).find(".tdACWTWt").html() : 0;
+            var tdHeight = $(this).find(".tdHeight").html() ? $(this).find(".tdHeight").html() : 0;
+
+            var MoveId = $(this).find('.tdNone .hfMoveID').val() && $(this).find('.tdNone .hfMoveID').val() != "undefined" ? $(this).find('.tdNone .hfMoveID').val() : 0;
+
+            TransitSumPkgs = TransitSumPkgs + parseInt(NoOfPacks);
+            TransitSumWt = TransitSumWt + parseFloat(WtVol);
+            TransitSumVol = TransitSumVol + parseFloat(Vol);
+
+            TransitSumGrossWt = TransitSumGrossWt + parseFloat(tdGrossWt);
+            TransitSumACWTWt = TransitSumACWTWt + parseFloat(tdACWTWt);
+
+            var alldata = {
+                'BLReleaseOn': BillReleaseOn,
+                'BillNo': BillNo,
+                'SealNo': SealNo,
+                'ContainerNo': ContainerNo,
+                'ContainerTypeId': ContainerTypeId,
+                'AirLineID': AirLineID,
+                'CourierID': CourierID,
+                'NoOfPacks': NoOfPacks,
+                'WtUnitID': WtVolUnitId,
+                'WtVol': WtVol,
+                'VolUnitID': VolUnitId,
+                'VolVal': Vol,
+                'FclLcl': LCLFCL,
+                'Length': tdLength,
+                'Breadth': tdBreadth,
+                'Height': tdHeight,
+                'Isactive': 1,
+                'MoveID': MoveId,
+                'GrossWt': tdGrossWt,
+                'ACWT': tdACWTWt
+            }
+
+            data.push(alldata);
+        });
+
+        table.find('#HFTransitWtVolList').val(JSON.stringify({ 'TransitInfo': data }));
+
+        $('#TransitSumPkgs').val(TransitSumPkgs);
+        $('#TransitSumWt').val(TransitSumWt);
+        $('#TransitSumVol').val(TransitSumVol);
+        $('#TransitSumGrossWt').val(TransitSumGrossWt);
+        $('#TransitSumACWTWt').val(TransitSumACWTWt);
+    }
+
+    function fn_BtnAdd(control, mode, HideWt) {
+        var element = $(control).closest('.divtranshipWtVol');
+        var table = element.siblings('.TranshipWtVolTable');
+        var BLReleaseOn = $('#dt_BLReleaseOn').val();
+        var BillNo = $('#txt_Bill_No').val();
+        var SealNo = $('#txt_SealNo').val();
+        var ContainerNo = $('#txt_ContainerNo').val();
+
+        var LCLFCLId = $('#dll_LCLFCLId').val();
+        //var LCLFCL = element.find("#dll_LCLFCLId :selected").text();
+        var MoveId = $('#dll_TransitDistJobNo').val();
+        var JobNo = MoveId != null && MoveId != "" ? element.find("#dll_TransitDistJobNo :selected").text() : "";
+        var Shipper = $('#txt_TransitJobShipperName').val();
+        var ContainerTypeId = $('#dll_ContainerTypeId').val();
+        var ContainerType = ContainerTypeId != null && ContainerTypeId != "" ? element.find("#dll_ContainerTypeId :selected").text() : "";
+        var AirLineID = $('#dll_AirLine').val();
+        var AirLine = AirLineID != null && AirLineID != "" ? element.find("#dll_AirLine :selected").text() : " ";
+        var CourierID = $('.dll_Courier').val();
+        var Courier = CourierID != null && CourierID != "" ? element.find(".dll_Courier :selected").text() : " ";
+        var NoOfPacks = $('#txt_NoOfPacks').val();
+        var WtUnitID = $('#dll_WtUnit').val();
+        var WtUnit = WtUnitID != null && WtUnitID != "" ? element.find("#dll_WtUnit :selected").text() : " ";
+        var WtVol = $('#txt_WtVol').val();
+        var VolUnitID = $('#dll_VolUnit').val();
+        var VolUnit = VolUnitID != null && VolUnitID != "" ? element.find("#dll_VolUnit :selected").text() : " ";
+        var Vol = $('#txt_Vol').val();
+        var Length = $('#txt_Length').val();
+        var breadth = $('#txt_Breadth').val();
+        var height = $('#txt_Height').val();
+        var GrossWt = $('#txt_GrossWt').val();
+        var ACWTWt = $('#txt_ACWTWt').val();
+        var tBody = table.find("#MoveTranshipWtVoltable > TBODY")[0];
+        var rowCount = table.find('#MoveTranshipWtVoltable > TBODY > tr').length;
+
+        if (MoveId == null || MoveId == "") {
+
+            alert('Job No. required');
+            return false;
+        }
+
+        if (mode == "SEA" && ContainerNo != "" && (/*SealNo == "" ||*/ (LCLFCLId != "" && LCLFCLId != "LCL" && ContainerTypeId == ""))) {
+            var message = ""; /*SealNo == "" ? "Seal No. " : ""*/
+            if ((LCLFCLId != "" && LCLFCLId != "LCL" && ContainerTypeId == "")) {
+                message = message + (message.length > 0 ? " , " : "") + " ContainerType";
+            }
+            message = message + " required.";
+            alert(message);
+            return false;
+        }
+
+        NoOfPacks = '<input class="form-control TransitWt_NoOfPacks single-line valid" data-val="true" data-val-number="The field NoOfPacks must be a number." data-val-required="The NoOfPacks field is required." id="TransitWt_' + rowCount + '__NoOfPacks" name="TransitWt[' + rowCount + '].NoOfPacks" onkeypress="return OnlyInteger(this, event);"  onblur = "GetTranshipWtColList(null)"  placeholder="No.Pkg" title="No.Pkg" tooltip="No.Pkg" type="text" value="' + NoOfPacks + '" autocomplete="off">';
+        //debugger;
+        var tdHFVCostHead = '<input type="hidden" id="HFVIsActive_' + (rowCount + 1) + '" class="TblIsActive" value="true" />' +
+            '<input type="hidden" id="HFContainerTypeId_' + (rowCount + 1) + '" class="hfContainerTypeId" value="' + ContainerTypeId + '" />' +
+            '<input type="hidden" id="HFVWtVolUnitId_' + (rowCount + 1) + '" class="hfWtVolUnitId" value="' + WtUnitID + '" />' +
+            '<input type="hidden" id="hfAirLineID' + (rowCount + 1) + '" class="hfAirLineID" value="' + AirLineID + '" />' +
+            '<input type="hidden" id="hfCourierID' + (rowCount + 1) + '" class="hfCourierID" value="' + CourierID + '" />'
+            + '<input type="hidden" id="HFVVolUnitId_' + (rowCount + 1) + '" class="hfVolUnitId" value="' + VolUnitID + '" />'
+            + '<input type="hidden" id="hfMoveID_' + (rowCount + 1) + '" class="hfMoveID" value="' + MoveId + '" />';
+
+        var row = tBody.insertRow(-1);
+        row.className = "package-row";
+
+        var cell = $(row.insertCell(-1));
+        cell.html(tdHFVCostHead);
+        cell.addClass("tdNone");
+
+        var cell = $(row.insertCell(-1));
+        cell.html(BillNo);
+        cell.addClass("tdBillNo hide");
+
+        var cell = $(row.insertCell(-1));
+        cell.html(BLReleaseOn);
+        cell.addClass("tdBLReleaseOn hide");
+
+        var cell = $(row.insertCell(-1));
+        cell.html(JobNo);
+        cell.addClass("tdJobNo");
+
+        var cell = $(row.insertCell(-1));
+        cell.html(Shipper);
+        cell.addClass("tdShipper");
+
+        if (mode == "SEA") {
+
+            var cell = $(row.insertCell(-1));
+            cell.html(ContainerNo);
+            cell.addClass("tdContainerNo");
+            var cell = $(row.insertCell(-1));
+            cell.html(SealNo);
+            cell.addClass("tdSealNo");
+            var cell = $(row.insertCell(-1));
+            cell.html(LCLFCLId);
+            cell.addClass("tdLCLFCL");
+            var cell = $(row.insertCell(-1));
+            cell.html(ContainerType);
+            cell.addClass("tdContainerType");
+            var cell = $(row.insertCell(-1));
+            cell.html(NoOfPacks);
+            cell.addClass("tdNoOfPacks");
+        }
+        if (mode == "AIR") {
+            var cell = $(row.insertCell(-1));
+            cell.html(AirLine);
+            cell.addClass("tdAirLine hide");
+            var cell = $(row.insertCell(-1));
+            cell.html(Courier);
+            cell.addClass("tdCourier hide");
+            var cell = $(row.insertCell(-1));
+            cell.html(NoOfPacks);
+            cell.addClass("tdNoOfPacks");
+        }
+        var cell = $(row.insertCell(-1));
+        cell.html(WtUnit);
+        cell.addClass("tdWtVolUnit");
+        cell.addClass(HideWt);
+
+        var cell = $(row.insertCell(-1));
+        cell.html(WtVol);
+        cell.addClass("tdWtVol");
+        cell.addClass(HideWt);
+
+        if (mode == "SEA") {
+
+            var cell = $(row.insertCell(-1));
+            cell.html(VolUnit);
+            cell.addClass("tdVolUnit");
+
+            var cell = $(row.insertCell(-1));
+            cell.html(Vol);
+            cell.addClass("tdVol");
+        }
+
+        if (mode == "AIR") {
+
+
+            var cell = $(row.insertCell(-1));
+            cell.html(GrossWt);
+            cell.addClass("tdGrossWt");
+
+            var cell = $(row.insertCell(-1));
+            cell.html(ACWTWt);
+            cell.addClass("tdACWTWt");
+
+            var cell = $(row.insertCell(-1));
+            cell.html(Length);
+            cell.addClass("tdLength");
+
+            var cell = $(row.insertCell(-1));
+            cell.html(breadth);
+            cell.addClass("tdBreadth");
+
+            var cell = $(row.insertCell(-1));
+            cell.html(height);
+            cell.addClass("tdHeight");
+        }
+
+        var Editcell = $(row.insertCell(-1));
+        var tdEdit = '<button type="button" class="btnEditTransit btn btn-xs btn-default glyphicon glyphicon-pencil marl-5 pull-left hide" onclick="EditTransit(this)" />'
+        Editcell.html(tdEdit);
+        Editcell.addClass("tdEdit");
+
+        var cell = $(row.insertCell(-1));
+        var tdremove = '<button type="button" class="btnDeleteTransit btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveTransit(this)" />'
+        cell.html(tdremove);
+        cell.addClass("tdDelete");
+
+        if (BillNo != null && BillNo != "") {
+
+            $('.tdBillNo').html(BillNo);
+        }
+
+        if (BLReleaseOn != null && BLReleaseOn != "") {
+
+            $('.tdBLReleaseOn').html(BLReleaseOn);
+        }
+
+        GetTranshipWtColList(table);
+    }
+</script>
+@*<script type="text/javascript">
+    (function () {
+
+        debugger;
+        if (parseInt($('#dll_TransitDistJobNo option:selected').val()) > 0) {
+            TransitDistJobNo_Change(null);
+        }
+    })();
+    
+</script>*@

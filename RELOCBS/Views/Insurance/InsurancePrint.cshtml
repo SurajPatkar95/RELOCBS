@@ -1,0 +1,331 @@
+﻿@model RELOCBS.Entities.InsurancePrint
+
+@using RELOCBS.Utility;
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Insurance Print</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style type="text/css">
+
+        .ttop {
+            vertical-align: top !important;
+        }
+
+        body {
+
+
+        }
+
+        .floatLeft {
+            float: left;
+        }
+
+        .tcenter {
+            text-align: center !important;
+        }
+
+        .boxWraper {
+            border: 1px solid #7b7b7b;
+            display: block;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+            .boxWraper .padding tr td {
+                padding: 3px 6px;
+            }
+
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        tr.border_bottom td {
+            border-bottom: 1pt solid black;
+        }
+
+        .tableData {
+            border: 0 !important;
+            line-height: 16px;
+        }
+
+
+            .tableData tr td {
+                background: #fff;
+                height: 100%;
+                vertical-align: middle;
+                border: 1px solid #e3e7ee;
+            }
+
+        .boxWraper tr th {
+            border: 1px solid #e3e7ee;
+            text-align: center;
+            padding: 3px 6px;
+        }
+
+
+        .marginLR {
+            margin: 0 auto;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        /*table {
+            border-collapse: separate;
+            border-spacing: 2px;
+        }*/
+
+        table {
+            background-color: transparent;
+        }
+
+        /*table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+        }*/
+
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 14px;
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            color: #808080;
+            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: subpixel-antialiased;
+            background: #fff;
+        }
+
+        .cw100 {
+            width: 100px !important;
+        }
+
+        .cw150 {
+            width: 150px !important;
+        }
+
+        .cw200 {
+            width: 200px !important;
+        }
+
+        .cw110 {
+            width: 110px !important;
+        }
+
+        .cw80 {
+            width: 80px !important;
+        }
+
+        .cw120 {
+            width: 120px !important;
+        }
+
+        .cw140 {
+            width: 140px !important;
+        }
+
+        .cw130 {
+            width: 140px !important;
+        }
+
+        .tbold {
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            font-weight: 600;
+        }
+
+        .tright {
+            text-align: right !important;
+        }
+
+        label {
+            margin-bottom: 0;
+        }
+
+        .tcollapse {
+            border-collapse: collapse;
+        }
+
+
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+        .taW {
+            width: 100% !important;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: normal;
+            font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+        }
+    </style>
+    <style type="text/css">
+        @@media print {
+            .grid-header {
+                background: #eee;
+                font-size: 13px;
+            }
+
+            body {
+                font-family: Serif;
+            }
+
+            h2 {
+                font-size: 20px;
+                text-transform: uppercase;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            h4 {
+                font-size: 13px;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="col-lg-12 col-sm-12 col-md-12" style=" flex-align:center">
+        <table class="marginLR" style="width:20cm;">
+            <tbody>
+                <tr>
+                    <td>
+                        <table class="taW">
+                            <tbody>
+                                <tr>
+                                    <td style="border-bottom:1px solid #7b7b7b;">
+                                        <div class="floatLeft" style="margin-top:34px;">
+
+                                            <input type="hidden" id="hWisId" data-ng-model="hWisIdm" value="5866" autocomplete="off" class="ng-pristine ng-untouched ng-valid ng-not-empty">
+                                        </div>
+                                        <div class="tcenter hidden-print">
+                                            <img src="~/Content/images/logo-icon.png" width="100px" height="100px">
+                                        </div>
+                                        <div class="tcenter">
+                                            <h2>Writer Relocations</h2>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="height:5px;"></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="boxWraper">
+                                            <table class="taW tcollapse padding">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <label class="cw80 tbold">Job No.</label> : 
+                                                            <span class="ng-binding tbold"><u>@Html.Raw(Model.JobNo)</u></span>
+                                                        </td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td>
+                                                            <label class="cw80 tbold">P.A.No.</label> : 
+                                                            <span class="ng-binding">@Html.Raw(Model.PA_NO)</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="border_bottom">
+                                                        <td class="grid-header tbold text-center" colspan="4"><u>PROVISIONAL ADVICE</u></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="height:5px;" colspan="4"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <label class="cw80 tbold">To</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.InsCompany)</span>
+                                                        </td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td>
+                                                            <label class="cw80 tbold">Date</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.PrintDate.ToString("dd-MMM-yyyy"))</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="4">
+                                                            <label class="cw80 tbold">From</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.Controller)</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="4">
+                                                            <span class="ng-binding">@Html.Raw(Model.Description)</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="height:5px;" colspan="4"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><label class="cw200 tbold">Customer Name</label>:</td>
+                                                        <td>
+                                                            <span class="ng-binding"><u>@Html.Raw(Model.ShipperName)</u></span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><label class="cw200 tbold">Transit</label>:</td>
+                                                        <td>
+                                                            <span class="ng-binding"><u>@Html.Raw(Model.From_To_City) </u></span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><label class="cw200 tbold">Total Value</label>:</td>
+                                                        <td>
+                                                            <span class="ng-binding">@Html.Raw(Model.Sum_Ins_Amt)</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><label class="cw200 tbold">Probable date of despatche</label>:</td>
+                                                        <td>
+                                                            <span class="ng-binding">@Html.Raw(Model.Pack_Disp_Date)</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><label class="cw200 tbold">Cover Note</label>:</td>
+                                                        <td>
+                                                            <span class="ng-binding">@Html.Raw(Model.CoverNote)</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+    </div>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jquery-ui")
+    @Scripts.Render("~/bundles/custom")
+</body>
+</html>

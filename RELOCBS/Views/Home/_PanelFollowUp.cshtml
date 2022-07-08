@@ -1,0 +1,29 @@
+﻿@model RELOCBS.Entities.Dashboard
+<div class="row">
+    <div class="col-sm-12 col-md-12">
+        <table class="table table-bordered tblbuffer">
+            <tbody>
+                <tr>
+                    <th class="label-success col-sm-3">FollowUp Remarks</th>
+                    <th class="label-success col-sm-2 p-xs ">FollowUp Date</th>
+                    <th class="label-success col-sm-2 p-xs">Added By</th>
+                    <th class="label-success col-sm-2 p-xs">Added On</th>
+                </tr>
+                @if (Model.FollowUpDetails != null)
+                {
+                    foreach (var item in Model.FollowUpDetails)
+                    {
+                        <tr class="m-n pad-none">
+                            <td class="m-n pad-none">
+                                @item.FollowUpRemark
+                            </td>
+                            <td class="m-n pad-none">@item.FollowUpDate</td>
+                            <td class="m-n pad-none">@item.CreatedBy</td>
+                            <td class="m-n pad-none">@item.CreatedDate</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

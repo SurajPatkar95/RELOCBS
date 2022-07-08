@@ -1,14 +1,19 @@
 ﻿using PagedList;
+using RELOCBS.AjaxHelper;
 using RELOCBS.App_Code;
+using RELOCBS.BL;
 using RELOCBS.BL.Common;
+using RELOCBS.Common;
 using RELOCBS.CustomAttributes;
 using RELOCBS.Entities;
+using RELOCBS.Extensions;
 using RELOCBS.Utility;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.UI;
@@ -46,6 +51,17 @@ namespace RELOCBS.Controllers.Common
             }
         }
 
+        private ComboBL _comboBL;
+        public ComboBL comboBL
+        {
+            get
+            {
+                if (this._comboBL == null)
+                    this._comboBL = new ComboBL();
+                return this._comboBL;
+
+            }
+        }
 
         // GET: Country
         [Route("Common/Country")]
@@ -102,18 +118,40 @@ namespace RELOCBS.Controllers.Common
         // GET: Country/Create
         public ActionResult Create()
         {
-            return View();
+            FillCombo();
+            CountryViewModel data = new CountryViewModel();
+            
+            return Request.IsAjaxRequest()
+                ? (ActionResult)PartialView("Create", data)
+                : View(data);
         }
 
         // POST: Country/Create
         [HttpPost]
-        public ActionResult Create(FormCollection collection)
+        public ActionResult Create(CountryViewModel data)
         {
             try
             {
-                // TODO: Add insert logic here
-
-                return RedirectToAction("Index");
+                FillCombo();
+                RELOCBS.AjaxHelper.AjaxResponse result = new AjaxResponse();
+                if (ModelState.IsValid)
+                {
+                    string Message;
+                    result.Success = countryBL.Insert(data, out Message);
+                    if (result.Success)
+                    {
+                        result.Message = Message;
+                        result.Result = this.RenderPartialViewToString("Create", data);
+                        return Json(result);
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, Message);
+                    }
+                }
+                return Request.IsAjaxRequest()
+                              ? (ActionResult)PartialView("Create", data)
+                              : View(data);
             }
             catch
             {
@@ -124,18 +162,49 @@ namespace RELOCBS.Controllers.Common
         // GET: Country/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            FillCombo();
+            if (id <= 0)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            
+            CountryViewModel data = countryBL.GetDetailById(id);
+
+            if (data == null)
+            {
+                return HttpNotFound();
+            }
+            return Request.IsAjaxRequest()
+                ? (ActionResult)PartialView("Edit", data)
+                : View(data);
         }
 
         // POST: Country/Edit/5
         [HttpPost]
-        public ActionResult Edit(int id, FormCollection collection)
+        public ActionResult Edit(CountryViewModel data)
         {
             try
             {
-                // TODO: Add update logic here
+                FillCombo();
+                AjaxResponse result = new AjaxResponse();
+                string message = string.Empty;
+                if (ModelState.IsValid)
+                {
+                    result.Success = countryBL.Update(data, out message);
 
-                return RedirectToAction("Index");
+                    if (result.Success)
+                    {
+                        result.Result = this.RenderPartialViewToString("Create", data);
+                        return Json(result);
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, message);
+                    }
+                }
+                return Request.IsAjaxRequest()
+                  ? (ActionResult)PartialView("Edit", data)
+                  : View(data);
             }
             catch
             {
@@ -149,6 +218,12 @@ namespace RELOCBS.Controllers.Common
             return View();
         }
 
+        private void FillCombo()
+        {
+            ViewData["Continent"] = comboBL.GETContinentDropdown();
+
+        }
+
         [Route("Country/GetAutoPopulateList")]
         public JsonResult GetAutoPopulateList()
         {
@@ -157,42 +232,27 @@ namespace RELOCBS.Controllers.Common
         }
 
 
-        public void GenerateExcel(string excelName, string spName, DataTable exptoExlParameters)
+        public ActionResult ExportToExcel()
         {
+            Dictionary<string, string> param = new Dictionary<string, string>();
             try
             {
-                var gv = new GridView();
-                DataTable dtgridData = new DataTable(); //_spService.GetExportToExcelData(exptoExlParameters, spName);
-                if (dtgridData.Rows.Count > 0)
-                {
-                    gv.DataSource = dtgridData;
-                }
-                else
-                {
-                    dtgridData = new DataTable();
-                    dtgridData.Columns.Add("Message", typeof(string));
-                    dtgridData.Rows.Add("There are no items to display! ");
-                    gv.DataSource = dtgridData;
-                }
-                gv.DataBind();
 
-                Response.ClearContent();
-                Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment; filename=" + excelName + ".xls");
-                Response.ContentType = "application/ms-excel";
+                string SearchKey = string.Empty;
+                if (Request.Form["SearchKey"] != null && Request.Form["SearchKey"].Trim() != "")
+                {
+                    param.Add("@SP_SearchString", Request.Form["SearchKey"]);
+                }
 
-                Response.Charset = "";
-                System.IO.StringWriter objStringWriter = new StringWriter();
-                HtmlTextWriter objHtmlTextWriter = new HtmlTextWriter(objStringWriter);
-                gv.RenderControl(objHtmlTextWriter);
-                Response.Output.Write(objStringWriter.ToString());
-                Response.Flush();
-                Response.End();
+                param.Add("@SP_LoginID", Convert.ToString(UserSession.GetUserSession().LoginID));
+
+                CommonService.GenerateExcel(this.Response, "Country", "[Comm].[GETCountryForGrid_ExpToExl]", param);
             }
             catch (Exception ex)
             {
-                throw ex;
+                this.AddToastMessage("RELOCBS", "UnExpected Error occured", ToastType.Error);
             }
+            return View();
         }
     }
 }

@@ -1,0 +1,250 @@
+﻿@model RELOCBS.Entities.VendorContractModel
+
+@using RELOCBS.Common;
+@using RELOCBS.Utility;
+
+@{
+
+    string _PageID = "85";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+
+@using (Html.BeginForm("Create", "VendorContract", FormMethod.Post, new { enctype = "multipart/form-data", @id = "VendorContractfrm" }))
+{
+
+    @Html.ValidationSummary(false, "")
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(a => a.VContractId)
+
+    <fieldset class="col-md-12 border-grey m-t-xs">
+        <div class="row m-t-sm">
+            @if (Model.VContractId > 0)
+            {
+                <div class="col-sm-2 col-md-2  clearfix">
+                    <label>ContractId : @Model.VContractId </label>
+                </div>
+                <div class="col-sm-3 col-md-3  clearfix">
+                    <label>LastModifiedBy : @Model.LastModifiedBy </label>
+                </div>
+                <div class="col-sm-3 col-md-3  clearfix">
+                    <label>LastModifiedDate : @Model.LastModifiedDate.ToString("dd-MMM-yyyy HH:mm")</label>
+                </div>
+            }
+            <div class="col-lg-offset-2"></div>
+            <div class="col-sm-1 col-md-1 pull-right">
+                <div class="clearfix">
+                    <button type="submit" class="btn btn-primary btn-sm pull-left" name="submit" value="Save" id="btnSave">Save</button>
+                </div>
+            </div>
+            @if (Model.VContractId != null && Model.VContractId > 0)
+            {
+                <div class="col-sm-1 col-md-1 pull-right">
+                    <div class="clearfix">
+                        <a href="@Url.Action("CreateDocument", "VendorContract", new { id = @Model.VContractId, Type = "VendorContract" })" class="btn btn-primary btn-sm pull-right m-r-xs" data-toggle="modal" data-target="#mdlDMS" data-cache="false" title="DMS"><i class="glyphicon glyphicon-folder-open m-r-xs"></i>DMS</a>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="row m-t-xs">
+            <div class="col-sm-1 form-group">
+                <label>BU</label>
+                @Html.DropDownListFor(model => model.BusinessUnitId, new SelectList((System.Collections.IEnumerable)ViewData["BusinessUnitList"], "Value", "Text"), "--Select Branch--", new { id = "BranchDropdown", @class = "form-control input-sm clearfix" })
+                @Html.ValidationMessageFor(model => model.BusinessUnitId, "", new { @class = "text-danger" })
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Sun Master Code</label>
+                    @Html.TextBoxFor(model => Model.Account_MasterCode, new { @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(a => a.Account_MasterCode, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>GST State Code</label>
+                    @Html.TextBoxFor(model => Model.Account_SubCode, new { @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(a => a.Account_SubCode, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 form-group">
+                <label>Branch</label>
+                @Html.DropDownListFor(model => model.BranchId, new SelectList((System.Collections.IEnumerable)ViewData["BranchList"], "Value", "Text"), "--Select Branch--", new { id = "BranchDropdown", @class = "form-control input-sm clearfix enableselect" })
+                @Html.ValidationMessageFor(model => model.BranchId, "", new { @class = "text-danger" })
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>VendorName</label>
+                    @Html.TextBoxFor(model => Model.VendorName, new { @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(a => a.VendorName, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Vendor City</label>
+                    @Html.DropDownListFor(model => Model.VendorCityId, new SelectList(System.Linq.Enumerable.Empty<SelectListItem>()), "--Select One--", new { @class = "form-control input-sm clearfix  CityDropDown" })
+                    @Html.ValidationMessageFor(a => a.VendorCityId, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Responsible Person</label>
+                    @Html.DropDownListFor(model => Model.Finance_EmpId, new SelectList((System.Collections.IEnumerable)ViewData["EmployeeList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm clearfix enableselect" })
+                    @Html.ValidationMessageFor(a => a.Finance_EmpId, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>PAN</label>
+                    @Html.TextBoxFor(model => Model.PAN, new { @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(a => a.PAN, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>GSTN</label>
+                    @Html.TextBoxFor(model => Model.GSTNo, new { @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(a => a.GSTNo, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Service Category</label>
+                    @Html.DropDownListFor(model => Model.ServiceCategoryId, new SelectList((System.Collections.IEnumerable)ViewData["ServiceCategoryList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm clearfix  enableselect" })
+                    @Html.ValidationMessageFor(a => a.ServiceCategoryId, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-1 col-md-1">
+                <div class="form-group">
+                    <label>MSME</label>
+                    @Html.DropDownListFor(model => Model.IsMSME, new SelectList((System.Collections.IEnumerable)ViewData["MSMEList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(a => a.IsMSME, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Contract Commencement Date</label>
+                    @Html.TextBoxFor(model => Model.Commencement_Date, new { @class = "form-control input-sm clearfix  datetimepicker" })
+                    @Html.ValidationMessageFor(a => a.Commencement_Date, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Contract Expiry Date</label>
+                    @Html.TextBoxFor(model => Model.ExpiryDate, new { @class = "form-control input-sm clearfix  datetimepicker" })
+                    @Html.ValidationMessageFor(a => a.ExpiryDate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Accounting Reco Last Completion Date</label>
+                    @Html.TextBoxFor(model => Model.Account_Reco_LastCompleteDate, new { @class = "form-control input-sm clearfix  datetimepicker" })
+                    @Html.ValidationMessageFor(a => a.Account_Reco_LastCompleteDate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Last No dues Certificate Date</label>
+                    @Html.TextBoxFor(model => Model.Certificate_LastDuesDate, new { @class = "form-control input-sm clearfix  datetimepicker" })
+                    @Html.ValidationMessageFor(a => a.Certificate_LastDuesDate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Last GSTR2A Reco Completion Date</label>
+                    @Html.TextBoxFor(model => Model.GSTR2A_Reco_LastCompleteDate, new { @class = "form-control input-sm clearfix  datetimepicker" })
+                    @Html.ValidationMessageFor(a => a.GSTR2A_Reco_LastCompleteDate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Owner Name</label>
+                    @Html.TextBoxFor(model => Model.Owner_Name, new { @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(a => a.Owner_Name, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Contact Person</label>
+                    @Html.TextBoxFor(model => Model.Contact_PersonName, new { @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(a => a.Contact_PersonName, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Contact Person Email</label>
+                    @Html.TextBoxFor(model => Model.Contact_PersonEmail, new { @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(a => a.Contact_PersonEmail, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Contact Person Mobile</label>
+                    @Html.TextBoxFor(model => Model.Contact_PersonMobile, new { @class = "form-control input-sm clearfix" })
+                    @Html.ValidationMessageFor(a => a.Contact_PersonMobile, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-1 form-group">
+                <label>Status</label>
+                @Html.DropDownListFor(model => model.VCStatusID, new SelectList((System.Collections.IEnumerable)ViewData["VCStatusList"], "Value", "Text"), new { id = "StatusDropdown", @class = "form-control input-sm clearfix" })
+                @Html.ValidationMessageFor(model => model.VCStatusID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </fieldset>
+}
+
+
+<!--DMS Model-->
+<div id="mdlDMS" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            $("[data-val-required]").each(function () {
+                $("label[for=" + this.id + "]").addClass("requiredlabel")
+            });
+
+            $("input").attr("autocomplete", "off");
+
+            var form = $("#VendorContractfrm");
+            form.removeData('validator');
+            form.removeData('unobtrusiveValidation');
+            $.validator.unobtrusive.parse(form);
+
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                },
+                useCurrent: false,
+            });
+
+            $("enableselect").select2();
+
+            AjaxFillDropDown('.CityDropDown', "@Url.Action("GetCityList", "VendorContract")");
+            AjaxFillDropDown('#VendorCityId', "@Url.Action("GetCityList", "VendorContract")", '@Model.VendorCityId');
+            
+        });
+        
+    </script>
+
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+}

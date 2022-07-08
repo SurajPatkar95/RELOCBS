@@ -1,0 +1,154 @@
+﻿@using RELOCBS.Entities;
+@model RELOCBS.Entities.MoveManageViewModel
+
+@{
+    string Flag = Model.Flag;
+    string mode = Model.MoveJob.ModeName;
+    string OALabel = mode == "Road" ?"Orgin/DTD Agent":"Origin Agent";
+    Detail r = new Detail();
+    string name = string.Empty;
+    bool disable;
+
+    string RoadHideCss = mode == "Road" ? "col-sm-4 hide" : "col-sm-4";
+    if (mode == "Road" && Model.RMCType == "Brookfield Type" && Model.CompanyID == 2 && Model.MoveJob.MoveRateCompList.First().RateComponentID == 4)
+    {
+        RoadHideCss = "col-sm-4 hide";
+    }
+    else
+    {
+        RoadHideCss = "col-sm-4";
+    }
+    object htmlattr = new
+    {
+        @class = "form-control input-sm clearfix enableselect"
+
+
+    };
+
+    object htmlattrdis = new
+    {
+        @class = "form-control input-sm clearfix disableselect",
+        @disabled = true
+    };
+
+
+    if (Flag == "Packing")
+    {
+        r = Model.PackingDetail;
+        name = "PackingDetail";
+    }
+    else if (Flag == "Freight")
+    {
+        r = Model.FreightDetail;
+        name = "FreightDetail";
+    }
+    else if (Flag == "Delivery")
+    {
+        r = Model.DeliveryDetail;
+        name = "DeliveryDetail";
+    }
+    else if (Flag == "Survey")
+    {
+        r = Model.SurveyDetail;
+        name = "SurveyDetail";
+
+
+    }
+
+}
+<div class="row">
+    <div class="col-sm-4">
+        <div class="form-group">
+            <label>@OALabel</label>
+            @if (Flag == "Survey" || Flag == "Delivery" || Flag == "Freight")
+            {
+                @Html.Hidden(name + ".OrgAgentID")
+            }
+            @Html.DropDownList(name + ".OrgAgentID", new SelectList((System.Collections.IEnumerable)ViewData["Agent"], "Value", "Text", r.OrgAgentID), "--Select Agent--",
+           Flag == "Survey" || Flag == "Delivery" || Flag == "Freight" ? htmlattrdis : htmlattr
+           )
+        </div>
+    </div>
+    <div class="@RoadHideCss">
+        <div class="form-group">
+            <label>Freight Agent</label>
+            @if (Flag == "Survey" || Flag == "Delivery" || Flag == "Freight")
+            {
+                @Html.Hidden(name + ".FrtAgentID")
+            }
+            @Html.DropDownList(name+".FrtAgentID", new SelectList((System.Collections.IEnumerable)ViewData["Agent"], "Value", "Text",r.FrtAgentID), "--Select Agent--",
+            Flag == "Survey" || Flag == "Delivery" || Flag == "Freight" ? htmlattrdis : htmlattr
+           )
+        </div>
+    </div>
+    <div class="@RoadHideCss">
+        <div class="form-group">
+            <label>Destination Agent</label>
+            @if (Flag == "Survey" || Flag == "Freight")
+            {
+                @Html.Hidden(name + ".DestAgentID")
+            }
+            @Html.DropDownList(name+".DestAgentID", new SelectList((System.Collections.IEnumerable)ViewData["Agent"], "Value", "Text",r.DestAgentID), "--Select Agent--",
+           Flag == "Survey" || Flag == "Freight" ? htmlattrdis : htmlattr
+           )
+
+        </div>
+    </div>
+</div>
+<div class="row">
+
+    <div class="@RoadHideCss">
+        <div class="form-group">
+            <label>Exit Port</label>
+            @if (Flag == "Survey" || Flag == "Delivery" || Flag == "Freight")
+            {
+                @Html.Hidden(name + ".ExitPortID")
+            }
+            @Html.DropDownList(name+".ExitPortID", new SelectList((System.Collections.IEnumerable)ViewData["PortList"], "Value", "Text",r.ExitPortID), "--Select Exit Port--",
+           Flag == "Survey" || Flag == "Delivery" || Flag == "Freight" ? htmlattrdis : htmlattr
+           )
+        </div>
+    </div>
+    <div class="@RoadHideCss">
+        <div class="form-group">
+            <label>Entry Port</label>
+            @if (Flag == "Survey" || Flag == "Freight")
+            {
+                @Html.Hidden(name + ".EntryPortID")
+            }
+            @Html.DropDownList(name+ ".EntryPortID", new SelectList((System.Collections.IEnumerable)ViewData["PortList"], "Value", "Text",r.EntryPortID), "--Select Entry Port--",
+           Flag == "Survey"|| Flag == "Freight" ? htmlattrdis : htmlattr)
+        </div>
+    </div>
+
+    @if (Flag == "Freight")
+    {
+        if (Model.CompanyID == 2)
+        {
+            <div class="col-sm-3">
+                <div class="form-group">
+                    <label>Cust. Clr. Agent</label>
+                    @Html.DropDownListFor(x => x.TransitAgent, new SelectList((System.Collections.IEnumerable)ViewData["Agent"], "Value", "Text", Model.TransitAgent), "--Select Agent--", htmlattr)
+
+                </div>
+            </div>
+        }
+        <div class="col-sm-2">
+            <div class="form-group">
+                <label>Sch. Delivery Date</label>
+                <div class="input-group input-group-sm date" id="dtp_ToDate">
+                    @Html.EditorFor(a => a.FreightReport.DeliveryDate, new { htmlAttributes = new { @placeholder = "Sch. Delivery Date", @tooltip = "Sch. Delivery Date", @class = "form-control input-sm datepicker", title = "Sch. Delivery Date", id = "SchDeliveryDate", onfocus = "ShowDatePicker(this)" } })
+                    <span class="input-group-addon" style="display: none">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2">
+            <div class="form-group">
+                <label>Forwarding Br.</label>
+                @Html.DropDownListFor(a => a.FreightReport.ForwardingBr, new SelectList((System.Collections.IEnumerable)ViewData["BranchList"], "Value", "Text", r.EntryPortID), "--Select Forwarding Branch--", new { @placeholder = "Forwarding Branch", @tooltip = "Forwarding Branch", @class = "form-control input-sm", title = "Forwarding Branch", id = "ForwardingBr" })
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,88 @@
+﻿
+@model IEnumerable<RELOCBS.Entities.CostHeadDetail>
+
+@try
+{
+    <div class="row">
+        <div class="col-sm-12 m-b-lg">
+            <div class="table-responsive" id="pnl-rates">
+                <table class="table table-striped fixed_header" id="CostHeadtable">
+                    <thead class="ibox-title">
+                        <tr>
+                            <th class="tdNone"></th>
+                            <th>Agent</th>
+                            <th>Rate Componet</th>
+                            <th>CostHead</th>
+                            <th>Base Currency</th>
+                            <th>Rate Currency</th>
+                            <th>Conv. Rate</th>
+                            <th>Est. Rate Curr.</th>
+                            <th>Est. Base Curr.</th>
+                            <th>Transit Time From</th>
+                            <th>Transit Time To</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{int RowNo = 0;}
+
+                        @foreach (RELOCBS.Entities.CostHeadDetail row in Model)
+                        {
+
+                            RowNo++;
+                            <tr class="package-row">
+                                <td class="tdNone">
+                                    <input type="hidden" class="TblRateComponent" name="HFVRateComponent" id="HFVRateComponentID" value="@row.RateComponentID" />
+                                    <input type="hidden" class="TblHFVCostHead" name="HFVCostHead" id="HFVCostHeadID" value="@row.CostHeadID" />
+                                    <input type="hidden" class="TblHFVAgent" name="HFVAgent" id="HFVAgentID" value="@row.AgentID" />
+                                    <input type="hidden" class="TblHFVBaseRate" name="HFVBaseRate" id="HFVBaseRateID" value="@row.BaseCurrencyRateID" />
+                                    <input type="hidden" class="TblHFVRateCurrency" name="HFVRateCurrency" id="HFVRateCurrencyID" value="@row.RateCurrencyID" />
+                                </td>
+                                <td class="Agent">
+                                    @row.AgentName
+                                </td>
+                                <td class="RateComponent">
+                                    @row.RateComponentName
+                                </td>
+                                <td class="CostHead">
+                                    @row.CostHeadName
+                                </td>
+                                <td class="BaseCurrencyRate">
+                                    @row.BaseCurrencyRateName
+                                </td>
+                                <td class="RateCurrency">
+                                    @row.RateCurrencyName
+                                </td>
+                                <td class="ConversionRate">
+                                    <input type="text" class="form-control input-sm TbltxtConversionRate" style="width:50px" value="@row.ConversionRate.ToString()" onkeyup="TotalCalEstimate()" onkeypress="return OnlyDouble(this, event);" />
+                                </td>
+                                <td class="Amount">
+                                    <input type="text" class="form-control input-sm TbltxtAmount" style="width:50px" value="@row.Amount.ToString()" onkeyup="TotalCalEstimate()" onkeypress="return OnlyDouble(this, event);" />
+                                </td>
+                                <td class="BaseEstimate"></td>
+                                <td>
+                                    <input type="text" class="form-control input-sm TbltxtTransitTimeF" style="width:50px" value="@row.TransitTimeFrom.ToString()" onkeypress="return OnlyInteger(this, event);" />
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control input-sm TbltxtTransitTimeT" style="width:50px" value="@row.TransitTimeTo.ToString()" onkeypress="return OnlyInteger(this, event);" />
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="Remove(this)">
+                                        <span class="glyphicon glyphicon-trash"></span>
+                                    </button>
+                                    <a onclick="Edit(this);" id="CostHeadDetails_@RowNo" data-id="@RowNo" class="btn btn-xs btn-default glyphicon glyphicon-pencil" data-cache="false" title="Detail CostHead"
+                                       data-assigned-id="@RowNo" data-toggle="modal" data-target="#EditModal"></a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    //if (Model.CostHeadList.Count > 0)
+    //{
+    //}
+}
+catch { }

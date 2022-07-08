@@ -1,0 +1,121 @@
+﻿@model RELOCBS.Entities.CompanyBranchViewModel
+
+@{
+    ViewBag.Title = "Edit CompanyBranch";
+
+}
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+
+@using (Html.BeginForm("Edit", "CompanyBranch", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-sm-12">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.HiddenFor(model => model.CompBranchID)
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.CompBranchName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.CompBranchName, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.CompBranchName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.CompanyName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.CompId, new SelectList((System.Collections.IEnumerable)ViewData["Company"], "Value", "Text"), "--Select City--", new { @class = "form-control input-sm clearfix enableselect" })
+                        @Html.ValidationMessageFor(model => model.CompId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.ContactPerson, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.ContactPerson, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.ContactPerson, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.ContactNo, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.ContactNo, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.ContactNo, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.CityName, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.CityID, new SelectList((System.Collections.IEnumerable)ViewData["City"], "Value", "Text"), "--Select City--", new { @class = "form-control input-sm clearfix enableselect" })
+                        @Html.ValidationMessageFor(model => model.CityID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-2">
+                        <div class="col-md-5">
+                            @Html.CheckBoxFor(model => model.IsRevenueBr, new { htmlAttributes = new { @class = "form-control input-sm" } }) RevenueBranch
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-2">
+                        <div class="col-md-5">
+                            @Html.CheckBoxFor(model => model.Isactive, new { htmlAttributes = new { @class = "form-control input-sm" } }) Active
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnCreate" />
+        </div>
+    </div>
+}
+
+<script>
+  $(document).ready(function () {
+      $("[data-val-required]").each(function () {
+          $("label[for=" + this.id + "]").addClass("requiredlabel")
+      });
+  });
+</script>
+<script>
+ $(document).ready(function () {
+
+     $("input").attr("autocomplete", "off");
+     $('.enableselect').select2();
+
+     var form = $("#mdlAddEdit form");
+     form.removeData('validator');
+     form.removeData('unobtrusiveValidation');
+     $.validator.unobtrusive.parse(form);
+
+     $('#mdlAddEdit').on('shown.bs.modal', function () {
+         $('#CompBranchName').focus();
+     });
+     $('#mdlAddEdit form').on('submit', function (e) {
+         e.preventDefault();
+         if (!$(this).valid()) { return; }
+
+         $('#mdlAddEdit .modal-content').mask("Loading...");
+         $(this).ajaxSubmit({
+             target: '#mdlAddEdit .modal-content',
+             success: function (data) {
+                 $('#mdlAddEdit .modal-content').html(data.Result);
+                 if (data.Success) {
+                     $('#mgrid .pagination li.active a').trigger('click');
+                     toastr.success("Company Branch updated successfully.");
+                     $('#mdlAddEdit').modal('hide');
+                 }
+                 $('#mdlAddEdit .modal-content').unmask();
+             }
+         });
+     });
+ });
+</script>
+

@@ -1,0 +1,79 @@
+﻿@model StaticPagedList<RELOCBS.Entities.WOSBilling>
+
+@using RELOCBS.Utility;
+@using RELOCBS.Common;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@{
+    string _PageID = "81";
+    string param = "BillID=ParamValue0&CreditNoteID=ParamValue1&WOSMoveID=ParamValue2&MoveID=ParamValue3";
+
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+columns.Add(m => m.BillID).Titled("Bill ID").SetWidth("10%").SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+
+columns.Add(m => m.InvoiceNo).Titled("Inv No").SetWidth("15%");
+
+columns.Add(m => m.JobNo).Titled("Job No").SetWidth("15%");
+
+columns.Add(m => m.Shipper).Titled("Shipper").SetWidth("18%");
+
+columns.Add(m => m.Client).Titled("Client").SetWidth("18%");
+
+columns.Add(m => m.InvoiceStatus).Titled("Invoice Status").SetWidth("12%");
+
+columns.Add().Titled("Actions").SetWidth("12%").Encoded(false).Sanitized(false).Sortable(true).RenderValueAs(m =>
+@<span>
+    @if (hasAddAccess)
+    {
+        <a href="@Url.Action("Create", "WOSBilling", new { Key = CommonService.GenerateQueryString(param, new string[] { m.BillID.ToString(), m.CreditNoteID.ToString(), m.WOSMoveID.ToString(), m.MoveID.ToString() }), InvOrCreditNote = "I" })" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" data-target="#mdlAddEdit" data-cache="false" title="Edit Invoice"></a>
+
+        if (m.IsShowCreditNote)
+        {
+            <button id="btnCreditNote" class="btnCreditNote btn btn-xs btn-default pull-left" title="Show Cr. Note" onclick="ShowCreditNote(@m.BillID)">Show Cr.</button>
+        }
+        if (m.IsCreateCreditNote)
+        {
+            <a href="@Url.Action("Create", "WOSBilling", new { Key = CommonService.GenerateQueryString(param, new string[] { m.BillID.ToString(), m.CreditNoteID.ToString(), m.WOSMoveID.ToString(), m.MoveID.ToString() }), InvOrCreditNote = "C" })" class="btnAddCreditNote btn btn-xs btn-default pull-left" title="Add Cr. Note">Add Cr.</a>
+        }
+    }
+    @if (m.IsShowDelete)
+    {
+        <a href="@Url.Action("CancelInvoice", "WOSBilling", new { key = m.BillID })" class="btnEdit btn btn-xs btn-danger glyphicon glyphicon-trash pull-left pull-left" title="Cancel Invoice"></a>
+    }
+</span>);
+}).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "dvDebitNoteGrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>
+
+<div class="row m-t-xs">
+    <div class="page-header text-center">
+        <h2>Credit Note</h2>
+    </div>
+    <div id="CNmgrid">
+        @Html.Partial("_GridPartialCreditNote", (List<RELOCBS.Entities.WOSBilling>)ViewBag.CreditNoteGrid)
+    </div>
+</div>
+
+<script>
+    function ShowCreditNote(BillID) {
+        var url = '@Url.Action("GetCreditNoteList", new { BillID = "-1" })';
+        url = url.replace("-1", BillID);
+        $('#CNmgrid').load(url);
+    };
+</script>

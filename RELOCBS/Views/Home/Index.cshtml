@@ -1,40 +1,54 @@
 ﻿@{
-    
+
     ViewBag.Title = "Dashboard";
 }
 
-<div class="m-t-sm">
-    @{
-        bool hasMoveUser = true;
-        bool hasPricingUser = true;
-        bool BillingUser = true;//WorkContext.HasPermission((int)UtilityEnums.Page.Dashboard, (int)UtilityEnums.PageAction.BillingView);
-    }
-    @if (hasPricingUser)
-    {
-        <div class="row">
-            <div class="col-sm-6" id="pnl-panellead"></div>
-            <div id="pnl-panelpricing" class="col-sm-6"></div>
-        </div>
-    }
-    @if (hasMoveUser)
-    {
-        <div class="row">
-            <div id="pnl-panelSurvey" class="col-sm-6"></div>
-            <div id="pnl-panelMoveManagement" class="col-sm-6"></div>
-        </div>
-        <div class="row">
-            <div id="pnl-PanelMoveManagementRevenueLoad" class="col-sm-6"></div>
-            <div id="pnl-PanelMoveManagementProfitability" class="col-sm-6"></div>
-        </div>
+@section metatags
+{
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+}
+    <div class="m-t-sm">
+        @{
+            bool hasMoveUser = true;
+            bool hasPricingUser = true;
+            bool BillingUser = true;//WorkContext.HasPermission((int)UtilityEnums.Page.Dashboard, (int)UtilityEnums.PageAction.BillingView);
+        }
 
-    }
-    @if (BillingUser)
-    {
-        <div class="row">
-            <div id="pnl-PanelBilling" class="col-sm-6"></div>
-        </div>
-    }
-</div>
+        @if (hasMoveUser)
+        {
+            <div class="row">
+                <div id="pnl-panelFollowUp" class="col-sm-6">@*@Html.Partial("_PanelFollowUp")*@</div>
+            </div>
+        }
+
+        @if (hasPricingUser)
+        {
+            <div class="row">
+                <div class="col-sm-6" id="pnl-panellead"></div>
+                <div id="pnl-panelpricing" class="col-sm-6"></div>
+            </div>
+        }
+        @if (hasMoveUser)
+        {
+            <div class="row">
+                <div id="pnl-panelSurvey" class="col-sm-6"></div>
+                <div id="pnl-panelMoveManagement" class="col-sm-6"></div>
+            </div>
+            <div class="row">
+                <div id="pnl-PanelMoveManagementRevenueLoad" class="col-sm-6"></div>
+                <div id="pnl-PanelMoveManagementProfitability" class="col-sm-6"></div>
+            </div>
+
+        }
+        @if (BillingUser)
+        {
+            <div class="row">
+                <div id="pnl-PanelBilling" class="col-sm-6"></div>
+            </div>
+        }
+    </div>
 
 @section Scripts{
     <script>
@@ -56,6 +70,17 @@
                 success: function (data) {
                     $('#pnl-panelpricing').html(data);
                     $('#pnl-panelpricing').unmask();
+                }
+            });
+        }
+
+        function fnPanelFollowUp() {
+            $('#pnl-panelpricing').mask("Loading...");
+            $.ajax({
+                url: "@Url.Action("PanelFollowUp", "Home")",
+                success: function (data) {
+                    $('#pnl-panelFollowUp').html(data);
+                    $('#pnl-panelFollowUp').unmask();
                 }
             });
         }
@@ -121,8 +146,13 @@
             fnPanelMoveManagementRevenueLoad();
             fnPanelMoveManagementProfitability();
             fnPanelBilling();
+            fnPanelFollowUp();
+            
         });
 
     </script>
+
 }
+
 </div>
+

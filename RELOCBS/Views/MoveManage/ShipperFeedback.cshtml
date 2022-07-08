@@ -1,0 +1,217 @@
+﻿@model RELOCBS.Entities.MoveManageViewModel
+
+@{
+    string TabName = Model.ShipperFeedback.SFTemplateID == 3 ? "Agent Feedback" : "Shipper Feedback";
+    ViewBag.Title = TabName;
+    Layout = "~/Views/Shared/_LayoutNonLogin.cshtml";
+
+    bool IsDisableControls = Model.ShipperFeedback.IsFeedbackSubmitted ? true : false;
+}
+
+<div class="ibox-content">
+    <div class="row">
+        <div>
+            <div class="modal-header">
+                <h3 class="modal-title">@TabName</h3>
+            </div>
+            <div class="m-t-sm text-left">
+                @Html.Partial("_ShipperFeedbackPartial", Model)
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        var SFQuestionIDList = [];
+        $(document).ready(function () {
+            $('.enableselect').select2();
+            $('.datepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                },
+            });
+
+            //AddTemplateValidationRules();
+
+            $('#formShipperFeedback').submit(function () {
+                BindAnswersList();
+            });
+
+            if ("@IsDisableControls.ToString().ToLower()" == "true") {
+                $("#btnSaveShipperFeedback").prop("disabled", true);
+            }
+
+            $("tr.yesnoother").each(function () {
+            if($(this).find("input[value='0']").prop("checked"))
+                $(this).find("input:text.yesnoother").show();
+            else
+                $(this).find("input:text.yesnoother").hide();
+            });
+
+            $("input:radio.yesnoother").on("change", function () {
+                if ($(this).val() == "0" && $(this).prop("checked"))
+                    $(this).closest("tr").find("input:text.yesnoother").show();
+                else
+                    $(this).closest("tr").find("input:text.yesnoother").hide();
+            });
+        });
+        function BindAnswersList() {
+            if ($("#tableSFQuestions tbody tr.trAnswers").length > 0) {
+                $("#tableSFQuestions tbody tr.trAnswers").each(function () {
+                    var AnswerType = $(this).attr("class").split(" ")[1];
+                    var SFQuestionID = parseInt($(this).find(".SFQuestionID").val());
+                    var SFAnswerOptionID = null;
+                    var AnswerText = null;
+
+                    if (AnswerType == "checkbox") {
+                        var CheckBoxSelectedIds = [];
+                        $(this).find("." + AnswerType + ":checked").each(function () {
+                            CheckBoxSelectedIds.push($(this).attr("data-id"));
+                        });
+                        if (CheckBoxSelectedIds.length > 0) {
+                            CheckBoxSelectedIds.forEach(function (arrayItem) {
+                                var SFQuestionIDObj = {
+                                    'SFQuestionID': SFQuestionID
+                                }
+                                if (arrayItem != null) SFQuestionIDObj.SFAnswerOptionID = arrayItem;
+                                SFQuestionIDList.push(SFQuestionIDObj);
+                            });
+                        }
+                    }
+                    else {
+                        if (AnswerType == "textarea" || AnswerType == "textbox" || AnswerType == "date") {
+                            AnswerText = $(this).find("." + AnswerType).val();
+                        }
+                        else if (AnswerType == "dropdownlist") {
+                            SFAnswerOptionID = $(this).find("." + AnswerType).val();
+                        }
+                        else if (AnswerType == "radiobutton") {
+                            SFAnswerOptionID = $(this).find("." + AnswerType + ":checked").val();
+                        }
+                        else if (AnswerType == "yesno") {
+                            SFAnswerOptionID = $(this).find("input:radio." + AnswerType + ":checked").val();
+                        }
+                        else if (AnswerType == "yesnoother") {
+                            SFAnswerOptionID = $(this).find("input:radio." + AnswerType + ":checked").val();
+                            AnswerText = $(this).find("input:text." + AnswerType).val();
+                            AnswerText = AnswerText == "" ? null : AnswerText;
+                        }
+
+                        var SFQuestionIDObj = {
+                            'SFQuestionID': SFQuestionID
+                        }
+                        if (SFAnswerOptionID !== null) SFQuestionIDObj.SFAnswerOptionID = SFAnswerOptionID;
+                        if (AnswerText !== null) SFQuestionIDObj.AnswerText = AnswerText;
+                        SFQuestionIDList.push(SFQuestionIDObj);
+                    }
+                });
+            }
+            SetHiddenFieldValue();
+        }
+        function SetHiddenFieldValue() {
+            var strData = "";
+            if (SFQuestionIDList.length > 0)
+                strData = { 'SFQuestionIDList': SFQuestionIDList };
+
+            if (strData)
+                $("#SFQuestionIDListHidden").val(JSON.stringify(strData));
+            else
+                $("#SFQuestionIDListHidden").val(null);
+        }
+        function AddTemplateValidationRules() {
+            //Add validation rule for dynamically generated SFAnswerTextBox fields
+            $("[class^='SFAnswerTextBox']").each(function () {
+                $(this).rules("add", {
+                    required: true,
+                    messages: {
+                        required: "Comment is required."
+                    }
+                });
+            });
+            //Add validation rule for dynamically generated SFAnswerTextArea fields
+            $("[class^='SFAnswerTextArea']").each(function () {
+                $(this).rules("add", {
+                    required: true,
+                    messages: {
+                        required: "Comment is required."
+                    }
+                });
+            });
+            //Add validation rule for dynamically generated SFAnswerDate fields
+            $("[class^='SFAnswerDate']").each(function () {
+                $(this).rules("add", {
+                    required: true,
+                    messages: {
+                        required: "Date is required."
+                    }
+                });
+            });
+            //Add validation rule for dynamically generated SFAnswerList fields
+            $("[class^='SFAnswerDropdownList']").each(function () {
+                $(this).rules("add", {
+                    required: true,
+                    messages: {
+                        required: "Select one option."
+                    }
+                });
+            });
+            //Add validation rule for dynamically generated SFAnswerRadioButton fields
+            $("input:radio[class^='SFAnswerRadioButton']").each(function () {
+                var ChckClass = $(this).attr('class');
+                $('.' + ChckClass).rules("add", {
+                    required: function (elem) {
+                        return $("input." + ChckClass + ":checked").length <= 0;
+                    },
+                    messages: {
+                        required: "Select at least one."
+                    }
+                });
+            });
+            //Add validation rule for dynamically generated SFAnswerYesNo fields
+            $("input:radio[class^='SFAnswerYesNo']").each(function () {
+                var ChckClass = $(this).attr('class');
+                $('.' + ChckClass).rules("add", {
+                    required: function (elem) {
+                        return $("input." + ChckClass + ":checked").length <= 0;
+                    },
+                    messages: {
+                        required: "Select at least one."
+                    }
+                });
+            });
+            //Add validation rule for dynamically generated SFAnswerYesNoTextBox fields
+            $("[class^='SFAnswerYesNoOtherTextBox']").each(function () {
+                $(this).rules("add", {
+                    required: true,
+                    messages: {
+                        required: "Comment is required."
+                    }
+                });
+            });
+            //Add validation rule for dynamically generated SFAnswerCheckBox fields
+            $("input:checkbox[class^='SFAnswerCheckBox']").each(function () {
+                var ChckClass = $(this).attr('class');
+                $('.' + ChckClass).rules("add", {
+                    required: function (elem) {
+                        return $("input." + ChckClass + ":checked").length <= 0;
+                    },
+                    messages: {
+                        required: "Select at least one."
+                    }
+                });
+            });
+        }
+        function ImageUrlClick(img, AnswerType) {
+            if ("@IsDisableControls.ToString().ToLower()" == "false") {
+                if (AnswerType == "radiobutton") {
+                    AnswerType = "radio";
+                }
+                $(img).closest('li').find('input[type=' + AnswerType + ']').prop('checked', true);
+            }
+        }
+    </script>
+}

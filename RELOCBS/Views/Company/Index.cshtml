@@ -1,4 +1,27 @@
-﻿@section Scripts{
+﻿@using System.Security.Policy
+@using GridMvc.Html
+@using PagedList.Mvc;
+@using PagedList;
+
+<div class="col-md-12 no-padding m-t-sm">
+    <div class="pnl-gridtop clearfix">
+        <div class="clearfix pnl-filter">
+            @Html.Partial("_SearchForm")
+        </div>
+        <div id="mgrid">
+            @Html.Partial("_AjaxPartial")
+        </div>
+    </div>
+
+    <div id="mdlAddEdit" class="modal fade" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts{
     @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/jqunobtrusive")
     <script>

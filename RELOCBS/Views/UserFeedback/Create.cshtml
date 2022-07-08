@@ -1,0 +1,288 @@
+﻿@model RELOCBS.Entities.UserFeedback
+
+@{
+    Layout = null;
+}
+
+<div class="modal-header">
+    @*<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>*@
+    <h4 class="modal-title">@Model.Title</h4>
+    @Html.HiddenFor(model=>model.Title)
+</div>
+@using (Html.BeginForm("Create", "UserFeedback", FormMethod.Post, new { enctype = "multipart/form-data", @id="frmUserFeedback" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true,"", new { @class = "text-danger" })
+    @Html.HiddenFor(a => a.TemplateID)
+    <div class="modal-body" style="overflow-y:auto; height:480px">
+        <div class="container">
+            <table>
+                @for (int i = 0; i < Model.questions.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            <b>
+                                @Html.DisplayFor(m => m.questions[i].SrNo) .
+                                @Html.DisplayFor(m => m.questions[i].QuestionText)
+                            </b>
+                            @Html.HiddenFor(m => m.questions[i].QuestionText)
+                            @Html.HiddenFor(m => m.questions[i].QuestionID,new { @class= "Question" })
+                            @Html.HiddenFor(m => m.questions[i].AnswerType, new { @class = "AnswerType" })
+                            @Html.HiddenFor(m => m.questions[i].SrNo)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @{
+                                string controlClassName = "";
+                            }
+                            <div class="errorTxt text-danger">
+                            </div>
+                            <div class="row m-l-md m-t-sm DivAnswer">
+                                @if (Model.questions[i].AnswerType.ToString().ToUpper() == "TEXT")
+                                {
+                                    controlClassName = "AnswerText  answerText_" + Convert.ToString(Model.questions[i].QuestionID);
+                                    @Html.TextAreaFor(m => m.questions[i].AnswerText, new { @class = controlClassName, @cols = 80, @rows = 10, placeholder = "", @required = "required" })
+                                    @Html.ValidationMessageFor(m => m.questions[i].AnswerText, null, new { @class = "field-validation-error", data_valmsg_for = "ShortName" })
+
+                                }
+                                @if (Model.questions[i].AnswerType.ToString().ToUpper() == "DATE")
+                                {
+                                    controlClassName = "form-control input-sm clearfix datetimepicker" + "answerDate  answerDate_" + Convert.ToString(Model.questions[i].QuestionID);
+                                    @Html.TextBoxFor(m => m.questions[i].AnswerText, new { @class = controlClassName, placeholder = "", @required = "required" })
+                                    @*@Html.ValidationMessageFor(m => m.questions[i].AnswerText, null, new { @class = "field-validation-error", data_valmsg_for = "ShortName" })*@
+                                }
+                                @if (Model.questions[i].AnswerType.ToString().ToUpper() == "LIST")
+                                {
+                                    controlClassName = "form-control input-sm clearfix enableselect  answerList" + " answerList_" + Convert.ToString(Model.questions[i].QuestionID);
+                                    @Html.DropDownListFor(m => m.questions[i].AnswerID, new SelectList((System.Collections.IEnumerable)Model.questions[i].options, "Value", "Text", Model.questions[i].AnswerID), "--Select One--", new { @class = controlClassName, @required = "required" })
+                                }
+                                @if (Model.questions[i].AnswerType.ToString().ToUpper() == "RADIOGROUP" || Model.questions[i].AnswerType.ToString().ToUpper() == "CHECKBOX")
+                                {
+                                    <ul class="list-group">
+
+                                        @for (int j = 0; j < Model.questions[i].options.Count; j++)
+                                        {
+                                            string ControlType = Model.questions[i].AnswerType.ToString().ToUpper();
+                                            <li class="list-group-item">
+                                                @if (Model.questions[i].AnswerType.ToString().ToUpper() == "RADIOGROUP")
+                                                {
+                                                    controlClassName = "answerRadioBtn_" + Convert.ToString(Model.questions[i].QuestionID);
+                                                    @Html.RadioButtonFor(model => model.questions[i].AnswerID, Model.questions[i].options[j].OptionID, new { @class = controlClassName, @required = "required" })
+                                                }
+                                                else if (Model.questions[i].AnswerType.ToString().ToUpper() == "CHECKBOX")
+                                                {
+                                                    ////answerchkOptions
+                                                    controlClassName = "answerchkOptions_" + Convert.ToString(Model.questions[i].QuestionID);
+                                                    @Html.CheckBoxFor(m => Model.questions[i].options[j].IsCheck, new { @class = controlClassName, @name = controlClassName })
+                                                }
+                                                @Html.DisplayFor(model => model.questions[i].options[j].OptionDescription)
+                                                @Html.HiddenFor(model => model.questions[i].options[j].OptionDescription)
+                                                @Html.HiddenFor(model => model.questions[i].options[j].OptionID)
+                                                @Html.HiddenFor(model => model.questions[i].options[j].OptionImgUrl)
+
+                                                @if (!string.IsNullOrWhiteSpace(Model.questions[i].options[j].OptionImgUrl))
+                                                {
+                                                    <img src="@Url.Content(Model.questions[i].options[j].OptionImgUrl)" style="height:20px;cursor: pointer;" onclick="radioSelection(this,'@ControlType')" />
+                                                }
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnFeedbackSubmit" />
+        </div>
+    </div>
+}
+
+<script>
+    $(document).ready(function () {
+
+        $("[data-val-required]").each(function () {
+            $("label[for=" + this.id + "]").addClass("requiredlabel")
+        });
+
+        $("input").attr("autocomplete", "off");
+
+        $('.datetimepicker').datetimepicker({
+            format: "DD-MMM-YYYY HH:mm",
+            sideBySide: true//,
+            //widgetPositioning: {
+            //    vertical: 'bottom'
+            //}
+
+        });
+
+        $('#UserFeedbackModal').on('shown.bs.modal', function () {
+
+        });
+
+        var form = $("#mdlAddEdit form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+
+        ///Validate for dynamic controls
+        $("#frmUserFeedback").validate(
+            {
+            errorPlacement: function (error, element) {
+                /*here we add the error label to the div that is after the br tag 
+                using the next method provided by jquery to navigate on the DOM*/
+                    error.appendTo(element.parents('.DivAnswer').siblings('.errorTxt'));
+                }
+            }
+        );
+
+        ////Add validation rules for the dyanamic controls
+        DataSelect();
+        TemplateValidationRules();
+        
+        
+        $('#UserFeedbackModal form').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+
+            $('#UserFeedbackModal .modal-content').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '#UserFeedbackModal .modal-content',
+                success: function (data) {
+                    debugger;
+                    $('#UserFeedbackModal .modal-content').html(data.Result);
+                    if (data.Success) {
+                        //toastr.success("Agent saved successfully.");
+                        swal({ title: data.Message, type: "success" });
+                        $('#UserFeedbackModal').modal('hide');
+                    }
+                    $('#UserFeedbackModal .modal-content').unmask();
+                }
+            });
+        });
+        
+
+    });
+
+    function radioSelection(sender,controlType) {
+        
+        //$('input[name="' + $(sender).closest('li').find('input[type=radio]').attr('name') + '"]').attr('checked', false);
+        let controlTypeSelection="radio";
+        if (controlType == "CHECKBOX") {
+
+            controlTypeSelection = "checkbox";
+        }
+        $(sender).closest('li').find('input[type=' + controlTypeSelection+']').attr('checked', true);
+    }
+    
+
+    $('.btnFeedbackSubmit').on('click', function (event) {
+        
+    });
+
+    function TemplateValidationRules() {
+
+        //Add validation rule for dynamically generated AnswerText fields
+        $('.AnswerText').each(function () {
+            $(this).rules("add",
+                {
+                    required: true,
+                    messages: {
+                        required: "Comment is required"
+                    }
+                });
+        });
+        //Add validation rule for dynamically generated AnswerDate fields
+        $('.AnswerDate').each(function () {
+            $(this).rules("add",
+                {
+                    required: true,
+                    messages: {
+                        required: "Date is required"
+
+                    }
+                });
+        });
+
+        //Add validation rule for dynamically generated answerList fields
+        $('.answerList').each(function () {
+            $(this).rules("add",
+                {
+                    required: true,
+                    messages: {
+                        required: "Select one option"
+
+                    }
+                });
+        });
+
+        //$('.answerRadioBtn').each(function () {
+        //    $(this).rules('add', {
+        //        require_from_group: [1, $(this)],
+        //        messages: {
+        //            required: "Select one option"
+
+        //        }
+        //    });
+        //});
+
+
+        $("input:radio[class^='answerRadioBtn_']").each(function () {
+
+            debugger;
+            var ChckClass = $(this).attr('class');
+            $('.' + ChckClass).rules("add", {
+                required: function (elem) {
+                    return $("input." + ChckClass + ":checked").length <= 0;
+                },
+                messages: {
+                    required: "Select at least one"
+                }
+            });
+
+        });  
+
+        $("input:checkbox[class^='answerchkOptions_']").each(function () {
+
+            debugger;
+            var ChckClass = $(this).attr('class');
+            $('.' + ChckClass).rules("add", {
+                required: function(elem) {
+                    return $("input." + ChckClass+":checked").length <= 0;
+                },
+                messages: {
+                    required: "Select at least one"
+                }
+            });
+
+        });  
+
+
+
+        
+
+
+    }
+
+    function DataSelect() {
+
+        $('.enableselect').select2();
+
+        $('.datetimepicker').datetimepicker({
+            format: 'DD-MMM-YYYY',
+            widgetPositioning:
+            {
+                horizontal: 'right',
+                vertical: 'bottom'
+            }
+        });
+        
+    }
+
+</script>

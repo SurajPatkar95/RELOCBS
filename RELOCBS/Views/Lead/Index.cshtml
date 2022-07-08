@@ -1,0 +1,171 @@
+﻿@using RELOCBS.Common;
+@model RELOCBS.Entities.LeadViewModel
+
+@using (Html.BeginForm("Create", "Lead", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-inline">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.RMC, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(model => model.RMCID, new SelectList((System.Collections.IEnumerable)ViewData["RMCList"], "Value", "Text"), "RMC", new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                @Html.ValidationMessageFor(model => model.RMCID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.FromCity, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(model => model.FromCityID, new SelectList((System.Collections.IEnumerable)ViewData["CityList"], "Value", "Text"), "Origin City", new { htmlAttributes = new { @class = "form-control input-sm clearfix enableselect" } })
+                @Html.ValidationMessageFor(model => model.FromCityID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.ToCity, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(model => model.ToCityID, new SelectList((System.Collections.IEnumerable)ViewData["CityList"], "Value", "Text"), "Destination City", new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                @Html.ValidationMessageFor(model => model.ToCityID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+
+<div id="mgrid">
+    @Html.Partial("_PartialGrid", Model);
+</div>
+
+@section Scripts{
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            AjaxFillDropDown('.CityDropDown', "@Url.Action("GetCityList", "Lead")");
+
+        });
+
+        function PagedOnCompleteBinds() {
+            $(document).ready(function () {
+                $('.grid-header-title a').on('click', function (e) {
+                    e.preventDefault();
+                    var sturl = "@Url.Action("Index", "Lane")" + $(this).attr('href');
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('form.frmRWDelete').on('submit', function (e) {
+                    e.preventDefault();
+                    $frmRWDelete = this;
+                    swal({
+                        title: "Are you sure?",
+                        //text: "Your will not be able to recover this imaginary file!",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Delete",
+                        cancelButtonText: "No",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $('#mgrid').mask("Loading...");
+                            $($frmRWDelete).ajaxSubmit({
+                                success: function (data) {
+                                    if (data.Success) {
+                                        toastr.success("Lead deleted successfully.");
+                                        $('#mgrid .pagination li.active a').trigger('click');
+                                    } else if (!data.Success) {
+                                        swal({
+                                            text: "Lead delete failed. Please try again.",
+                                            type: "error"
+                                        });
+                                    }
+                                    $('#mgrid').unmask();
+                                },
+                                complete: function () {
+                                    $('#mgrid').unmask();
+                                }
+                            });
+                        } else {
+                            swal("", "Lead delete cancelled.", "error");
+                        }
+                    });
+                });
+
+                $('#mgrid .pagination li a').on('click', function (e) {
+                    debugger;
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    var sturl = $('#mgrid .sorted.grid-header-title a').attr('href');
+                    if (typeof sturl != 'undefined') {
+                        var gdir = url("?grid-dir", sturl);
+                        sturl = sturl.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0 ? 1 : 0));
+                        sturl = sturl.replace('?', '&');
+                    }
+
+                    var sturl2 = $(this).attr('href');
+                    if (sturl2 == undefined) {
+                        sturl2 = "@Url.Action("Index", "Lead")?page=" + parseInt($(this).html());
+                    }
+
+                    if (sturl == undefined) {
+                        //sturl = sturl2 + sturl == undefined ? '' : sturl.replace(/page=\d+/i, "");
+                        sturl = sturl2;
+                    }
+                    else {
+                        sturl = sturl2 + sturl.replace(/page=\d+/i, "");
+                    }
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+                
+            });
+        }
+
+        $('.chk_Mode').on(function () {
+
+        });
+
+        $(document).ready(function () {
+            debugger;
+            PagedOnCompleteBinds();
+        });
+
+        $('form#CustomFilter').on('submit', function (e) {
+            e.preventDefault();
+            $(this).ajaxSubmit({
+                target: '#mgrid',
+                success: function () {
+                    PagedOnCompleteBinds();
+                }
+            });
+        });
+
+
+
+        function JobPop()
+        {
+            debugger;
+        }
+    </script>
+
+
+
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+    @Scripts.Render("~/bundles/bootstrap-select")
+}
+
+<style>
+    .modal.modal-wide .modal-dialog {
+        width: 80%;
+    }
+
+    .modal-wide .modal-body {
+        overflow-y: auto;
+    }
+</style>

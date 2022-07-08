@@ -1,0 +1,172 @@
+﻿@using RELOCBS.Entities;
+@using RELOCBS.Common;
+@model RELOCBS.Entities.MoveManageViewModel
+
+@{
+    var ShowActionable = "row m-t-sm " + @Model.vendorEvaluation.ShowActionable;
+}
+
+<div class="container pad-none">
+    @{ Model.Flag = "AgentFeedback"; }
+    @using (Html.BeginForm("SaveVendorEvaluation", "MoveManage", new { Indx = 8, SurveyID = @Model.SurveyID, MoveID = @Model.MoveID }, FormMethod.Post, new { enctype = "multipart/form-data", @id = "formVendorEval" }))
+    {
+        @Html.AntiForgeryToken()
+
+        @Html.ValidationSummary(true)
+
+        @Html.HiddenFor(model => model.MoveJob.ModeID)
+        @Html.HiddenFor(model => model.RMCBuss)
+        @Html.HiddenFor(model => model.SurveyDetail.OrgAgentID)
+        @Html.HiddenFor(model => model.SurveyDetail.FrtAgentID)
+        @Html.HiddenFor(model => model.SurveyDetail.DestAgentID)
+        @Html.HiddenFor(model => model.RMCType)
+        @Html.HiddenFor(model => model.ServiceLineID)
+        @Html.HiddenFor(model => model.FreightReport.TransInvMasterID)
+        @Html.HiddenFor(model => model.MoveID)
+
+        @Html.HiddenFor(model => model.vendorEvaluation.ShowActionable)
+        @Html.HiddenFor(model => model.HoSdEmpID)
+        @Html.HiddenFor(model => model.BrSdEmpID)
+        @Html.HiddenFor(model => model.DestBrSdEmpID)
+        @Html.HiddenFor(model => model.InsurBy)
+        <div class="row">
+            <div class="col-sm-12 col-md-12">
+                <input type="submit" id="btnSaveAgentFeedback" name="Save" class="btn btn-primary m-t-sm pull-right m-r-sm btn-sm filter-custom-margin m-n" value="Save" autocomplete="off">
+            </div>
+        </div>
+        <fieldset class="row col-md-12 border m-t-xs">
+            <legend data-toggle="collapse" data-target="#DivOrigin">
+                <i class="more-less glyphicon glyphicon-minus"></i>
+                <a class="pull-right" href="javascript:void(0)">Origin Partner</a>
+            </legend>
+            <div class="DivOrigin m-t-sm p-md pad-top-none pad-bot-none panel-collapse CollapsingFieldSet" id="DivOrigin">
+                <div class="row">
+                    <div class="col-md-12  m-b-md clearfix">
+                        <button id="btnClearOrgVendorEvalSelect" class="btn btn-sm btn-white pull-right filter-custom-margin">Clear Selection</button>
+                    </div>
+                </div>
+                <div class="row m-n">
+                    @for (int i = 0; i < Model.vendorEvaluation.OrgEvalQuestions.Count(); i++)
+                    {
+                        int j = i + 1;
+                        <div class="row  m-t-xs">
+                            <div class="col-sm-8">
+                                @*<input type="checkbox"
+                                    name="vendorEvaluation_OrgSelectedQuestions"
+                                    value="@Model.vendorEvaluation.OrgEvalQuestions[i].QuestionID"
+                                    checked="@Model.vendorEvaluation.OrgEvalQuestions[i].Answer" />*@
+                                @*@if (Model.vendorEvaluation.OrgSelectedQuestions.Contains(Model.vendorEvaluation.OrgEvalQuestions[i].QuestionID)) { <text> checked </text> }*@
+                                <label>@Html.Raw(j + ".&nbsp;&nbsp;&nbsp;" + Model.vendorEvaluation.OrgEvalQuestions[i].QuestionDetail)</label>
+                                @Html.HiddenFor(model => Model.vendorEvaluation.OrgEvalQuestions[i].QuestionDetail)
+                                @Html.HiddenFor(model => Model.vendorEvaluation.OrgEvalQuestions[i].QuestionID)
+                                @Html.HiddenFor(m => m.vendorEvaluation.OrgEvalQuestions[i].AnswerType, new { @class = "AnswerType" })
+                            </div>
+                            @if (Model.vendorEvaluation.OrgEvalQuestions[i].AnswerType.Equals("RADIOBTN", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <div class="col-sm-2 DivAnswer">@Html.RadioButtonFor(model => Model.vendorEvaluation.OrgEvalQuestions[i].Answer, "true", new { @class = "VendorEvalOrg answerRadioBtn_VendorEvalOrg" }) YES</div>
+                                <div class="col-sm-2">@Html.RadioButtonFor(model => Model.vendorEvaluation.OrgEvalQuestions[i].Answer, "false", new { @class = "VendorEvalOrg answerRadioBtn_VendorEvalOrg" }) NO</div>
+                                @Html.ValidationMessageFor(model => Model.vendorEvaluation.OrgEvalQuestions[i].Answer, "", new { @class = "text-danger" })
+                            }
+                            else if (Model.vendorEvaluation.OrgEvalQuestions[i].AnswerType.Equals("LIST", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <div class="col-md-3 DivAnswer">
+                                    @Html.DropDownListFor(m => m.vendorEvaluation.OrgEvalQuestions[i].AnswerOptionID, new SelectList((System.Collections.IEnumerable)Model.vendorEvaluation.OrgEvalQuestions[i].options, "Value", "Text", Model.vendorEvaluation.OrgEvalQuestions[i].AnswerOptionID), "--Select One--", new { @class = "form-control input-sm clearfix answerList OrganswerList", @required = "required" })
+                                    @Html.ValidationMessageFor(model => Model.vendorEvaluation.OrgEvalQuestions[i].AnswerOptionID, "", new { @class = "text-danger" })
+                                </div>
+                            }
+                            <div class="errorTxt text-danger">
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="row m-t-sm">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="OrgRemark">Remarks/Feedback if any</label>
+                            @Html.TextAreaFor(model => model.vendorEvaluation.OrgRemark, new { @rows = "4", @class = "form-control" })
+                        </div>
+                    </div>
+                </div>
+                <div class="@ShowActionable">
+                    <div class="col-md-12 m-r-sm">
+                        <div class="form-group">
+                            <label for="OrgRemark">Actionables</label>
+                            @Html.TextAreaFor(model => model.vendorEvaluation.OrgActionable, new { @rows = "4", @class = "form-control" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="row col-md-12 border">
+            <legend data-toggle="collapse" data-target="#DivDestination">
+                <i class="more-less glyphicon glyphicon-minus"></i>
+                <a class="pull-right" href="javascript:void(0)">Destination Partner</a>
+            </legend>
+            <div class="DivDestination m-t-sm p-md pad-top-none pad-bot-none panel-collapse CollapsingFieldSet" id="DivDestination">
+                <div class="row">
+                    <div class="col-md-12  m-b-md clearfix">
+                        <button id="btnClearDestVendorEvalSelect" class="btn btn-sm btn-white pull-right filter-custom-margin">Clear Selection</button>
+                    </div>
+                </div>
+
+                <div class="row m-n">
+                    @for (int i = 0; i < Model.vendorEvaluation.DestEvalQuestions.Count(); i++)
+                    {
+                        int j = i + 1;
+                        <div class="row m-t-xs">
+                            <div class="col-sm-8">
+                                @*<input type="checkbox"
+                                    name="vendorEvaluation_DestSelectedQuestions"
+                                    value="@Model.vendorEvaluation.DestEvalQuestions[i].QuestionID"
+                                    checked="@Model.vendorEvaluation.DestEvalQuestions[i].Answer" />*@
+                                @*@if (Model.vendorEvaluation.DestSelectedQuestions.Contains(Model.vendorEvaluation.DestEvalQuestions[i].QuestionID)) { <text> checked </text> }*@
+                                <label>@Html.Raw(j + ".&nbsp;&nbsp;&nbsp;" + Model.vendorEvaluation.DestEvalQuestions[i].QuestionDetail)</label>
+                                @Html.HiddenFor(model => Model.vendorEvaluation.DestEvalQuestions[i].QuestionDetail)
+                                @Html.HiddenFor(model => Model.vendorEvaluation.DestEvalQuestions[i].QuestionID)
+                                @Html.HiddenFor(m => m.vendorEvaluation.DestEvalQuestions[i].AnswerType, new { @class = "AnswerType" })
+                            </div>
+                            @if (Model.vendorEvaluation.DestEvalQuestions[i].AnswerType.Equals("RADIOBTN", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <div class="col-sm-2 DivAnswer">@Html.RadioButtonFor(model => Model.vendorEvaluation.DestEvalQuestions[i].Answer, "true", new { @class = "VendorEvalDest answerRadioBtn_VendorEvalDest" }) YES</div>
+                                <div class="col-sm-2 DivAnswer">@Html.RadioButtonFor(model => Model.vendorEvaluation.DestEvalQuestions[i].Answer, "false", new { @class = "VendorEvalDest answerRadioBtn_VendorEvalDest" }) NO</div>
+                                @Html.ValidationMessageFor(model => Model.vendorEvaluation.DestEvalQuestions[i].Answer, "", new { @class = "text-danger" })
+
+                            }
+                            else if (Model.vendorEvaluation.DestEvalQuestions[i].AnswerType.Equals("LIST", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <div class="col-md-3 DivAnswer">
+                                    @Html.DropDownListFor(m => m.vendorEvaluation.DestEvalQuestions[i].AnswerOptionID, new SelectList((System.Collections.IEnumerable)Model.vendorEvaluation.DestEvalQuestions[i].options, "Value", "Text", Model.vendorEvaluation.DestEvalQuestions[i].AnswerOptionID), "--Select One--", new { @class = "form-control input-sm clearfix answerList  DestanswerList", @required = "required" })
+                                    @Html.ValidationMessageFor(model => Model.vendorEvaluation.DestEvalQuestions[i].AnswerOptionID, "", new { @class = "text-danger" })
+                                </div>
+                            }
+                            <div class="errorTxt text-danger">
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="row m-t-sm">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="OrgRemark">Remarks/Feedback if any</label>
+                            @Html.TextAreaFor(model => model.vendorEvaluation.DestRemark, new { @rows = "4", @class = "form-control" })
+                        </div>
+                    </div>
+                </div>
+                <div class="@ShowActionable">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="OrgRemark">Actionables</label>
+                            @Html.TextAreaFor(model => model.vendorEvaluation.DestActionable, new { @rows = "4", @class = "form-control" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+    }
+
+
+
+</div>
+

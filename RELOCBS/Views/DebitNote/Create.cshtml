@@ -1,0 +1,1409 @@
+﻿@model RELOCBS.Entities.DebitNote
+
+@using RELOCBS.Common
+@using RELOCBS.Utility;
+
+@{
+    string _PageID = "67";
+    string param = "DebitNoteId=ParamValue0&DNCreditNoteId=ParamValue1";
+    string DrOrCrNote = Model.DrOrCrNote;
+    string DrOrCrNoteTextFull = DrOrCrNote == "D" ? "Debit Note" : "Credit Note";
+    int intCount = 1;
+    int BaseCurrID = UserSession.GetUserSession().BaseCurrID;
+    string DebitNoteStatus = Model.DebitNoteStatus ?? "";
+    string CreditNoteStatus = Model.CreditNoteStatus ?? "";
+    int? RevenueBrId = Model.RevenueBrId ?? Model.RevenueBrIdHidden ?? 0;
+    string RevenueBr = Model.RevenueBr ?? "";
+    int? CityID = Model.Debtor.CityID ?? 0;
+    string City = Model.Debtor.City ?? "";
+    string TaxType = Model.TaxType ?? "";
+    int CompanyID = UserSession.GetUserSession().CompanyID;
+
+    ViewBag.Title = DrOrCrNoteTextFull;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    .hideForStorage {
+        display: none;
+    }
+
+    .note-editable {
+        min-height: 50px;
+        max-height: 50px;
+    }
+
+    .note-editor {
+        min-height: 0px;
+    }
+
+    .bg {
+        border-left: 3px solid red;
+    }
+
+    fieldset {
+        border: 1px solid dimgrey;
+        margin-left: initial;
+        margin-top: initial;
+    }
+
+    button {
+        margin: 10px;
+    }
+
+    #tblDebitNoteDetails {
+        counter-reset: serial-number;
+    }
+
+        #tblDebitNoteDetails > tbody > tr > td:first-child:before {
+            counter-increment: serial-number;
+            content: counter(serial-number);
+        }
+</style>
+
+@using (Html.BeginForm("Create", "DebitNote", FormMethod.Post, new { enctype = "multipart/form-data", @name = "Invoice", @id = "Invoice" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(false)
+
+    @Html.HiddenFor(m => m.DebitNoteId, new { @id = "DebitNoteId" })
+    @Html.HiddenFor(m => m.DNCreditNoteId, new { @id = "DNCreditNoteId" })
+    @Html.HiddenFor(m => m.DebitNoteDetailsListHidden, new { @id = "DebitNoteDetailsListHidden" })
+    @Html.HiddenFor(m => m.SBU, new { @id = "SBU" })
+    @Html.HiddenFor(m => m.RevenueBr, new { @id = "RevenueBr" })
+    @Html.HiddenFor(m => m.RevenueBrIdHidden, new { @id = "RevenueBrIdHidden" })
+    @Html.HiddenFor(m => m.DNType, new { @id = "DNType" })
+    @Html.HiddenFor(m => m.TaxType, new { @id = "TaxType" })
+    @Html.HiddenFor(m => m.POSCountry, new { @id = "POSCountry" })
+    @Html.HiddenFor(m => m.Debtor.POSState, new { @id = "POSState" })
+    @Html.HiddenFor(m => m.Debtor.City, new { @id = "City" })
+    @Html.HiddenFor(m => m.Debtor.CityIDHidden, new { @id = "CityIDHidden" })
+    @Html.HiddenFor(m => m.DebitNoteDetails.CostHead, new { @id = "CostHead" })
+    @Html.HiddenFor(m => m.DebitNoteStatus, new { @id = "DebitNoteStatus" })
+    @Html.HiddenFor(m => m.CreditNoteStatus, new { @id = "CreditNoteStatus" })
+    @Html.Hidden("DebtorCountry", new { @id = "DebtorCountry" })
+
+    <div class="modal modal-wide fade" id="APIModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>
+                        Result
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </h3>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 APIResult" style="padding-bottom:10px">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row m-t-sm">
+        <input type="button" id="btnDownloadEInvoice" name="DownloadEInvoice" class="btn btn-sm btn-primary m-r-md pull-right" value="Download E-Invoice" />
+        <input type="button" id="btnEInvoice" name="EInvoice" class="btn btn-sm btn-primary m-r-md pull-right" value="E-Invoice" />
+        <input type="button" id="btnPrint" name="Print" class="btn btn-sm btn-primary m-r-md pull-right" value="Print @DrOrCrNoteTextFull" />
+        <input type="submit" id="btnApprove" name="SaveButton" class="btn btn-sm btn-primary m-r-md pull-right" value="Approve @DrOrCrNoteTextFull" />
+        <input type="submit" id="btnSave" name="SaveButton" class="btn btn-sm btn-primary m-r-md pull-right" value="Save @DrOrCrNoteTextFull" />
+    </div>
+    <div class="row">
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label>@DrOrCrNoteTextFull Id : </label>@(DrOrCrNote == "D" ? Model.DebitNoteId : Model.DNCreditNoteId)
+            </div>
+        </div>
+        @if (DrOrCrNote == "C")
+        {
+            <div class="col-md-3 col-sm-3">
+                <div class="form-group">
+                    <label>Credit Note No : </label>@Model.CreditNoteNo
+                </div>
+            </div>
+        }
+        <div class="col-md-3 col-sm-3">
+            <div class="form-group">
+                <label>Debit Note No : </label>@Model.DebitNoteNo
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-3">
+            <div class="form-group">
+                <label>@DrOrCrNoteTextFull Date : </label>
+                @if (DrOrCrNote == "D")
+                {
+                    if (Model.DebitNoteDate != null)
+                    {
+                        @(((DateTime)Model.DebitNoteDate).ToString("dd-MMM-yyyy"))
+                    }
+                }
+                else
+                {
+                    if (Model.CreditNoteDate != null)
+                    {
+                        @(((DateTime)Model.CreditNoteDate).ToString("dd-MMM-yyyy"))
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label>@DrOrCrNoteTextFull Status : </label>@(DrOrCrNote == "D" ? Model.DebitNoteStatus : Model.CreditNoteStatus)
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label>Created By : </label>@Model.CreatedBy
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-3">
+            <div class="form-group">
+                <label>Created Date : </label>@if (Model.CreatedDate != null)
+                {
+                    @(((DateTime)Model.CreatedDate).ToString("dd-MMM-yyyy hh:mm tt"))
+                }
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label>Approved By : </label>@Model.ApprovedBy
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-3">
+            <div class="form-group">
+                <label>Approved Date : </label>@if (Model.ApprovedDate != null)
+                {
+                    @(((DateTime)Model.ApprovedDate).ToString("dd-MMM-yyyy hh:mm tt"))
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 col-sm-12 well well-sm">
+        <div class="row">
+            <div class="col-md-1 col-sm-1 no-padding-r">
+                <div class="form-group">
+                    <label class="requiredlabel">SBU</label>
+                    @Html.DropDownListFor(m => m.SBUId, new SelectList((System.Collections.IEnumerable)ViewData["SBUList"], "Value", "Text", ViewData["SBUList"]), "Select One", new { @class = "form-control input-sm", @title = "SBU", @id = "SBUId" })
+                    @Html.ValidationMessageFor(m => m.SBUId, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label class="requiredlabel">Rev Branch</label>
+                    @Html.DropDownListFor(m => m.RevenueBrId, Enumerable.Empty<SelectListItem>(), "Select One", new { @class = "form-control input-sm", @title = "Revenue Branch", @id = "RevenueBrId" })
+                    @Html.ValidationMessageFor(m => m.RevenueBrId, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label class="requiredlabel">Debit Note Type</label>
+                    @Html.DropDownListFor(m => m.DNTypeId, new SelectList((System.Collections.IEnumerable)ViewData["DNTypeList"], "Value", "Text", ViewData["DNTypeList"]), "Select One", new { @class = "form-control", @title = "Debit Note Type", @id = "DNTypeId" })
+                    @Html.ValidationMessageFor(m => m.DNTypeId, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label class="requiredlabel">Place Of Supply</label>
+                    @Html.DropDownListFor(m => m.Debtor.POSStateId, new SelectList((System.Collections.IEnumerable)ViewData["StateList"], "Value", "Text", ViewData["StateList"]), "Select One", new { @class = "form-control", @title = "Place Of Supply", @id = "POSStateId" })
+                    @Html.ValidationMessageFor(m => m.Debtor.POSStateId, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-1 col-sm-1 no-padding-r">
+                <div class="form-group">
+                    <label class="requiredlabel">Currency</label>
+                    @Html.DropDownListFor(m => m.CurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["CurrencyList"], "Value", "Text", ViewData["CurrencyList"]), "Select One", new { @class = "form-control", @title = "Currency", @id = "CurrencyID" })
+                    @Html.ValidationMessageFor(m => m.CurrencyID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-4">
+                <div class="form-group">
+                    <label class="requiredlabel">Debtor</label>
+                    @Html.DropDownListFor(m => m.Debtor.DebtorId, new SelectList((System.Collections.IEnumerable)ViewData["DebtorList"], "Value", "Text", ViewData["DebtorList"]), "Select One", new { @class = "form-control", @title = "Debtor", @id = "DebtorId" })
+                    @Html.ValidationMessageFor(m => m.Debtor.DebtorId, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 col-sm-3">
+                <div class="form-group">
+                    <label class="requiredlabel">Debtor Name</label>
+                    @Html.TextBoxFor(m => m.Debtor.DebtorName, new { @class = "form-control input-sm", @placeholder = "Debtor Name", @title = "Debtor Name", @id = "DebtorName" })
+                    @Html.ValidationMessageFor(m => m.Debtor.DebtorName, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-3">
+                <div class="form-group">
+                    <label class="requiredlabel">Address 1</label>
+                    @Html.TextBoxFor(m => m.Debtor.Address1, new { @class = "form-control input-sm", @placeholder = "Address 1", @title = "Address 1", @id = "Address1" })
+                    @Html.ValidationMessageFor(m => m.Debtor.Address1, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-3">
+                <div class="form-group">
+                    <label>Address 2</label>
+                    @Html.TextBoxFor(m => m.Debtor.Address2, new { @class = "form-control input-sm", @placeholder = "Address 2", @title = "Address 2", @id = "Address2" })
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label class="requiredlabel">City</label>
+                    @Html.DropDownListFor(m => m.Debtor.CityID, new List<SelectListItem>(), new { @class = "form-control", @title = "City", @id = "CityID" })
+                    @Html.ValidationMessageFor(m => m.Debtor.CityID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-1 col-sm-1">
+                <div class="form-group">
+                    <label class="requiredlabel">PIN Code</label>
+                    @Html.TextBoxFor(m => m.Debtor.PINCode, new { @class = "form-control input-sm", @placeholder = "PIN Code", @title = "PIN Code", @id = "PINCode", @onkeypress = "return OnlyInteger(this, event);" })
+                    @Html.ValidationMessageFor(m => m.Debtor.PINCode, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label>GST No</label>
+                    @Html.TextBoxFor(m => m.Debtor.GSTNo, new { @class = "form-control input-sm", @title = "GST No", @placeholder = "GST No", @id = "GSTNo" })
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label>PAN No</label>
+                    @Html.TextBoxFor(m => m.Debtor.PANNo, new { @class = "form-control input-sm", @title = "PAN No", @placeholder = "PAN No", @id = "PANNo", @onchange = "return SetPANNo(this);" })
+                    @Html.ValidationMessageFor(m => m.Debtor.PANNo, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-1 col-sm-1">
+                <div class="form-group">
+                    <label>Inv Type</label>
+                    @Html.TextBoxFor(m => m.InvType, new { @class = "form-control input-sm", @title = "Invoice Type", @placeholder = "Invoice Type", @id = "InvoiceType", @readonly = "readonly" })
+                    @Html.ValidationMessageFor(m => m.InvType, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 col-sm-12 well well-sm">
+        <div class="row">
+            <div class="col-md-3 col-sm-3">
+                <div class="form-group">
+                    <label class="requiredlabel">Cost Head</label>
+                    @Html.DropDownListFor(m => m.DebitNoteDetails.DNCostHeadId, Enumerable.Empty<SelectListItem>(), "Select One", new { @class = "form-control input-sm", @title = "Cost Head", @id = "DNCostHeadId" })
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-3">
+                <div class="form-group">
+                    <label>Description</label>
+                    @Html.TextBoxFor(m => m.DebitNoteDetails.Description, new { @class = "form-control input-sm", @title = "Description", @placeholder = "Description", @id = "Description", @onkeypress = "return OnlyAlphaNumeric(this, event);" })
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label>Job No</label>
+                    @Html.TextBoxFor(m => m.DebitNoteDetails.JobNo, new { @class = "form-control input-sm", @title = "Job No", @placeholder = "Job No", @id = "JobNo" })
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label class="requiredlabel">HSN/SAC Code</label>
+                    @Html.TextBoxFor(m => m.DebitNoteDetails.SacCode, new { @class = "form-control input-sm", @title = "Sac Code", @placeholder = "Sac Code", @id = "SacCode" })
+                </div>
+            </div>
+            <div class="col-md-1 col-sm-1">
+                <div class="form-group">
+                    <label class="requiredlabel">Qty.</label>
+                    @Html.TextBoxFor(m => m.DebitNoteDetails.Quantity, new { @class = "form-control input-sm", @title = "Quantity", @placeholder = "Quantity", @id = "Quantity", @onkeypress = "return OnlyDouble(this, event);", @oncopy = "return false", @onpaste = "return false" })
+                </div>
+            </div>
+            <div class="col-md-1 col-sm-1">
+                <div class="form-group">
+                    <label class="requiredlabel">Rate</label>
+                    @Html.TextBoxFor(m => m.DebitNoteDetails.Rate, new { @class = "form-control input-sm", @title = "Rate", @placeholder = "Rate", @id = "Rate", @onkeypress = "return OnlyDouble(this, event);", @oncopy = "return false", @onpaste = "return false" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1 col-sm-1">
+                <div class="form-group">
+                    <label class="requiredlabel">Unit</label>
+                    @Html.DropDownListFor(m => m.DebitNoteDetails.UnitId, new SelectList((System.Collections.IEnumerable)ViewData["DNUnitList"], "Value", "Text", ViewData["DNUnitList"]), "Select One", new { @class = "form-control", @title = "Unit", @id = "UnitId" })
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label class="requiredlabel">Debit Amount</label>
+                    @Html.TextBoxFor(m => m.DebitNoteDetails.DebitAmount, new { @class = "form-control input-sm", @title = "Debit Amount", @placeholder = "Debit Amount", @id = "DebitAmount", @onkeypress = "return OnlyDouble(this, event);", @oncopy = "return false", @onpaste = "return false" })
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label class="requiredlabel">Tax Percent</label>
+                    @Html.TextBoxFor(m => m.DebitNoteDetails.TaxPercent, new { @class = "form-control input-sm", @title = "Tax Percent", @placeholder = "Tax Percent", @id = "TaxPercent", @onchange = "return SetTaxPercent(this);", @onkeypress = "return OnlyDouble(this, event);", @oncopy = "return false", @onpaste = "return false" })
+                </div>
+            </div>
+        </div>
+        @if (DrOrCrNote == "D")
+        {
+            <div class="row">
+                <div class="col-md-12 col-sm-12">
+                    <div class="form-group clearfix text-center">
+                        <input type="button" id="btnAddDetails" name="Add" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Add @DrOrCrNoteTextFull Details" formnovalidate="formnovalidate" />
+                        <input type="button" id="btnClear" name="Clear" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Cancel" formnovalidate="formnovalidate" />
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="col-sm-12 col-md-12" style="overflow-x: auto;">
+        <table class="table table-bordered table-responsive table-hover" id="tblDebitNoteDetails" style="display: inline-table;height: auto;">
+            <thead class="ibox-title">
+                <tr>
+                    <th class="tdSequence">Sr. No.</th>
+                    <th class="tdCostHead">Cost Head</th>
+                    <th class="tdDescription">Desc.</th>
+                    <th class="tdJobNo">Job No</th>
+                    <th class="tdSacCode">HSN/SAC Code</th>
+                    <th class="tdCurrency">Curr.</th>
+                    <th class="tdQuantity">Qty.</th>
+                    <th class="tdRate">Rate</th>
+                    <th class="tdUnit">Unit</th>
+                    <th class="tdDebitAmount">Debit Amt</th>
+                    <th class="tdCreditAmount">Credit Amt</th>
+                    <th class="tdTaxPercent">Tax %</th>
+                    <th class="tdCGSTAmount">CGST Amt</th>
+                    <th class="tdSGSTAmount">SGST Amt</th>
+                    <th class="tdIGSTAmount">IGST Amt</th>
+                    <th class="tdVATAmount">VAT Amt</th>
+                    <th class="tdTotalAmount">Total Amt</th>
+                    <th class="tdAction">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.DebitNoteDetailsList != null)
+                {
+                    for (int i = 0; i < Model.DebitNoteDetailsList.Count; i++)
+                    {
+                        Model.DebitNoteDetailsList[i].DebitNoteId = Model.DebitNoteDetailsList[i].DebitNoteId ?? 0;
+                        Model.DebitNoteDetailsList[i].DNCreditNoteId = Model.DebitNoteDetailsList[i].DNCreditNoteId ?? 0;
+                        Model.DebitNoteDetailsList[i].DNCreditNoteDetailId = Model.DebitNoteDetailsList[i].DNCreditNoteDetailId ?? 0;
+                        if (DrOrCrNote == "C" && CreditNoteStatus != "Finalized" && CreditNoteStatus != "Exported")
+                        {
+                            Model.DebitNoteDetailsList[i].DebitAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].MaxCreditAmount + Model.DebitNoteDetailsList[i].CreditAmount));
+                        }
+                        else
+                        {
+                            Model.DebitNoteDetailsList[i].DebitAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].DebitAmount));
+                        }
+                        Model.DebitNoteDetailsList[i].CreditAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].CreditAmount));
+                        Model.DebitNoteDetailsList[i].TaxPercent = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].TaxPercent));
+                        Model.DebitNoteDetailsList[i].CGSTAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].CGSTAmount));
+                        Model.DebitNoteDetailsList[i].SGSTAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].SGSTAmount));
+                        Model.DebitNoteDetailsList[i].IGSTAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].IGSTAmount));
+                        Model.DebitNoteDetailsList[i].VATAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].VATAmount));
+                        Model.DebitNoteDetailsList[i].TotalAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].TotalAmount));
+
+                        <tr>
+                            <td class="tdSequence">
+                                <input type="hidden" class="tdDebitNoteId" name="DebitNoteId" id="@("DebitNoteId_" + intCount)" value="@Model.DebitNoteDetailsList[i].DebitNoteId" />
+                                <input type="hidden" class="tdDebitNoteDetailId" name="DebitNoteDetailId" id="@("DebitNoteDetailId_" + intCount)" value="@Model.DebitNoteDetailsList[i].DebitNoteDetailId" />
+                                <input type="hidden" class="tdDNCreditNoteId" name="DNCreditNoteId" id="@("DNCreditNoteId_" + intCount)" value="@Model.DebitNoteDetailsList[i].DNCreditNoteId" />
+                                <input type="hidden" class="tdDNCreditNoteDetailId" name="DNCreditNoteDetailId" id="@("DNCreditNoteDetailId_" + intCount)" value="@Model.DebitNoteDetailsList[i].DNCreditNoteDetailId" />
+                                <input type="hidden" class="tdDNCostHeadId" name="DNCostHeadId" id="@("DNCostHeadId_" + intCount)" value="@Model.DebitNoteDetailsList[i].DNCostHeadId" />
+                                <input type="hidden" class="tdUnitId" name="UnitId" id="@("UnitId_" + intCount)" value="@Model.DebitNoteDetailsList[i].UnitId" />
+                            </td>
+                            <td class="tdCostHead">@Model.DebitNoteDetailsList[i].CostHead</td>
+                            @if (DrOrCrNote == "D")
+                            {
+                                <td class="tdDescription">@Model.DebitNoteDetailsList[i].Description</td>
+                            }
+                            else
+                            {
+                                <td class="tdDescription">@Html.TextBoxFor(m => m.DebitNoteDetailsList[i].Description, new { @onkeypress = "return OnlyAlphaNumeric(this, event);" })</td>
+                            }
+                            <td class="tdJobNo">@Model.DebitNoteDetailsList[i].JobNo</td>
+                            <td class="tdSacCode">@Model.DebitNoteDetailsList[i].SacCode</td>
+                            <td class="tdCurrency">@Model.DebitNoteDetailsList[i].Currency</td>
+                            <td class="tdQuantity">@Model.DebitNoteDetailsList[i].Quantity</td>
+                            <td class="tdRate">@Model.DebitNoteDetailsList[i].Rate</td>
+                            <td class="tdUnit">@Model.DebitNoteDetailsList[i].Unit</td>
+                            <td class="tdDebitAmount">@Model.DebitNoteDetailsList[i].DebitAmount</td>
+                            <td class="tdCreditAmount">
+                                @Html.HiddenFor(m => m.DebitNoteDetailsList[i].MaxCreditAmount, new { @class = "hfMaxCreditAmount" })
+                                @Html.HiddenFor(m => m.DebitNoteDetailsList[i].CreditAmount, new { @class = "hfCreditAmountValue" })
+                                @Html.TextBoxFor(m => m.DebitNoteDetailsList[i].CreditAmount, new { @class = "form-control input-sm CreditAmountValue", @onchange = "CalculateCreditAmount(this);", @onkeypress = "return OnlyDouble(this, event);", @oncopy = "return false", @onpaste = "return false" })
+                            </td>
+                            <td class="tdTaxPercent">@Model.DebitNoteDetailsList[i].TaxPercent</td>
+                            <td class="tdCGSTAmount">@Model.DebitNoteDetailsList[i].CGSTAmount</td>
+                            <td class="tdSGSTAmount">@Model.DebitNoteDetailsList[i].SGSTAmount</td>
+                            <td class="tdIGSTAmount">@Model.DebitNoteDetailsList[i].IGSTAmount</td>
+                            <td class="tdVATAmount">@Model.DebitNoteDetailsList[i].VATAmount</td>
+                            <td class="tdTotalAmount">@Model.DebitNoteDetailsList[i].TotalAmount</td>
+                            <td class="tdAction">
+                                <button type="button" value="Edit" class="btnEdit btn btn-sm btn-primary pull-left" onclick="EditDebitNoteDetails(this);"><i class="glyphicon glyphicon-pencil"></i></button>
+                                <button type="button" value="Delete" class="btnDelete btn btn-sm btn-danger pull-left" onclick="DeleteDebitNoteDetails(this);"><i class="glyphicon glyphicon-trash"></i></button>
+                            </td>
+                        </tr>
+                        intCount++;
+                    }
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="9"></td>
+                    <td class="tdTotalDebitAmount"></td>
+                    <td class="tdTotalCreditAmount"></td>
+                    <td class="tdTaxPercent"></td>
+                    <td class="tdCGSTAmount"></td>
+                    <td class="tdSGSTAmount"></td>
+                    <td class="tdIGSTAmount"></td>
+                    <td class="tdVATAmount"></td>
+                    <td class="tdTotalFinalAmount"></td>
+                    <td class="tdAction"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+}
+@section Scripts{
+    <script type="text/javascript">
+        var rowIndex = 0;
+        $(document).ready(function () {
+            //Bind City Dropdown
+            AjaxFillDropDown('#CityID', "@Url.Action("GetCityList", "DebitNote")");
+            //Bind events to controls
+            $("#btnAddDetails").click(function () {
+                AddDetails();
+            });
+            $("#btnClear").click(function () {
+                ClearDebitNote();
+            });
+            $("#btnPrint").click(function () {
+                OpenDebitNoteInvoicePrint();
+            });
+            $("#btnEInvoice").click(function () {
+                if ("@DrOrCrNote" == "D")
+                    var InvoiceNo = '@Model.DebitNoteNo';
+                else if ("@DrOrCrNote" == "C")
+                    var InvoiceNo = '@Model.CreditNoteNo';
+                GenerateEInvoiceDebitNote(InvoiceNo);
+            });
+            $("#btnDownloadEInvoice").click(function () {
+                if ("@DrOrCrNote" == "D")
+                    var InvoiceNo = '@Model.DebitNoteNo';
+                else if ("@DrOrCrNote" == "C")
+                    var InvoiceNo = '@Model.CreditNoteNo';
+                GetEInvoiceDetail(InvoiceNo);
+            });
+
+            $("#Quantity").change(function () {
+                CalculateDebitAmount();
+            });
+            $("#Rate").change(function () {
+                CalculateDebitAmount();
+            });
+            $("#SBUId").change(function () {
+                GetRevenueBranch();
+                $("#SBU").val($("#SBUId option:selected").text());
+
+                var TaxRate = GetDebitNoteTaxRate($("#SBUId").val(), $("#DNCostHeadId").val(), GetSacCode = true);
+                var DNCostHead = $("#DNCostHeadId option:selected").text().toUpperCase();
+                var IsReadOnly = (DNCostHead != "OTHERS" && DNCostHead != "PACKING MATERIAL");
+                $("#TaxPercent").val(TaxRate).prop('readonly', IsReadOnly);
+
+                if ($("#tblDebitNoteDetails tbody")[0].rows.length > 0) {
+                    $("#tblDebitNoteDetails tbody tr").each(function () {
+                        var TaxRate = GetDebitNoteTaxRate($("#SBUId").val(), $(this).find('.tdDNCostHeadId').val(), GetSacCode = false);
+                        $(this).find('.tdTaxPercent').text(TaxRate);
+                    });
+                    CalculateTotalAmount();
+                }
+            });
+            $("#RevenueBrId").change(function () {
+                $("#RevenueBr").val($("#RevenueBrId option:selected").text());
+                $("#RevenueBrIdHidden").val($("#RevenueBrId").val());
+                GetDebitNoteTaxType();
+            });
+            $("#DNTypeId").change(function () {
+                if ($("#tblDebitNoteDetails tbody")[0].rows.length > 0) {
+                    swal({ title: "Error!", text: "Please remove existing Debit Note Details before changing Debit Note Type.", type: "error" });
+                    $("#DNTypeId option:contains('" + $("#DNType").val() + "')").prop('selected', true);
+                    return false;
+                }
+                $("#DNType").val($("#DNTypeId option:selected").text());
+                GetDNCostHead();
+            });
+            $("#CurrencyID").change(function () {
+                SetInvoiceType($("#DebtorCountry").val());
+                SetHiddenFieldValue();
+            });
+            $("#DebtorId").change(function () {
+                ManageDebtorDetailsControls();
+            });
+            $("#POSStateId").change(function () {
+                $("#POSCountry").val($("#POSStateId option:selected").text());
+                GetDebitNoteTaxType();
+                SetInvoiceType($("#DebtorCountry").val());
+            });
+            $("#CityID").change(function () {
+                $("#City").val($("#CityID option:selected").text());
+                $("#CityIDHidden").val($("#CityID").val());
+                GetDebitNoteInvType();
+            });
+            $("#DNCostHeadId").change(function () {
+                $("#CostHead").val($("#DNCostHeadId option:selected").text());
+                var TaxRate = GetDebitNoteTaxRate($("#SBUId").val(), $("#DNCostHeadId").val(), GetSacCode = true);
+                var DNCostHead = $("#DNCostHeadId option:selected").text().toUpperCase();
+                var IsReadOnly = (DNCostHead != "OTHERS" && DNCostHead != "PACKING MATERIAL");
+                $("#TaxPercent").val(TaxRate).prop('readonly', IsReadOnly);
+            });
+            $("#GSTNo").change(function () {
+                SetInvoiceType($("#DebtorCountry").val());
+            });
+
+            //Enable/Disable controls
+            $("#RevenueBrId").prop('disabled', true);
+            $("#DebitAmount").prop('readonly', true);
+
+            $("#btnEInvoice").hide();
+            $("#btnDownloadEInvoice").hide();
+
+            GetDNCostHead();
+            SetInvoiceType($("#DebtorCountry").val());
+
+            if (@RevenueBrId > 0) {
+                GetRevenueBranch();
+                $("#RevenueBrId").val(@RevenueBrId);
+                $("#RevenueBrIdHidden").val(@RevenueBrId);
+            }
+
+            var DebtorId = $("#DebtorId").val();
+            if (DebtorId > 0)
+                SetDebtorDetails(DebtorId);
+            else {
+                if (@CityID > 0) {
+                    var newOption = new Option("@City", @CityID, true, true);
+                    $("#CityID").append(newOption).trigger('change');
+                }
+            }
+
+            if ($("#CurrencyID").val() == '')
+                $("#CurrencyID").val(@BaseCurrID);
+
+            if ($("#tblDebitNoteDetails tbody")[0].rows.length > 0) {
+                $("#tblDebitNoteDetails").show();
+            }
+            else {
+                $("#tblDebitNoteDetails").hide();
+            }
+
+            ShowHideControls();
+
+            CalculateTotalAmount();
+        });
+        function ShowHideControls() {
+            if ("@DrOrCrNote" == "D") {
+                if ("@DebitNoteStatus" == "") {
+                    $("#btnSave").prop("disabled", false);
+                    $("#btnApprove").prop("disabled", true);
+                    $("#btnPrint").prop("disabled", true);
+                    $("#btnEInvoice").prop("disabled", true);
+                    $("#btnDownloadEInvoice").prop("disabled", true);
+                }
+                else if ("@DebitNoteStatus" == "Draft") {
+                    $("#btnSave").prop("disabled", false);
+                    $("#btnApprove").prop("disabled", false);
+                    $("#btnPrint").prop("disabled", false);
+                    $("#btnEInvoice").prop("disabled", true);
+                    $("#btnDownloadEInvoice").prop("disabled", true);
+                }
+                else if ("@DebitNoteStatus" == "Finalized" || "@DebitNoteStatus" == "Exported") {
+                    $("form :input").prop("disabled", true);
+                    $(".tdAction").hide();
+                    if ($("#CityID").data('select2')) {
+                        $("#CityID").select2('destroy');
+                    }
+                    $("#btnSave").prop("disabled", true);
+                    $("#btnApprove").prop("disabled", true);
+                    $("#btnPrint").prop("disabled", false);
+                    $("#btnEInvoice").prop("disabled", false);
+                    $("#btnDownloadEInvoice").prop("disabled", false);
+                }
+                $(".tdCreditAmount").hide();
+                $(".tdTotalCreditAmount").hide();
+            }
+            else if ("@DrOrCrNote" == "C") {
+                $("form :input").prop("disabled", true);
+                $(".tdAction").hide();
+                $("#DebitNoteDetailsListHidden").prop("disabled", false);
+                $("#DebitNoteId").prop("disabled", false);
+                $("#DNCreditNoteId").prop("disabled", false);
+                $(".tdCreditAmount").show().prop("disabled", false);
+                $(".CreditAmountValue").show().prop("disabled", false);
+                $(".tdDescription input").show().prop("disabled", false);
+                if ($("#CityID").data('select2')) {
+                    $("#CityID").select2('destroy');
+                }
+
+                $(".tdDescription input").change(function () {
+                    SetHiddenFieldValue();
+                });
+
+                if ("@CreditNoteStatus" == "") {
+                    $("#btnSave").prop("disabled", false);
+                    $("#btnApprove").prop("disabled", true);
+                    $("#btnPrint").prop("disabled", true);
+                    $("#btnEInvoice").prop("disabled", true);
+                    $("#btnDownloadEInvoice").prop("disabled", true);
+                }
+                else if ("@CreditNoteStatus" == "Draft") {
+                    $("#btnSave").prop("disabled", false);
+                    $("#btnApprove").prop("disabled", false);
+                    $("#btnPrint").prop("disabled", false);
+                    $("#btnEInvoice").prop("disabled", true);
+                    $("#btnDownloadEInvoice").prop("disabled", true);
+                }
+                else if ("@CreditNoteStatus" == "Finalized" || "@CreditNoteStatus" == "Exported") {
+                    $("form :input").prop("disabled", true);
+                    $("#btnSave").prop("disabled", true);
+                    $("#btnApprove").prop("disabled", true);
+                    $("#btnPrint").prop("disabled", false);
+                    $("#btnEInvoice").prop("disabled", false);
+                    $("#btnDownloadEInvoice").prop("disabled", false);
+                }
+            }
+        }
+        function AddDetails() {
+            if (!ValidateDebitNoteDetails())
+                return false;
+
+            var DebitNoteDetailId = 0;
+            var DNCreditNoteDetailId = 0;
+            var rowId = 1;
+
+            var Table = $("#tblDebitNoteDetails")[0];
+            if ($("#btnAddDetails").val() != 'Add @DrOrCrNoteTextFull Details') {
+                DebitNoteDetailId = $("tr", Table).eq(rowIndex).find('.tdDebitNoteDetailId').val();
+                DNCreditNoteDetailId = $("tr", Table).eq(rowIndex).find('.tdDNCreditNoteDetailId').val();
+                rowId = rowIndex;
+            }
+            else {
+                rowId = $("#tblDebitNoteDetails tbody")[0].rows.length + 1;
+            }
+
+            var DebitNoteId = @Model.DebitNoteId;
+            var DNCreditNoteId = @Model.DNCreditNoteId;
+            var DNCostHeadId = parseInt($("#DNCostHeadId").val());
+            var CostHead = $("#DNCostHeadId option:selected").text().trim();
+            var Description = $("#Description").val().trim();
+            var JobNo = $("#JobNo").val().trim();
+            var SacCode = $("#SacCode").val().trim();
+            var Currency = $("#CurrencyID option:selected").text().trim();
+            var Quantity = $("#Quantity").val() ? parseFloat($("#Quantity").val()) : 0;
+            var Rate = $("#Rate").val() ? parseFloat($("#Rate").val()) : 0;
+            var UnitId = $("#UnitId").val() ? parseInt($("#UnitId").val()) : 0;
+            var Unit = $("#UnitId option:selected").text().trim();
+            var DebitAmount = $("#DebitAmount").val() ? parseFloat($("#DebitAmount").val()).toFixed(2) : 0;
+            var TaxPercent = $("#TaxPercent").val() ? parseFloat($("#TaxPercent").val()).toFixed(2) : 0;
+
+            var tbody = $("#tblDebitNoteDetails > tbody")[0];
+
+            var tdDebitNoteDetails = '<input type="hidden" class="tdDebitNoteId" name="DebitNoteId" id="DebitNoteId_' + (rowId) + '" value="' + DebitNoteId + '" />' +
+                '<input type="hidden" class="tdDebitNoteDetailId" name="DebitNoteDetailId" id="DebitNoteDetailId_' + (rowId) + '" value="' + DebitNoteDetailId + '" />' +
+                '<input type="hidden" class="tdDNCreditNoteId" name="DNCreditNoteId" id="DNCreditNoteId_' + (rowId) + '" value="' + DNCreditNoteId + '" />' +
+                '<input type="hidden" class="tdDNCreditNoteDetailId" name="DNCreditNoteDetailId" id="DNCreditNoteDetailId_' + (rowId) + '" value="' + DNCreditNoteDetailId + '" />' +
+                '<input type="hidden" class="tdDNCostHeadId" name="DNCostHeadId" id="DNCostHeadId_' + (rowId) + '" value="' + DNCostHeadId + '" />' +
+                '<input type="hidden" class="tdUnitId" name="UnitId" id="UnitId_' + (rowId) + '" value="' + UnitId + '" />';
+
+            var row;
+
+            //Add row
+            if (rowIndex != 0) {
+                Table.deleteRow(rowIndex);
+                row = tbody.insertRow(rowIndex - 1);
+            }
+            else {
+                row = tbody.insertRow(-1);
+            }
+
+            //Add cell values
+            var cell = $(row.insertCell(-1));
+            cell.html(tdDebitNoteDetails);
+            cell.addClass("tdSequence");
+
+            cell = $(row.insertCell(-1));
+            cell.html(CostHead);
+            cell.addClass("tdCostHead");
+
+            cell = $(row.insertCell(-1));
+            cell.html(Description);
+            cell.addClass("tdDescription");
+
+            cell = $(row.insertCell(-1));
+            cell.html(JobNo);
+            cell.addClass("tdJobNo");
+
+            cell = $(row.insertCell(-1));
+            cell.html(SacCode);
+            cell.addClass("tdSacCode");
+
+            cell = $(row.insertCell(-1));
+            cell.html(Currency);
+            cell.addClass("tdCurrency");
+
+            cell = $(row.insertCell(-1));
+            cell.html(Quantity);
+            cell.addClass("tdQuantity");
+
+            cell = $(row.insertCell(-1));
+            cell.html(Rate);
+            cell.addClass("tdRate");
+
+            cell = $(row.insertCell(-1));
+            cell.html(Unit);
+            cell.addClass("tdUnit");
+
+            cell = $(row.insertCell(-1));
+            cell.html(DebitAmount);
+            cell.addClass("tdDebitAmount");
+
+            cell = $(row.insertCell(-1));
+            cell.html(TaxPercent);
+            cell.addClass("tdTaxPercent");
+
+            cell = $(row.insertCell(-1));
+            cell.html('');
+            cell.addClass("tdCGSTAmount");
+
+            cell = $(row.insertCell(-1));
+            cell.html('');
+            cell.addClass("tdSGSTAmount");
+
+            cell = $(row.insertCell(-1));
+            cell.html('');
+            cell.addClass("tdIGSTAmount");
+
+            cell = $(row.insertCell(-1));
+            cell.html('');
+            cell.addClass("tdVATAmount");
+
+            cell = $(row.insertCell(-1));
+            cell.html('');
+            cell.addClass("tdTotalAmount");
+
+            cell = $(row.insertCell(-1));
+            var btnEdit = $("<button><i class=\"glyphicon glyphicon-pencil\"></i></button>");
+            btnEdit.attr("type", "button");
+            btnEdit.attr("onclick", "EditDebitNoteDetails(this);");
+            btnEdit.attr("class", "btnEdit btn btn-sm btn-primary pull-left");
+
+            var btnDelete = $("<button><i class=\"glyphicon glyphicon-trash\"></i></button>");
+            btnDelete.attr("type", "button");
+            btnDelete.attr("onclick", "DeleteDebitNoteDetails(this);");
+            btnDelete.attr("class", "btnDelete btn btn-sm btn-danger pull-left");
+            cell.append(btnEdit).append(btnDelete);
+
+            //Clear the controls
+            ClearDebitNote();
+
+            CalculateTotalAmount();
+
+            $("#btnAddDetails").val('Add @DrOrCrNoteTextFull Details');
+            $("#tblDebitNoteDetails").show();
+        }
+        function ValidateDebitNoteDetails() {
+            var DNCostHeadId = $("#DNCostHeadId").val() ? parseInt($("#DNCostHeadId").val()) : -1;
+            var SacCode = $("#SacCode").val().trim();
+            var CurrencyID = $("#CurrencyID").val() ? parseInt($("#CurrencyID").val()) : 0;
+            var Quantity = $("#Quantity").val() ? parseFloat($("#Quantity").val()) : 0;
+            var Rate = $("#Rate").val() ? parseFloat($("#Rate").val()) : 0;
+            var UnitId = $("#UnitId").val() ? parseInt($("#UnitId").val()) : 0;
+            var DebitAmount = $("#DebitAmount").val() ? parseFloat($("#DebitAmount").val()).toFixed(2) : 0;
+            var TaxPercent = $("#TaxPercent").val() ? parseFloat($("#TaxPercent").val()).toFixed(2) : -1;
+
+            if (DNCostHeadId < 0) {
+                swal({ title: "Error!", text: "Please select cost head.", type: "error" });
+                return false;
+            }
+            if (SacCode == "") {
+                swal({ title: "Error!", text: "Please enter sac code.", type: "error" });
+                return false;
+            }
+            if (CurrencyID <= 0) {
+                swal({ title: "Error!", text: "Please select currency.", type: "error" });
+                return false;
+            }
+            if (Quantity <= 0) {
+                swal({ title: "Error!", text: "Please enter quantity.", type: "error" });
+                return false;
+            }
+            if (Rate <= 0) {
+                swal({ title: "Error!", text: "Please enter rate.", type: "error" });
+                return false;
+            }
+            if (UnitId <= 0) {
+                swal({ title: "Error!", text: "Please select unit.", type: "error" });
+                return false;
+            }
+            if (DebitAmount <= 0) {
+                swal({ title: "Error!", text: "Please enter debit amount.", type: "error" });
+                return false;
+            }
+            if (TaxPercent < 0 || TaxPercent > 100) {
+                swal({ title: "Error!", text: "Tax Percent should be between 0 to 100.", type: "error" });
+                return false;
+            }
+            if ($("#TaxType").val() == "") {
+                swal({ title: "Error!", text: "Please select revenue branch and place of supply.", type: "error" });
+                return false;
+            }
+            return true;
+        }
+        function ClearDebitNote() {
+            $("#DNCostHeadId").val('');
+            $("#Description").val('');
+            $("#JobNo").val('');
+            $("#SacCode").val('').prop('readonly', false);
+            $("#Quantity").val('');
+            $("#Rate").val('');
+            $("#UnitId").val('');
+            $("#DebitAmount").val('');
+            $("#TaxPercent").val('').prop('readonly', false);
+
+            //remove class if edit is clicked
+            $("#tblDebitNoteDetails tbody tr").each(function () {
+                $(this).removeClass('bg')
+            });
+
+            rowIndex = 0;
+            $("#btnAddDetails").val('Add @DrOrCrNoteTextFull Details');
+            $("#btnSave").prop("disabled", false);
+            if (("@DrOrCrNote" == "D" && "@DebitNoteStatus" == "Draft") || ("@DrOrCrNote" == "C" && "@CreditNoteStatus" == "Draft")) {
+                $("#btnApprove").prop("disabled", false);
+            }
+        }
+        function CalculateTotalAmount() {
+            var TotalDebitAmount = 0;
+            var TotalCreditAmount = 0;
+            var TotalFinalAmount = 0;
+            $("#tblDebitNoteDetails tbody tr").each(function () {
+                var Quantity = parseFloat($(this).find('.tdQuantity').text());
+                var Rate = parseFloat($(this).find('.tdRate').text());
+                var DebitAmount = parseFloat(parseFloat(Quantity) * parseFloat(Rate));
+
+                var InvAmount = DebitAmount;
+
+                if ("@DrOrCrNote" == "C") {
+                    var CreditAmount = parseFloat($(this).find('.CreditAmountValue').val() ? $(this).find('.CreditAmountValue').val() : 0).toFixed(2);
+                    $(this).find('.CreditAmountValue').val(CreditAmount);
+                    InvAmount = CreditAmount;
+                }
+
+                var TaxPercent = parseFloat($(this).find('.tdTaxPercent').text());
+                var TaxAmount = parseFloat(InvAmount * TaxPercent / 100).toFixed(2);
+                if ($("#TaxType").val() == 'CGST') {
+                    $(this).find('.tdCGSTAmount').text(parseFloat(TaxAmount / 2).toFixed(2));
+                    $(this).find('.tdSGSTAmount').text(parseFloat(TaxAmount / 2).toFixed(2));
+                    $(this).find('.tdIGSTAmount').text(0);
+                    $(this).find('.tdVATAmount').text(0);
+                }
+                else if ($("#TaxType").val() == 'IGST') {
+                    $(this).find('.tdCGSTAmount').text(0);
+                    $(this).find('.tdSGSTAmount').text(0);
+                    $(this).find('.tdIGSTAmount').text(parseFloat(TaxAmount).toFixed(2));
+                    $(this).find('.tdVATAmount').text(0);
+                }
+                else if ($("#TaxType").val() == 'VAT') {
+                    $(this).find('.tdCGSTAmount').text(0);
+                    $(this).find('.tdSGSTAmount').text(0);
+                    $(this).find('.tdIGSTAmount').text(0);
+                    $(this).find('.tdVATAmount').text(parseFloat(TaxAmount).toFixed(2));
+                }
+                else {
+                    $(this).find('.tdCGSTAmount').text(0);
+                    $(this).find('.tdSGSTAmount').text(0);
+                    $(this).find('.tdIGSTAmount').text(0);
+                    $(this).find('.tdVATAmount').text(0);
+                }
+
+                $(this).find('.tdTotalAmount').text(parseFloat(parseFloat(InvAmount) + parseFloat(TaxAmount)).toFixed(2));
+
+                TotalDebitAmount += parseFloat($(this).find('.tdDebitAmount').text());
+                if ("@DrOrCrNote" == "C")
+                    TotalCreditAmount += parseFloat($(this).find('.CreditAmountValue').val());
+                TotalFinalAmount += parseFloat($(this).find('.tdTotalAmount').text());
+            });
+            $("#tblDebitNoteDetails > tfoot > tr").find('.tdTotalDebitAmount').text(TotalDebitAmount.toFixed(2));
+            if ("@DrOrCrNote" == "C")
+                $("#tblDebitNoteDetails > tfoot > tr").find('.tdTotalCreditAmount').text(TotalCreditAmount.toFixed(2));
+            $("#tblDebitNoteDetails > tfoot > tr").find('.tdTotalFinalAmount').text(TotalFinalAmount.toFixed(2));
+            ShowHideTaxAmountFields();
+            SetHiddenFieldValue();
+        }
+        function CalculateDebitAmount() {
+            var Quantity = $("#Quantity").val() ? parseFloat($("#Quantity").val()) : 0;
+            var Rate = $("#Rate").val() ? parseFloat($("#Rate").val()) : 0;
+
+            var DebitAmount = parseFloat(Quantity * Rate).toFixed(2);
+            $("#DebitAmount").val(DebitAmount);
+        }
+        function ShowHideTaxAmountFields() {
+            if ($("#TaxType").val() == 'CGST') {
+                $(".tdCGSTAmount,.tdSGSTAmount").show();
+                $(".tdIGSTAmount,.tdVATAmount").hide();
+            }
+            else if ($("#TaxType").val() == 'IGST') {
+                $(".tdIGSTAmount").show();
+                $(".tdCGSTAmount,.tdSGSTAmount,.tdVATAmount").hide();
+            }
+            else if ($("#TaxType").val() == 'VAT') {
+                $(".tdVATAmount").show();
+                $(".tdCGSTAmount,.tdSGSTAmount,.tdIGSTAmount").hide();
+            }
+            else {
+                $(".tdCGSTAmount,.tdSGSTAmount,.tdIGSTAmount,.tdVATAmount").hide();
+            }
+        }
+        function SetHiddenFieldValue() {
+            var strData = GetDebitNoteDetailsData();
+            if (strData)
+                $("#DebitNoteDetailsListHidden").val(JSON.stringify(strData));
+            else
+                $("#DebitNoteDetailsListHidden").val(null);
+        }
+        function GetDebitNoteDetailsData() {
+            var data = [];
+            $("#tblDebitNoteDetails tbody tr").each(function () {
+                var DebitNoteDetailId = $(this).find('.tdDebitNoteDetailId').val();
+                var DebitNoteId = $(this).find('.tdDebitNoteId').val();
+                var DNCreditNoteDetailId = $(this).find('.tdDNCreditNoteDetailId').val();
+                var DNCreditNoteId = $(this).find('.tdDNCreditNoteId').val();
+                var DNCostHeadId = $(this).find('.tdDNCostHeadId').val();
+                var CostHead = $(this).find('.tdCostHead').text();
+                var Description = "";
+                if ("@DrOrCrNote" == "D")
+                    Description = $(this).find('.tdDescription').text();
+                else if ("@DrOrCrNote" == "C")
+                    Description = $(this).find('.tdDescription input').val();
+                var JobNo = $(this).find('.tdJobNo').text();
+                var SacCode = $(this).find('.tdSacCode').text();
+                var CurrencyID = $("#CurrencyID").val();
+                var Currency = $("#CurrencyID option:selected").text().trim();
+                var Quantity = $(this).find('.tdQuantity').text();
+                var Rate = $(this).find('.tdRate').text();
+                var UnitId = $(this).find('.tdUnitId').val();
+                var Unit = $(this).find('.tdUnit').text();
+                var DebitAmount = $(this).find('.tdDebitAmount').text();
+                var CreditAmount = $(this).find('.CreditAmountValue').val();
+                var MaxCreditAmount = $(this).find('.hfMaxCreditAmount').val();
+                var TaxPercent = $(this).find('.tdTaxPercent').text();
+                var CGSTAmount = $(this).find('.tdCGSTAmount').text();
+                var SGSTAmount = $(this).find('.tdSGSTAmount').text();
+                var IGSTAmount = $(this).find('.tdIGSTAmount').text();
+                var VATAmount = $(this).find('.tdVATAmount').text();
+                var TotalAmount = $(this).find('.tdTotalAmount').text();
+
+                var allData = {
+                    'DebitNoteDetailId': parseInt(DebitNoteDetailId),
+                    'DebitNoteId': parseInt(DebitNoteId),
+                    'DNCreditNoteDetailId': parseInt(DNCreditNoteDetailId),
+                    'DNCreditNoteId': parseInt(DNCreditNoteId),
+                    'DNCostHeadId': parseInt(DNCostHeadId),
+                    'CostHead': CostHead == undefined ? null : CostHead.trim(),
+                    'Description': Description == undefined ? null : Description.trim(),
+                    'JobNo': JobNo == undefined ? null : JobNo.trim(),
+                    'SacCode': SacCode == undefined ? null : SacCode.trim(),
+                    'CurrencyID': parseInt(CurrencyID),
+                    'Currency': Currency == undefined ? null : Currency.trim(),
+                    'Quantity': parseFloat(Quantity),
+                    'Rate': parseFloat(Rate),
+                    'UnitId': parseInt(UnitId),
+                    'Unit': Unit == undefined ? null : Unit.trim(),
+                    'DebitAmount': parseFloat(DebitAmount).toFixed(2),
+                    'CreditAmount': CreditAmount == undefined ? 0 : parseFloat(CreditAmount).toFixed(2),
+                    'MaxCreditAmount': MaxCreditAmount == undefined ? 0 : parseFloat(MaxCreditAmount).toFixed(2),
+                    'TaxPercent': parseFloat(TaxPercent).toFixed(2),
+                    'CGSTAmount': parseFloat(CGSTAmount).toFixed(2),
+                    'SGSTAmount': parseFloat(SGSTAmount).toFixed(2),
+                    'IGSTAmount': parseFloat(IGSTAmount).toFixed(2),
+                    'VATAmount': parseFloat(VATAmount).toFixed(2),
+                    'TotalAmount': parseFloat(TotalAmount).toFixed(2)
+                }
+                data.push(allData);
+            });
+            return data.length > 0 ? { 'DebitNoteDetail': data } : '';
+        }
+        function EditDebitNoteDetails(button) {
+            //Determine the reference of the row using the button.
+            var row = $(button).closest("tr");
+            $("#DebitNoteId").val(row.find('.tdDebitNoteId').val());
+            $("#DebitNoteDetailId").val(row.find('.tdDebitNoteDetailId').val());
+            $("#DNCreditNoteId").val(row.find('.tdDNCreditNoteId').val());
+            $("#DNCreditNoteDetailId").val(row.find('.tdDNCreditNoteDetailId').val());
+            $("#DNCostHeadId").val(row.find('.tdDNCostHeadId').val());
+
+            var Description = "";
+            if ("@DrOrCrNote" == "D")
+                Description = row.find('.tdDescription').text();
+            else if ("@DrOrCrNote" == "C")
+                Description = row.find('.tdDescription input').val();
+            $("#Description").val(Description);
+
+            $("#JobNo").val(row.find('.tdJobNo').text().trim());
+
+            var DNCostHead = $("#DNCostHeadId option:selected").text().toUpperCase();
+            var IsReadOnly = (DNCostHead != "OTHERS" && DNCostHead != "PACKING MATERIAL");
+
+            $("#SacCode").val(row.find('.tdSacCode').text().trim()).prop('readonly', IsReadOnly);
+
+            $("#Quantity").val(row.find('.tdQuantity').text().trim());
+            $("#Rate").val(row.find('.tdRate').text().trim());
+            $("#UnitId").val(row.find('.tdUnitId').val());
+            $("#CurrencyID").val(parseInt($("#CurrencyID").val()));
+            $("#DebitAmount").val(row.find('.tdDebitAmount').text().trim());
+            $("#TaxPercent").val(row.find('.tdTaxPercent').text().trim()).prop('readonly', IsReadOnly);
+
+            row.closest('table').find('tr').each(function () { $(this).removeClass('bg') });
+            row.addClass('bg');
+            rowIndex = row[0].rowIndex;
+            $("#btnAddDetails").val('Update @DrOrCrNoteTextFull Details');
+            $("#btnSave").prop("disabled", true);
+            $("#btnApprove").prop("disabled", true);
+        }
+        function DeleteDebitNoteDetails(button) {
+            //Determine the reference of the row using the button
+            var row = $(button).closest("tr");
+            var rowNo = row[0].rowIndex;
+            if (confirm("Do you want to delete row " + rowNo + " ?")) {
+                //Get the reference of the table
+                var table = $("#tblDebitNoteDetails")[0];
+                //Delete the table row using row index.
+                table.deleteRow(row[0].rowIndex);
+                CalculateTotalAmount();
+                ClearDebitNote();
+                if ($("#tblDebitNoteDetails tbody")[0].rows.length == 0) {
+                    $("#tblDebitNoteDetails").hide();
+                }
+            }
+        }
+        function ManageDebtorDetailsControls() {
+            var DebtorId = $("#DebtorId").val();
+            if (DebtorId > 0)
+                SetDebtorDetails(DebtorId);
+            else
+                ClearDebtorDetails();
+        }
+        function SetDebtorDetails(DebtorId) {
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetDebtorDetails", "DebitNote")",
+                data: "{DebtorId:'" + DebtorId + "'}",
+                async: false,
+                success: function (data) {
+                    $("#DebtorName").val(data.Debtor.DebtorName).prop('readonly', true);
+                    $("#Address1").val(data.Debtor.Address1).prop('readonly', true);
+                    $("#Address2").val(data.Debtor.Address2).prop('readonly', true);
+
+                    $("#PINCode").val(data.Debtor.PINCode).prop('readonly', true);
+                    $("#GSTNo").val(data.Debtor.GSTNo).prop('readonly', true);
+                    $("#PANNo").val(data.Debtor.PANNo).prop('readonly', true);
+
+                    var newOption = new Option(data.Debtor.City, data.Debtor.CityID, true, true);
+                    $("#CityID").append(newOption).trigger('change');
+                    $("#CityID").prop('disabled', true);
+                    if ($("#CityID").data('select2')) {
+                        $("#CityID").select2('destroy');
+                    }
+                },
+                failure: function () {
+                    alert('error occured');
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert('error occured');
+                }
+            });
+        }
+        function ClearDebtorDetails() {
+            $("#DebtorName").val('').prop('readonly', false);
+            $("#Address1").val('').prop('readonly', false);
+            $("#Address2").val('').prop('readonly', false);
+            $("#CityID").val(null).trigger('change');
+            $("#CityID").prop('disabled', false);
+            $("#City").val('');
+            AjaxFillDropDown('#CityID', "@Url.Action("GetCityList", "DebitNote")");
+            $("#PINCode").val('').prop('readonly', false);
+            $("#GSTNo").val('').prop('readonly', false);
+            $("#PANNo").val('').prop('readonly', false);
+        }
+        function GetDebitNoteTaxType() {
+            var RevenueBrId = $("#RevenueBrId").val();
+            var POSStateId = $("#POSStateId").val();
+            if (RevenueBrId > 0 && POSStateId > 0) {
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    url: "@Url.Action("GetDebitNoteTaxType", "DebitNote")",
+                    data: "{RevenueBrId:'" + RevenueBrId + "',POSStateId:'" + POSStateId + "'}",
+                    async: false,
+                    success: function (data) {
+                        $("#TaxType").val(data.TaxType);
+                    },
+                    failure: function () {
+                        alert('error occured');
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert('error occured');
+                    }
+                });
+            }
+            else {
+                $("#TaxType").val('IGST');
+            }
+            CalculateTotalAmount();
+        }
+        function GetDebitNoteInvType() {
+            var CityID = $("#CityID").val();
+            if (CityID > 0) {
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    url: "@Url.Action("GetDebitNoteInvType", "DebitNote")",
+                    data: "{CityID:'" + CityID + "'}",
+                    async: false,
+                    success: function (data) {
+                        $("#DebtorCountry").val(data.InvType);
+                    },
+                    failure: function () {
+                        alert('error occured');
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert('error occured');
+                    }
+                });
+            }
+            else {
+                $("#DebtorCountry").val('');
+            }
+            SetInvoiceType($("#DebtorCountry").val());
+            CalculateTotalAmount();
+        }
+        function GetDebitNoteTaxRate(SBUId, DNCostHeadId, GetSacCode) {
+            var TaxRate = null;
+            if (SBUId > 0 && DNCostHeadId > 0) {
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    url: "@Url.Action("GetDebitNoteTaxRate", "DebitNote")",
+                    data: "{SBUId:'" + SBUId + "',DNCostHeadId:'" + DNCostHeadId + "'}",
+                    async: false,
+                    success: function (data) {
+                        TaxRate = data.TaxRate != null ? parseFloat(data.TaxRate).toFixed(2) : null;
+                        if (GetSacCode) {
+                            var SacCode = data.SacCode ? data.SacCode : "";
+                            var DNCostHead = $("#DNCostHeadId option:selected").text().toUpperCase();
+                            var IsReadOnly = (DNCostHead != "OTHERS" && DNCostHead != "PACKING MATERIAL");
+                            $("#SacCode").val(SacCode).prop("readonly", IsReadOnly);
+                        }
+                    },
+                    failure: function () {
+                        alert('error occured');
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert('error occured');
+                    }
+                });
+            }
+            else {
+                $("#SacCode").val('').prop("readonly", false);
+            }
+            return TaxRate;
+        }
+        function SetInvoiceType(InvType) {
+            if ($("#POSCountry").val().toUpperCase() == 'OUTSIDE COUNTRY' && InvType.toUpperCase() == 'OUT OF INDIA'
+                && $("#CurrencyID option:selected").text().toUpperCase() != "INR") {
+                $("#InvoiceType").val('EXPWOP');
+                if ("@DebitNoteStatus" == "Finalized" || "@DebitNoteStatus" == "Exported") {
+                    $("#btnEInvoice").prop("disabled", false).show();
+                    $("#btnDownloadEInvoice").show();
+                }
+            }
+            else if ($("#GSTNo").val() != "") {
+                $("#InvoiceType").val('B2B');
+                if ("@DebitNoteStatus" == "Finalized" || "@DebitNoteStatus" == "Exported") {
+                    $("#btnEInvoice").prop("disabled", false).show();
+                    $("#btnDownloadEInvoice").show();
+                }
+            }
+            else if ($("#GSTNo").val() == "") {
+                $("#InvoiceType").val('B2C');
+                $("#btnEInvoice").prop("disabled", true).hide();
+                $("#btnDownloadEInvoice").hide();
+            }
+
+            if ($("#SBUId option:selected").text().toUpperCase() != "REL") {
+                $("#btnEInvoice").prop("disabled", true).hide();
+                $("#btnDownloadEInvoice").hide();
+            }
+        }
+        function GetRevenueBranch() {
+            var SBUId = $("#SBUId").val();
+            var ReportName = "DebitNote";
+            if (SBUId > 0 && ReportName != "") {
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    url: "@Url.Action("GetRevenueBranchList", "DebitNote")",
+                    data: "{ReportName:'" + ReportName + "',SBUId:'" + SBUId + "'}",
+                    async: false,
+                    success: function (data) {
+                        $("#RevenueBrId").empty();
+                        $("#RevenueBrId").append('<option value="">Select One</option>');
+                        $.each(data.lstItem, function (i, item) {
+                            $("#RevenueBrId").append($('<option>').text(item.Text).attr('value', item.Value));
+                        });
+                        if ($("#RevenueBrId option").length == 2) {
+                            $("#RevenueBrId").val($("#RevenueBrId option:eq(1)").val()).prop("disabled", true);
+                            $("#RevenueBr").val($("#RevenueBrId option:selected").text());
+                            $("#RevenueBrIdHidden").val($("#RevenueBrId").val());
+                            GetDebitNoteTaxType();
+                        }
+                        else if ($("#RevenueBrId option").length > 2) {
+                            $("#RevenueBrId").prop('disabled', false);
+                        }
+                        else {
+                            $("#RevenueBrId").prop('disabled', true);
+                        }
+                    },
+                    failure: function () {
+                        alert('error occured');
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert('error occured');
+                    }
+                });
+            }
+            else {
+                $("#RevenueBrId").empty();
+                $("#RevenueBrId").append('<option value="">Select One</option>');
+                $("#RevenueBrId").prop('disabled', true);
+            }
+        }
+        function GetDNCostHead() {
+            var DNTypeId = $("#DNTypeId").val();
+            if (DNTypeId > 0  ) {
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    url: "@Url.Action("GetDNCostHeadList", "DebitNote")",
+                    data: "{DNTypeId:'" + DNTypeId + "'}",
+                    async: false,
+                    success: function (data) {
+                        $("#DNCostHeadId").empty();
+                        $("#DNCostHeadId").append('<option value="">Select One</option>');
+                        $.each(data.lstItem, function (i, item) {
+                            $("#DNCostHeadId").append($('<option>').text(item.Text).attr('value', item.Value));
+                        });
+
+                        //if ($("#DNCostHeadId option").length == 2) {
+                        //    $("#DNCostHeadId").val($("#DNCostHeadId option:eq(1)").val()).trigger('change');
+                        //}
+                    },
+                    failure: function () {
+                        alert('error occured');
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert('error occured');
+                    }
+                });
+            }
+            else {
+                $("#DNCostHeadId").empty();
+                $("#DNCostHeadId").append('<option value="">Select One</option>');
+            }
+        }
+        function CalculateCreditAmount(button) {
+            var row = $(button).closest("tr");
+
+            var DebitAmount = parseFloat(row.find('.tdDebitAmount').text()).toFixed(2);
+            var hfCreditAmountValue = parseFloat(row.find('.hfCreditAmountValue').val() ? row.find('.hfCreditAmountValue').val() : 0).toFixed(2);
+            var CreditAmount = parseFloat(row.find('.CreditAmountValue').val() ? row.find('.CreditAmountValue').val() : 0).toFixed(2);
+
+            if (parseFloat(CreditAmount) > parseFloat(DebitAmount)) {
+                swal({ title: "Error!", text: "Credit amount cannot be greater than debit amount - " + DebitAmount + ".", type: "error" });
+                row.find('.CreditAmountValue').val(hfCreditAmountValue);
+                return false;
+            }
+
+            row.find('.hfCreditAmountValue').val(CreditAmount);
+            CalculateTotalAmount();
+        }
+        function SetPANNo(PANNo) {
+            $("#PANNo").val($(PANNo).val().toUpperCase());
+        }
+        function SetTaxPercent(TaxPercent) {
+            if ($(TaxPercent).val())
+                $("#TaxPercent").val(parseFloat($(TaxPercent).val()).toFixed(2));
+        }
+        function OpenDebitNoteInvoicePrint() {
+            var url = "@Url.Action("DebitNoteInvoice_Print", "DebitNote", new { Key = CommonService.GenerateQueryString(param, new string[] { Model.DebitNoteId.ToString(), Model.DNCreditNoteId.ToString() }), DrOrCrNote = DrOrCrNote})";
+            url = url.replace(/&amp;/g, "&");
+            return !window.open(url);
+        }
+        function GenerateEInvoiceDebitNote(InvoiceNo) {
+            $.get("@Url.Action("GenerateEInvoiceDebitNote")", { InvoiceNo: InvoiceNo }, function (data) {
+                $('.APIResult').html(data.result);
+                $('#APIModal').modal();
+            });
+        }
+        function GetEInvoiceDetail(InvoiceNo) {
+            var url = '@Url.Action("DownloadToExcel", new { InvoiceNo = "-1" })';
+            url = url.replace("-1", InvoiceNo);
+            url = url.replace(/&amp;/g, "&");
+            var tab_text = "<table border='2px'><tr>";
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: url,
+                async: 'false',
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    tab_text = tab_text + data.htmlstring;
+                    tab_text = tab_text.replace(/<tr>/g, "");
+
+                    tab_text = tab_text + "</table>";
+                    tab_text = tab_text.replace(/<A[^>]*>|<\/A>/g, "");//Remove if u want links in your table
+                    tab_text = tab_text.replace(/<img[^>]*>/gi, ""); //Remove if u want images in your table
+                    tab_text = tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); //Removes input params
+
+                    var ua = window.navigator.userAgent;
+                    var msie = ua.indexOf("MSIE ");
+
+                    // If Internet Explorer
+                    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
+                        txtArea1.document.open("txt/html", "replace");
+                        txtArea1.document.write(tab_text);
+                        txtArea1.document.close();
+                        txtArea1.focus();
+                        sa = txtArea1.document.execCommand("SaveAs", true, "Download.xls");
+                    }
+                    //other browser not tested on IE 11
+                    else {
+                        sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+                    }
+                    return (sa);
+                },
+                error: function (reponse) {
+                    alert("error : " + reponse);
+                }
+            });
+        }
+    </script>
+}

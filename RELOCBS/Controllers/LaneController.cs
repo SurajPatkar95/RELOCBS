@@ -82,7 +82,7 @@ namespace RELOCBS.Controllers
             int? DestinationCountryID = null;
             int? OriginCityID = null;
             int? DestinationCityID = null;
-            ViewBag.PageTitle = "Lane Master";
+            session.Set<string>("PageSession", "Lane Master");
             string OrderBy = "";
             int Order = 0;
             string SearchKey = string.Empty;

@@ -1,0 +1,358 @@
+﻿@using RELOCBS.Entities;
+@using RELOCBS.Common;
+@model RELOCBS.Entities.MoveManageViewModel
+@{
+    string Flag = Model.Flag;
+    string surveyId = Model.SurveyID.ToString();
+    PackingSO r = new PackingSO();
+    string name = string.Empty;
+    int ratecomp = 0;
+    if (Flag == "Survey")
+    {
+        r = Model.SurveySOList;
+        name = "SurveySOList";
+    }
+    if (Flag == "Packing")
+    {
+        r = Model.PackingSOList;
+        name = "PackingSOList";
+        ratecomp = Convert.ToInt32(CommonService.RateComp.Origin);
+    }
+    else if (Flag == "Freight")
+    {
+        r = Model.FreightSOList;
+        name = "FreightSOList";
+        ratecomp = Convert.ToInt32(CommonService.RateComp.Freight);
+    }
+    else if (Flag == "Delivery")
+    {
+        r = Model.DeliverySOList;
+        name = "DeliverySOList";
+        ratecomp = Convert.ToInt32(CommonService.RateComp.Destination);
+    }
+}
+<div class="row" id="divInstructList">
+    @Html.Hidden(name + ".HFSOList", null, new { @id = "HFSOList" })
+    @Html.Hidden(name + ".HFFlag", Model.Flag, new { @id = "HFFlag", @class = "clsFlag" })
+    <div class="row divcosthead">
+        @if (Flag == "Survey")
+        {
+
+            <div class="col-sm-3">
+                <div class="form-group">
+                    <label>Rate Component</label>
+                    @Html.DropDownList("ddl_RateComp", new SelectList((System.Collections.IEnumerable)ViewData["RateComponent"], "Value", "Text"), "--Select RateComponents--", new { @class = "form-control input-sm clearfix" })
+                </div>
+            </div>
+        }
+
+
+        <div class="col-sm-3">
+            <div class="form-group">
+                <label>Cost Head</label>
+                @Html.DropDownList("ddl_CostHead", new SelectList((System.Collections.IEnumerable)ViewData["SOCostHeadList"], "Value", "Text"), "--Select CostHeads--", new { @class = "form-control input-sm clearfix" })
+            </div>
+        </div>
+        <div class="col-sm-2">
+            <div class="form-group">
+                <label>Wt. Unit</label>
+                @Html.DropDownList("ddl_WtUnit", new SelectList((System.Collections.IEnumerable)ViewData["WeightUnit"], "Value", "Text"), "--Select CostHeads--", new { @class = "form-control input-sm clearfix" })
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="form-group">
+                <label>Vol./Wt./Qty.</label>
+                @Html.TextBox("txt_Volume", "", new { @class = "form-control input-sm clearfix", placeholder = "Vol./Wt./Qty.", title = "Vol./Wt./Qty.", @id = "txt_Volume" })
+            </div>
+        </div>
+        @if (Flag == "Survey")
+        {
+            <div class="col-sm-3">
+                <div class="form-group">
+                    <label>Expected Cost</label>
+                    @Html.TextBox("txt_ExpCost", "", new { @class = "form-control input-sm clearfix", placeholder = "Expected Cost", title = "Expected Cost", @id = "txt_ExpCost" })
+                </div>
+            </div>
+        }
+        <div class="col-sm-3">
+            <div class="form-group">
+                <label>Details</label>
+                @Html.TextBox("txt_Detail", "", new { @class = "form-control input-sm clearfix", placeholder = "Details", title = "Details", @id = "txt_Detail" })
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="clearfix">
+                <input type="button" id="btnAddSO" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="SOAdd(this,@ratecomp)" />
+            </div>
+        </div>
+    </div>
+    @try
+    {
+        <div class="row CostTable">
+            <div class="col-sm-12 m-b-lg">
+                <div class="table-responsive" id="pnl-rates">
+                    <table class="table table-striped fixed_header" id="MoveSOtable">
+                        <thead class="ibox-title">
+                            <tr>
+                                <th class="tdNone"></th>
+                                @if (Flag == "Survey")
+                                {
+                                    <th>Rate Component</th>
+                                }
+                                <th>Cost Head</th>
+                                <th>Unit</th>
+                                <th>Volume</th>
+                                @if (Flag == "Survey")
+                                {
+                                    <th>Exp. Cost</th>
+                                }
+                                <th>Remark</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{int RowNo = 0;}
+
+                            @foreach (RELOCBS.Entities.PackingSOList row in r.SOList)
+                            {
+                                RowNo++;
+                                <tr class="package-row">
+                                    <td class="tdNone">
+                                        <input type="hidden" id="HFVCostHeadID" class="TblCostHead" value="@row.CostHeadID" />
+                                        <input type="hidden" id="HFVIsActive" class="TblIsActive" value="@row.Isactive.ToString()" />
+                                        <input type="hidden" id="HFVBatchId" class="TblBatch" value="@row.SOBatchId" />
+                                        <input type="hidden" id="HFVUnitId" class="TblUnit" value="@row.WtUnitID" />
+                                        <input type="hidden" id="HFVRateCompID" class="TblRateComp" value="@row.RateCompId" />
+                                        <input type="hidden" id="HFVSurveyId" class="TblSurvey" value="@row.SurveyId" />
+                                        <input type="hidden" id="HFVSurveyDetailId" class="TblSurveyDetail" value="@row.SurveyDetailId" />
+                                    </td>
+                                    @if (Flag == "Survey")
+                                    {
+                                        <td class="RateComp">
+                                            @row.RateCompName
+                                        </td>
+                                    }
+                                    <td class="CostHead">
+                                        @row.CostHeadName
+                                    </td>
+
+                                    <td class="Unit">
+                                        @row.WtUnit
+                                    </td>
+                                    <td class="Volume">
+                                        @Html.TextBox("Grd_txt_Volume", @row.Volume, new { @class = "form-control input-sm clearfix", placeholder = "Volume", title = "Volume", @id = "Grd_txt_Volume" })
+                                    </td>
+                                    @if (Flag == "Survey")
+                                    {
+                                        <td class="ExpCost">
+                                            @Html.TextBox("Grd_txt_ExpCost", @row.ExpectedCost, new { @class = "form-control input-sm clearfix", placeholder = "Expected Cost", title = "Expected Cost", @id = "Grd_txt_ExpCost" })
+                                        </td>
+                                    }
+                                    <td class="Remark">
+                                        @Html.TextBox("Grd_txt_Detail", @row.Remark, new { @class = "form-control input-sm clearfix", placeholder = "Details", title = "Details", @id = "Grd_txt_Detail" })
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm" id="btnRemove" onclick="RemoveSO(this)">
+                                            <span class="glyphicon glyphicon-trash"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    catch (Exception ex)
+    {
+        Console.Write(ex.ToString());
+    }
+</div>
+
+<script type="text/javascript">
+    var clsFlag = null;
+    function SOAdd(button,ratecomp) {
+        debugger;
+        var surveyId = '@surveyId';
+        fn_SOAdd(button, ratecomp, surveyId);
+        
+    }
+
+    
+    function fn_SOAdd(button, ratecomp, surveyId) {
+        var element = $(button).closest('.divcosthead');
+        var CostHeadDropdown = element.find("#ddl_CostHead");
+        var CostHeadDropdownSelected = CostHeadDropdown.val();
+        var CostHeadDropdownText = element.find("#ddl_CostHead :selected").text();
+        var RateCompDropdown = element.find("#ddl_RateComp");
+        var RateCompDropdownSelected = RateCompDropdown.val();
+        var RateCompDropdownText = element.find("#ddl_RateComp :selected").text();
+        var UnitDropdown = element.find("#ddl_WtUnit");
+        var UnitDropdownSelected = UnitDropdown.val();
+        var UnitDropdownText = element.find("#ddl_WtUnit :selected").text();
+        var txtDetail = element.find("#txt_Detail").val();
+        var txtVolume = element.find("#txt_Volume").val();
+        var txtExpCost = element.find("#txt_ExpCost").val();
+        var table = element.siblings('.CostTable');
+        /// Get the Agent from the MoveJob Table
+        clsFlag = table.siblings('#HFFlag').val();
+        debugger;
+        if (CostHeadDropdownSelected > 0 && txtVolume != null && txtVolume != "") {
+            var breakOut = false;
+
+            var tBody = table.find("#MoveSOtable > TBODY")[0];
+
+            var rowCount = table.find('#MoveSOtable > TBODY > tr').length;
+
+            var tdHFVCostHead = '<input type="hidden" class="TblCostHead" id="HFVCostHeadID_' + (rowCount + 1) + '" value="' + CostHeadDropdownSelected + '" />'
+                + '<input type="hidden" id="HFVIsActive_' + (rowCount + 1) + '" class="TblIsActive" value="true" />'
+                + '<input type="hidden" id="HFVBatchId_' + (rowCount + 1) + '" class="TblBatch" value="" />'
+                + '<input type="hidden" id="HFVUnitId_' + (rowCount + 1) + '" class="TblUnit" value="' + UnitDropdownSelected + '" />'
+            if (clsFlag == "Survey") {
+                + '<input type="hidden" id="HFVRateCompId_' + (rowCount + 1) + '" class="TblRateComp" value="' + RateCompDropdownSelected + '" />'
+            }
+            else {
+                + '<input type="hidden" id="HFVRateCompId_' + (rowCount + 1) + '" class="TblRateComp" value="' + ratecomp + '" />'
+            }
+            + '<input type="hidden" id="HFVSurveyId_' + (rowCount + 1) + '" class="TblSurvey" value="' + surveyId + '" />'
+                + '<input type="hidden" id="HFVSurveyDetailId_' + (rowCount + 1) + '" class="TblSurveyDetail" value="" />'
+            //    + txtServiceInstructValue + '</textarea>';
+            var tdHFVRemark = '<input type="text" name="Grd_txt_Detail" class="form-control input-sm clearfix" id="Grd_txt_Detail_' + (rowCount + 1) + '" value="' + txtDetail + '" />'
+            var tdHFVVolume = '<input type="text" name="Grd_txt_Volume" class="form-control input-sm clearfix" id="Grd_txt_Volume_' + (rowCount + 1) + '" value="' + txtVolume + '" />'
+            var tdHFVExpCost = '<input type="text" name="Grd_txt_ExpCost" class="form-control input-sm clearfix" id="Grd_txt_ExpCost_' + (rowCount + 1) + '" value="' + txtExpCost + '" />'
+
+            //Add Row.
+            var row = tBody.insertRow(-1);
+            row.className = "package-row";
+
+            var cell = $(row.insertCell(-1));
+            cell.html(tdHFVCostHead);
+            cell.addClass("tdNone");
+
+            //Add RateComp cell.
+            if (clsFlag == "Survey") {
+                cell = $(row.insertCell(-1));
+                cell.html(RateCompDropdownText);
+                cell.addClass("RateComp");
+            }
+            //Add  CostHeadID cell.
+            cell = $(row.insertCell(-1));
+            cell.html(CostHeadDropdownText);
+            cell.addClass("CostHead");
+
+
+
+            cell = $(row.insertCell(-1));
+            cell.html(UnitDropdownText);
+            cell.addClass("Unit");
+
+            //Add CostHeadText cell.
+            cell = $(row.insertCell(-1));
+            cell.html(tdHFVVolume);
+            cell.addClass("Volume");
+            //Add CostHeadText cell.
+            if (clsFlag == "Survey") {
+                cell = $(row.insertCell(-1));
+                cell.html(tdHFVExpCost);
+                cell.addClass("ExpCost");
+            }
+            //Add Agent cell.
+            cell = $(row.insertCell(-1));
+            cell.html(tdHFVRemark);
+            cell.addClass("Remark");
+
+            //Add Button cell.
+            cell = $(row.insertCell(-1));
+            var btnRemove = '<button type="button" class="btn btn-danger btn-sm" onclick="RemoveSO(this)"  id="btnRemove"><span class="glyphicon glyphicon-trash"></span></button>';
+            //var btnEdit = '<a onclick="EditInst(this);" id="CostHeadDetails_' + (rowCount + 1) + '" data-id=' + (rowCount + 1) + ' class="btn btn-xs btn-default glyphicon glyphicon-pencil EditNone" data-cache="false" title="Detail CostHead" data - assigned - id=' + (rowCount + 1) + ' data-toggle="modal" data-target="#EditModal"></a>';
+
+            cell.append(btnRemove);
+            GetSOList(table);
+            //Clear the TextBoxes.
+            CostHeadDropdown.prop("selected", "0");
+
+            $("#txt_Detail").val("");
+            $("#txt_Volume").val("");
+
+        }
+        else {
+            alert('Cost Head, Details and Volume is required');
+            return false;
+        }
+    }
+
+    function GetSOList(table) {
+
+        var data = [];
+        if (clsFlag == 'Survey') {
+            table.find("#MoveSOtable > TBODY > tr").each(function () {
+                var CostHeadID = $(this).find('.tdNone .TblCostHead').val();
+                var RateCompID = $(this).find('.tdNone .TblRateComp').val();
+                var Detail = $(this).find(".Remark :input").val();
+                var Volume = $(this).find(".Volume :input").val();
+                var ExpCost = $(this).find(".ExpCost :input").val();
+                var UnitId = $(this).find('.tdNone .TblCostHead').val();
+                var Isactive = $(this).find('.tdNone .TblIsActive').val();
+                var SurveyId = $(this).find('.tdNone .TblSurvey').val();
+                var SurveyDetailId = $(this).find('.tdNone .TblSurveyDetail').val();
+                var alldata = {
+                    'SurveyDetailsID': SurveyDetailId,
+                    'SurveyID': SurveyId,
+                    'SurveyerID': null,
+                    'RateCompID': parseInt(RateCompID),
+                    'CostHeadID': parseInt(CostHeadID),
+                    'RemarksOnCostHead': Detail,
+                    'WtUnitID': parseInt(UnitId),
+                    'WtVolume': parseFloat(Volume),
+                    'ExpectedCost': parseFloat(ExpCost),
+                    'Isactive': parseFloat(Isactive)
+                }
+
+                data.push(alldata);
+            });
+            table.siblings('#HFSOList').val(JSON.stringify({ 'SurveyDetail': data }));
+        }
+        else {
+            table.find("#MoveSOtable > TBODY > tr").each(function () {
+                var CostHeadID = $(this).find('.tdNone .TblCostHead').val();
+                var RateCompID = $(this).find('.tdNone .TblRateComp').val();
+                var Detail = $(this).find(".Remark :input").val();
+                var Volume = $(this).find(".Volume :input").val();
+                //var ExpCost = $(this).find(".ExpCost :input").val();
+                var UnitId = $(this).find('.tdNone .TblCostHead').val();
+                var Isactive = $(this).find('.tdNone .TblIsActive').val();
+                var alldata = {
+                    'MoveCompID': parseInt(RateCompID),
+                    'CostHeadID': parseInt(CostHeadID),
+                    'ServOrderRemarks': Detail,
+                    'WtUnitID': parseInt(UnitId),
+                    'WtVolume': parseFloat(Volume),
+                    //'ExpectedCost': parseFloat(ExpCost),
+                    'Isactive': parseFloat(Isactive)
+                }
+
+                data.push(alldata);
+            });
+            table.siblings('#HFSOList').val(JSON.stringify({ 'CostHeadwiseDetail': data }));
+        }
+
+    }
+
+    function RemoveSO(button) {
+        var btn = $(button).closest('tr');
+        var table = $(button).closest('.CostTable');
+        var BatchId = btn.find('.tdNone').find('.TblBatch').val();
+
+        if (BatchId) {
+            btn.find('.tdNone').find('.TblIsActive').val('InActive')
+            btn.hide();
+        }
+        else {
+            btn.remove();
+        }
+        GetSOList(table);
+
+    }
+    
+</script>

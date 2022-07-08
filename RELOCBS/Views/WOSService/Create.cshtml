@@ -1,0 +1,90 @@
+﻿@model RELOCBS.Entities.WOSService
+
+@{
+    if (Model.ServiceMastID == 0)
+    {
+        ViewBag.Title = "Add Service";
+    }
+    else
+    {
+        ViewBag.Title = "Edit Service";
+    }
+}
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+
+@using (Html.BeginForm("Create", "WOSService", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(false)
+
+    @Html.HiddenFor(m => m.ServiceMastID)
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="row form-group">
+                    <label class="control-label col-md-3 col-sm-3 col-md-offset-2 col-sm-offset-2 requiredlabel">Service Name</label>
+                    <div class="col-md-5 col-sm-5">
+                        @Html.EditorFor(m => m.ServiceName, new { @class = "form-control input-sm", @id = "ServiceName", @title = "Service Name" })
+                        @Html.ValidationMessageFor(m => m.ServiceName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-offset-2 col-sm-offset-2">
+                        <div class="col-md-5 col-sm-5">
+                            @Html.CheckBoxFor(m => m.IsActive, new { @class = "checkbox-margins", @id = "IsActive", @title = "Is Active" }) Active
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnSave" />
+        </div>
+    </div>
+}
+
+<script>
+    $(document).ready(function () {
+
+        $("[data-val-required]").each(function () {
+            $("label[for=" + this.id + "]").addClass("requiredlabel")
+        });
+
+        $('.enableselect').select2();
+
+        $("input").attr("autocomplete", "off");
+
+        var form = $("#mdlAddEdit form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+
+        $('#mdlAddEdit').on('shown.bs.modal', function () {
+            $('#CountryID').focus();
+        });
+        $('#mdlAddEdit form').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+
+            $('#mdlAddEdit .modal-content').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '#mdlAddEdit .modal-content',
+                success: function (data) {
+                    $('#mdlAddEdit .modal-content').html(data.Result);
+                    if (data.Success) {
+                        $('#mgrid .pagination li.active a').trigger('click');
+                        toastr.success(data.Message);
+                        $('#mdlAddEdit').modal('hide');
+                    }
+                    $('#mdlAddEdit .modal-content').unmask();
+                }
+            });
+        });
+    });
+</script>

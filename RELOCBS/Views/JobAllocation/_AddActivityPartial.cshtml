@@ -1,0 +1,78 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model RELOCBS.Entities.JobActivity
+
+@{
+
+    string _PageID = "18";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+    //var activityModel = new RELOCBS.Entities.ActivityAllocationModel();
+}
+
+
+@using (Html.BeginForm("AddActivity", "JobAllocation", null, FormMethod.Post, new { enctype = "multipart/form-data", id = "AddActivity", name = "AddActivity" }))
+{
+    <div class="modal-body">
+        <div id="AdditionalService" class="row col-md-12">
+            @Html.ValidationSummary(true, "")
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(a => a.ActivityID)
+            @Html.HiddenFor(a => a.InstID)
+
+            <div class="row">
+                <div class="col-sm-4 col-md-4 form-group">
+                    <label>Activity Type</label>
+                    @Html.DropDownListFor(model => model.ActivityTypeID, new SelectList((System.Collections.IEnumerable)ViewData["ActivityTypeList"], "Value", "Text"), "--Select Activity Type--", new { @class = "form-control input-sm clearfix enableselect" })
+                    @Html.ValidationMessageFor(a => a.ActivityTypeID, "", new { @class = "text-danger" })
+
+                </div>
+                <div class="col-sm-3 col-md-3 form-group">
+                    <label>From Date</label>
+                    @Html.TextBoxFor(model => model.FromDate, null, new { @class = "form-control input-sm clearfix AFromDate datetimepicker " })
+                    @Html.ValidationMessageFor(a => a.FromDate, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-sm-3 col-md-3 form-group">
+                    <label>To Date</label>
+                    @Html.TextBoxFor(model => model.ToDate, null, new { @class = "form-control input-sm clearfix AToDate datetimepicker" })
+                    @Html.ValidationMessageFor(a => a.ToDate, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Time</label>
+                    @Html.TextBoxFor(model => model.RepTime, null, new { @class = "form-control input-sm clearfix ARepTime timepicker" })
+                    @Html.ValidationMessageFor(a => a.RepTime, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3 col-md-3 form-group">
+                    <label>From Location</label>
+                    @Html.TextBoxFor(model => model.FromLocation, null, new { @class = "form-control input-sm clearfix AFromLoc" })
+                    @Html.ValidationMessageFor(a => a.FromLocation, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-sm-3 col-md-3 form-group">
+                    <label>To Location</label>
+                    @Html.TextBoxFor(model => model.ToLocation, null, new { @class = "form-control input-sm clearfix AToLoc" })
+                    @Html.ValidationMessageFor(a => a.ToLocation, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-sm-3 col-md-3 form-group">
+                    <label>Remark</label>
+                    @Html.TextBoxFor(model => model.Remark, null, new { @class = "form-control input-sm clearfix ARemark" })
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <input type="submit" id="btnAddActivity" name="submit" class="btn btn-primary" value="Save" />
+        <button type="button" name="close" class="btn btn-default" data-dismiss="modal">Close</button>
+    </div>
+}
+
+
+    @Scripts.Render("~/bundles/jqueryval")
+

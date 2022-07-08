@@ -1,0 +1,277 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Word Document</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style type="text/css">
+
+        .ttop {
+            vertical-align: top !important;
+        }
+
+        body {
+        }
+
+        .floatLeft {
+            float: left;
+        }
+
+        .tcenter {
+            text-align: center !important;
+        }
+
+        .boxWraper {
+            border: 1px solid #7b7b7b;
+            display: block;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+            .boxWraper .padding tr td {
+                padding: 3px 6px;
+            }
+
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        tr.border_bottom td {
+            border-bottom: 1pt solid black;
+        }
+
+        .tableData {
+            border: 0 !important;
+            line-height: 16px;
+        }
+
+
+            .tableData tr td {
+                background: #fff;
+                height: 100%;
+                vertical-align: middle;
+                border: 1px solid #e3e7ee;
+            }
+
+        .boxWraper tr th {
+            border: 1px solid #e3e7ee;
+            text-align: center;
+            padding: 3px 6px;
+        }
+
+
+        .marginLR {
+            margin: 0 auto;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        /*table {
+            border-collapse: separate;
+            border-spacing: 2px;
+        }*/
+
+        table {
+            background-color: transparent;
+        }
+
+        /*table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+        }*/
+
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 14px;
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            color: #808080;
+            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: subpixel-antialiased;
+            background: #fff;
+        }
+
+        .cw100 {
+            width: 100px !important;
+        }
+
+        .cw150 {
+            width: 150px !important;
+        }
+
+        .cw200 {
+            width: 200px !important;
+        }
+
+        .cw250 {
+            width: 250px !important;
+        }
+
+        .cw270 {
+            width: 270px !important;
+        }
+
+        .cw110 {
+            width: 110px !important;
+        }
+
+        .cw80 {
+            width: 80px !important;
+        }
+
+        .cw120 {
+            width: 120px !important;
+        }
+
+        .cw140 {
+            width: 140px !important;
+        }
+
+        .cw130 {
+            width: 140px !important;
+        }
+
+        .tbold {
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            font-weight: 600;
+        }
+
+        .tright {
+            text-align: right !important;
+        }
+
+        label {
+            margin-bottom: 0;
+        }
+
+        .tcollapse {
+            border-collapse: collapse;
+        }
+
+
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+        .taW {
+            width: 100% !important;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: normal;
+            font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+        }
+
+        .tColHead {
+            width: 166.5pt;
+            border-right: 1pt solid windowtext;
+            border-bottom: 1pt solid windowtext;
+            border-left: 1pt solid windowtext;
+            border-image: initial;
+            border-top: none;
+            padding: 0cm 5.4pt;
+            height: 21.5pt;
+            vertical-align: top;
+        }
+
+        .logo {
+            margin-bottom: .0001pt;
+            margin-right: 35px;
+            font-size: 16px;
+            font-family: "Times New Roman",serif;
+        }
+
+        .tdLogo {
+            align-content: center;
+            border-top: 1pt solid black;
+            border-left: 1pt solid black;
+            border-right: 1pt solid black;
+            padding: 0cm 5.4pt;
+            margin-bottom: 10px;
+        }
+
+        .thBoldR {
+            border-top: none;
+            border-left: none;
+            border-bottom: 1pt solid windowtext;
+            border-right: 1pt solid windowtext;
+            background: rgb(217, 217, 217);
+            padding: 0cm 5.4pt;
+            vertical-align: top;
+        }
+
+        .thBoldL {
+            border-top: none;
+            border-left: 1pt solid windowtext;
+            border-bottom: 1pt solid windowtext;
+            border-right: 1pt solid windowtext;
+            background: rgb(217, 217, 217);
+            padding: 0cm 5.4pt;
+            vertical-align: top;
+        }
+
+        .thBold {
+            border-top: none;
+            border-left: 1pt solid windowtext;
+            border-bottom: 1pt solid windowtext;
+            border-right: 1pt solid windowtext;
+            background: rgb(217, 217, 217);
+            padding: 0cm 5.4pt;
+            vertical-align: top;
+        }
+
+        .thFont {
+            margin: 0cm;
+            margin-bottom: .0001pt;
+            font-size: 16px;
+            font-family: "Times New Roman",serif;
+            color: black;
+        }
+
+        .tdTitle {
+            margin: 0cm;
+            margin-bottom: .0001pt;
+            font-size: 16px;
+            font-family: "Times New Roman",serif;
+            color: navy;
+        }
+
+        .tColDesc {
+            width: 351.0pt;
+            border-top: none;
+            border-left: none;
+            border-bottom: solid windowtext 1.0pt;
+            border-right: solid windowtext 1.0pt;
+            padding: 0cm 5.4pt 0cm 5.4pt;
+            height: 23.0pt;
+            vertical-align: top;
+        }
+
+        .tdPara {
+            margin: 0cm;
+            margin-bottom: .0001pt;
+            font-size: 16px;
+            font-family: "Times New Roman",serif;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        @RenderBody()
+    </div>
+</body>
+</html>

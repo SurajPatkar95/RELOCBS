@@ -1,0 +1,523 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html;
+@using RELOCBS.Common;
+
+@model  RELOCBS.Entities.QuotePrint
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+@using (Html.BeginForm("GetPrint", "Quotation", null, FormMethod.Post, new { enctype = "multipart/form-data", id = "PrintQuote", name = "PrintQuoteForm" }))
+{
+<div class="modal-body" style="height:80vh;overflow:auto">
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(a => a.SurveyID)
+    @Html.HiddenFor(a => a.RateCompRateWtID)
+    @Html.HiddenFor(a => a.RateCompRateWtBatchID)
+    @Html.HiddenFor(a => a.IsLumsum)
+    <div class="container m-b-md m-t-sm">
+        <div class="row">
+            <div class="col-sm-2 col-md-2 form-group no-padding-r">
+                <label>Quote To</label>
+                @Html.DropDownListFor(a => a.QuoteTo, CommonService.BillingOn, "Select One", new { @class = "form-control", id = "BillingOn", title = "Billing On", onchange = "ChangeQuoteTo(this.value)" })
+                @Html.ValidationMessageFor(model => model.QuoteTo, "", new { @class = "text-danger" })
+                @Html.Hidden("HFQuoteTo", Model.QuoteTo)
+            </div>
+            <div class="col-sm-10 col-md-10 form-group no-padding-r ISCLIENT  width-auto hidden">
+                <label>Client</label>
+                @Html.HiddenFor(a => a.ClientID)
+                @Html.DropDownListFor(a => a.ClientID, new SelectList((System.Collections.IEnumerable)ViewData["ClientList"], "Value", "Text", ViewData["ClientList"]), "Select One", new { @class = "form-control", id = "Client", title = "Client", autocomplete = "on", @readonly = "readonly" })
+            </div>
+            <div class="col-sm-10 col-md-10 form-group no-padding-r ISCORPORATE width-auto hidden">
+                <label>Account</label>
+                @Html.HiddenFor(a => a.AccountID)
+                @Html.DropDownListFor(a => a.AccountID, new SelectList((System.Collections.IEnumerable)ViewData["AccountList"], "Value", "Text", ViewData["AccountList"]), "Select One", new { @class = "form-control", id = "Account", title = "Account", autocomplete = "on", @readonly = "readonly" })
+            </div>
+            <div class="col-sm-10 col-md-10 form-group no-padding-r ISSHIPPER width-auto hidden">
+                <div class="form-group col-sm-1 col-md-1 m-r-n no-padding-r width-auto">
+                    <label @*style = "width:50px"*@></label>
+                    @Html.DropDownListFor(a => a.Shipper_Title, CommonService.Title, new { @class = "form-control ", @style = "width:75%", id = "Title", title = "Title", @readonly = "readonly" })
+                </div>
+                <div class="form-group col-sm-4 col-md-4 no-padding-left-right width-auto">
+                    <label>First Name</label>
+                    @Html.TextBoxFor(a => a.ShipperFName, new { @class = "form-control input-sm ", placeholder = "First Name", title = "First Name", @id = "ShipperFName", @readonly = "readonly" })
+                </div>
+                <div class="form-group col-sm-4 col-md-4 no-padding-left-right width-auto">
+                    <label>Last Name</label>
+                    @Html.TextBoxFor(a => a.ShipperLName, new { @class = "form-control input-sm", placeholder = "Last Name", title = "Last Name", @id = "ShipperLName", @readonly = "readonly" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.QuoteIntro, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.QuoteIntro, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                    @Html.ValidationMessageFor(model => model.QuoteIntro, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-sm-6">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Subject, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.Subject, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                    @Html.ValidationMessageFor(model => model.Subject, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-6">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Remarks, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.Remarks, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                    @Html.ValidationMessageFor(model => model.Remarks, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-sm-6">
+                <div class="col-md-4 col-sm-4">
+                    @Html.LabelFor(model => model.Attention, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(a => a.Attention, new SelectList((System.Collections.IEnumerable)ViewData["TitleList"], "Value", "Text", ViewData["TitleList"]), "Select One", new { @class = "form-control", id = "Attention", title = "Attention" })
+                    @*@Html.EditorFor(model => model.Attention, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })*@
+                    @Html.ValidationMessageFor(model => model.Attention, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-md-8 col-sm-8">
+                    <div class="form-group">
+                        @Html.EditorFor(model => model.AttentionName, new { htmlAttributes = new { @class = "form-control input-sm clearfix filter-custom-margin" } })
+                        @Html.ValidationMessageFor(model => model.AttentionName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Address1, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.Address1, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                    @Html.ValidationMessageFor(model => model.Address1, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Address2, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.Address2, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                    @Html.ValidationMessageFor(model => model.Address2, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 col-sm-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Address3, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.Address3, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                    @Html.ValidationMessageFor(model => model.Address3, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.City, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(a => a.City, new SelectList((System.Collections.IEnumerable)ViewData["CityList"], "Value", "Text"),"Select One", new { @class = "form-control enableselect CityDropDown", id = "City", title = "City" })
+                    @Html.ValidationMessageFor(model => model.City, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Zip, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.Zip, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                    @Html.ValidationMessageFor(model => model.Zip, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-4">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Insurance, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.Insurance, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                    @Html.ValidationMessageFor(model => model.Insurance, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 col-sm-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.SentBy, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(a => a.SentBy, new SelectList((System.Collections.IEnumerable)ViewData["EmployeeList"], "Value", "Text", ViewData["EmployeeList"]), "Select One", new { @class = "form-control enableselect", id = "SentBy", title = "SentBy" })
+                    @Html.ValidationMessageFor(model => model.SentBy, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-3">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Quoted_Curr, htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownListFor(a => a.Quoted_Curr, new SelectList((System.Collections.IEnumerable)ViewData["BaseCurrencyRate"], "Value", "Text", ViewData["BaseCurrencyRate"]), "Select One", new { @class = "form-control enableselect", title = "Currency" })
+                    @Html.ValidationMessageFor(model => model.Quoted_Curr, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-4">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.QuotedExchange_rate, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.QuotedExchange_rate, new { htmlAttributes = new { @class = "form-control input-sm clearfix", onkeypress = "return OnlyDouble(this, event);" } })
+                    @Html.ValidationMessageFor(model => model.QuotedExchange_rate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-sm-12 col-md-12">
+                <fieldset class="width-100 border">
+                    <legend>Services</legend>
+
+                    <table class="table table-bordered table-responsive table-hover" id="PrintServices">
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="checkallServices" id="checkallServices" onClick="check_uncheck_checkbox(this,this.checked);" />Check All
+                            </td>
+                            <th>Service</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                        </tr>
+                        @for (var i = 0; i < Model.CostHeadList.Count(); i++)
+                        {
+                            <tr data-id="@Model.CostHeadList[i].CostHeadID">
+                                <td>
+
+                                    @if(Model.QuoteSendToID==null || Model.QuoteSendToID<=0)
+                                    {
+                                        Model.CostHeadList[i].Checked = true;
+                                    }
+
+                                    @Html.CheckBoxFor(model => Model.CostHeadList[i].Checked, htmlAttributes: new { @class = "chkService", onclick = "checkSingle(this, this.checked)" })
+                                    @Html.HiddenFor(x => Model.CostHeadList[i].CostHeadID)
+                                    @Html.HiddenFor(x => Model.CostHeadList[i].RateComponentID)
+                                    @Html.HiddenFor(x => Model.CostHeadList[i].RateCompRateID)
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => Model.CostHeadList[i].CostHeadName, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => Model.CostHeadList[i].CostHeadDescription, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => Model.CostHeadList[i].Amount, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+                                </td>
+                            </tr>
+                        }
+                    </table>
+                </fieldset>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-sm-12 col-md-12">
+                <fieldset class="width-100 border">
+                    <legend>Terms</legend>
+                    <table class="table table-bordered table-responsive table-hover" id="PrintTerms">
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="checkallTerms" id="checkallTerms" onClick="check_uncheck_checkbox(this,this.checked);" />Check All
+                            </td>
+                            <th>Term</th>
+                            <th>Description</th>
+                        </tr>
+                        @for (var i = 0; i < Model.QuoteTermsList.Count(); i++)
+                        {
+                            <tr data-id="@Model.QuoteTermsList[i].TermID">
+                                <td>
+                                    @Html.CheckBoxFor(model => Model.QuoteTermsList[i].Checked, htmlAttributes: new { @class = "chkTerm", onclick = "checkSingle(this, this.checked)" })
+                                    @Html.HiddenFor(x => Model.QuoteTermsList[i].TermID)
+                                    @Html.HiddenFor(x => Model.QuoteTermsList[i].Type)
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => Model.QuoteTermsList[i].TermName, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => Model.QuoteTermsList[i].TermDescription, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                                </td>
+                            </tr>
+                        }
+                    </table>
+                </fieldset>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 col-md-6">
+                <fieldset class="width-100 border">
+                    <legend>Exclusions</legend>
+                    <table class="table table-bordered table-responsive table-hover" id="PrintExclusions">
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="checkallExclusions" id="checkallExclusions" onClick="check_uncheck_checkbox(this,this.checked);" />Check All
+                            </td>
+                            <th class="hide">Exclusion</th>
+                            <th>Description</th>
+                        </tr>
+                        @for (var i = 0; i < Model.ExclusionList.Count(); i++)
+                        {
+                            <tr data-id="@Model.ExclusionList[i].CostHeadID">
+                                <td>
+                                    @Html.CheckBoxFor(model => Model.ExclusionList[i].Checked, htmlAttributes: new { @class = "chkExclusion", onclick = "checkSingle(this, this.checked)" })
+                                    @Html.HiddenFor(x => Model.ExclusionList[i].CostHeadID)
+                                    @Html.HiddenFor(x => Model.ExclusionList[i].Type)
+                                </td>
+                                <td class="hide">
+                                    @Html.EditorFor(x => Model.ExclusionList[i].CostHeadName, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => Model.ExclusionList[i].CostHeadDescription, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                                </td>
+                            </tr>
+                        }
+                    </table>
+                </fieldset>
+            </div>
+            <div class="col-sm-6 col-md-6">
+                <fieldset class="width-100 border">
+                    <legend>Inclusions</legend>
+                    <table class="table table-bordered table-responsive table-hover" id="PrintInclusions">
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="checkallInclusions" id="checkallInclusions" onClick="check_uncheck_checkbox(this,this.checked);" />Check All
+                            </td>
+                            <th class="hide">Inclusion</th>
+                            <th>Description</th>
+                        </tr>
+                        @for (var i = 0; i < Model.InclusionList.Count(); i++)
+                        {
+                            <tr data-id="@Model.InclusionList[i].CostHeadID">
+                                <td>
+                                    @Html.CheckBoxFor(model => Model.InclusionList[i].Checked, htmlAttributes: new { @class = "chkInclusion", onclick = "checkSingle(this, this.checked)" })
+                                    @Html.HiddenFor(x => Model.InclusionList[i].CostHeadID)
+                                    @Html.HiddenFor(x => Model.InclusionList[i].Type)
+                                </td>
+                                <td class="hide">
+                                    @Html.EditorFor(x => Model.InclusionList[i].CostHeadName, new { htmlAttributes = new { @class = "form-control input-sm clearfix", @readonly = "readonly" } })
+                                </td>
+                                <td>
+                                    @Html.EditorFor(x => Model.InclusionList[i].CostHeadDescription, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                                </td>
+                            </tr>
+                        }
+                    </table>
+                </fieldset>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+    <div class="modal-footer">
+        <div class="row">
+            <div class="col-12 col-sm-12 col-md-12">
+                <div class="form-group">
+                    <button type="button" id="btn_PrintSave" name="SubmitButton" class="btn btn-primary m-t-sm m-b-sm  m-r-sm btn-sm  pull-right" value="Save" onclick="Print(this)">Save</button>
+                    @if(!string.IsNullOrWhiteSpace(Model.QuoteNo))
+                    {
+                        <button type="button" id="btn_Print" name="SubmitButton" class="btn btn-primary m-t-sm m-b-sm  m-r-sm btn-sm  pull-right" value="SavePrint" onclick="Print(this)">Save & Print</button>
+                        <button type="button" id="btn_Email" name="SubmitButton" class="btn btn-primary m-t-sm m-b-sm  m-r-sm btn-sm  pull-right" value="SaveEmail" onclick="Print(this)">Save & Email</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    function check_uncheck_checkbox(sender, isChecked) {
+        var className = "";
+        
+        if (sender.id == "checkallServices") {
+            className = ".chkService";
+        } else if (sender.id == "checkallInclusions") {
+            className = ".chkInclusion";
+        }
+        else if (sender.id == "checkallExclusions") {
+            className = ".chkExclusion";
+        } else if (sender.id == "checkallTerms") {
+            className = ".chkTerm";
+        }
+
+        if (className!="") {
+
+            if (isChecked) {
+                $(className).each(function () {
+                    this.checked = true;
+                });
+
+                //$('#' + sender.id).val('uncheck all');
+
+            } else {
+                $(className).each(function () {
+                    this.checked = false;
+                });
+
+                //$('#' + sender.id).val('uncheck all');
+            }
+
+        }
+
+    }
+
+    function checkSingle(sender,isChecked) {
+
+        var ChkAllID = "";
+
+        var ChkID = document.getElementById(sender.id);
+
+        debugger;
+        
+        if (ChkID.className == "chkService" ) {
+            ChkAllID = "checkallServices";
+
+        } else if (ChkID.className == "chkInclusion") {
+
+            ChkAllID = "checkallInclusions";
+
+        }
+        else if (ChkID.className == "chkExclusion" ) {
+
+            ChkAllID = "checkallExclusions" ;
+
+        } else if (ChkID.className == "chkTerm" ) {
+
+            ChkAllID = "checkallTerms";
+        }
+        
+        if (isChecked) {
+            var isAllChecked = 0;
+
+            $("." + ChkID.className).each(function () {
+                if (!this.checked)
+                    isAllChecked = 1;
+            });
+
+            if (isAllChecked == 0) {
+                $("#" + ChkAllID).prop("checked", true);
+            }
+        }
+        else {
+            $("#" + ChkAllID).prop("checked", false);
+        }
+        
+    }
+
+    
+
+
+    function Print(sender) {
+        var form = sender.form;
+        $.validator.unobtrusive.parse($('#' + form.id));
+        $('#' + form.id).validate();
+        if ($('#' + form.id).valid()) {
+
+            debugger;
+            $('#' + form.id).ajaxSubmit(
+                {
+                    dataType: 'json',
+                    crossDomain: true,
+                    data: { SubmitButton: sender.value },
+                    beforeSubmit: showRequest,
+                    success: function (result) {
+                        if (result.ok) {
+                            toastr.success(result.message);
+                            if (result.Report) {
+                                window.open(result.newurl, '_blank'); ////window.location = result.newurl;
+                            }
+                        }
+                        else {
+                            toastr.error(result.message);
+                        }
+
+                        return false;
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+                        alert("Error : " + errorThrown.error);
+                        //updateTips("Error occured.Unable to update.");
+                    }
+
+                }
+            );
+
+
+        }
+        ////else {
+        ////    var validator = $('#' + form.id).validate();
+        ////    validator.form();
+        ////}
+
+        return false;
+    }
+
+
+    function showRequest(formData, jqForm, options) {
+
+    }
+
+    function ChangeQuoteTo(QuoteTo) {
+        debugger;     
+        PopupDropDown('#City', "@Url.Action("GetCityList", "Quotation")");
+        var theDiv = $((".IS" + QuoteTo).toUpperCase());
+        theDiv.slideDown().removeClass("hidden");
+        theDiv.siblings('[class*=IS]').slideUp(function () {
+            $(this).addClass("hidden");
+        });
+
+         var addrss1 = '@Model.Address1';
+         var addrss2 = '@Model.Address2';
+         var addrss3 = '@Model.Address3';
+         var city = '@Model.City';
+         var pin = '@Model.Zip';
+
+        if ($("#HFQuoteTo").val().toUpperCase() != QuoteTo.toUpperCase() && QuoteTo.toUpperCase() == "CORPORATE") {
+
+          addrss1 = '@Model.AcctAddrs1';
+          addrss2 = '@Model.AcctAddrs2';
+          addrss3 = '@Model.AcctAddrs3';
+          city = '@Model.AcctCityID';
+            pin = '@Model.AcctZip';
+        }
+        else if ($("#HFQuoteTo").val().toUpperCase() != QuoteTo.toUpperCase() && QuoteTo.toUpperCase() == "CLIENT") {
+
+          addrss1 = '@Model.ClientAddrs1';
+          addrss2 = '@Model.ClientAddrs2';
+          addrss3 = '@Model.ClientAddrs3';
+          city = '@Model.ClientCityID';
+          pin = '@Model.ClientZip';
+
+        }
+        else if ($("#HFQuoteTo").val().toUpperCase() != QuoteTo.toUpperCase() && QuoteTo.toUpperCase() == "SHIPPER") {
+
+          addrss1 = '@Model.ShipperAddrs1';
+          addrss2 = '@Model.ShipperAddrs2';
+          addrss3 = '';
+          city = '@Model.ShipperCityID';
+          pin = '@Model.ShipperZip';
+        }
+        else {
+
+          addrss1 = '@Model.Address1';
+          addrss2 = '@Model.Address2';
+          addrss3 = '@Model.Address3';
+          city = '@Model.City';
+          pin = '@Model.Zip';
+
+
+        }
+
+        debugger;
+
+        $("#Address1").val(addrss1);
+        $("#Address2").val(addrss2);
+        $("#Address3").val(addrss3);
+        $("#Zip").val(pin);
+
+        if (parseInt(city)>0) {
+            PopupDropDown('#City', "@Url.Action("GetCityList", "Quotation")",city);
+        }
+        else {
+
+            PopupDropDown('#City', "@Url.Action("GetCityList", "Quotation")");
+        }
+    }
+</script>
+<script src="~/Scripts/jquery.validate.js"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js"></script>

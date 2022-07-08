@@ -1,0 +1,440 @@
+﻿<style type="text/css">
+
+    .ttop {
+        vertical-align: top !important;
+    }
+
+    body {
+    }
+
+    .floatLeft {
+        float: left;
+    }
+
+    .tcenter {
+        text-align: center !important;
+    }
+
+    .boxWraper {
+        border: 1px solid #7b7b7b;
+        display: block;
+        overflow: hidden;
+        margin-bottom: 5px;
+    }
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+    .grid-header {
+        background: #eee;
+        font-size: 13px;
+    }
+
+    tr.border_bottom td {
+        border-bottom: 1pt solid black;
+    }
+
+    .tableData {
+        border: 0 !important;
+        line-height: 16px;
+    }
+
+
+        .tableData tr td {
+            background: #fff;
+            height: 100%;
+            vertical-align: middle;
+            border: 1px solid #e3e7ee;
+        }
+
+    .boxWraper tr th {
+        border: 1px solid #e3e7ee;
+        text-align: center;
+        padding: 3px 6px;
+    }
+
+
+    .marginLR {
+        margin: 0 auto;
+    }
+
+    table {
+        border-collapse: collapse;
+    }
+
+    /*table {
+            border-collapse: separate;
+            border-spacing: 2px;
+        }*/
+
+    table {
+        background-color: transparent;
+    }
+
+    /*table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+        }*/
+
+    body {
+        padding: 0;
+        margin: 0;
+        font-size: 14px;
+        font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+        color: #808080;
+        -webkit-font-smoothing: antialiased;
+        -webkit-font-smoothing: subpixel-antialiased;
+        background: #fff;
+    }
+
+    .cw100 {
+        width: 100px !important;
+    }
+
+    .cw150 {
+        width: 150px !important;
+    }
+
+    .cw200 {
+        width: 200px !important;
+    }
+
+    .cw110 {
+        width: 110px !important;
+    }
+
+    .cw80 {
+        width: 80px !important;
+    }
+
+    .cw120 {
+        width: 120px !important;
+    }
+
+    .cw140 {
+        width: 140px !important;
+    }
+
+    .cw130 {
+        width: 140px !important;
+    }
+
+    .tbold {
+        font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+        font-weight: 600;
+    }
+
+    .tright {
+        text-align: right !important;
+    }
+
+    label {
+        margin-bottom: 0;
+    }
+
+    .tcollapse {
+        border-collapse: collapse;
+    }
+
+
+
+    .boxWraper .padding tr td {
+        padding: 3px 6px;
+    }
+
+    .taW {
+        width: 100% !important;
+    }
+
+    h4 {
+        font-size: 14px;
+        margin: 6px 0;
+        font-weight: normal;
+        font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+    }
+
+    .tdWordBreak {
+        word-wrap: break-word;
+    }
+</style>
+<style type="text/css">
+    @@media print {
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        body {
+            font-family: Serif;
+        }
+
+        h2 {
+            font-size: 20px;
+            text-transform: uppercase;
+            text-decoration: underline;
+            margin: 6px 0;
+            font-family: Serif;
+        }
+
+        h4 {
+            font-size: 13px;
+            text-decoration: underline;
+            margin: 6px 0;
+            font-family: Serif;
+        }
+
+        .tdWordBreak {
+            word-wrap: break-word;
+        }
+
+        .no-print, .no-print * {
+            display: none !important;
+        }
+    }
+</style>
+<div class="col-lg-12 col-sm-12 col-md-12" style=" flex-align:center">
+    <table class="marginLR" style="width:20cm">
+        <tbody>
+            <tr>
+                <td>
+                    <table class="taW">
+                        <tbody>
+                            <tr>
+                                <td style="border-bottom:1px solid #7b7b7b">
+                                    <div id="WriterLogo" class="tcenter no-print">
+                                            <img src="~/Content/images/logo-icon.png" width="100px" height="100px">
+                                     </div>
+                                    <div id="WriterLogo" class="tcenter">
+                                        <h2>Writer Relocations</h2>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="height:5px"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr>
+                                                    <td colspan="2">
+                                                        <label class="cw80 tbold">Corporate</label> :
+                                                        <span class="ng-binding tbold"><u>@Html.Raw(Model.CorporateName)</u></span>
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw80 tbold">City</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.CityName)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw80 tbold">GST No.</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.GSTIN_No)</span>
+                                                    </td>
+
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2">
+                                                        <label class="cw80 tbold">Address</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.Address)</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw120 tbold">Contact Name</label>:
+                                                        <span class="ng-binding">@Html.Raw(Model.Cust_Contact_Name)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw130 tbold">Contact Designation</label>:
+                                                        <span class="ng-binding">@Html.Raw(Model.Cust_Contact_Designation)</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw120 tbold">Contact Number</label>:
+                                                        <span class="ng-binding">@Html.Raw(Model.Cust_Contact_Number)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw130 tbold">Contact Email</label>:
+                                                        <span class="ng-binding">@Html.Raw(Model.Cust_Contact_Email)</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw120 tbold">Turn Over(Lacs)</label>:
+                                                        <span class="ng-binding">@Html.Raw(Model.Turnover_Amt)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw130 tbold">Validity Date</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.EffectiveTo.ToString("dd-MMM-yyyy"))</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw120 tbold">Last ModifiedBy</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.CreatedByName)</span>
+                                                    </td>
+                                                    <td>
+                                                        <label class="cw130 tbold">Last ModifiedDate</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.CreatedDate.ToString("dd-MMM-yyyy"))</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <label class="cw120 tbold">Status</label> :
+                                                        <span class="ng-binding">@Html.Raw(Model.Status)</span>
+                                                    </td>
+                                                    @if (!string.IsNullOrWhiteSpace(Model.ApproveByName))
+                                                    {
+                                                        <td>
+                                                            <label class="cw100 tbold">Approved Date</label> :
+                                                            <span class="ng-binding">@Html.Raw(Convert.ToDateTime(Model.ApproveDate).ToString("dd-MMM-yyyy"))</span>
+                                                        </td>
+
+                                                    }
+                                                </tr>
+                                                @if (!string.IsNullOrWhiteSpace(Model.ApproveByName))
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <label class="cw120 tbold">Approved Remark</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.ApproveRemark)</span>
+                                                        </td>
+                                                        <td>
+                                                            <label class="cw100 tbold">Approved By</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.ApproveByName)</span>
+                                                        </td>
+
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="grid-header tbold"> Business Development Feedback</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="ttop">
+                                                        <table id="tblLabourCost" class="tableData taW">
+                                                            <thead>
+                                                                <tr class="grid-header">
+                                                                    <th class="cw50">Project</th>
+                                                                    <th class="cw80">ServiceLine</th>
+                                                                    <th class="cw50">Approval Limit</th>
+                                                                    <th class="cw50">Currency</th>
+                                                                    <th class="cw50">Advance %</th>
+                                                                    <th class="cw60">Credit Days</th>
+                                                                    <th class="cw100">Condition</th>
+                                                                    <th class="cw100">Billing Remark</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody style="max-height:100%">
+                                                                @for (int i = 0; i < Model.buss_Dev.Count; i++)
+                                                                {
+                                                                    <!-- Repeat: row in buss_Dev -->
+                                                                    <tr class="ng-scope">
+                                                                        <td class="cw50">
+                                                                            @Html.Raw(Model.buss_Dev[i].Project)
+                                                                        </td>
+                                                                        <td class="cw80">
+                                                                            @Html.Raw(Model.buss_Dev[i].ServiceLine)
+                                                                        </td>
+                                                                        <td class="cw50 tright">
+                                                                            @Html.Raw(Model.buss_Dev[i].Credit_Amount_Display)
+                                                                        </td>
+                                                                        <td class="cw50">
+                                                                            @Html.Raw(Model.buss_Dev[i].CurrencyName)
+                                                                        </td>
+                                                                        <td class="cw50 tright">
+                                                                            @Html.Raw(Model.buss_Dev[i].Adv_Percent)
+                                                                        </td>
+                                                                        <td class="cw60 tright">
+                                                                            @Html.Raw(Model.buss_Dev[i].CreditDays)
+                                                                        </td>
+                                                                        <td class="cw100 tdWordBreak">
+                                                                            @Html.Raw(Model.buss_Dev[i].Credit_period_basis)
+                                                                        </td>
+                                                                        <td class="cw100">
+                                                                            @Html.Raw(Model.buss_Dev[i].BillingInstructions_Remark)
+                                                                        </td>
+
+                                                                    </tr>
+                                                                    <!-- end Repeat: row in buss_Dev -->
+                                                                }
+
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr>
+                                                                    <td class="cw100 tbold" colspan="2">Total</td>
+                                                                    <td id="CreditTotal" class="cw60 tright tbold ng-binding">@Model.TotalCreditLimit</td>
+                                                                </tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="grid-header tbold"> Clients</td>
+                                                </tr>
+                                                @if (!string.IsNullOrWhiteSpace(Model.Clients.Remark))
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <div>
+                                                                <span class="cw-50 tbold">
+                                                                    Remark :
+                                                                </span>
+                                                                @Model.Clients.Remark
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                                <tr>
+                                                    @if (Model.Clients.CorporateName != null)
+                                                    {
+                                                        <td class="ttop">
+                                                            <table id="tblLabourCost" class="tableData taW">
+                                                                <thead>
+                                                                    <tr class="grid-header">
+                                                                        <th>Name</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody style="max-height:100%">
+                                                                    @for (int i = 0; i < Model.Clients.CorporateName.Length; i++)
+                                                                    {
+                                                                        <!-- Repeat: row in Corporate -->
+                                                                        <tr>
+                                                                            <td>
+                                                                                @Html.Raw(Model.Clients.CorporateName[i])
+                                                                            </td>
+                                                                        </tr>
+                                                                        <!-- end Repeat: row in Corporate -->
+                                                                    }
+
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    }
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,326 @@
+﻿@model RELOCBS.Entities.MoveManageViewModel
+
+@{
+    ViewBag.Title = "Request Docs";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@Styles.Render("~/Content/bootstrap-selectcss")
+
+@*<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>*@
+
+<style>
+    .bg-light-silver {
+        background-color: #e1e1e1;
+    }
+</style>
+
+<div class="ibox-content">
+    <div class="row">
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <strong>Job No.:</strong> &nbsp;<strong>@Model.JobNo</strong>
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <strong>Shipper Name:</strong> &nbsp;<strong>@Model.MoveJob.Shipper.ShipperFName @Model.MoveJob.Shipper.ShipperLName</strong>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <strong>Mode:</strong> &nbsp;<strong>@Model.MoveJob.ModeName</strong>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <strong>Enquiry No.:</strong>&nbsp;<strong>@Model.EnqNo</strong>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <strong>Shp No.:</strong> &nbsp;<strong>@Model.EnqShpNo</strong>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <strong>Revenue Br.:</strong> &nbsp;<strong>@Model.MoveJob.RevenueBr</strong>
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <strong>Job Status:</strong> &nbsp;<strong>@Model.JobStatus</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-light-silver">
+        <div class="ibox-content">
+            @using (Html.BeginForm("RequestDocs", "MoveManage", new { MoveID = @Model.MoveID }, FormMethod.Post, new { enctype = "multipart/form-data", id = "formRequestDocs" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true)
+                @Html.HiddenFor(m => m.MoveID, new { @id = "MoveID" })
+                @Html.HiddenFor(m => m.RequestDocsGroupID, new { @id = "RequestDocsGroupID" })
+                @Html.HiddenFor(m => m.RequestDocsUpload.DocNameIDListHidden, new { @id = "DocNameIDListHidden" })
+            <div class="row">
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label class="requiredlabel">Document Type</label>
+                        @Html.DropDownListFor(m => m.RequestDocsUpload.DocTypeID, new SelectList((System.Collections.IEnumerable)ViewData["DocTypeList"], "Value", "Text"), "--Select Doc. Type--", new { @class = "form-control input-sm enableselect", @id = "DocTypeID", @onchange = "javascript:DocTypeChange(this.value);" })
+                    </div>
+                </div>
+                <div id="dvDocDescription" class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label>Desc</label>
+                        @Html.TextBoxFor(m => m.RequestDocsUpload.DocDescription, new { @class = "form-control input-sm", @id = "DocDescription", @placeholder = "Description", @title = "Description" })
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label class="requiredlabel">Document Name</label>
+                        @Html.ListBoxFor(m => m.RequestDocsUpload.DocNameIDList, new SelectList((System.Collections.IEnumerable)ViewData["DocNameList"], "Value", "Text", Model.RequestDocsUpload.DocNameIDList), new { @class = "form-control input-sm  multipleselect", @id = "DocNameIDList", @multiple = "multiple" })
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label class="requiredlabel">Selected Docs</label>
+                        @Html.ListBoxFor(m => m.RequestDocsUpload.DocNameIDListSelected, new SelectList((System.Collections.IEnumerable)new List<SelectListItem>(), "Value", "Text", Model.RequestDocsUpload.DocNameIDListSelected), new { @class = "form-control input-sm multipleselect", @id = "DocNameIDListSelected", @multiple = "multiple" })
+                    </div>
+                </div>
+            </div>
+                <div class="row">
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label class="requiredlabel">Email To</label>
+                            @Html.TextBoxFor(m => m.RequestDocsEmail.EmailTo, new { @class = "form-control input-sm", @id = "EmailTo", @placeholder = "Email To", @title = "Email To" })
+                        </div>
+                    </div>
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>Email CC</label>
+                            @Html.TextBoxFor(m => m.RequestDocsEmail.EmailCC, new { @class = "form-control input-sm", @id = "EmailCC", @placeholder = "Email CC", @title = "Email CC" })
+                        </div>
+                    </div>
+                    <div class="col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>Email BCC</label>
+                            @Html.TextBoxFor(m => m.RequestDocsEmail.EmailBCC, new { @class = "form-control input-sm", @id = "EmailBCC", @placeholder = "Email BCC", @title = "Email BCC" })
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-md-6">
+                        <div class="form-group">
+                            <label class="requiredlabel">Subject</label>
+                            @Html.TextBoxFor(m => m.RequestDocsEmail.Subject, new { @class = "form-control input-sm", @id = "Subject", @placeholder = "Subject", @title = "Subject" })
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-md-6">
+                        <div class="form-group">
+                            @Html.HiddenFor(m => m.RequestDocsEmail.Body, new { @class = "hfBody", @id = "hfEmailBody" })
+                            <div id="EmailBody" class="summernote"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="form-group clearfix text-center">
+                            <input type="submit" id="btnSaveRequestDocs" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Save" />
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+        var DocNameIDData = [];
+        $(document).ready(function () {
+            $('.summernote').summernote();
+
+            //callback as jquery custom event
+            $(".summernote").on("summernote.blur", function (e) {
+                $('#hfEmailBody').val(htmlEntities($('#EmailBody').summernote('code')));
+            });
+
+            $("#btnSaveRequestDocs").click(function (e) {
+                if ($("#DocNameIDListHidden").val() == "") {
+                    swal({ title: "Error!", text: "Please select documents.", type: "error" });
+                    $("#DocNameIDListSelected").focus();
+                    e.preventDefault();
+                }
+                else if ($("#EmailTo").val() == "") {
+                    swal({ title: "Error!", text: "Please enter email to address.", type: "error" });
+                    $("#EmailTo").focus();
+                    e.preventDefault();
+                }
+                else if ($("#Subject").val() == "") {
+                    swal({ title: "Error!", text: "Please enter email Subject.", type: "error" });
+                    $("#Subject").focus();
+                    e.preventDefault();
+                }
+                else if ($("#hfEmailBody").val() == "") {
+                    swal({ title: "Error!", text: "Please enter email body.", type: "error" });
+                    $("#EmailBody").focus();
+                    e.preventDefault();
+                }
+            });
+
+            $('#DocNameIDList').multiselect({
+                includeSelectAllOption: false,
+                enableFiltering: true,
+                filterPlaceholder: 'Search',
+                maxHeight: 250,
+                buttonWidth: '100%',
+                buttonClass: 'form-control input-sm',
+                onChange: function (element, checked) {
+                    DocNameIDListChange(element, checked);
+                }
+                //onSelectAll: function () {
+                //    DocNameIDListChangeAll(true);
+                //},
+                //onDeselectAll: function () {
+                //    DocNameIDListChangeAll(false);
+                //}
+            });
+
+            $('#DocNameIDListSelected').multiselect({
+                includeSelectAllOption: false,
+                enableFiltering: true,
+                filterPlaceholder: 'Search',
+                maxHeight: 250,
+                buttonWidth: '100%',
+                buttonClass: 'form-control input-sm',
+                onChange: function (element, checked) {
+                    var DocTypeID = parseInt($("#DocTypeID").val());
+                    var DocType = $("#DocTypeID option:selected").text().trim();
+                    var DocNameID = parseInt(element.val());
+                    var DocName = element[0].text;
+
+                    if (checked === false) {
+                        var index = DocNameIDData.findIndex(i => i.DocNameID === DocNameID);
+                        if (index > -1)
+                            DocNameIDData.splice(index, 1);
+
+                        $("#DocNameIDListSelected").empty();
+                        DocNameIDData.forEach(function (arrayItem) {
+                            $("#DocNameIDListSelected").append($('<option>').text(arrayItem.DocName).attr('value', arrayItem.DocNameID).prop('selected', true));
+                        });
+
+                        $("#DocNameIDList option[value='" + DocNameID + "']").prop('selected', false);
+                        $("#DocNameIDList").multiselect('refresh');
+
+                        $('#DocNameIDListSelected').multiselect('rebuild');
+                        RequestDocs_SetHiddenFieldValue();
+                    }
+                }
+            });
+        });
+        function htmlEntities(str) {
+            return str.includes('<') ?
+                String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+                : String(str).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+        }
+        function DocTypeChange(DocType) {
+            var url = "@Url.Action("GetDocName", "Combo")?DocType=" + DocType;
+            fn_DocTypeChange(DocType, url);
+            
+        }
+        
+        
+        function DocNameIDListChange(element, checked) {
+            var DocTypeID = parseInt($("#DocTypeID").val());
+            var DocType = $("#DocTypeID option:selected").text().trim();
+            var DocNameID = parseInt(element.val());
+            var DocName = element[0].text.trim();
+            var DocDesc = $("#DocDescription").val().trim();
+
+            if (checked === true) {
+                var DocId = {
+                    'DocTypeID': DocTypeID,
+                    'DocNameID': DocNameID,
+                    'DocName': DocType + ' - ' + DocName,
+                    'DocDesc': DocDesc
+                }
+
+                if (DocName == "Others") {
+                    if ($("#DocDescription").val() == "") {
+                        swal({ title: "Error!", text: "Please enter description.", type: "error" });
+                        $("#DocNameIDList option:contains('Others')").prop('selected', false);
+                        $('#DocNameIDList').multiselect('rebuild').close();
+                        return false;
+                    }
+                }
+                $("#DocDescription").val('').click();
+                DocNameIDData.push(DocId);
+            }
+            else if (checked === false) {
+                var index = DocNameIDData.findIndex(i => i.DocTypeID === DocTypeID && i.DocNameID === DocNameID);
+                if (index > -1)
+                    DocNameIDData.splice(index, 1);
+            }
+
+            $("#DocNameIDListSelected").empty();
+            DocNameIDData.forEach(function (arrayItem) {
+                $("#DocNameIDListSelected").append($('<option>').text(arrayItem.DocName).attr('value', arrayItem.DocNameID).prop('selected', true));
+            });
+            $('#DocNameIDListSelected').multiselect('rebuild');
+
+            RequestDocs_SetHiddenFieldValue();
+        }
+
+        function RequestDocs_SetHiddenFieldValue() {
+            var strData = { 'DocNameIDList': DocNameIDData };
+            $("#DocNameIDListHidden").val(JSON.stringify(strData));
+        }
+        function AddDocDescription() {
+            $("#DocDescription").val('');
+        }
+
+        function fn_DocTypeChange(DocType, url) {
+            $("#DocNameIDList").empty();
+
+            if (DocType != null && DocType != "") {
+                $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    url: url,
+                    async: 'false',
+                    dataType: 'json',
+                    type: "GET",
+                    success: function (data) {
+                        var DocTypeID = parseInt($("#DocTypeID").val());
+                        var DocType = $("#DocTypeID option:selected").text().trim();
+                        $.each(data, function (i, item) {
+                            var SelectOption = false;
+                            var DocNameID = parseInt(item.Value);
+                            var DocName = item.Text.trim();
+
+                            var index = DocNameIDData.findIndex(i => i.DocTypeID === DocTypeID && i.DocNameID === DocNameID && i.DocName === DocType + ' - ' + DocName);
+                            if (index > -1)
+                                SelectOption = true;
+
+                            $("#DocNameIDList").append($('<option>').text(item.Text).attr('value', item.Value).prop('selected', SelectOption));
+
+                        });
+                        $('#DocNameIDList').multiselect('rebuild');
+                    },
+                    error: function (reponse) {
+                        alert("error : " + reponse);
+                    }
+                });
+            }
+        }        
+
+    </script>
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+    <link type="text/css" href="~/Content/bootstrap-datetimepicker.min.css" />
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+    @Scripts.Render("~/bundles/SubCostHead")
+}

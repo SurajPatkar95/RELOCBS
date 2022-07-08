@@ -1,0 +1,68 @@
+﻿@model IEnumerable<RELOCBS.Entities.Rate>
+@{ 
+    if (ViewBag.IsJobPage)
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+}
+<style type="text/css">
+    #subT a:link {
+        color: black;
+        font-weight: bold;
+    }
+
+    th, td {
+        padding: 5px;
+    }
+
+    th {
+        background-color: rgb(248, 248, 248);
+    }
+
+    #gridT, #gridT tr {
+        border: 1px solid #0D857B;
+    }
+
+    #subT, #subT tr {
+        border: 1px solid #f3f3f3;
+    }
+
+    #subT {
+        margin: 0px 0px 0px 10px;
+        padding: 5px;
+        width: 95%;
+    }
+
+    #subT th {
+            font-size: 14px;
+    }
+
+    #subT > tbody > tr:first-child > td {
+        vertical-align: top;
+        background-color: #F5F5F6;
+        font-weight: bold;
+    }
+</style>
+
+@{
+
+    WebGrid grid = new WebGrid(source: Model, canPage: false, canSort: false);
+
+    var SubGridColumns = new List<WebGridColumn>();
+
+    SubGridColumns.Add(grid.Column("WeightFrom", "WeightFrom"));
+    SubGridColumns.Add(grid.Column("WeightTo", "WeightTo"));
+    SubGridColumns.Add(grid.Column("RateItemVal1", "RateItemVal1"));
+    SubGridColumns.Add(grid.Column("RateItemVal2", "RateItemVal2"));
+    SubGridColumns.Add(grid.Column("RateItemVal3", "RateItemVal3"));
+    SubGridColumns.Add(grid.Column("RateItemVal4", "RateItemVal4"));
+    SubGridColumns.Add(grid.Column("RateItemVal5", "RateItemVal5"));
+    SubGridColumns.Add(grid.Column("RateItemVal6", "RateItemVal6"));
+    SubGridColumns.Add(grid.Column("RateItemVal7", "RateItemVal7"));
+    SubGridColumns.Add(grid.Column("RateItemVal8", "RateItemVal8"));
+    SubGridColumns.Add(grid.Column("OrgPrice", "OrgPrice"));
+
+    WebGrid subGrid = new WebGrid(source: Model, canPage: false);
+}
+
+@subGrid.Table(tableStyle: "table table-responsive table-bordered",displayHeader: !(ViewBag.IsJobPage), htmlAttributes: new { id = "subT" },columns: subGrid.Columns( SubGridColumns.ToArray()))

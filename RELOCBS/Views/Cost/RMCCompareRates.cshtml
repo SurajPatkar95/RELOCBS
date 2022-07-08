@@ -1,0 +1,127 @@
+﻿@model System.Data.DataSet
+
+@using System.Data;
+@using RELOCBS.Common;
+
+@{
+
+}
+
+<style type="text/css">
+    th, td {
+        padding: 5px;
+    }
+
+    th {
+        background-color: rgb(248, 248, 248);
+        word-wrap:break-word;
+    }
+    .gridT, .gridT tr {
+        border: 1px solid #0D857B;
+    }
+
+    .SubTble, .SubTble tr {
+        border: 1px solid #f3f3f3;
+    }
+
+    .SubTble {
+        margin: 0px 0px 0px 10px;
+        padding: 5px;
+        width: 95%;
+    }
+
+        .SubTble th {
+            font-size: 14px;
+        }
+</style>
+
+@using (Html.BeginForm())
+{
+
+<div id="main" style="padding:5px; background-color:white;">
+    <div class="row">
+        <div class="col-md-12 col-sm-12 ">
+            <input type="button" id="btn_excel" class="btn btn-primary  fa-download pull-right" value="Export to Excel" onclick="tableToExcel('content', 'RMC Compare Rates')">
+        </div>
+    </div>
+    @if (Model != null)
+    {
+
+        if (Model.Tables.Count > 0)
+        {
+            <div id="content" style="width: 1200px; margin: 30px auto;">
+                @foreach (DataRow header in Model.Tables[0].Rows)
+                {
+                    <table cellpadding="0" cellspacing="0" class="table table-responsive table-bordered gridT">
+                        <tr>
+                            @{
+                                int RateCompID = Convert.ToInt32(header["RateCompID"]);
+                                string CityColumnHeading = Model.Tables[0].Columns[0].ToString().Equals("OrgPortName", StringComparison.OrdinalIgnoreCase) ? "Exit Port" :
+                                    ((RateCompID == 3) ? "To" : "From") + " City";
+                                string CityColumnName = Model.Tables[0].Columns[0].ToString();
+                            }
+                            <th>@CityColumnHeading</th>
+                            @if (RateCompID == 4)
+                            {
+                                <th>To City</th>
+                            }
+                            <th>Mode</th>
+                        </tr>
+                        <tr>
+                            <td>@header[CityColumnName]</td>
+                            @if (RateCompID == 4)
+                            {
+                                <td>@header["DestCityName"]</td>
+                            }
+                            <td>@header["Mode"]</td>
+                        </tr>
+                    </table>
+                    <br />
+                    <table class="table table-responsive table-bordered SubTble">
+                        <thead>
+                            <tr>
+                                @foreach (DataColumn col in Model.Tables[Convert.ToInt32(header["UniqueId"])].Columns)
+                                {
+                                    <th>@col.Caption</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (DataRow rows in Model.Tables[Convert.ToInt32(header["UniqueId"])].Rows)
+                            {
+                                <tr>
+                                    @foreach (DataColumn col in Model.Tables[Convert.ToInt32(header["UniqueId"])].Columns)
+                                    {
+                                        <td>@rows[col.ColumnName]</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <br />
+                    <br />
+                }
+
+            </div>
+        }
+    }
+</div>
+
+}
+@section Scripts{
+<script type="text/javascript">
+    var tableToExcel = (function () {
+        var uri = 'data:application/vnd.ms-excel;base64,'
+            , template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><meta http-equiv="content-type" content="text/plain; charset=UTF-8"/></head><body><div>{table}</div></body></html>'
+            , base64 = function (s) { return window.btoa(unescape(encodeURIComponent(s))) }
+            , format = function (s, c) { return s.replace(/{(\w+)}/g, function (m, p) { return c[p]; }) }
+        return function (table, name) {
+            if (!table.nodeType) table = document.getElementById(table)
+            var ctx = { worksheet: name || 'Worksheet', table: table.innerHTML }
+            window.location.href = uri + base64(format(template, ctx))
+        }
+    })()
+</script>
+@Scripts.Render("~/bundles/jqueryval")
+@Scripts.Render("~/bundles/bootstrap-multiselect")
+}

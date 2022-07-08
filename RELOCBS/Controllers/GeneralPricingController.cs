@@ -1,5 +1,6 @@
 ﻿using PagedList;
 using RELOCBS.AjaxHelper;
+using RELOCBS.App_Code;
 using RELOCBS.BL;
 using RELOCBS.BL.Pricing;
 using RELOCBS.CustomAttributes;
@@ -16,6 +17,19 @@ namespace RELOCBS.Controllers
     [AuthorizeUser]
     public class GeneralPricingController : BaseController
     {
+        private string _PageID = "7";
+
+        private CommonSubs _cSubs;
+        public CommonSubs CSubs
+        {
+            get
+            {
+                if (this._cSubs == null)
+                    this._cSubs = new CommonSubs();
+                return this._cSubs;
+
+            }
+        }
 
         private ComboBL _comboBL;
 
@@ -46,7 +60,12 @@ namespace RELOCBS.Controllers
         // GET: GeneralPricing
         public ActionResult Index(int RateComponetID, int? page=1)
         {
-            ViewBag.PageTitle = "City Master";
+            if (!CSubs.CheckPageRights(_PageID, PermissionType.VIEW))
+            {
+                return new HttpStatusCodeResult(403);
+            }
+
+            session.Set<string>("PageSession", "Pricing");
             var pageIndex = (page ?? 1);
             int pageSize = settings.GetSettingByKey<int>("pagination_pagesize");
             int totalCount = 10;
@@ -108,7 +127,7 @@ namespace RELOCBS.Controllers
             ViewData["ToLocation"] = comboBL.GetToLocationDropdown();
             ViewData["RateCurrency"] = comboBL.GetRateCurrencyDropdown();
             ViewData["BaseCurrencyRate"] = comboBL.GetBaseCurrencyRateDropdown();
-            ViewData["WeightUnit"] = comboBL.GetWeightUnitDropdown();
+            ViewData["WeightUnit"] = comboBL.GetMeasurementUnitDropdown('W');
 
 
             GeneralPriceViewModel priceViewModel = new GeneralPriceViewModel();
@@ -163,7 +182,7 @@ namespace RELOCBS.Controllers
             ViewData["ToLocation"] = comboBL.GetToLocationDropdown();
             ViewData["RateCurrency"] = comboBL.GetRateCurrencyDropdown();
             ViewData["BaseCurrencyRate"] = comboBL.GetBaseCurrencyRateDropdown();
-            ViewData["WeightUnit"] = comboBL.GetWeightUnitDropdown();
+            ViewData["WeightUnit"] = comboBL.GetMeasurementUnitDropdown('W');
 
 
             GeneralPriceViewModel priceViewModel = new GeneralPriceViewModel();
@@ -227,7 +246,7 @@ namespace RELOCBS.Controllers
             ViewData["ToLocation"] = comboBL.GetToLocationDropdown();
             ViewData["RateCurrency"] = comboBL.GetRateCurrencyDropdown();
             ViewData["BaseCurrencyRate"] = comboBL.GetBaseCurrencyRateDropdown();
-            ViewData["WeightUnit"] = comboBL.GetWeightUnitDropdown();
+            ViewData["WeightUnit"] = comboBL.GetMeasurementUnitDropdown('W');
 
 
             GeneralPriceViewModel priceViewModel = new GeneralPriceViewModel();

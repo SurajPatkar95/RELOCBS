@@ -1,0 +1,245 @@
+﻿@model RELOCBS.Entities.WOSCustomer
+
+@using RELOCBS.Extensions;
+
+@{
+    ViewBag.Title = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Create", "WOSCustomer", FormMethod.Post, new { enctype = "multipart/form-data", @name = "formWOSCustomer", @id = "formWOSCustomer" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(false)
+
+    @Html.HiddenFor(m => m.CustServMapMasterID, new { @id = "CustServMapMasterID" })
+
+    <div class="row m-t-sm">
+        <input type="submit" id="btnSave" name="Save" class="btn btn-sm btn-primary m-r-md pull-right" value="Save" />
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-sm-3">
+            <div class="form-group">
+                <label>Customer Service Map ID : </label>@Model.CustServMapMasterID
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 col-sm-12 well well-sm">
+        <div class="row">
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label class="requiredlabel">Is RMC</label>
+                    @Html.DropDownListFor(m => m.IsRMC, new SelectList((System.Collections.IEnumerable)ViewData["BusinessList"], "Value", "Text", ViewData["BusinessList"]), "Select One", new { @class = "form-control input-sm enableselect", @id = "IsRMC", @title = "IsRMC" })
+                    @Html.ValidationMessageFor(m => m.IsRMC, "", new { @class = "text-danger" })
+                </div>
+            </div>        
+            <div class="col-md-5 col-sm-5">
+                <div class="form-group">
+                    <label class="requiredlabel">Client</label>
+                    @Html.DropDownListFor(m => m.ClientID, new List<SelectListItem>(), "Select One", new { @class = "form-control input-sm enableselect", @id = "ClientID", @title = "Client" })
+                    @Html.ValidationMessageFor(m => m.ClientID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-5 col-sm-5">
+                <div class="form-group">
+                    <label>Account</label>
+                    @Html.DropDownListFor(m => m.AccountID, new List<SelectListItem>(), "Select One", new { @class = "form-control input-sm enableselect", @id = "AccountID", @title = "Account" })
+                    @Html.ValidationMessageFor(m => m.AccountID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label>Origin Country</label>
+                    @Html.DropDownListFor(m => m.OriginCountryID, new SelectList((System.Collections.IEnumerable)ViewData["CountryList"], "Value", "Text", ViewData["CountryList"]), "Select One", new { @class = "form-control input-sm enableselect", @id = "OriginCountryID", @title = "Origin Country" })
+                    @Html.ValidationMessageFor(m => m.OriginCountryID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label class="requiredlabel">Destination Country</label>
+                    @Html.DropDownListFor(m => m.DestinationCountryID, new SelectList((System.Collections.IEnumerable)ViewData["CountryList"], "Value", "Text", ViewData["CountryList"]), "Select One", new { @class = "form-control input-sm enableselect", @id = "DestinationCountryID", @title = "Destination Country" })
+                    @Html.ValidationMessageFor(m => m.DestinationCountryID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label class="requiredlabel">Cost Currency</label>
+                    @Html.DropDownListFor(m => m.CostCurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["CurrencyList"], "Value", "Text", ViewData["CurrencyList"]), "Select One", new { @class = "form-control input-sm enableselect", @id = "CostCurrencyID", @title = "Cost Currency" })
+                    @Html.ValidationMessageFor(m => m.CostCurrencyID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label class="requiredlabel">Revenue Currency</label>
+                    @Html.DropDownListFor(m => m.RevenueCurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["CurrencyList"], "Value", "Text", ViewData["CurrencyList"]), "Select One", new { @class = "form-control input-sm enableselect", @id = "RevenueCurrencyID", @title = "Revenue Currency" })
+                    @Html.ValidationMessageFor(m => m.RevenueCurrencyID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label class="requiredlabel">Effective From</label>
+                    @Html.TextBoxFor(m => m.EffectiveFrom, new { @class = "form-control input-sm datepicker", @id = "EffectiveFrom", @title = "Effective From", @placeholder = "Effective From" })
+                    @Html.ValidationMessageFor(m => m.EffectiveFrom, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-sm-12 col-md-12">
+                <table class="table table-bordered table-responsive table-hover" id="tableCostSheet" style="width: 100%;">
+                    <thead class="ibox-title">
+                        <tr>
+                            <th>Sr. No</th>
+                            <th class="hide">GroupID</th>
+                            <th class="hide">Service Name</th>
+                            <th>Sub Service Name</th>
+                            <th>Cost</th>
+                            <th>Revenue Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.WOSSubServiceList.Count; i++)
+                        {
+                            <tr>
+                                <td>@Html.CheckBoxFor(m => m.WOSSubServiceList[i].IsChecked, new { @class = "checkbox-margins tdIsChecked" })@Html.HiddenFor(m => m.WOSSubServiceList[i].SubServiceMastID)@Html.HiddenFor(m => m.WOSSubServiceList[i].SubServiceName)</td>
+                                <td class="hide">@(Model.WOSSubServiceList[i].ServiceMastID.ToString() + "_" + @Model.WOSSubServiceList[i].SrNo.ToString())</td>
+                                <td class="hide">@Model.WOSSubServiceList[i].ServiceName</td>
+                                <td>@Model.WOSSubServiceList[i].SubServiceName</td>
+                                <td>@Html.TextBoxFor(m => m.WOSSubServiceList[i].MastCostAmount, null, new { @placeholder = "", @class = "form-control input-sm tdMastCostAmount", @onkeypress = "return OnlyDouble(this, event);", @oncopy = "return false", @onpaste = "return false" }).DisableIf(() => Model.WOSSubServiceList[i].IsChecked == false)</td>
+                                <td>@Html.TextBoxFor(m => m.WOSSubServiceList[i].MastRevenueAmount, null, new { @placeholder = "", @class = "form-control input-sm tdMastRevenueAmount", @onkeypress = "return OnlyDouble(this, event);", @oncopy = "return false", @onpaste = "return false" }).DisableIf(() => Model.WOSSubServiceList[i].IsChecked == false)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>        
+    </div>
+}
+
+@section Scripts{
+    <link href="https://nightly.datatables.net/css/jquery.dataTables.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.datatables.net/rowgroup/1.0.2/css/rowGroup.dataTables.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://nightly.datatables.net/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.datatables.net/rowgroup/1.0.2/js/dataTables.rowGroup.min.js"></script>
+    
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var IsFirstPageLoad = true;
+            var collapsedGroups = {};
+
+            var table = $('#tableCostSheet').DataTable({
+                //scrollY: '350px',
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                pageLength: -1,
+                ordering: false,
+                rowGroup: {
+                    // Uses the 'row group' plugin
+                    dataSrc: 1,
+                    startRender: function (rows, group) {
+                        if (IsFirstPageLoad && group.split("_")[1] == "2") {
+                            collapsedGroups[group] = !collapsedGroups[group];
+                        }
+                        var collapsed = !!collapsedGroups[group];
+
+                        var toggleClass = collapsed ? 'fa-plus-square' : 'fa-minus-square';
+                        var groupName = rows.data()[0][2];
+
+                        rows.nodes().each(function (r) {
+                            r.style.display = collapsed ? 'none' : '';
+                        });
+
+                        // Add category name to the <tr>
+                        return $('<tr/>')
+                            .append('<td colspan="' + rows.columns()[0].length + '">' + '<span class="fa fa-fw ' + toggleClass + ' toggler"/> ' + groupName + ' (' + rows.count() + ')</td>')
+                            .attr('data-name', group)
+                            .toggleClass('collapsed', collapsed);
+                    }
+                }
+            });
+
+            $('.dataTables_filter input[type="search"]').css({ 'width': '250px', 'display': 'inline-block' });
+
+            $('#tableCostSheet tbody').on('click', 'tr.group-start', function () {
+                var name = $(this).data('name');
+                collapsedGroups[name] = !collapsedGroups[name];
+                table.draw(false);
+            });
+
+            IsFirstPageLoad = false;
+        });
+        $(document).ready(function () {
+            //Datepicker
+            $('.datepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                useCurrent: false,
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                },
+            });
+
+            //Bind Dropdown Controls
+            AjaxFillDropDown('#AccountID', '@Url.Action("GetAgentList", "WOSJobOpening", new { AgentType = "C" })');
+            AjaxFillDropDown('#AccountID', '@Url.Action("GetAgentList", "WOSJobOpening", new { AgentType = "C" })', '@Model.AccountID');
+
+            //Bind events to controls
+            $('#IsRMC').change(function () {
+                GetRMCList();
+            });
+            GetRMCList();
+
+            $('.tdCheckAllCostList').change(function () {
+                CheckUncheckAll();
+            });
+
+            $('.tdIsChecked').change(function () {
+                if ($(this).prop('checked')) {
+                    $(this).closest('tr').find('.tdMastCostAmount').prop('readonly', false);
+                    $(this).closest('tr').find('.tdMastRevenueAmount').prop('readonly', false);
+                }
+                else {
+                    $(this).closest('tr').find('.tdMastCostAmount').val('').prop('readonly', true);
+                    $(this).closest('tr').find('.tdMastRevenueAmount').val('').prop('readonly', true);
+                }
+            });
+        });        
+        function CheckUncheckAll() {
+            $('#tableCostSheet tbody tr.rowSubService').each(function () {
+                if ($('.tdCheckAllCostList').prop('checked')) {
+                    $(this).find('.tdIsChecked').prop('checked', true);
+                    $(this).find('.tdMastCostAmount').prop('readonly', false);
+                    $(this).find('.tdMastRevenueAmount').prop('readonly', false);
+                }
+                else {
+                    $(this).find('.tdIsChecked').prop('checked', false);
+                    $(this).find('.tdMastCostAmount').val('').prop('readonly', true);
+                    $(this).find('.tdMastRevenueAmount').val('').prop('readonly', true);
+                }
+            });
+        }
+        function GetRMCList() {
+            var RMC = $('#IsRMC option:selected').text().toUpperCase();
+            if (RMC == "RMC-BUSINESS") {                
+                $('#ClientID').prop('disabled', false).addClass('enableselect').select2();
+                $('#ClientID').val('');
+                AjaxFillDropDown('#ClientID', '@Url.Action("GetAgentList", "WOSJobOpening", new { AgentType = "R" })');
+                AjaxFillDropDown('#ClientID', '@Url.Action("GetAgentList", "WOSJobOpening", new { AgentType = "R" })', '@Model.ClientID');
+            }
+            else if (RMC == "NON RMC-BUSINESS") {
+                $('#ClientID').prop('disabled', false).addClass('enableselect').select2();
+                $('#ClientID').val('');
+                AjaxFillDropDown('#ClientID', '@Url.Action("GetAgentList", "WOSJobOpening", new { AgentType = "A" })');
+                AjaxFillDropDown('#ClientID', '@Url.Action("GetAgentList", "WOSJobOpening", new { AgentType = "A" })', '@Model.ClientID');
+            }
+            else {
+                $('#ClientID').prop('disabled', true).removeClass('enableselect');
+                $('#ClientID').val('');
+                if ($('#ClientID').data('select2')) {
+                    $('#ClientID').select2('destroy');
+                }
+            }
+        }
+    </script>
+}

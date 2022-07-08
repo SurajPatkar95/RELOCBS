@@ -1,0 +1,2551 @@
+﻿@using RELOCBS.Common
+@using RELOCBS.Entities
+@using RELOCBS.Utility;
+@model RELOCBS.Entities.Billing
+
+@{
+
+    bool IsauditAmt = true;
+    object AmountReadOnly = new { @class = "td-amtwidth tdAmount form-control input-xs clearfix", @readonly = true };
+    object AuditAmountReadOnly = new { @class = "td-amtwidth tdAuditAmount form-control input-xs clearfix", onblur = "CalGrossTotal(this);" };
+    string TableCSS = Model.BillID > 0 ? "table table-bordered table-responsive table-hover" : "table table-bordered table-responsive table-hover hide";
+    if (((Model.InvoiceStatus == "Draft" || Model.InvoiceStatus == "Send To SD") || string.IsNullOrEmpty(Model.InvoiceStatus)) && Model.BillType.Equals('I'))
+    {
+        AmountReadOnly = new { @class = "td-amtwidth tdAmount form-control input-xs clearfix", onblur = "CalGrossTotal(this);" };
+        AuditAmountReadOnly = new { @class = "td-amtwidth tdAuditAmount form-control input-xs clearfix", @readonly = true };
+        IsauditAmt = false;
+    }
+    object OrgStrgStateDisable = new { @class = "form-control input-sm", id = "OrgStorageState", title = "Org Storage State" };
+    if (Model.StrgInvID != null && Model.StrgInvID > 0)
+    {
+        AuditAmountReadOnly = Model.BillType.Equals('I') ? new { @class = "td-amtwidth tdAuditAmount form-control input-xs clearfix", @readonly = true } : AuditAmountReadOnly;
+        OrgStrgStateDisable = new { @class = "form-control input-sm", id = "OrgStorageState", title = "Org Storage State", @disabled = "disabled" };
+        //TableCSS = "table table-bordered table-responsive table-hover";
+        IsauditAmt = true;
+    }
+
+    string btnSave = Model.BillType.Equals('I') ? "Invoice" : "Cr. Note";
+
+    object objConvRate = new { @class = "form-control input-xs appdisable CommConvRate", @onblur = "CalGrossTotal(this); " };
+
+
+    if ((Model.SLShortName == "DMMS" || Model.SLShortName == "MSTG") && Model.BillType.Equals('I'))
+    {
+        objConvRate = new { @class = "form-control input-xs appdisable CommConvRate", @readonly = true };
+    }
+
+    string Spec = string.IsNullOrEmpty(Model.Specification) ? "" : "<p>" + Model.Specification.Replace("\r\n \r\n", "</p><p><br></p><p>").Replace("\r\n", "</p><p>") + "</p>";
+    //string Spec = string.IsNullOrEmpty(Model.Specification)?"":"<p>" + Model.Specification.Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>";
+    bool IsStatement = ViewBag.ShowStatement == null ? false : ViewBag.ShowStatement;
+    int? DestNoofdays = Model.DestStorageStart != null && Model.DestStorageEnd != null ? ((int?)Convert.ToDateTime(Model.DestStorageEnd).Subtract(Convert.ToDateTime(Model.DestStorageStart)).Days) + 1 : null;
+    int? OrgNoofdays = Model.OrgStorageStart != null && Model.OrgStorageEnd != null ? ((int?)Convert.ToDateTime(Model.OrgStorageEnd).Subtract(Convert.ToDateTime(Model.OrgStorageStart)).Days) + 1 : null;
+    int CompID = UserSession.GetUserSession().CompanyID;
+
+    string IsStorageCss = Model.StrgInvID != null && Model.StrgInvID > 0 ? "hideForStorage" : "";
+
+    string Comp = CompID == 2 ? "BTR" : "";
+
+}
+<style>
+
+    .hideForStorage {
+        display: none;
+    }
+
+
+    .note-editable {
+        min-height: 50px;
+        max-height: 50px;
+    }
+
+    .note-editor {
+        min-height: 0px;
+    }
+
+    fieldset {
+        border: 1px solid dimgrey;
+        margin-left: initial;
+        margin-top: initial;
+        /*border-color: dimgrey;*/
+    }
+
+    .td-amtwidth {
+        width: 100%;
+    }
+</style>
+@using (Html.BeginForm("Create", "Billing", FormMethod.Post, new { enctype = "multipart/form-data", @name = "Invoice", @id = "Invoice" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(a => a.BillID)
+    @Html.HiddenFor(a => a.MoveID)
+    @Html.HiddenFor(a => a.CreditNoteID)
+    @Html.HiddenFor(a => a.InvoiceStatus)
+    @Html.HiddenFor(a => a.Remark)
+    @Html.HiddenFor(a => a.TaxType)
+    @Html.HiddenFor(a => a.BillType)
+    @Html.HiddenFor(a => a.RevenueBr)
+    @Html.HiddenFor(a => a.StatementSub)
+    @Html.HiddenFor(a => a.Specification)
+    @Html.HiddenFor(a => a.OrgCountry)
+    @Html.HiddenFor(a => a.DestCountry)
+    @Html.HiddenFor(a => a.Mode)
+    @Html.HiddenFor(a => a.InvoiceNo)
+    @Html.HiddenFor(a => a.RMCID)
+    @Html.HiddenFor(a => a.StrgInvID)
+    @Html.HiddenFor(a => a.StrgJobID)
+
+
+    @*<div class="col-sm-12 col-md-12">
+        <div class="ibox panel">
+            <div class="ibox-title panel-title">Invoive</div>*@
+    @*<div class="ibox-content bg-white panel-body pad-none m-n">*@
+
+    <div class="row m-t-sm">
+        @if (Model.BillID > 0 && Model.BillType == 'I')
+        {
+            <div class="col-sm-1 col-md-1 pull-right">
+                <div class="form-group">
+                    <input type="button" id="BtnGSTLogic" name="BtnGSTLogic" class="btn btn-primary m-n pull-right btn-sm BtnGSTLogic" value="GST Logic" data-toggle="modal" data-target="#GSTLogicModalLong" />
+
+                </div>
+            </div>
+        }
+
+        <div class="col-sm-1 col-md-1 pull-right m-l-n">
+            <div class="form-group">
+                <input type="button" id="btnInvoicePrint" name="InvoicePrint" class="btn btn-primary m-n pull-right btn-sm btnInvoicePrint" value="Print @btnSave" onclick="OpenInvoicePrint($(this).attr('id'))" />
+            </div>
+        </div>
+        @if (Model.InvoiceStatus != "Finalized")
+        {
+            if ((string.IsNullOrEmpty(Model.InvoiceStatus) || Model.InvoiceStatus == "Draft" || Model.InvoiceStatus == "Send To SD") && Model.BillType == 'I')
+            {
+                <div class="col-sm-1 col-md-1 pull-right m-l-n">
+                    <div class="form-group">
+                        <input type="submit" id="BtnGetTax" name="SubmitInvoice" class="btn btn-primary m-n pull-right btn-sm BtnGetTax appdisable" value="Get Tax" />
+                    </div>
+                </div>
+            }
+            else
+            {
+                if (Model.PermitApproveInv && Model.BillType == 'I')
+                {
+                    <div class="col-sm-1 col-md-1 pull-right m-l-n">
+                        <div class="form-group">
+                            <input type="submit" id="BtnGetTax" name="SubmitInvoice" class="btn btn-primary m-n pull-right btn-sm BtnGetTax appdisable" value="Get Tax" />
+                        </div>
+                    </div>
+                }
+            }
+        }
+        @if (Model.InvoiceStatus == "Draft" || Model.InvoiceStatus == "Send To SD")
+        {
+            if (Model.PermitApproveInv && Model.BillType == 'C')
+            {
+                <div class="col-sm-1 col-md-1 pull-right">
+                    <div class="form-group">
+                        <input type="submit" id="BtnSave" name="SubmitInvoice" class="btn btn-primary m-n pull-right btn-sm BtnSave SaveParam" value="Save @btnSave" />
+                        @Html.Hidden("hfReverseBill")
+                    </div>
+                </div>
+            }
+            else if (Model.BillType == 'I')
+            {
+                <div class="col-sm-1 col-md-1 pull-right">
+                    <div class="form-group">
+                        <input type="submit" id="BtnSave" name="SubmitInvoice" class="btn btn-primary m-n pull-right btn-sm BtnSave SaveParam" value="Save @btnSave" />
+                        @Html.Hidden("hfReverseBill")
+                    </div>
+                </div>
+            }
+
+
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(Model.InvoiceStatus))
+            {
+                <div class="col-sm-1 col-md-1 pull-right">
+                    <div class="form-group">
+                        <input type="submit" id="BtnSave" name="SubmitInvoice" class="btn btn-primary m-n pull-right btn-sm BtnSave SaveParam" value="Save @btnSave" />
+                        @Html.Hidden("hfReverseBill")
+                    </div>
+                </div>
+            }
+            else
+            {
+                if (Model.PermitApproveInv)
+                {
+                    <div class="col-sm-1 col-md-1 pull-right">
+                        <div class="form-group">
+                            <input type="submit" id="BtnSave" name="SubmitInvoice" class="btn btn-primary m-n pull-right btn-sm BtnSave SaveParam" value="Save @btnSave" />
+                            @Html.Hidden("hfReverseBill")
+                        </div>
+                    </div>
+                }
+            }
+        }
+
+
+        @if (Model.BillID > 0 && (Model.InvoiceStatus == "Draft" || Model.InvoiceStatus == "Send To SD") && Model.BillType == 'I')
+        {
+            <div class="col-sm-1 col-md-1 pull-right">
+                <div class="form-group">
+                    <input type="button" id="BtnSendtoFinance" name="BtnSendtoFinance" class="btn btn-primary m-n pull-right btn-sm BtnSendtoFinance GetRemark SaveParam appdisable" value="Send to Finance" onclick="$('#hfSubmitInvoice').val($(this).val());" data-toggle="modal" data-target="#exampleModalLong" />
+
+                </div>
+            </div>
+        }
+        @if (Model.InvoiceStatus == "Send To Finance" || (Model.InvoiceStatus == "Draft" && Model.BillType == 'C'))
+        {
+
+            if (Model.PermitApproveInv)
+            {
+                if (Model.BillType == 'I')
+                {
+                    <div class="col-sm-1 col-md-1 pull-right">
+                        <div class="form-group">
+                            <input type="button" id="BtnSendtoSD" name="BtnSendtoSD" class="btn btn-primary m-n pull-right btn-sm BtnSendtoSD GetRemark SaveParam appdisable" value="Send to SD" onclick="$('#hfSubmitInvoice').val($(this).val());" data-toggle="modal" data-target="#exampleModalLong" />
+                        </div>
+                    </div>
+                }
+                <div class="col-sm-1 col-md-1 pull-right">
+                    <div class="form-group">
+                        <input type="submit" id="BtnApproved" name="SubmitInvoice" class="btn btn-primary m-n pull-right btn-sm BtnApproved SaveParam appdisable" value="Approve" />
+                    </div>
+                </div>
+            }
+        }
+        @if (Model.InvoiceStatus == "Approved")
+        {
+            if (Model.PermitApproveInv)
+            {
+                <div class="col-sm-1 col-md-1 pull-right">
+                    <div class="form-group">
+                        <input type="submit" id="BtnFinalApprove" name="SubmitInvoice" class="btn btn-primary m-n pull-right btn-sm BtnFinalApprove SaveParam appdisable" value="Final Approve" />
+                    </div>
+                </div>
+            }
+        }
+
+        <div class="col-sm-1 col-md-1 pull-right m-l-sm">
+            <div class="form-group">
+                <input type="button" id="BtnChargeStatement" name="BtnChargeStatement" class="btn btn-primary m-n pull-right btn-sm BtnChargeStatement SaveParam" value="Statement of Charges" onclick="$('#hfSubmitInvoice').val($(this).val());" data-toggle="modal" data-target="#StatementModalLong" />
+
+            </div>
+        </div>
+        @if (CompID != 2)
+        {
+            <div class="col-sm-1 col-md-1 pull-right m-r-lg">
+                <div class="form-group">
+                    <input type="button" id="btnConsignmentNote" name="btnConsignmentNote" class="btn btn-primary m-n pull-right btn-sm btnConsignmentNote" value="Consignment Note" onclick="OpenInvoicePrint($(this).attr('id'))" />
+                </div>
+            </div>
+        }
+
+
+        @if (Model.ShowEInvoice)
+        {
+            string keyid = btnSave == "Invoice" ? Model.InvoiceNo : Model.CreditNoteNo;
+            <div class="col-sm-1 col-md-1 pull-right m-r-lg">
+                <div class="form-group">
+                    <input type="button" id="btnEinvoice" name="btnEinvoice" class="btn btn-primary m-n pull-right btn-sm btnEinvoice" value="E-Invoice" onclick="GenerateEInvoice('@keyid');" />
+                </div>
+            </div>
+            <div class="col-sm-1 col-md-1 pull-right m-r-lg">
+                <div class="form-group">
+                    <input type="button" id="btnEinvoiceData" name="btnEinvoiceData" class="btn btn-primary m-n pull-right btn-sm btnEinvoiceData" value="Download E-Invoice Detail" onclick="GetEInvoiceDetail('@keyid');" />
+                </div>
+            </div>
+        }
+
+
+        @*@if ((Model.BillID > 0 && (Model.InvoiceStatus == "Draft" || Model.InvoiceStatus == "Send to SD"))
+                || Model.InvoiceStatus == "Send To Finance" && Model.BillType=='I')
+            {*@
+        <div class="modal modal-wide fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-sm-4 col-md-4">
+                                <div class="form-group">
+                                    <label>Remark</label>
+                                    @Html.TextBox("popRemark", null, new { @class = "form-control input-sm clearfix", @onblur = "$('#Remark').val($(this).val());" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 col-md-4">
+                                <div class="form-group">
+                                    <input type="submit" value="Submit" name="Submit" form="Invoice" />
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal modal-wide fade" id="GSTLogicModalLong" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>GST Logic</h3>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Service Provided : </strong>@Model.GSTLogic.ServiceProvided
+                                </div>
+                            </div>
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Service Provider In India : </strong>@Model.GSTLogic.ServiceProviderInIndia
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Service Receiver In India(Bill To) : </strong>@Model.GSTLogic.ServiceReceiverInIndia
+                                </div>
+                            </div>
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Service Receiver Registion Status(Bill To GSTIN) : </strong>@Model.GSTLogic.ServiceReceiverRegistionStatus
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Origin In India : </strong>@Model.GSTLogic.OriginInIndia
+                                </div>
+                            </div>
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Dest In India : </strong>@Model.GSTLogic.DestInIndia
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Mode Is Road : </strong>@Model.GSTLogic.IsRoadMode
+                                </div>
+                            </div>
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Rev Curr Is INR : </strong>@Model.GSTLogic.IsRevCurrINR
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Service Provider State ID(Rev. Br.) : </strong>@Model.GSTLogic.ServiceProviderStateID
+                                </div>
+                            </div>
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Is POS In India : </strong>@Model.GSTLogic.IsPOS_InIndia
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>POS Rule : </strong>@Model.GSTLogic.POS_Rule
+                                </div>
+                            </div>
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>POS State Id : </strong>@Model.GSTLogic.POS_StateID
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>GST TYPE : </strong>@Model.GSTLogic.GSTTYPE
+                                </div>
+                            </div>
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>GST Percent : </strong>@Model.GSTLogic.GST_Percent
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Org Stg POS Rule : </strong>@Model.GSTLogic.OrgStgPOS_Rule
+                                </div>
+                            </div>
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Org Stg POS In India : </strong>@Model.GSTLogic.OrgStgIsPOS_InIndia
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Org Stg POS State ID : </strong>@Model.GSTLogic.OrgStgPOS_StateID
+                                </div>
+                            </div>
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Dest Stg POS Rule : </strong>@Model.GSTLogic.DestStgPOS_Rule
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Dest Stg Is POS In India : </strong>@Model.GSTLogic.DestStgIsPOS_InIndia
+                                </div>
+                            </div>
+                            <div class="col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <strong>Dest Stg POS State ID : </strong>@Model.GSTLogic.DestStgPOS_StateID
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal modal-wide fade" id="StatementModalLong" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>GST Logic</h3>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12">
+                                <div class="form-group">
+                                    <label>Statement Sub</label>
+                                    @Html.TextBox("popStatementSub", Model.StatementSub, new { @class = "form-control input-sm clearfix", @onblur = "$('#StatementSub').val($(this).val());" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12">
+                                <div class="form-group">
+                                    <label>Specification</label>
+                                    @Html.TextArea("popSpecification", Spec, new { @class = "form-control input-sm clearfix", @onblur = "$('#Specification').val($(this).val());" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            @if (Model.BillID > 0 && (Model.InvoiceStatus == "Draft" || Model.InvoiceStatus == "Send To SD") && Model.BillType == 'I')
+                            {
+                                <div class="col-sm-2 col-md-2">
+                                    <div class="form-group">
+                                        <input type="submit" value="Save & Open" name="Submit" form="Invoice" />
+                                    </div>
+                                </div>
+                            }
+                            <div class="col-sm-2 col-md-2">
+                                <div class="form-group">
+                                    <input type="button" value="Open" id="OpenStatement" onclick="OpenInvoicePrint($(this).attr('id'));" />
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal modal-wide fade" id="APIModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>
+                            Result
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12 APIResult" style="padding-bottom:10px">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" id="hfSubmitInvoice" name="SubmitInvoice" />
+        @*}*@
+        @if (!string.IsNullOrEmpty(Model.Remark))
+        {
+            <div class="col-sm-1 col-md-1">
+                <div class="form-group">
+                    <a data-placement="top" data-title="Cost Details" data-trigger="hover"
+                       data-popover-content="#popoverRemark" type="button" data-html="true"
+                       href="#" id="btnpopoverRemark" class="btn btn-success m-r-sm pull-right btn-sm btnpopoverRemark glyphicon glyphicon-eye-open" title="Remarks"></a>
+                </div>
+            </div>
+            <div id="popoverRemark" class="popover-content-Remark hide"></div>
+
+        }
+    </div>
+
+    <div class="row">
+        @if (Model.BillType == 'I')
+        {
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Job No :</label>@Model.JobNo
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>CreditNote No :</label>@Model.CreditNoteNo
+                </div>
+            </div>
+        }
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>Invoice No :</label>@Model.InvoiceNo
+            </div>
+        </div>
+        @if (Model.BillType == 'I')
+        {
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Invoice Date :</label>@if (Model.InvoiceDate != null)
+                    {@(((DateTime)Model.InvoiceDate).ToString("dd/MMM/yyyy"))}
+
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Cr. Date :</label>@if (Model.CreditNoteDate != null)
+                    {@(((DateTime)Model.CreditNoteDate).ToString("dd/MMM/yyyy"))}
+
+                </div>
+            </div>
+        }
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>@btnSave Status :</label>@Model.InvoiceStatus
+
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <label>Service Ln. :</label> @Model.ServiceLn
+                @*Display Field   @Html.DropDownListFor(model => model.RMCID, new SelectList((System.Collections.IEnumerable)ViewData["RMC"], "Value", "Text"), "--Select RMC--", new { @class = "form-control" })*@
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>Rev. Br. :</label> @Model.RevenueBr
+                @*Display Field   @Html.DropDownListFor(model => model.RMCID, new SelectList((System.Collections.IEnumerable)ViewData["RMC"], "Value", "Text"), "--Select RMC--", new { @class = "form-control" })*@
+            </div>
+        </div>
+
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>Mode :</label> @Model.Mode
+                @*Display Field   @Html.DropDownListFor(model => model.RMCID, new SelectList((System.Collections.IEnumerable)ViewData["RMC"], "Value", "Text"), "--Select RMC--", new { @class = "form-control" })*@
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>Controller :</label> @Model.Controller
+                @*Display Field   @Html.DropDownListFor(model => model.RMCID, new SelectList((System.Collections.IEnumerable)ViewData["RMC"], "Value", "Text"), "--Select RMC--", new { @class = "form-control" })*@
+            </div>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>Inv Type :</label> @Model.InvType
+                @*Display Field   @Html.DropDownListFor(model => model.RMCID, new SelectList((System.Collections.IEnumerable)ViewData["RMC"], "Value", "Text"), "--Select RMC--", new { @class = "form-control" })*@
+            </div>
+        </div>
+        @if (CompID == 1006)
+        {
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    @Html.CheckBoxFor(a => a.IsAnnexure, new { @class = "Annexure" })<label>Annexure</label>
+                    @*Display Field   @Html.DropDownListFor(model => model.RMCID, new SelectList((System.Collections.IEnumerable)ViewData["RMC"], "Value", "Text"), "--Select RMC--", new { @class = "form-control" })*@
+                </div>
+            </div>
+        }
+        @if (Model.BillType == 'C')
+        {
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Job No :</label>@Model.JobNo
+                </div>
+            </div>
+        }
+    </div>
+    <div class="row">
+
+        <div class="col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Shipper :</label> @Model.Shipper
+                @*Dispay Field @Html.DropDownListFor(model => model.ShipperID, new SelectList((System.Collections.IEnumerable)ViewData["AcctMgrList"], "Value", "Text"), "--Select Shipper--", new { @class = "form-control enableselect" })*@
+            </div>
+        </div>
+        <div class="col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Client :</label> @Model.Client
+                @Html.HiddenFor(m => m.BillToClientID)
+                @*Dispay Field @Html.DropDownListFor(model => model.ShipperID, new SelectList((System.Collections.IEnumerable)ViewData["AcctMgrList"], "Value", "Text"), "--Select Shipper--", new { @class = "form-control enableselect" })*@
+            </div>
+        </div>
+        <div class="col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Corporate  :</label> @Model.Account
+                @Html.HiddenFor(m => m.BillToAccountID)
+                @*Dispay Field @Html.DropDownListFor(model => model.ShipperID, new SelectList((System.Collections.IEnumerable)ViewData["AcctMgrList"], "Value", "Text"), "--Select Shipper--", new { @class = "form-control enableselect" })*@
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-4 col-md-4 well well-sm">
+        <div class="row">
+            <div class="col-sm-3 col-md-3 no-gutters m-r-n p-2">
+                <div class="form-group">
+                    <label>Bill To</label>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-md-6 pull-left left m-l-n no-padding-left-right">
+                <div class="form-group">
+                    @{ string css = Model.InvoiceStatus == "Finalized" ? "form-control input-sm TaxParam disableselect" : "form-control input-sm TaxParam"; }
+                    @Html.DropDownListFor(a => a.BillToID, CommonService.BillingOn, "Select One", new { @class = @css, id = "BillTo", title = "Bill To" })
+                </div>
+            </div>
+        </div>
+
+        @{
+            string entityrow = "row";
+            string CRentityrow = "row";
+
+            if (Model.BillTo == "Shipper")
+            {
+                entityrow = "row hide";
+            }
+
+            //if ((Model.BillingEntity <= 0 || Model.BillingEntity ==null))
+            //{
+            //    entityrow = "row hide";
+            //}
+            //else if (!(CompID == 1 && Model.RMCType.ToUpper() == "CARTUS TYPE"))
+            //{
+            //    entityrow = "row hide";
+            //}
+
+
+            if (!(CompID == 2 && Model.BillType == 'C' && Model.RMCType.ToUpper() == "BROOKFIELD TYPE"))
+            {
+                CRentityrow = "row hide";
+            }
+        }
+        <div class="@entityrow">
+            <div class="col-sm-3 col-md-3 no-gutters m-r-n p-2">
+                <div class="form-group">
+                    <label>Entity</label>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-md-6 pull-left left m-l-n no-padding-left-right">
+                <div class="form-group">
+                    @{
+                        string BillEntitycss = Model.InvoiceStatus == "Finalized" ? "form-control input-sm TaxParam disableselect" : "form-control input-sm TaxParam";
+                        string CREntitycss = Model.InvoiceStatus == "Finalized" ? "form-control input-sm disableselect" : "form-control input-sm";
+                        //BillEntitycss = Model.BillTo == "Client" ? BillEntitycss : BillEntitycss + "hide";
+                    }
+                    @Html.DropDownListFor(a => a.BillingEntity, new SelectList((System.Collections.IEnumerable)ViewData["BillingEntityList"], "Value", "Text"), "Select One", new { @class = @BillEntitycss, id = "BillEntity", title = "Billing Entity" })
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="@CRentityrow">
+            <div class="col-sm-3 col-md-3 no-gutters m-r-n p-2">
+                <div class="form-group">
+                    <label>CR. Entity</label>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-md-6 pull-left left m-l-n no-padding-left-right">
+                <div class="form-group">
+                    @{
+                        //string BillEntitycss = Model.InvoiceStatus == "Finalized" ? "form-control input-sm TaxParam disableselect" : "form-control input-sm TaxParam";
+                        //if (Model.BillType == 'C' && Model.RMCType.ToUpper() == "BROOKFIELD TYPE")
+                        //{
+                        //    BillEntitycss = Model.InvoiceStatus == "Finalized" ? "form-control input-sm disableselect" : "form-control input-sm";
+                        //}
+                        //BillEntitycss = Model.BillTo == "Client" ? BillEntitycss : BillEntitycss + "hide";
+                    }
+
+                    @Html.DropDownListFor(a => a.CreditNoteEntity, new SelectList((System.Collections.IEnumerable)ViewData["CreditNoteEntityList"], "Value", "Text"), "Select One", new { @class = @CREntitycss, id = "CRNoteEntity", title = "Cr. Note Entity" })
+
+
+                </div>
+            </div>
+
+        </div>
+
+
+
+
+
+        @*<div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <label>Customer</label>
+                @*Display Field Name Of the Bill To Entity
+                @Html.DropDownListFor(model => model.CustomerID, new SelectList((System.Collections.IEnumerable)ViewData["AcctMgrList"], "Value", "Text"), "--Select Customer--", new { @class = "form-control enableselect" })*@
+        @*</div>
+            </div>*@
+        <div class="row">
+            <div class="col-sm-12 col-md-12 pull-left no-gutters">
+                <fieldset>
+                    <legend>Bill to Address</legend>
+                    <div class="form-group row m-b-n">
+                        <label class="col-sm-4 col-form-label col_addresstype hide">@Html.RadioButtonFor(a => a.AddressType, "O", new { @id = "AddressTypeO", @class = "AddressType" })Origin</label>
+                        <label class="col-sm-5 col-form-label col_addresstype hide">@Html.RadioButtonFor(a => a.AddressType, "D", new { @id = "AddressTypeD", @class = "AddressType" })Destination</label>
+                    </div>
+                    <div class="form-group row m-b-n">
+                        <label class="col-sm-2 col-form-label">Attention</label>
+                        <div class="col-sm-9">
+                            @Html.TextBoxFor(a => a.Attention, new { @class = "form-control input-xs appdisable", id = "Attention", title = "Attention" })
+                        </div>
+                    </div>
+                    <div class="form-group row m-b-n">
+                        <label class="col-sm-2 col-form-label">Add1</label>
+                        <div class="col-sm-9">
+                            @Html.TextBoxFor(a => a.Address1, new { @class = "form-control input-xs AddressParam", id = "Address1", title = "Address 1" })
+                        </div>
+                    </div>
+                    <div class="form-group row m-b-n">
+                        <label class="col-sm-2 col-form-label">Add2</label>
+                        <div class="col-sm-9">
+                            @Html.TextBoxFor(a => a.Address2, new { @class = "form-control input-xs AddressParam", id = "Address2", title = "Address 2" })
+                        </div>
+                    </div>
+                    @if (Model.BillType == 'I')
+                    {
+                        <div class="form-group row m-b-n">
+                            <label class="col-sm-2 col-form-label">City</label>
+                            <div class="col-sm-9 ">
+                                @Html.DropDownListFor(a => a.CityID, new List<SelectListItem>(), new { @class = "form-control input-sm CityDropDown TaxParam  AddressParam", id = "City", title = "City" })
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form-group row m-b-n">
+                            <label class="col-sm-2 col-form-label">City</label>
+                            <div class="col-sm-9 ">
+                                @Html.DropDownList("ddlCity", new List<SelectListItem>(), new { @class = "form-control input-sm TaxParam", id = "City", title = "City" })
+                                @Html.HiddenFor(model => model.CityID)
+                            </div>
+                        </div>
+                    }
+                    <div class="form-group row m-b-n hide">
+                        <label class="col-sm-2 col-form-label">Phone</label>
+                        <div class="col-sm-9 ">
+                            @Html.TextBoxFor(a => a.Phone, new { @class = "form-control input-sm ", id = "Phone", title = "Phone" })
+                        </div>
+                    </div>
+                    <div class="form-group row m-b-n hide">
+                        <label class="col-sm-2 col-form-label">Email</label>
+                        <div class="col-sm-9 ">
+                            @Html.TextBoxFor(a => a.Email, new { @class = "form-control input-sm", id = "Email", title = "Email" })
+                        </div>
+                    </div>
+                    <div class="form-group row m-b-n">
+                        <label class="col-sm-2 col-form-label">Pin</label>
+                        <div class="col-sm-9 ">
+                            @Html.TextBoxFor(a => a.PinCode, new { @class = "form-control input-sm  AddressParam", id = "Pin", title = "Pin Code" })
+                        </div>
+                    </div>
+                    <div class="form-group row m-b-n">
+                        <label class="col-sm-2 col-form-label">GSTIN/ VAT No.</label>
+                        <div class="col-sm-9 ">
+                            @Html.TextBoxFor(a => a.Other.GSTNo, new { @class = "form-control input-sm AddressParam appdisable", id = "GSTNo", title = "GST No." })
+                        </div>
+                    </div>
+                    @*<div class="form-group row m-b-n">
+                            <label class="col-sm-1 col-form-label">Pin</label>
+                            <div class="col-sm-3">
+                                @Html.TextBoxFor(a => a.PinCode, new { @class = "form-control input-sm", id = "Pin", title = "Pin Code" })
+                            </div>
+                            <label class="col-sm-3 col-form-label">GST No.</label>
+                            <div class="col-sm-4">
+                                @Html.TextBoxFor(a => a.GSTNo, new { @class = "form-control input-sm", id = "GSTNo", title = "GST No." })
+                            </div>
+                        </div>*@
+                    @*<div class="form-group row">
+
+                        </div>*@
+                </fieldset>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-8 col-md-8 well well-sm">
+        <div class="row">
+            <div class="col-md-2 col-sm-2">
+                <div class="form-group">
+                    <label>Base Cur.</label>@Model.BaseCurrName
+                    @Html.HiddenFor(model => model.BaseCurrID)
+                    @*@Html.DropDownListFor(model => model.BaseCurrancyID, new SelectList((System.Collections.IEnumerable)ViewData["BaseCurrencyRate"], "Value", "Text"), "--Select Base Cur.--", new { @class = "form-control" })*@
+                </div>
+            </div>
+            <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                @*<div class="form-group">*@
+                <label>Currency</label>
+                @*</div>*@
+            </div>
+            @{ css = Model.InvoiceStatus == "Finalized" ? "form-control TaxParam disableselect" : "form-control TaxParam CommRateCurr"; }
+            @if (Model.BillType == 'C' || (Model.SLShortName == "DMMS" || Model.SLShortName == "MSTG"))
+            {
+                <div class="col-md-1 col-sm-1 no-padding-l m-n-l">
+                    <div class="form-group">
+                        @Html.DropDownList("RateCurr", new SelectList((System.Collections.IEnumerable)ViewData["RateCurrency"], "Value", "Text", Model.RateCurrancyID), "--Select Rate Cur.--", new { @class = @css, id = "RateCurrDropDown" })
+                        @Html.HiddenFor(model => model.RateCurrancyID)
+                    </div>
+                </div>
+
+            }
+            else
+            {
+                <div class="col-md-1 col-sm-1 no-padding-l m-n-l">
+                    <div class="form-group">
+                        @Html.DropDownListFor(model => model.RateCurrancyID, new SelectList((System.Collections.IEnumerable)ViewData["RateCurrency"], "Value", "Text"), "--Select Rate Cur.--", new { @class = @css, id = "RateCurrDropDown" })
+                    </div>
+                </div>
+            }
+            <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Ex.Rate:</label>
+                </div>
+            </div>
+            <div class="col-md-1 col-sm-1 no-padding-l m-n-l">
+                <div class="form-group">
+                    @Html.TextBoxFor(model => model.ConvRate, @objConvRate)
+                </div>
+            </div>
+            @if (Model.StrgInvID != null && Model.StrgInvID > 0)
+            {
+                <div class="col-sm-1 col-md-1">
+                    <div class="form-group">
+                        @Html.HiddenFor(a => a.StrgVolUnitID)
+                        <label>Wt/Vol:</label>
+
+                        @*Display Field with unit
+                            @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        @Html.TextBoxFor(model => model.StrgVolValue, new { @class = "form-control" })
+
+                        @*Display Field with unit
+                            @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label>@Model.StrgVolUnit</label>
+                        @*Display Field with unit
+                            @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                    </div>
+                </div>
+
+            }
+            else
+            {
+                <div class="col-sm-3 col-md-3 @IsStorageCss">
+                    <div class="form-group">
+                        @Html.CheckBoxFor(a => a.IsVolumeValue, new { @class = "Volume" })<label>Net Vol. :</label> @Model.VolumeValue
+                        @*Display Field with unit
+                            @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                    </div>
+                </div>
+            }
+            <div class="col-sm-3 col-md-3 @IsStorageCss">
+                <div class="form-group">
+                    @Html.CheckBoxFor(a => a.IsGrossVolumeValue, new { @class = "Volume" })<label>Gross Vol. :</label> @Model.GrossVolumeValue
+                    @*Display Field with unit
+                        @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-1 col-md-1">
+                <label>File/Ref No.:</label>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                @Html.EditorFor(a => a.FileNo, new { htmlAttributes = new { @placeholder = "File No./Ref No.", @tooltip = "File No./Ref No.", @class = "form-control input-sm appdisable", title = "File No./Ref No.", id = "FileNo" } })
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Wk Ord No. :</label> @Model.WKNo
+                    @*Display Field with unit
+                        @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3 @IsStorageCss">
+                <div class="form-group">
+                    @Html.CheckBoxFor(a => a.IsWtValue, new { @class = "Weight" })<label>Net Wt. :</label> @Model.WtValue
+                    @*Display Field with unit
+                        @Html.DropDownListFor(model => model.WtUnitID, new SelectList((System.Collections.IEnumerable)ViewData["WeightUnit"], "Value", "Text"), "--Select Wt Unit--", new { @class = "form-control" })*@
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3 @IsStorageCss">
+                <div class="form-group">
+                    @Html.CheckBoxFor(a => a.IsGrossWtValue, new { @class = "Weight" })<label>Gross Wt. :</label> @Model.GrossWtValue
+                    @*Display Field with unit
+                        @Html.DropDownListFor(model => model.WtUnitID, new SelectList((System.Collections.IEnumerable)ViewData["WeightUnit"], "Value", "Text"), "--Select Wt Unit--", new { @class = "form-control" })*@
+                </div>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-sm-3 col-md-3 @IsStorageCss">
+                <div class="form-group">
+                    <label>Origin :</label> @Model.OrgCity
+                    @*Display Field with unit
+                        @Html.DropDownListFor(model => model.WtUnitID, new SelectList((System.Collections.IEnumerable)ViewData["WeightUnit"], "Value", "Text"), "--Select Wt Unit--", new { @class = "form-control" })*@
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3 @IsStorageCss">
+                <div class="form-group">
+                    <label>Destination :</label> @Model.DestCity
+                    @*Display Field with unit
+                        @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                </div>
+            </div>
+            <div class="col-sm-5 col-md-5">
+                <div class="form-group">
+                    @Html.CheckBoxFor(a => a.IsGoodsDesc)<label>Goods Desc. :</label> @Model.GoodsDesc
+                    @*Display Field with unit
+                        @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                </div>
+            </div>
+        </div>
+        <div class="row @IsStorageCss">
+            <div class="col-sm-6 col-md-6">
+                <div class="form-group">
+                    <label>Origin Agent :</label> @Model.OriginAgent
+                    @*Display Field with unit
+                        @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-6">
+                <div class="form-group">
+                    <label>Destination Agent :</label> @Model.DestinationAgent
+                    @*Display Field with unit
+                        @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            @if (CompID == 2)
+            {
+                <div class="col-md-3 col-sm-3">
+                    <div class="form-group">
+                        @Html.CheckBoxFor(a => a.IsCollectionDate)
+                        <label>Pack Dt.</label>@if (Model.PackDate != null)
+                        {@(((DateTime)Model.PackDate).ToString("dd/MMM/yyyy"))}
+
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="col-md-3 col-sm-3">
+                    <div class="form-group">
+
+                        <label>Pack Dt.</label>@if (Model.PackDate != null)
+                        {@(((DateTime)Model.PackDate).ToString("dd/MMM/yyyy"))}
+
+                    </div>
+                </div>
+            }
+            <div class="col-md-3 col-sm-3 @IsStorageCss">
+                <div class="form-group">
+                    @{ string LoadLabel = Model.StrgInvID != null ? " Storage Start Dt." : "Load Dt."; }
+                    <label>@LoadLabel</label>@if (Model.LoadDate != null)
+                    {@(((DateTime)Model.LoadDate).ToString("dd/MMM/yyyy"))}
+
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-3 @IsStorageCss">
+                <div class="form-group">
+                    <label>Delivery Dt.</label>@if (Model.DeliveryDate != null)
+                    {@(((DateTime)Model.DeliveryDate).ToString("dd/MMM/yyyy"))}
+
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 col-sm-2 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Org :Stg Start</label>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2 no-padding-l m-n-l">
+                <div class="form-group">
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.OrgStorageStart, new { htmlAttributes = new { @placeholder = "Org Storage Start", @tooltip = "Org Storage Start", @class = "form-control input-sm appdisable datepicker", title = "Org Storage Start", id = "OrgStorageStart" } })
+                        <span class="input-group-addon btncalender" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Stg End</label>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2 no-padding-l m-n-l">
+                <div class="form-group">
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.OrgStorageEnd, new { htmlAttributes = new { @placeholder = "Org Storage End", @tooltip = "Org Storage End", @class = "form-control input-sm datepicker appdisable", title = "Org Storage End", id = "OrgStorageEnd" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Days</label><span class="OrgNoofdays">@OrgNoofdays</span>
+                </div>
+            </div>
+            @*<div class="col-md-1 col-sm-1 no-padding-l m-n-l">
+                    <div class="form-group">
+
+                    </div>
+                </div>*@
+
+            <div class="col-md-2 col-sm-2 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Stg State</label>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2 no-padding-l m-n-l">
+                <div class="form-group">
+                    @Html.DropDownListFor(a => a.OrgStorageState, new SelectList((System.Collections.IEnumerable)ViewData["StorageState"], "Value", "Text"), "--Select--", OrgStrgStateDisable)
+                    @Html.HiddenFor(a => a.OrgStorageState)
+                </div>
+            </div>
+
+        </div>
+        <div class="row @IsStorageCss">
+            <div class="col-md-2 col-sm-2 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Dest :Stg Start</label>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2 no-padding-l m-n-l">
+                <div class="form-group">
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.DestStorageStart, new { htmlAttributes = new { @placeholder = "Dest Storage Start", @tooltip = "Dest Storage Start", @class = "form-control input-sm datepicker TaxParam appdisable", title = "Dest Storage Start", id = "DestStorageStart" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Stg End</label>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2 no-padding-l m-n-l">
+                <div class="form-group">
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.DestStorageEnd, new { htmlAttributes = new { @placeholder = "Dest Storage End", @tooltip = "Dest Storage End", @class = "form-control input-sm datepicker TaxParam appdisable", title = "Dest Storage End", id = "DestStorageEnd" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Days</label><span class="DestNoofdays">@DestNoofdays</span>
+                </div>
+            </div>
+            @*<div class="col-md-1 col-sm-1 no-padding-l m-n-l">
+                    <div class="form-group">
+
+                    </div>
+                </div>*@
+
+            <div class="col-md-2 col-sm-2 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Stg State</label>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2 no-padding-l m-n-l">
+                <div class="form-group">
+                    @Html.DropDownListFor(a => a.DestStorageState, new SelectList((System.Collections.IEnumerable)ViewData["StorageState"], "Value", "Text"), "--Select--", new { @class = "form-control input-sm", id = "DestStorageState", title = "Dest Storage State" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-4 col-md-4">
+                <div class="form-group">
+                    <label>Send to Fin. By</label>@Model.PreparedBy
+                    @*Display Field with unit
+                        @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                </div>
+            </div>
+            <div class="col-sm-4 col-md-4">
+                <div class="form-group">
+                    <label>Approved By</label>@Model.ApprovedBy
+                    @*Display Field with unit
+                        @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                </div>
+            </div>
+            <div class="col-sm-4 col-md-4">
+                <div class="form-group">
+                    <label>Final Approved By</label>@Model.FinalApproveBy
+                    @*Display Field with unit
+                        @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-4 col-md-4">
+                <div class="form-group">
+                    <label>Sent to Fin. Date</label>@Model.PreparedDate
+                    @*Display Field with unit
+                        @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                </div>
+            </div>
+            <div class="col-sm-4 col-md-4">
+                <div class="form-group">
+                    <label>Approved Date</label>@Model.ApprovedDate
+                    @*Display Field with unit
+                        @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                </div>
+            </div>
+            <div class="col-sm-4 col-md-4">
+                <div class="form-group">
+                    <label>Final Approved Date</label>@Model.FinalApproveDate
+                    @*Display Field with unit
+                        @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-sm-12 col-md-12 well well-sm m-t-n no-padding-b">
+        <div class="row">
+            <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Advance Recv.</label>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2 form-group no-padding-l m-n-l">
+                @Html.EditorFor(a => a.AdvanceRecv, new { htmlAttributes = new { @placeholder = "Adv Recv", @tooltip = "Adv Recv", @class = "form-control input-sm appdisable", @type = "number", title = "AdvRecv", id = "AdvRecv" } })
+            </div>
+            <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Cheque No.</label>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2 form-group no-padding-l m-n-l">
+                @Html.EditorFor(a => a.chequeNo, new { htmlAttributes = new { @placeholder = "chequeNo", @tooltip = "chequeNo", @class = "form-control input-sm appdisable", title = "chequeNo", id = "chequeNo" } })
+            </div>
+            <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>No of Pkgs.</label>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2 form-group no-padding-l m-n-l">
+                @Html.EditorFor(a => a.NoofPkgs, new { htmlAttributes = new { @placeholder = "No of Pkgs", @tooltip = "NoofPkgs", @class = "form-control input-sm", title = "NoofPkgs", id = "NoofPkgs", type = "number" } })
+            </div>
+            <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Vehicle No</label>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2 form-group no-padding-l m-n-l">
+                @Html.EditorFor(a => a.VehicleNo, new { htmlAttributes = new { @placeholder = "VehicleNo", @tooltip = "VehicleNo", @class = "form-control input-sm", title = "VehicleNo", id = "VehicleNo" } })
+            </div>
+            <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Remark</label>
+                </div>
+            </div>
+            <div class="col-sm-5 col-md-5 form-group no-padding-l m-n-l">
+                @Html.EditorFor(a => a.BillRemarks, new { htmlAttributes = new { @placeholder = "BillRemarks", @tooltip = "BillRemarks", @class = "form-control input-sm", title = "BillRemarks", id = "BillRemarks" } })
+            </div>
+            <div class="col-md-2 col-sm-2 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Bill Acknowledgement</label>
+                </div>
+            </div>
+            <div class="col-sm-4 col-md-4 form-group no-padding-l m-n-l">
+                @Html.EditorFor(a => a.BillAcknowledgement, new { htmlAttributes = new { @placeholder = "Bill Acknowledgement", @tooltip = "Bill Acknowledgement", @class = "form-control input-sm", title = "BillAcknowledgement", id = "BillAcknowledgement" } })
+            </div>
+            <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Sub. Date</label>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2 form-group no-padding-l m-n-l">
+                <div class="input-group input-group-sm date" id="dtp_ToDate">
+                    @Html.EditorFor(a => a.BillSubDate, new { htmlAttributes = new { @placeholder = "BillSubDate", @tooltip = "BillSubDate", @class = "form-control input-sm datepicker", title = "BillSubDate", id = "dtBillSubDate" } })
+                    <span class="input-group-addon" style="display: none">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-2 no-padding-r m-n-r">
+                <div class="form-group">
+                    <label>Money Received Date</label>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2 form-group no-padding-l m-n-l">
+                <div class="input-group input-group-sm date" id="dtp_ToDate">
+                    @Html.EditorFor(a => a.MoneyReceivedDate, new { htmlAttributes = new { @placeholder = "MoneyReceivedDate", @tooltip = "MoneyReceivedDate", @class = "form-control input-sm datepicker TaxParam", title = "MoneyReceivedDate", id = "MoneyReceivedDate" } })
+                    <span class="input-group-addon" style="display: none">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+            @if (Model.RMCBuss && CompID == 1)
+            {
+                <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                    <div class="form-group">
+                        <label>Billing Category</label>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-3 no-padding-l m-n-l">
+                    <div class="form-group">
+                        @Html.DropDownListFor(a => a.BillCategoryID, new SelectList((System.Collections.IEnumerable)ViewData["BillCategoryList"], "Value", "Text"), "--Select--", new { @class = "form-control input-sm", id = "BillCategoryID", title = "Bill Category" })
+                    </div>
+                </div>
+            }
+            @if (CompID == 2)
+            {
+                <div class="col-md-2 col-sm-2 no-padding-r m-n-r">
+                    <div class="form-group">
+                        <label>Payment Term</label>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3 form-group no-padding-l m-n-l">
+                    <div class="form-group">
+                        @Html.DropDownListFor(a => a.BtrPaymentTerm, new SelectList((System.Collections.IEnumerable)ViewData["PaymentTerm"], "Value", "Text"), "--Select--", new { @class = "form-control input-sm", id = "PaymentTerm", title = "Payment Term" })
+                    </div>
+                </div>
+                <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                    <div class="form-group">
+                        <label>Service</label>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2 form-group no-padding-l m-n-l">
+                    <div class="form-group">
+                        @Html.DropDownListFor(a => a.BtrService, new SelectList((System.Collections.IEnumerable)ViewData["BTRServiceList"], "Value", "Text"), "--Select--", new { @class = "form-control input-sm", id = "BTRServiceID", title = "Service" })
+                    </div>
+                </div>
+                <div class="col-md-1 col-sm-1 no-padding-r m-n-r">
+                    <div class="form-group">
+                        <label>Add. info Print</label>
+                    </div>
+                </div>
+                <div class="col-sm-4 col-md-4 form-group no-padding-l m-n-l">
+                    <div class="form-group">
+                        @Html.EditorFor(a => a.BillAddInfo, new { htmlAttributes = new { @placeholder = "Add. info Print", @tooltip = "Add. info Print", @class = "form-control input-sm", title = "Add. info Print", id = "BillAddInfo" } })
+                    </div>
+                </div>
+            }
+
+
+            @if (Model.RMCType != "Other Type")
+            {
+                <div class="col-md-2 col-sm-2 no-padding-r m-n-r">
+                    <div class="form-group">
+                        <label>Parsifal Audit Start Date</label>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2 form-group no-padding-l m-n-l">
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.ParsifalAuditStartDate, new { htmlAttributes = new { @placeholder = "ParsifalAuditStartDate", @tooltip = "ParsifalAuditStartDate", @class = "form-control input-sm datepicker", title = "ParsifalAuditStartDate", id = "ParsifalAuditStartDate" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-2 no-padding-r m-n-r">
+                    <div class="form-group">
+                        <label>Parsifal Inv. Approve Dt</label>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2 form-group no-padding-l m-n-l">
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(a => a.ParsifalApproveDate, new { htmlAttributes = new { @placeholder = "Parsifal Invoice Approve Date", @tooltip = "Parsifal Invoice Approve Date", @class = "form-control input-sm datepicker", title = "Parsifal Invoice Approve Date", id = "ParsifalApproveDate" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            }
+
+
+            @if (Model.RevenueBr.ToString().ToUpper() == "DUBAI" && Model.RMCBuss)
+            {
+                <div class="col-md-3 col-sm-3 no-padding-r m-n-r">
+                    <div class="form-group">
+                        <label>USD to AED Conv Rate</label>
+                    </div>
+                </div>
+                <div class="col-sm-1 col-md-1 form-group no-padding-l m-n-l">
+                    @Html.EditorFor(a => a.AEDCurr, new { htmlAttributes = new { @placeholder = "AED Curr", @tooltip = "AEDCurr", @class = "form-control input-sm appdisable", title = "AEDCurr", id = "AEDCurr" } })
+                </div>
+            }
+            @if (Model.Is_SunCostShow)
+            {
+                <div class="col-md-3 col-sm-3 no-padding-r m-n-r">
+                    <div class="form-group">
+                        <label>Sun Cost(Local Curr)</label>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-3 no-padding-l m-n-l">
+                    <div class="form-group">
+                        @Html.EditorFor(a => a.SunCost, new { htmlAttributes = new { @placeholder = "Sun Cost", @tooltip = "Sun Cost", @class = "form-control input-sm", title = "SunCost", id = "SunCost" } })
+                    </div>
+                </div>
+            }
+
+        </div>
+        @if (Model.Project == "STG")
+        {
+            <div class="row">
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        @Html.CheckBoxFor(a => a.IsSubject)<label>Subject</label>
+                        @*Display Field with unit
+                            @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                    </div>
+                </div>
+                <div class="col-sm-10 col-md-10">
+                    <div class="form-group">
+                        @{ string Title = String.IsNullOrEmpty(Model.Subject) ? "Note" : Model.Subject; }
+                        @Html.EditorFor(a => a.Subject, new { htmlAttributes = new { @placeholder = "Subject", @tooltip = "Subject", @class = "form-control input-sm Subject", title = Title, id = "Subject" } })
+                        @*Display Field with unit
+                            @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        @Html.CheckBoxFor(a => a.IsNote)<label>Note</label>
+                        @*Display Field with unit
+                            @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                    </div>
+                </div>
+                <div class="col-sm-10 col-md-10">
+                    <div class="form-group">
+                        @{ Title = String.IsNullOrEmpty(Model.Note) ? "Note" : Model.Note; }
+                        @Html.EditorFor(a => a.Note, new { htmlAttributes = new { @placeholder = "Note", @tooltip = "Note", @class = "form-control input-sm Note", title = Title, id = "Note" } })
+                        @*Display Field with unit
+                            @Html.TextBoxFor(model => model.VolumeValue, new { @class = "form-control" })*@
+                    </div>
+                </div>
+
+            </div>
+        }
+
+    </div>
+    @*<div class="row">
+
+        </div>*@
+
+    <div class="col-sm-12 col-md-12 ">
+        <table class="@TableCSS" id="tblInvoiceItems">
+            <thead>
+                <tr>
+                    <th>Sr. No.</th>
+                    @if (Model.RevenueBr.ToString().ToUpper() != "QATAR")
+                    {
+                        <th>SacCode</th>
+                        <th>POS</th>
+                    }
+                    <th class="@IsStorageCss">Component</th>
+                    <th>Cost Head</th>
+                    <th>Description</th>
+                    @{
+                        var Label = (Model.BillType == 'I') ? Model.StrgInvID != null && Model.StrgInvID > 0 ? "Billable" : "Original" : "Inv";
+                        //Label = Model.StrgInvID != null && Model.StrgInvID > 0 ? "Billable" : Label;
+                    }
+                    <th>@Label Amt</th>
+                    @if (Model.BillType == 'I')
+                    {
+                        <th class="@IsStorageCss">Amount</th>
+                    }
+                    @{
+                        Label = (Model.BillType == 'I') ? (Model.StrgInvID != null && Model.StrgInvID > 0) ? "Billed" : "Audited" : "Cr. Note";
+                        //Label =  ? "Billed" : Label;
+                    }
+                    <th>@Label Amt</th>
+                    <th>Conv. Rate</th>
+                    <th>Conv. Amt</th>
+                    @*<th>Tax Applicable</th>*@
+                    <th>Tax %</th>
+                    @if (Model.BillItems.Where(x => x.TaxType == "IGST").Count() > 0)
+                    {
+                        if (Model.RevenueBr.ToString().ToUpper() == "SINGAPORE")
+                        {
+                            <th>GST Amt</th>
+                        }
+                        else
+                        {
+                            <th>IGST Amt</th>
+                        }
+
+                    }
+                    @if (Model.BillItems.Where(x => x.TaxType == "CGST").Count() > 0)
+                    {
+                        <th>CGST Amt</th>
+                        <th>SGST Amt</th>
+                    }
+                    @if (Model.BillItems.Where(x => x.TaxType == "VAT").Count() > 0)
+                    {
+                        <th>VAT Amt</th>
+                    }
+                    <th>Total Amt</th>
+                    @if (Model.BillType == 'C')
+                    {
+                        string ChkTitle = Model.StrgInvID != null && Model.StrgInvID > 0 ? "Reverse Bill" : "Show In Unbill";
+                        <th>@ChkTitle</th>
+                    }
+
+                    @*<th>Bill Status</th>*@
+
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.BillItems != null)
+                {
+                    for (int i = 0; i < Model.BillItems.Count; i++)
+                    {
+                        if (Model.BillType == 'C' && Model.BillItems[i].Unbill && Model.StrgInvID != null && Model.StrgInvID > 0)
+                        {
+                            AuditAmountReadOnly = new { @class = "td-amtwidth tdAuditAmount form-control input-xs clearfix", @readonly = true };
+                            Model.BillItems[i].AuditedAmount = Model.BillItems[i].OriginalAmount;
+                        }
+                        string Desc = "<p>" + Model.BillItems[i].Description.Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>";
+
+                        //string.Join("</p><p>", Model.BillItems[i].Description.Split(new string[] { "\n" }, StringSplitOptions.None));
+                        Model.BillItems[i].ConvRate = Model.ConvRate;
+                        if (!(CompID == 1 || CompID == 2))
+                        {
+                            Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount / Model.BillItems[i].ConvRate;
+                        }
+                        else
+                        {
+                            if (Model.BaseCurrID != 2 && Model.RateCurrancyID != 2)
+                            {
+                                Model.BillItems[i].ConvAmount = (IsauditAmt ? Model.BillItems[i].AuditedAmount : Model.BillItems[i].Amount) * Model.BillItems[i].ConvRate;
+                            }
+                            else if (Model.BaseCurrID != 2 && Model.RateCurrancyID == 2)
+                            {
+
+                                Model.BillItems[i].ConvAmount = (IsauditAmt ? Model.BillItems[i].AuditedAmount : Model.BillItems[i].Amount) * Model.BillItems[i].ConvRate;
+                            }
+                            else if (Model.BaseCurrID == 2 && Model.RateCurrancyID != 2)
+                            {
+                                Model.BillItems[i].ConvAmount = (IsauditAmt ? Model.BillItems[i].AuditedAmount : Model.BillItems[i].Amount) / Model.BillItems[i].ConvRate;
+                            }
+                            else
+                            {
+                                Model.BillItems[i].ConvAmount = (IsauditAmt ? Model.BillItems[i].AuditedAmount : Model.BillItems[i].Amount) / Model.BillItems[i].ConvRate;
+                            }
+                        }
+                        if (Model.IsAnnexure)
+                        {
+
+                            Model.BillItems[i].TotalAmount = (decimal)Model.BillItems[i].ConvAmount;
+
+                        }
+                        else
+                        {
+                            if (Model.BillItems[i].TaxType == "IGST")
+                            {
+                                Model.BillItems[i].IGSTAmt = Model.BillItems[i].TaxApp ? (decimal)(Model.BillItems[i].ConvAmount * Model.BillItems[i].GSTVATPercent / 100) : 0;
+                                Model.BillItems[i].TotalAmount = Model.BillItems[i].TaxApp ? (decimal)Model.BillItems[i].ConvAmount + Model.BillItems[i].IGSTAmt : (decimal)Model.BillItems[i].ConvAmount;
+                            }
+                            if (Model.BillItems[i].TaxType == "CGST")
+                            {
+                                Model.BillItems[i].CGSTAmt = Model.BillItems[i].TaxApp ? (decimal)(Model.BillItems[i].ConvAmount * (Model.BillItems[i].GSTVATPercent / 2) / 100) : 0;
+                                Model.BillItems[i].SGSTAmt = Model.BillItems[i].TaxApp ? (decimal)(Model.BillItems[i].ConvAmount * (Model.BillItems[i].GSTVATPercent / 2) / 100) : 0;
+                                Model.BillItems[i].TotalAmount = Model.BillItems[i].TaxApp ? (decimal)Model.BillItems[i].ConvAmount + Model.BillItems[i].SGSTAmt + Model.BillItems[i].CGSTAmt : (decimal)Model.BillItems[i].ConvAmount;
+                            }
+                            if (Model.BillItems[i].TaxType == "VAT")
+                            {
+                                Model.BillItems[i].VatAmt = Model.BillItems[i].TaxApp ? (decimal)(Model.BillItems[i].ConvAmount * Model.BillItems[i].GSTVATPercent / 100) : 0;
+                                Model.BillItems[i].TotalAmount = Model.BillItems[i].TaxApp ? (decimal)Model.BillItems[i].ConvAmount + Model.BillItems[i].VatAmt : (decimal)Model.BillItems[i].ConvAmount;
+                            }
+                            if (Model.BillItems[i].TaxType == "NIL")
+                            {
+                                Model.BillItems[i].TotalAmount = (decimal)Model.BillItems[i].ConvAmount;
+                            }
+                        }
+
+
+                        if ((Model.InvoiceStatus == "Draft" || string.IsNullOrEmpty(Model.InvoiceStatus)) && Model.BillType == 'I' && Model.StrgInvID == null)
+                        {
+                            Model.BillItems[i].AuditedAmount = Model.BillItems[i].Amount;
+                        }
+                        Model.BillItems[i].ConvRate = Convert.ToDecimal(Model.BillItems[i].ConvRate);
+                        Model.BillItems[i].ConvAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].ConvAmount));
+                        Model.BillItems[i].IGSTAmt = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].IGSTAmt));
+                        Model.BillItems[i].CGSTAmt = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].CGSTAmt));
+                        Model.BillItems[i].SGSTAmt = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].SGSTAmt));
+                        Model.BillItems[i].VatAmt = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].VatAmt));
+                        Model.BillItems[i].TotalAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].TotalAmount));
+                        //Model.BillItems[i].AuditedAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].AuditedAmount));
+                        //Model.BillItems[i].Amount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].Amount));
+                        //Model.BillItems[i].OriginalAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].OriginalAmount));
+                        <tr>
+                            <td style="width: 5%;">@Html.DropDownListFor(x => Model.BillItems[i].BillItemSeqID, new SelectList((System.Collections.IEnumerable)ViewData["Sequence"], "Value", "Text", Model.BillItems[i].BillItemSeqID), new { @class = "Seq" })</td>
+                            @if (Model.RevenueBr.ToString().ToUpper() != "QATAR")
+                            {
+                                <td style="width: 5%;"><span>@Model.BillItems[i].SacCode</span>@Html.HiddenFor(x => Model.BillItems[i].SacCode, new { @class = "SacCode" })</td>
+                                <td style="width: 5%;"><span>@Model.BillItems[i].POSID</span>@Html.HiddenFor(x => Model.BillItems[i].POSID, new { @class = "POSID" })</td>
+                            }
+                            <td class="@IsStorageCss" style="width: 5%;"><span>@Model.BillItems[i].Component</span>@Html.HiddenFor(x => Model.BillItems[i].ComponentID, new { @class = "Component" })</td>
+                            <td style="width: 15%;"><span>@Model.BillItems[i].CostHead</span>@Html.HiddenFor(x => Model.BillItems[i].CostHeadID, new { @class = "CostHead" })</td>
+                            <td style="width: 25%;">
+                                @Html.HiddenFor(a => Model.BillItems[i].Description, new { @class = "Description" })
+                                @Html.TextArea("taDescription", Desc, new { @class = "td-amtwidth form-control input-xs clearfix taDescription" })
+                            </td>
+                            <td style="width: 5%;"><span>@Model.BillItems[i].OriginalAmount</span>@Html.HiddenFor(x => Model.BillItems[i].OriginalAmount, new { @class = "OriginalAmount" })</td>
+                            @if (Model.BillType == 'I')
+                            {
+                                <td class="@IsStorageCss" style="width: 10%;">@Html.Hidden("hfAmount", Model.BillItems[i].Amount) @Html.TextBoxFor(a => Model.BillItems[i].Amount, AmountReadOnly)</td>
+                            }
+
+                            <td style="width: 5%;">@Html.Hidden("hfAuditAmount", Model.BillItems[i].AuditedAmount)@Html.TextBoxFor(a => Model.BillItems[i].AuditedAmount, AuditAmountReadOnly)</td>
+                            <td style="width: 5%;"><span>@Model.BillItems[i].ConvRate</span>@Html.HiddenFor(x => Model.BillItems[i].ConvRate, new { @class = "ConvRate" })</td>
+                            <td style="width: 5%;"><span>@Model.BillItems[i].ConvAmount</span>@Html.HiddenFor(x => Model.BillItems[i].ConvAmount, new { @class = "ConvAmount" })</td>
+                            <td style="width: 5%;" class="hide"><span>@Model.BillItems[i].TaxApp</span>@Html.HiddenFor(x => Model.BillItems[i].TaxApp, new { @class = "TaxApp" })</td>
+                            @if (Model.BillItems[i].TaxApp && !Model.IsAnnexure)
+                            {
+                                <td style="width: 5%;"><span>@Model.BillItems[i].GSTVATPercent</span>@Html.HiddenFor(x => Model.BillItems[i].GSTVATPercent, new { @class = "GSTVATPercent" })</td>
+                            }
+                            else
+                            {
+                                <td style="width: 5%;">0</td>
+                            }
+                            @if (Model.BillItems.Where(x => x.TaxType == "IGST").Count() > 0)
+                            {
+                                if (Model.BillItems[i].TaxType == "IGST")
+                                {
+                                    <td style="width: 5%;"><span>@Model.BillItems[i].IGSTAmt</span>@Html.HiddenFor(x => Model.BillItems[i].IGSTAmt, new { @class = "IGSTAmt" })</td>
+                                }
+                                else
+                                {
+                                    <td style="width: 5%;">0</td>
+                                }
+                            }
+                            @if (Model.BillItems.Where(x => x.TaxType == "CGST").Count() > 0)
+                            {
+                                if (Model.BillItems[i].TaxType == "CGST")
+                                {
+                                    <td style="width: 5%;"><span>@Model.BillItems[i].CGSTAmt</span>@Html.HiddenFor(x => Model.BillItems[i].CGSTAmt, new { @class = "CGSTAmt" })</td>
+                                    <td style="width: 5%;"><span>@Model.BillItems[i].SGSTAmt</span>@Html.HiddenFor(x => Model.BillItems[i].SGSTAmt, new { @class = "SGSTAmt" })</td>
+                                }
+                                else
+                                {
+                                    <td style="width: 5%;">0</td>
+                                    <td style="width: 5%;">0</td>
+                                }
+                            }
+                            @if (Model.BillItems.Where(x => x.TaxType == "VAT").Count() > 0)
+                            {
+                                if (Model.BillItems[i].TaxType == "VAT" && !Model.IsAnnexure)
+                                {
+                                    <td style="width: 5%;"><span>@Model.BillItems[i].VatAmt</span>@Html.HiddenFor(x => Model.BillItems[i].VatAmt, new { @class = "VatAmt" })</td>
+                                }
+                                else
+                                {
+                                    <td style="width: 5%;">0</td>
+                                }
+                            }
+                            <td style="width: 5%;"><span>@Model.BillItems[i].TotalAmount</span>@Html.HiddenFor(x => Model.BillItems[i].TotalAmount, new { @class = "TotalAmount" })</td>
+                            @if (Model.BillType == 'C')
+                            {
+                                object chkclass = new { @class = "chkUnBill" };
+
+
+                                if ((!(Model.BillItems[i].ShowReverseButton)) && Model.StrgInvID != null && Model.StrgInvID > 0)
+                                {
+                                    chkclass = new { @class = "chkUnBill", @disabled = "disabled" };
+                                }
+                                <td style="width: 5%;">@Html.CheckBoxFor(x => Model.BillItems[i].Unbill, @chkclass)</td>
+                            }
+
+                            @*<td style="width: 5%;"><span>@Model.BillItems[i].BilledStatus</span>@Html.HiddenFor(x => Model.BillItems[i].BilledStatus, new { @class = "BilledStatus" })</td>*@
+                        </tr>
+                    }
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+
+                    @if (Model.BillType == 'I')
+                    {
+
+                        if (Model.StrgInvID != null && Model.StrgInvID > 0)
+                        {
+                            <td colspan="5"></td>
+                        }
+                        else
+                        {
+                            <td colspan="7"></td>
+                        }
+                        <td style="width: 10%;">
+                            @Html.TextBox("BillItems._FinalAmount", "", new { @class = "td-amtwidth form-control input-sm clearfix", @readonly = "readonly" })
+                        </td>
+                    }
+                    else
+                    {
+                        if (Model.StrgInvID != null && Model.StrgInvID > 0)
+                        {
+                            <td colspan="6"></td>
+                        }
+                        else
+                        {
+                            <td colspan="7"></td>
+                        }
+                    }
+                    <td style="width: 10%;">
+                        @Html.TextBox("BillItems._FinalAuditedAmount", "", new { @class = "td-amtwidth form-control input-sm clearfix", @readonly = "readonly" })
+                    </td>
+
+                    @if (Model.TaxType == "VAT" || Model.TaxType == "IGST")
+                    {
+                        <td colspan="4"></td>
+                    }
+                    else if (Model.TaxType == "CGST")
+                    {
+                        <td colspan="5"></td>
+                    }
+                    else if (Model.TaxType == "NIL")
+                    {
+                        <td colspan="3"></td>
+                    }
+                    <td>
+                        @Html.TextBox("BlillItem_FinalTotalAmount", "", new { @class = "td-amtwidth form-control input-sm clearfix", @readonly = "readonly" })
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+
+    @*</div>
+                </div>
+        </div>*@
+}
+@section Scripts{
+    <script type="text/javascript">
+            var IsDisable = null;
+        $('.btnpopoverRemark').popover({
+            title: 'Remarks',
+            //container: 'body',
+
+            placement: 'bottom',
+            html: true,
+            //trigger: 'hover',
+            content: function () {
+                //alert("ss");
+
+                var remark = $('#Remark').val();
+                var popoverid = $(this).attr('data-popover-content');
+                var popoverhtml = '<div>' + remark +'</div>'
+                $(popoverid).html(popoverhtml);
+                return $(popoverid).html();
+            }
+            //content: function () {
+            //    var clone = $($(this).closest('#divInstructList').find($(this).attr('data-popover-content'))).clone(true).removeClass('hide');
+            //    return clone;
+            //}
+        });
+
+        $('.taDescription,#popSpecification').summernote({
+            height: 1,                 // set editor height
+            minHeight: null,             // set minimum height of editor
+            maxHeight: null,             // set maximum height of editor
+            //focus: true,
+            toolbar: []
+        });
+        $('.note-editable').on('blur',
+            function () {
+
+                var Description = '';
+                $(this).find('p').each(
+                    function ()
+                    {
+                        Description = Description + $(this).html() + " \n";
+                    });
+
+                Description = Description.replace(/&amp;/g, "");
+                Description = Description.replace(/&nbsp;/g, "");
+                Description = Description.replace(/<br>/g, "");
+
+
+                //$(this).find('br').each(
+                //    function () {
+                //        Description = Description.replace("<br>","");
+                //    });
+                if (!(Description)) {
+                    Description = $(this).html();
+                }
+
+                var taID = $(this).closest('.note-editor').siblings('textarea').attr('id');
+
+                if (taID == 'taDescription') {
+                    $(this).closest('tr').find('td .Description').val(Description);
+                }
+                else {
+                    $('#Specification').val(Description);
+                }
+                //alert($(this).closest('tr').find('td .Description').val());
+            }
+        );
+
+        //$('.note-editable').closest('.note-editor').siblings('.Description')
+
+        $(document).ready(function () {
+            debugger;
+            $('.Note, .Subject').on('blur', function () {
+                $(this).attr('title', $(this).val());
+            });
+            if ('@Model.InvoiceStatus' == 'Finalized') {
+                $('.appdisable').attr('disabled','disabled');
+                $('.taDescription').each(function () {
+                    $(this).summernote('disable');
+                });
+
+                $('#tblInvoiceItems').find('input').attr('disabled', 'disabled');
+            }
+            else if ('@Model.InvoiceStatus' == 'Approved') {
+                $('.appdisable1').attr('disabled', 'disabled');
+            }
+
+            if ('@Model.BillID' <= 0) {
+
+                $('.BtnGetTax').attr('disabled', 'disabled');
+                $('.SaveParam').attr('disabled', 'disabled');
+            }
+            if ('@IsStatement'.toUpperCase() == 'TRUE') {
+                //$('#OpenStatement').trigger('click');
+                OpenInvoicePrint($('#OpenStatement').attr('id'));
+            }
+
+            $('#dtBillSubDate,#ParsifalAuditStartDate,#MoneyReceivedDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning:
+                {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+            @*if ($("#BillTo").val() == "Shipper"){
+                AjaxFillDropDown('.CityDropDown', "@Url.Action("GetCityList", "Billing")");
+                AjaxFillDropDown('#City', "@Url.Action("GetCityList", "Billing")", '@Model.CityID');
+            }
+            else {*@
+
+                //$("#City").select2("destroy");
+                $.get("@Url.Action("GetCityDropdownList")", { City : "@Model.CityID"}, function (data) {
+                    $.each(data.CityList, function (i) {
+                        //debugger;
+                        $('#City').append($('<option></option>').val(data.CityList[i].Value).html(data.CityList[i].Text));
+                    });
+                    $('.AddressParam').each(
+                        function () {
+                            if ($('#BillTo').val() == 'Shipper' && $(this).attr('id') == 'GSTNo') {
+                                $(this).removeAttr('readonly');
+                                $(this).addClass('TaxParam');
+                            }
+                            else {
+                                $(this).attr('readonly', 'readonly');
+                                $(this).removeClass('TaxParam');
+                            }
+                            //if ($(this).is('input')) {
+                            //    debugger;
+
+                            //}
+                            //if ($(this).is('select')) {
+                            //    debugger;
+                            //    $(this).attr('disabled', 'disabled');
+                            //}
+                        });
+                });
+
+                //$("#City").attr('readonly', 'readonly');
+            //}
+
+            //IsDisable = "true";
+            //var addtype = $("#AddressType").val();
+            CalGrossTotal(null);
+            //var addtype  = $("input[name='AddressType']:checked").val();
+            //$(".AddressType").trigger('click');
+            //AssginAddress(addtype);
+
+            $('.datepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('#OrgStorageStart,#OrgStorageEnd,#DestStorageStart,#DestStorageEnd').on('focus', function () {
+                $(this).siblings('.btncalender').click();
+
+            });
+
+
+            $('#OrgStorageStart,#OrgStorageEnd,#DestStorageStart,#DestStorageEnd,#OrgStorageState,#DestStorageState').on('blur', function () {
+                $(this).attr('title', $(this).val());
+
+                ValidateStorageFields();
+            });
+
+            $('#OrgStorageState,#DestStorageState').on('change', function () {
+                $(this).attr('title', $(this).val());
+                ValidateStorageFields();
+            });
+
+            if ('@Model.BillType' == 'C') {
+                $('.well').find('input, select').each(
+                    function () {
+
+                        if ($(this).is('input')) {
+                            $(this).attr('readonly', 'readonly');
+                        }
+                        if ($(this).is('select')) {
+                            debugger;
+                            if (!($(this).attr('id') == 'CRNoteEntity' && '@Model.RMCType.ToUpper()' == "BROOKFIELD TYPE")) {
+                                $(this).attr('disabled', 'disabled');
+                            }
+
+                        }
+                    });
+            }
+            else if ('@Model.SLShortName' == "DMMS" || '@Model.SLShortName' == "MSTG") {
+                $('#RateCurrDropdown').attr('readonly', 'readonly');
+            }
+        });
+
+        $("#BillTo,#BillEntity").on("change", function () {
+            var IsGetAddr = 1;
+            var Client_AccountID = $("#BillTo").val() == "Client" ? $('#RMCID').val() > 0 ? $('#RMCID').val() : $('#BillToClientID').val() : $('#BillToAccountID').val();
+            //Client_AccountID = $('#RMCID').val() > 0 ? $('#RMCID').val() : Client_AccountID ;
+            var BillingEntityID = 0;
+            debugger;
+            if (($("#BillTo").val() == "Client" || $("#BillTo").val() == "Corporate") && $(this).attr('id') == 'BillTo')
+            {
+                $("#BillEntity").val(null);
+                $("#BillEntity").closest('.row').removeClass("hide");
+                IsGetAddr = null;
+                $('#BillEntity').empty();
+                $('#BillEntity').append($('<option></option>').val(0).html("Select One"));
+                $.get("@Url.Action("GetEntityDropdownList")", { RMCID: Client_AccountID }, function (data) {
+                    $.each(data.EntityList, function (i) {
+                        $('#BillEntity').append($('<option></option>').val(data.EntityList[i].Value).html(data.EntityList[i].Text));
+                    });
+                });
+                BillingEntityID = $("#BillEntity").val() == '' || $("#BillEntity").val() == null ? 0 : $("#BillEntity").val();
+            }
+            else if ($(this).attr('id') == 'BillEntity'){
+                BillingEntityID = $("#BillEntity").val() == '' || $("#BillEntity").val() == null ? 0 : $("#BillEntity").val();
+            }
+            else
+            {
+                $("#BillEntity").closest('.row').addClass("hide");
+                $("#BillEntity").val(null);
+            }
+
+            @*if ('@CompID' == '2' && ('@Model.RMCBuss').toUpperCase() == 'TRUE') {
+                if ($("#BillTo").val() == "Client") {
+
+                    $("#BillEntity").closest('.row').removeClass("hide");
+                    IsGetAddr = null;
+                    BillingEntityID = $("#BillEntity").val();
+                }
+                else{
+                    $("#BillEntity").closest('.row').addClass("hide");
+                    $("#BillEntity").val(null);
+                }
+            }*@
+	        if ($(this).attr('id') == 'BillEntity')
+	        {
+		        IsGetAddr = 1;
+	        }
+
+            var BillTo = $('#BillTo').val();
+            var MoveID = $('#MoveID').val();
+            var BillingEntity = $("#BillEntity").val() == '' || $("#BillEntity").val() == null ? 0 : $("#BillEntity").val();
+            var OrgorDest = $("input[name='AddressType']:checked").val();
+
+
+
+            AssginAddress(Client_AccountID, MoveID, BillTo, OrgorDest, BillingEntityID);
+
+                //if ($(this).val() == "Shipper") {
+                //    $('.AddressParam').each(
+                //        function () {
+                //            if ($(this).is('input')) {
+                //                $(this).removeAttr('readonly');
+                //            }
+                //            if ($(this).is('select')) {
+                //                $(this).removeAttr('disable');
+                //            }
+                //        });
+                //    $(".col_addresstype").removeClass("hide");
+
+
+                //}
+                //else {
+                //    $(this).closest('.well').find('input, select').each(
+                //        function () {
+
+                //            if ($(this).is('input')) {
+                //                debugger;
+                //                $(this).attr('readonly', 'readonly');
+                //            }
+                //            if ($(this).is('select')) {
+                //                debugger;
+                //                $(this).attr('disabled', 'disabled');
+                //            }
+                //        });
+                //    $(".col_addresstype").addClass("hide");
+                //}
+            });
+            $(".TaxParam").on("change", function () {
+                if (!IsDisable) {
+                    $('.SaveParam').attr('disabled', 'disabled');
+                }
+                else {
+                    IsDisable = null;
+                }
+
+                if ($('#BillTo').val() || $('#BillTo').val() != undefined) {
+                    $('.BtnGetTax').removeAttr('disabled');
+                }
+                else {
+                    $('.BtnGetTax').attr('disabled', 'disabled');
+                }
+        });
+
+        $('#CRNoteEntity').on('change', function () {
+            var Client_AccountID = BillTo == "Client" ? $('#BillToClientID').val() : $('#BillToAccountID').val();
+            var BillTo = $('#BillTo').val();
+            var MoveID = $('#MoveID').val();
+            var BillingEntity = $("#CRNoteEntity").val();
+            var OrgorDest = $("input[name='AddressType']:checked").val();
+            AssginAddress(Client_AccountID, MoveID, BillTo, OrgorDest, BillingEntity,'C');
+        });
+
+
+        $("#GSTNo").on("blur", function () {
+            if ($('#BillTo').val()=='Shipper') {
+                if (!IsDisable) {
+                    $('.SaveParam').attr('disabled', 'disabled');
+
+                }
+                else {
+                    IsDisable = null;
+                }
+
+                if ($('#BillTo').val() || $('#BillTo').val() != undefined) {
+                    $('.BtnGetTax').removeAttr('disabled');
+                }
+                else {
+                    $('.BtnGetTax').attr('disabled', 'disabled');
+                }
+            }
+        });
+        $(".AddressType").on('click', function () {
+            //var addtype = $(this).val();
+
+            var Client_AccountID = $('#BillToClientID').val();
+            var BillingEntity = 0;
+            if ('@CompID' == '2' && ('@Model.RMCBuss').toUpperCase() == 'TRUE') {
+                if ($('#BillTo').val() == "Client") {
+                    BillingEntityID = $("#BillEntity").val();
+                }
+            }
+            var MoveID = $('#MoveID').val();
+            var BillTo = $('#BillTo').val();
+            var OrgorDest = $("input[name='AddressType']:checked").val();
+            AssginAddress(Client_AccountID, MoveID, BillTo, OrgorDest, BillingEntityID);
+            //AssginAddress(addtype,);
+        });
+
+        function AssginAddress(Client_AccountID, MoveID, BillTo, OrgorDest, BillingEntityID,BillType='I') {
+            $.get("@Url.Action("GetAddressDetials")", { Client_AccountID: Client_AccountID, MoveID: MoveID, BillTo: BillTo, OrgorDest: OrgorDest, BillingEntityID: BillingEntityID,BillType :BillType}, function (data) {
+                if (data.result) {
+                    debugger;
+                    if ($("#City").hasClass("select2-hidden-accessible")) {
+                            $("#City").select2('destroy');
+                    }
+                    if (data.result.CityID<=0 && BillType == 'I') {
+                        $('#BtnGetTax').attr('disabled', 'disabled');
+                        alert("Invoice cannot be proceeded without City.");
+                    }
+                    else {
+                        $('#BtnGetTax').removeAttr('disabled');
+                    }
+                        $.get("@Url.Action("GetCityDropdownList")", { City : data.result.CityID}, function (data) {
+                            $.each(data.CityList, function (i) {
+                                    $('#City').empty().append($('<option></option>').val(data.CityList[i].Value).html(data.CityList[i].Text));
+
+
+                            });
+
+                            //$(".col_addresstype").addClass("hide");
+                            $('.AddressParam').each(
+                                function () {
+                                    if (BillTo == 'Shipper' && $(this).attr('id')=='GSTNo') {
+                                        $(this).removeAttr('readonly');
+
+                                    }
+                                    else {
+                                        $(this).attr('readonly', 'readonly');
+                                    }
+                                });
+                        });
+                    if (BillTo == "Corporate" || BillTo == "Client")
+                    {
+
+                        //$("#City").select2({
+                        //    minimumResultsForSearch: -1
+
+                        //}, 'destroy');
+
+                        $(".col_addresstype").addClass("hide");
+                    }
+                    else {
+                        @*$('#City').empty();
+                        AjaxFillDropDown('#City', "@Url.Action("GetCityList", "Billing")", data.result.CityID);
+                        $('.AddressParam').each(
+                            function () {
+                                $(this).removeAttr('readonly');
+                                $(this).removeAttr('disabled');
+                            });*@
+
+                        $(".col_addresstype").removeClass("hide");
+                    }
+                    $('#Address1').val(data.result.Address1);
+                    $('#Address2').val(data.result.Address2);
+                    //$('#City').attr('selected', 'selected').val(data.result.CityID);
+                    $('#Pin').val(data.result.Pincode);
+                    $('#GSTNo').val(data.result.GSTNO);
+
+
+
+                }
+            });
+        }
+            //if (addtype == 'O' && billto == "Shipper") {
+            //    $('#Address1').val('').removeAttr('readonly');
+            //    $('#Address2').val('').removeAttr('readonly');
+            //    $('#City').attr('selected', 'selected').val('CityID').removeAttr('readonly');
+            //    $('#Pin').val('').removeAttr('readonly');
+            //    $('#GSTNo').val('').removeAttr('readonly');
+            //}
+            //if (addtype == 'D' && billto == "Shipper") {
+            //    $('#Address1').val('').removeAttr('readonly');
+            //    $('#Address2').val('').removeAttr('readonly');
+            //    $('#City').attr('selected', 'selected').val('CityID').removeAttr('readonly');
+            //    $('#Pin').val('').removeAttr('readonly');
+            //    $('#GSTNo').val('').removeAttr('readonly');
+            //}
+            //if (billto == "Client") {
+            //    $('#Address1').val('').attr('readonly');
+            //    $('#Address2').val('').attr('readonly');
+            //    $('#City').attr('selected', 'selected').val('.CityID').attr('readonly');
+            //    $('#Pin').val('').attr('readonly');
+            //    $('#GSTNo').val('').attr('readonly');
+            //}
+            //if (billto == "Account") {
+            //    $('#Address1').val('').attr('readonly');
+            //    $('#Address2').val('').attr('readonly');
+            //    $('#City').attr('selected', 'selected').val('.CityID').attr('readonly');
+            //    $('#Pin').val('').attr('readonly');
+            //    $('#GSTNo').val('').attr('readonly');
+            //}
+
+        function Remove(button) {
+            //Determine the reference of the Row using the Button.
+            var row = $(button).closest("TR");
+            var name = row.attr("data-id");
+            if (confirm("Do you want to delete row " + name + " ?")) {
+                //Get the reference of the Table.
+                var table = $("#tblInvoiceItems")[0];
+                //Delete the Table row using it's Index.
+                table.deleteRow(row[0].rowIndex);
+                CalGrossTotal(null);
+            }
+        }
+
+        function CalGrossTotal(Button)
+        {
+
+            if (Button != null)
+            {
+                if ($(Button).attr('id') == 'ConvRate') {
+                    $('#tblInvoiceItems tbody tr').each(function (i) {
+
+                        $(this).find('td .ConvRate').val(parseFloat($(Button).val()));
+                        $(this).find('td .ConvRate').siblings('span').html(parseFloat($(Button).val()));
+                        if ("@IsauditAmt" == "True")
+                            CalGrossTotal($(this).find('td .tdAuditAmount'))
+                        else
+                            CalGrossTotal($(this).find('td .tdAmount'))
+                    });
+                }
+                else {
+
+                    var row = $(Button).closest('tr');
+                    Ratecurrid = $('#RateCurrDropDown').val();
+                    Basecurrid = $('#BaseCurrID').val();
+                    var control = "@IsauditAmt" == "True" ? row.find('td .tdAuditAmount') : row.find('td .tdAmount');
+                    var ogcontrol = "@IsauditAmt" == "True" ? row.find('td #hfAuditAmount') : row.find('td #hfAmount');
+                    $(control).val(parseFloat($(control).val()));
+                    var Amount = $(control).val() ? parseFloat($(control).val()) : 0;
+                    var ogAmount = $(ogcontrol).val() ? parseFloat($(ogcontrol).val()) : 0;
+                    var OriginalAmount = row.find('td .OriginalAmount').val() ? parseFloat(row.find('td .OriginalAmount').val()) : 0;
+                    debugger;
+                    if ("@IsStorageCss" === "") {
+
+                        if (parseFloat(Amount) > parseFloat(OriginalAmount)) {
+                            alert("Amount cannot be Greater than Original Amt");
+                            if (parseFloat(ogAmount) > parseFloat(OriginalAmount))
+                                $(control).val(ogAmount);
+                            else
+                                $(control).val(0);
+                            $(control).focus();
+                            return false;
+                        }
+                        else {
+                            $(ogcontrol).val(Amount);
+                        }
+                    }
+                    else {
+                        $(ogcontrol).val(Amount);
+                    }
+
+                    var TaxApp = row.find('td .TaxApp').val();
+
+                    var ConvRate = row.find('td .ConvRate').val() ? row.find('td .ConvRate').val() : 0;
+                    var GSTVATPercent = row.find('td .GSTVATPercent').val() ? row.find('td .GSTVATPercent').val() : 0;
+
+                    if (!('@CompID'== 1 || '@CompID' == 2)) {
+                        ConvAmount = parseFloat(Amount / ConvRate).toFixed(2);
+
+                    }
+                    else {
+                        if (Basecurrid != '2' && Ratecurrid != '2') {
+                            ConvAmount = parseFloat(Amount * ConvRate).toFixed(2);
+                        }
+                        else if (Basecurrid != '2' && Ratecurrid == '2') {
+                            ConvAmount = parseFloat(Amount * ConvRate).toFixed(2);
+                        }
+                        else if (Basecurrid == '2' && Ratecurrid != '2') {
+                            ConvAmount = parseFloat(Amount / ConvRate).toFixed(2);
+                        }
+                        else {
+                            ConvAmount = parseFloat(Amount / ConvRate).toFixed(2);
+                        }
+                    }
+
+
+
+
+
+                    row.find('td .ConvAmount').val(ConvAmount);
+
+                    row.find('td .ConvAmount').siblings('span').html(ConvAmount);
+                    if ('@Model.TaxType' == "IGST")
+                    {
+
+                        var GSTVATAmount = TaxApp == "True" ? parseFloat(parseFloat(ConvAmount) * parseFloat(GSTVATPercent) / 100).toFixed(2) : 0;
+                        var TotalAmount = TaxApp == "True" ? parseFloat(parseFloat(GSTVATAmount) + parseFloat(ConvAmount)).toFixed(2) : parseFloat(ConvAmount).toFixed(2);
+                        row.find('td .IGSTAmt').val(GSTVATAmount);
+                        row.find('td .IGSTAmt').siblings('span').html(GSTVATAmount);
+                    }
+                    if ('@Model.TaxType' == "CGST")
+                    {
+                        var GSTVATAmount = TaxApp == "True" ? parseFloat(parseFloat(ConvAmount) * (parseFloat(GSTVATPercent) / 2) / 100).toFixed(2) : 0;
+                        var TotalAmount = TaxApp == "True" ? parseFloat(parseFloat(GSTVATAmount) + parseFloat(GSTVATAmount) + parseFloat(ConvAmount)).toFixed(2) : parseFloat(ConvAmount).toFixed(2);
+
+                        //var TotalAmount = TaxApp == "True" ? parseFloat(GSTVATAmount + ConvAmount).toFixed(2) : parseFloat(ConvAmount).toFixed(2);
+                        row.find('td .SGSTAmt').val(GSTVATAmount);
+                        row.find('td .SGSTAmt').siblings('span').html(GSTVATAmount);
+                        row.find('td .CGSTAmt').val(GSTVATAmount);
+                        row.find('td .CGSTAmt').siblings('span').html(GSTVATAmount);
+                    }
+                    if ('@Model.TaxType' == "VAT")
+                    {
+                        var GSTVATAmount = TaxApp == "True" ? parseFloat(parseFloat(ConvAmount) * parseFloat(GSTVATPercent) / 100).toFixed() : 0;
+                        var TotalAmount = TaxApp == "True" ? parseFloat(parseFloat(GSTVATAmount) + parseFloat(ConvAmount)).toFixed(2) : parseFloat(ConvAmount).toFixed(2);
+                        row.find('td .VatAmt').val(GSTVATAmount);
+                        row.find('td .VatAmt').siblings('span').html(GSTVATAmount);
+
+                    }
+                    if ('@Model.TaxType' == "NIL")
+                    {
+                        //var GSTVATAmount = ConvAmount;
+                        var TotalAmount =  ConvAmount;
+                        //row.find('td .VatAmt').val(GSTVATAmount);
+                        //row.find('td .VatAmt').siblings('span').html(GSTVATAmount);
+
+                    }
+                    row.find('td .TotalAmount').val(TotalAmount);
+                    row.find('td .TotalAmount').siblings('span').html(TotalAmount);
+                }
+            }
+            var FinalAmount = 0;
+            var FinalGSTVATAmount = 0;
+            var FinalAuditAmount = 0;
+            var FinalTotalAmount = 0;
+            $('#tblInvoiceItems tbody tr').each(function (i) {
+
+                var lasttr = $(this);
+                var RowNo = i + 1;
+                lasttr.attr("data-id", RowNo);
+                var Amount = parseFloat(lasttr.find(".tdAmount").val());
+                var AuditAmount = parseFloat(lasttr.find(".tdAuditAmount").val());
+                //var GSTVATAmount = parseFloat(lasttr.find("td .GSTVATAmount").val());
+                var TotalAmount = parseFloat(lasttr.find("td .TotalAmount").val());
+                FinalAmount = FinalAmount + Amount;
+                FinalAuditAmount = FinalAuditAmount + AuditAmount;
+                FinalTotalAmount = FinalTotalAmount + TotalAmount;
+            });
+            $('#tblInvoiceItems input[id^="BillItems__FinalAmount"]').val(parseFloat(FinalAmount));
+            $('#tblInvoiceItems input[id^="BillItems__FinalAuditedAmount"]').val(parseFloat(FinalAuditAmount));
+            $('#tblInvoiceItems input[id^="BlillItem_FinalTotalAmount"]').val(parseFloat(FinalTotalAmount).toFixed(2));
+        }
+
+        function OpenInvoicePrint(Control) {
+
+            var key = $('#BillType').val() == 'I' ? $('#BillID').val() : $('#CreditNoteID').val();
+            var IsStatement = Control == "OpenStatement" ? true : false;
+            var IsConsignment = Control == "btnConsignmentNote" ? true : false;
+            var StrgPram = '@Model.StrgInvID' != null && '@Model.StrgInvID' > 0 ? "&StrgKey=" +'@Model.StrgInvID' : "";
+            var param = "key=" + key + "&BillType=" + $('#BillType').val() + "&IsStatement=" + IsStatement + "&IsConsignment=" + IsConsignment + StrgPram;
+
+
+            var url = "@Url.Action( "BillFormat_Print" , "Billing")" + "?" + param;
+            //alert(@CompID);
+            if ('@CompID' == "2") {
+                url = "@Url.Action( "BTRBillFormat_Print" , "Billing")" + "?" + param;
+            }
+            else if ('@CompID' == "1006") {
+                url = "@Url.Action( "ArabicBillFormat_Print" , "Billing")" + "?" + param;
+            }
+                
+            
+            return !window.open(url);
+        }
+
+        $('.Weight').click(function ()
+        {
+
+            var control = $(this).attr('id');
+            if ($(this).is(':checked')) {
+                $('.Weight').each(function ()
+                {
+
+                    if ($(this).attr('id') != control && $(this).is(':checked')) {
+                        $(this).prop('checked', !this.checked).val(!this.checked);
+                    }
+
+                });
+
+            }
+        });
+
+        $('.Volume').click(function () {
+
+            var control = $(this).attr('id');
+            if ($(this).is(':checked')) {
+                $('.Volume').each(function () {
+
+                    if ($(this).attr('id') != control && $(this).is(':checked')) {
+                        $(this).prop('checked', !this.checked).val(!this.checked);
+                    }
+
+                });
+
+            }
+        });
+
+        $('.Annexure').click(function () {
+            var control = $(this).attr('id');
+            if ($(this).is(':checked')) {
+                $(this).prop('checked', this.checked).val(this.checked);
+            }
+        });
+
+
+
+
+        function ValidateStorageFields() {
+            var DestStorageStart = new Date($('#DestStorageStart').val());
+            var DestStorageEnd = new Date($('#DestStorageEnd').val());
+            var OrgStorageStart = new Date($('#OrgStorageStart').val());
+            var OrgStorageEnd = new Date($('#OrgStorageEnd').val());
+
+            var millisecondsPerDay = 1000 * 60 * 60 * 24;
+            //org Days
+            var millisBetween = OrgStorageEnd.getTime() - OrgStorageStart.getTime();
+            var days = millisBetween / millisecondsPerDay;
+            $('.OrgNoofdays').html(days+1);
+
+            //Dest Days
+            millisBetween = DestStorageEnd.getTime() - DestStorageStart.getTime();
+            days = millisBetween / millisecondsPerDay;
+            $('.DestNoofdays').html(days+1);
+
+
+            if (($('#OrgStorageStart').val() != "" || $('#OrgStorageEnd').val() != "" || $('#OrgStorageState').val().Length != "")
+                || ($('#DestStorageStart').val() != "" || $('#DestStorageEnd').val() != "" || $('#DestStorageState').val() != "")) {
+                $('.SaveParam').attr('disabled', 'disabled');
+
+                var Valid_OrgStg = ($('#OrgStorageStart').val() != "" || $('#OrgStorageEnd').val() != "" || $('#OrgStorageState').val() != "") ? ($('#OrgStorageStart').val() != "" && $('#OrgStorageEnd').val() != "" && $('#OrgStorageState').val() != ""):true;
+                var Valid_DestStg = ($('#DestStorageStart').val() != "" || $('#DestStorageEnd').val() != "" || $('#DestStorageState').val() != "") ? ($('#DestStorageStart').val() != "" && $('#DestStorageEnd').val() != "" && $('#DestStorageState').val() != ""):true;
+                //var Valid_OrgStg = !Valid_OrgStg ? ($('#OrgStorageStart').val() != "" || $('#OrgStorageEnd').val() != "" || $('#OrgStorageState').val() != "") : Valid_OrgStg;
+                //var Valid_DestStg = !Valid_DestStg ? ($('#DestStorageStart').val() != "" || $('#DestStorageEnd').val() != "" || $('#DestStorageState').val() != "") : Valid_DestStg;
+                if (($('#BillTo').val() && $('#BillTo').val() != undefined) &&
+                    (Valid_OrgStg && Valid_DestStg)) {
+                    $('.BtnGetTax').removeAttr('disabled');
+                }
+                else {
+                    $('.BtnGetTax').attr('disabled', 'disabled');
+                }
+            }
+            else {
+                $('.SaveParam').removeAttr('disabled');
+                $('.BtnGetTax').removeAttr('disabled');
+            }
+        }
+
+        function GenerateEInvoice(InvNo)
+        {
+            $.get("@Url.Action("GenerateEInvoice")", { InvNo: InvNo }, function (data) {
+                debugger;
+                $('.APIResult').html(data.result);
+                $('#APIModal').modal();
+            });
+        }
+
+        $('.chkUnBill').change(function () {
+            if ("@IsStorageCss") {
+                if ($(this).is(':checked')) {
+
+                    $(this).closest('tr').find('.tdAuditAmount').val($(this).closest('tr').find('.OriginalAmount').val());
+                    $(this).closest('tr').find('.hfAuditAmount').val($(this).closest('tr').find('.OriginalAmount').val());
+                    $(this).closest('tr').find('.tdAuditAmount').attr('readonly', 'readonly');
+                    $(this).closest('tr').find('.tdAuditAmount').removeAttr('onblur');
+                }
+                else {
+                    $(this).closest('tr').find('.tdAuditAmount').val(0.00);
+                    $(this).closest('tr').find('.tdAuditAmount').removeAttr('readonly');
+                    $(this).closest('tr').find('.tdAuditAmount').attr('onblur', 'CalGrossTotal(this)');
+                }
+
+
+                CalGrossTotal($(this).closest('tr').find('.tdAuditAmount'));
+            }
+        });
+
+
+
+
+        $('#BtnSave').click(function (e) {
+            if ("@IsStorageCss") {
+                var IsReverseBill = $('#hfReverseBill').val();
+                if (!IsReverseBill) {
+
+                    $('#tblInvoiceItems tbody tr').each(function (i) {
+                        if ($(this).find('.chkUnBill').is(':checked')) {
+                            IsReverseBill = "1";
+                            $('#hfReverseBill').val("1");
+                            e.preventDefault();
+                            //break;
+                        }
+                    });
+                }
+
+                if (IsReverseBill) {
+                    $frmRWDelete = $('#Invoice');
+                    swal({
+                        title: "Are you sure you want to reverse bill?",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Yes",
+                        cancelButtonText: "No",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                        function (isConfirm) {
+                            if (isConfirm) {
+                                $('#BtnSave').click();
+
+                            } else {
+                                $('#hfReverseBill').val("");
+                            }
+                        });
+                }
+
+            }
+        });
+
+        $('.SaveParam').click(function (e) {
+
+            if ('@Model.RMCBuss' == 'True' && '@CompID' == '1' && '@Model.BillType' == 'I') {
+                if (!($('#BillCategoryID').val()))
+                {
+                    alert("Please Select Bill Category");
+                    e.preventDefault();
+                    return false;
+                }
+
+            }
+        });
+        $('#BtnApproved').click(function (e) {
+
+            //if ('@Model.RMCBuss' == 'True' && '@CompID' == '1') {
+            if ('@Model.Is_SunCostShow' == 'True' && (!($('#SunCost').val()) || parseFloat($('#SunCost').val())<=0))
+                {
+                    alert("Please Enter Sun Cost.");
+                    e.preventDefault();
+                    return false;
+                }
+
+            //}
+        });
+
+        $('.CommRateCurr').on('change', function () {
+            var Convurl = '@Url.Action("GetConvRate", "cost", new { FromCurrID = "-1", ToCurrID = "-2", FromPage = "-3" })';
+            Convurl = Convurl.replace("-1", $('#BaseCurrID').val());
+            Convurl = Convurl.replace("-2", $(this).val());
+            Convurl = Convurl.replace("-3", "Bill");
+            Convurl = Convurl.replace(/&amp;/g, "&");
+
+            AjaxFillConvRate(Convurl, $('.CommConvRate'));
+          });
+
+
+        function GetEInvoiceDetail(InvNo) {
+            //var InvNo = $(e).closest('tr').find('.InvNo').html();
+
+            var url = '@Url.Action("DownloadToExcel", new { InvNo = "-1" })';
+            url = url.replace("-1", InvNo);
+            //url = url.replace("-2", AppID);
+            url = url.replace(/&amp;/g, "&");
+            //window.location.href = url;
+            var tab_text = "<table border='2px'><tr >";
+            $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    url: url,
+                    async: 'false',
+                    dataType: 'json',
+                    type: "GET",
+                success: function (data) {
+                    tab_text = tab_text + data.htmlstring;
+                    tab_text = tab_text.replace(/<tr>/g, "");
+                    //tab_text = tab_text.replace(/_([^]*)$/, '$1'); //a_bc
+
+                    tab_text = tab_text + "</table>";
+                    tab_text = tab_text.replace(/<A[^>]*>|<\/A>/g, "");//remove if u want links in your table
+                    tab_text = tab_text.replace(/<img[^>]*>/gi, ""); // remove if u want images in your table
+                    tab_text = tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+
+                    var ua = window.navigator.userAgent;
+                    var msie = ua.indexOf("MSIE ");
+
+                    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer
+                    {
+                        txtArea1.document.open("txt/html", "replace");
+                        txtArea1.document.write(tab_text);
+                        txtArea1.document.close();
+                        txtArea1.focus();
+                        sa = txtArea1.document.execCommand("SaveAs", true, "Download.xls");
+                    }
+                    else                 //other browser not tested on IE 11
+                        sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+
+                    return (sa);
+                    },
+                    error: function (reponse) {
+                        alert("error : " + reponse);
+                    }
+                });
+
+            var textRange; var j = 0;
+            //tab = document.getElementById('tblCostSheet'); // id of table
+
+            //for (j = 0; j < tab.rows.length; j++) {
+
+            //    tab_text = tab_text + tab.rows[j].innerHTML + "</tr><tr>";
+            //    //tab_text=tab_text+"</tr>";
+            //}
+
+
+        }
+
+    </script>
+}

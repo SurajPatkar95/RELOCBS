@@ -1,0 +1,67 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model List<RELOCBS.Entities.Billing>
+
+@{
+    var CreditNoteGrid = (List<RELOCBS.Entities.Billing>)ViewBag.CreditNoteGrid;
+}
+
+@Html.Grid(Model).Named("CNmainGrid").Columns(columns =>
+{
+columns.Add(o => o.CreditNoteID)
+.Titled("Credit Note ID")
+.Css("col-md-1");
+
+columns.Add(o => o.CreditNoteNo)
+.Titled("Credit Note No.")
+.Css("col-md-1");
+
+//columns.Add(o => o.BillID)
+//.Titled("Inv ID")
+//.Css("col-md-1");
+
+columns.Add(o => o.InvoiceNo)
+.Titled("Invoice No.")
+.Css("col-md-1");
+
+columns.Add(o => o.InvoiceDate)
+.Titled("Credit Note Date")
+.Css("col-md-1");
+//.SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+
+columns.Add(o => o.Client)
+.Titled("Client")
+.Css("col-md-1");
+
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("Actions")
+.RenderValueAs(d =>
+@<span>
+    @{
+        string CreditNoteLink = d.StrgInvID != null && d.StrgInvID > 0 ? Url.Action("Create", "Billing", new { key = d.CreditNoteID, PageIndex = 3, type = "AC", StrgKey = d.StrgInvID }) : Url.Action("Create", "Billing", new { key = d.CreditNoteID, PageIndex = 3, type = "AC" });
+    }
+    <a href="@CreditNoteLink" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" title="Edit Credit Note"></a>
+
+</span>
+);
+        })
+
+
+
+
+@*<div class="clearfix pnl-pagination">
+        <div class="pull-right">
+            @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+            @if (Model.Count() == 0)
+            {
+                <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+            }
+        </div>
+    </div>*@

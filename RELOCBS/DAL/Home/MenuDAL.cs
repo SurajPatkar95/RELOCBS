@@ -21,9 +21,9 @@ namespace RELOCBS.DAL.Home
             }
         }
 
-        public DataTable InitializeMenu(string LoginID)
+        public DataTable InitializeMenu(string LoginID, string flag)
         {
-            DataSet dstMenu = CSubs.GetDataSet(string.Format("EXEC Access.GetAssignedMenuItems 'ASSIGNED',{0}; EXEC Access.GetAssignedMenuItems 'ALL',''", CSubs.QSafeValue(LoginID)));
+            DataSet dstMenu = CSubs.GetDataSet(string.Format("EXEC Access.GetAssignedMenuItems {1},{0}; EXEC Access.GetAssignedMenuItems 'ALL',''", CSubs.QSafeValue(LoginID), CSubs.QSafeValue(flag)));
             DataRow drADD;
 
             DataTable dtMenuTable = new DataTable("MENU");

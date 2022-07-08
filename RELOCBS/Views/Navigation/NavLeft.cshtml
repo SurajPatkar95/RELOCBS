@@ -1,9 +1,10 @@
-﻿@model IEnumerable<RELOCBS.Models.MenuViewModel>
+﻿@using RELOCBS.Utility;
+@model IEnumerable<RELOCBS.Models.MenuViewModel>
 @{
 
     var controllerName = this.ViewContext.RouteData.Values["controller"].ToString();
     List<RELOCBS.Models.MenuViewModel> menuList = ViewBag.UserMenu;
-
+    string imgclass = UserSession.GetUserSession().CompanyID==2? "BTRlogo" : "logo" ;
 }
 
 <div class="navbar-default navbar-static-side" role="navigation">
@@ -11,7 +12,7 @@
         <ul class="nav metismenu" id="side-menu">
             <li class="nav-header">
                 <div id="logo">
-                    <a class="logo" href="#"></a>
+                    <a class="@imgclass" href="#"></a>
                 </div>
             </li>
 
@@ -74,14 +75,16 @@
                 foreach (RELOCBS.Models.MenuViewModel menu in Model)
                 {
                     <li class="@(@controllerName == menu.Controller ? "active" : "")">
-                        <a href="@Url.Action("", menu.Link, new { area = "" }, this.Request.Url.Scheme)" class="@controllerName" title="@menu.Title">
+                        <a href="@Url.Action("", menu.Link, new { @*area = ""*@ title = menu.Title }, this.Request.Url.Scheme)" class="@controllerName" title="@menu.Title">
                             <i class="@menu.IMGPath"></i> <span class="nav-label">@menu.Title</span>
                             @if (menu.SubMenu != null && menu.SubMenu.Count(p => p.ParentMenuID == menu.MenuID) > 0)
                             {<span class="fa arrow"></span>}
                         </a>
                         @if (menu.SubMenu!=null && menu.SubMenu.Count(p => p.ParentMenuID == menu.MenuID) > 0)
                         {
-                            @:<ul class="nav nav-second-level collapse">
+                            var HorizontalSubMenu = menu.SubMenu.Count(p => p.ParentMenuID == menu.MenuID) > 2 ?  "HorizontalList" : "";
+
+                            @:<ul class="nav nav-second-level collapse @HorizontalSubMenu">
                         }
 
                         @if (menu.SubMenu!=null && menu.SubMenu.Count>0)
@@ -104,8 +107,30 @@
 {
     foreach (var cp in SubmenuList.Where(p => p.ParentMenuID == mi.MenuID))
     {
+            
+              string Parampair = cp.Link.IndexOf("?") > -1 ? cp.Link.Substring(cp.Link.IndexOf("?") + 1) : "";
+
+              RouteValueDictionary parameters = new RouteValueDictionary();
+              if (!string.IsNullOrEmpty(Parampair))
+              {
+                  string[] arr = Parampair.Split('&');
+
+                  if (arr != null && arr.Length > 0)
+                  {
+                      foreach (var item in arr)
+                      {
+                          string[] pair = item.Split('=');
+
+                          parameters.Add(pair[0], pair[1]);
+                      }
+                  }
+              }
+
+              string Link = cp.Link.IndexOf("?") > -1 ? cp.Link.Substring(0, cp.Link.IndexOf("?")) : cp.Link;
+
+
             @:<li class="@(@controllerName == mi.Controller ? "active" : "")">
-                <a href="@Url.Action("", cp.Link, new { area = "" }, this.Request.Url.Scheme)" class="@controllerName" title="@cp.Title">
+                <a href="@Url.Action("",Link, parameters , this.Request.Url.Scheme)" class="@controllerName" title="@cp.Title">
                     <i class="@cp.IMGPath"></i> @cp.Title
        @if (cp.SubMenu!=null && cp.SubMenu.Count(p => p.ParentMenuID == mi.MenuID) > 0)
        {<span class="fa arrow"></span>}

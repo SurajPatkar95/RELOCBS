@@ -1,0 +1,24 @@
+﻿@{
+
+var grid = new WebGrid(Model, canPage: true, rowsPerPage: 10,
+
+selectionFieldName: "selectedRow", ajaxUpdateContainerId: "gridContent");
+
+grid.Pager(WebGridPagerModes.NextPrevious);}
+
+@grid.GetHtml(tableStyle: "webGrid",
+
+        headerStyle: "header",
+
+        alternatingRowStyle: "alt",
+
+        selectedRowStyle: "selectedrow",
+        
+        columns: grid.Columns( grid.Column(header: "Select", format: @<text><input name="chck" TYPE="RADIO" id="chck" value="@item.Id" /></text>),
+        grid.Column(header: "", format: @<text><input name="chck" TYPE="RADIO" id="chck" value="@item.Id" /></text>),
+        grid.Column("CrewCode", "CrewCode"),
+        grid.Column("Supervisor", "Supervisor"),
+        grid.Column("LastJobNo", "LastJobNo"),
+        grid.Column("FromDate", "FromDate"),
+        grid.Column("ToDate", "ToDate")
+))

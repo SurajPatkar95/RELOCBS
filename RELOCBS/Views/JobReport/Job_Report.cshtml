@@ -1,0 +1,756 @@
+﻿@model RELOCBS.Entities.PJR_DJR
+
+@using RELOCBS.Utility;
+
+@{
+    Layout = null;
+
+    var DateTitle = Model.ReportType.StartsWith("Delivery") ? "Delivery" : "Pack";
+    int CompID = UserSession.GetUserSession().CompanyID;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Job Report</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style type="text/css">
+
+        .ttop {
+            vertical-align: top !important;
+        }
+
+        body {
+        }
+
+        .floatLeft {
+            float: left;
+        }
+
+        .tcenter {
+            text-align: center !important;
+        }
+
+        .boxWraper {
+            border: 1px solid #7b7b7b;
+            display: block;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .boxWraper .padding tr td {
+                padding: 3px 6px;
+            }
+
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        .tableData {
+            border: 0 !important;
+            line-height: 16px;
+        }
+
+
+        .tableData tr td {
+                background: #fff;
+                height: 100%;
+                vertical-align: middle;
+                border: 1px solid #e3e7ee;
+            }
+
+        .boxWraper tr th {
+            border: 1px solid #e3e7ee;
+            text-align: center;
+            padding: 3px 6px;
+        }
+
+
+        .marginLR {
+            margin: 0 auto;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        /*table {
+            border-collapse: separate;
+            border-spacing: 2px;
+        }*/
+
+        table {
+            background-color: transparent;
+        }
+
+        /*table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+        }*/
+
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            color: #808080;
+            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: subpixel-antialiased;
+            background: #fff;
+        }
+
+        .cw100 {
+            width: 100px !important;
+        }
+
+        .tbold {
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            font-weight: bold;
+        }
+
+        .tright {
+            text-align: right !important;
+        }
+
+        label {
+            margin-bottom: 0;
+        }
+
+        .tcollapse {
+            border-collapse: collapse;
+        }
+
+
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+        .taW {
+            width: 100% !important;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: normal;
+            font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+        }
+    </style>
+    <style type="text/css">
+        @@media print {
+            .grid-header {
+                background: #eee;
+                font-size: 13px;
+            }
+
+            body {
+                font-family: Serif;
+            }
+
+            h2 {
+                font-size: 20px;
+                text-transform: uppercase;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            h4 {
+                font-size: 13px;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="col-lg-12 col-sm-12 col-md-12" style=" flex-align:center">
+
+
+        <table class="marginLR" style="width:20cm;">
+            <tbody>
+                <tr>
+                    <td>
+                        <table class="taW">
+                            <tbody>
+                                <tr>
+                                    <td style="border-bottom:1px solid #7b7b7b;">
+                                        <div class="floatLeft" style="margin-top:34px;">
+                                            @Html.HiddenFor(model => Model.JobType)
+                                            <input type="hidden" id="hWisId" data-ng-model="hWisIdm" value="5866" autocomplete="off" class="ng-pristine ng-untouched ng-valid ng-not-empty">
+                                        </div>
+                                        @if (CompID == 2)
+                                        {
+                                            <div class="tcenter hidden-print">
+                                                <img src="~/Content/images/BTR_Logo.PNG">
+                                            </div>
+                                            <div class="tcenter">
+                                                <h2>BTR International</h2>
+                                                <h4>@Html.Raw(Model.ReportType)</h4>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="tcenter hidden-print">
+                                                <img src="~/Content/images/logo.png">
+                                            </div>
+                                            <div class="tcenter">
+                                                <h2>Writer Relocations</h2>
+                                                <h4>@Html.Raw(Model.ReportType)</h4>
+                                            </div>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="height:5px;"></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="boxWraper">
+                                            <table class="taW tcollapse padding">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="grid-header" colspan="4"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            @{ 
+                                                                string LabelName = Model.JobType == 0 ? "BusinessLine" : "Service Line";
+                                                                string LableText = Model.JobType == 0 ?  Model.BusinessLine : Model.ServiceLine;
+                                                             }
+                                                            <label class="cw100 tbold">
+                                                                @Html.Raw(LabelName)</label> :
+                                                            <span class="ng-binding">@Html.Raw(LableText)</span>
+                                                        </td>
+                                                        <td>
+                                                            <label class="cw100 tbold">Job No.</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.JobNo)</span>
+                                                        </td>
+                                                        <td>
+                                                            <label class="cw100 tbold">Job Date</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.Job_Date.ToString("dd/MM/yyyy"))</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <label class="cw100 tbold">Entry Date</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.CreatedDate.ToString("dd/MM/yyyy"))</span>
+                                                        </td>
+                                                        <td>
+                                                            <label class="cw100 tbold">Volume(CFT)</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.Volume)</span>
+                                                        </td>
+                                                        <td>
+                                                            <label class="cw100 tbold">No of Packages</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.NoOfPkgs)</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <label class="cw100 tbold">@Html.Raw(DateTitle + " Starts On")</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.PackStartDate != null ? Convert.ToDateTime(Model.PackStartDate).ToString("dd/MM/yyyy") : "")</span>
+                                                        </td>
+                                                        <td colspan="2">
+                                                            <label class="cw150 tbold">@Html.Raw(DateTitle + " Complete On")</label> :
+                                                            <span class="ng-binding">@Html.Raw(Model.PackCompletionDate != null ? Convert.ToDateTime(Model.PackCompletionDate).ToString("dd/MM/yyyy") : "")</span>
+                                                        </td>
+                                                    </tr>
+                                                    @if(Model.JobType == 1)
+                                                    { 
+                                                        <tr>
+                                                            <td colspan="3">
+                                                                <label class="cw100 tbold">Shipper Name</label> :
+                                                                <span class="ng-binding">@Html.Raw(Model.Shipper)</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td colspan="3">
+                                                                <label class="cw100 tbold">Shipper Address</label> :
+                                                                <span class="ng-binding">@Html.Raw(Model.ShipperAddress)</span>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                        <tr>
+                                                            <td colspan="3">
+                                                                <label class="cw100 tbold">Remark</label> :
+                                                                <span class="ng-binding">@Html.Raw(Model.Remark)</span>
+                                                            </td>
+                                                        </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="boxWraper">
+                                            <table class="taW tcollapse padding">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="grid-header tbold" colspan="4">Crew Details</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="ttop" colspan="4">
+                                                            <table id="tblLabourCost" class="tableData taW">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th class="cw150">Personnel</th>
+                                                                        <th class="cw50">Days</th>
+                                                                        <th class="cw50">Cost</th>
+                                                                        <th class="cw50">OT Rate</th>
+                                                                        <th class="cw50">OT Hrs.</th>
+                                                                        <th class="cw60">OT Amount</th>
+                                                                        <th class="cw60">OT Remark</th>
+                                                                        <th class="cw60">Total</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody style="max-height:100%">
+                                                                    @for (int i = 0; i < Model.inHouseLaboursCost.Count; i++)
+                                                                    {
+                                                                        <!-- Repeat: row in LabourCostList -->
+                                                                        <tr class="ng-scope">
+                                                                            <td class="cw150">
+                                                                                <label>@Html.Raw(Model.inHouseLaboursCost[i].EmpName)</label>
+                                                                            </td>
+                                                                            <td class="cw50 tright">
+                                                                                <label>@Html.Raw(Model.inHouseLaboursCost[i].NoOfDays)</label>
+                                                                            </td>
+                                                                            <td class="cw50 tright">
+                                                                                <label>@Html.Raw(Model.inHouseLaboursCost[i].Cost)</label>
+                                                                            </td>
+                                                                            <td class="cw50 tright">
+                                                                                <label>@Html.Raw(Model.inHouseLaboursCost[i].OT_Rate)</label>
+                                                                            </td>
+                                                                            <td class="cw50 tright">
+                                                                                <label>@Html.Raw(Model.inHouseLaboursCost[i].OT_hours)</label>
+                                                                            </td>
+                                                                            <td class="cw60 tright">
+                                                                                <label>@Html.Raw(Model.inHouseLaboursCost[i].OT_Cost)</label>
+                                                                            </td>
+                                                                            <td class="cw60 tright">
+                                                                                <label>@Html.Raw(Model.inHouseLaboursCost[i].OT_Remark)</label>
+                                                                            </td>
+                                                                            <td class="cw60 tright">
+                                                                                <label class="ng-binding CrewEmpTotal">@Html.Raw(Model.inHouseLaboursCost[i].Total)</label>
+                                                                            </td>
+                                                                        </tr>
+                                                                        <!-- end Repeat: row in LabourCostList -->
+                                                                    }
+
+                                                                </tbody>
+                                                                <tfoot>
+                                                                    <tr>
+                                                                        <td class="cw100 tbold" colspan="7">Total</td>
+                                                                        <td id="CrewTotal" class="cw60 tright ng-binding"></td>
+                                                                    </tr>
+                                                                </tfoot>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="boxWraper">
+                                            <table class="taW tcollapse padding">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="grid-header tbold" colspan="4">Transportation Details</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="ttop" colspan="4">
+                                                            <table id="tblTransportCost" class="tableData taW ">
+                                                                <thead>
+                                                                    <tr><th class="cw100">Purpose</th>
+                                                                        <th class="cw100">Vehicle No</th>
+                                                                        <th class="cw100">Driver</th>
+                                                                        <th class="cw100">From Time</th>
+                                                                        <th class="cw100">To Time</th>
+                                                                        <th class="cw100">Cost</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody style="max-height:100%">
+                                                                    @for (int i = 0; i < Model.Vehicles.Count; i++)
+                                                                    {
+                                                                        <!--Repeat: row in LocalTransportList -->
+                                                                        <tr class="ng-scope">
+                                                                            <td class="cw100">
+                                                                                <label>@Html.Raw(Model.Vehicles[i].Purpose)</label>
+                                                                            </td>
+                                                                            <td class="cw100">
+                                                                                <label>@Html.Raw(Model.Vehicles[i].VehicleNo)</label>
+                                                                            </td>
+                                                                            <td class="cw100">
+                                                                                <label>@Html.Raw(Model.Vehicles[i].Driver)</label>
+                                                                            </td>
+                                                                            <td class="cw100">
+                                                                                <label>@Html.Raw(Model.Vehicles[i].FromDate)</label>
+                                                                            </td>
+                                                                            <td class="cw100">
+                                                                                <label>@Html.Raw(Model.Vehicles[i].ToDate)</label>
+                                                                            </td>
+                                                                            <td class="cw100 tright">
+                                                                                <label class="VehicleCost">@Html.Raw(Model.Vehicles[i].V_Cost)</label>
+                                                                            </td>
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                                <tfoot>
+                                                                    <tr>
+                                                                        <td class="cw100 tbold" colspan="5">Total</td>
+                                                                        <td id="VehicleTotal" class="cw100 tright ng-binding"></td>
+                                                                    </tr>
+                                                                </tfoot>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="boxWraper">
+                                            <table class="taW tcollapse padding">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="grid-header tbold" colspan="4">Material Cost</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="ttop" colspan="4">
+                                                            <table id="tblMaterialCost" class="tableData taW ">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th class="cw100">Material</th>
+                                                                        <th class="cw100">Return.</th>
+                                                                        <th class="cw100">Userd Qty.</th>
+                                                                        <th class="cw100">Cost</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody style="max-height:100%">
+                                                                    @for (int i = 0; i < Model.materialCosts.Count; i++)
+                                                                    {
+                                                                        <!-- ngRepeat: row in MaterialCostList -->
+                                                                        <tr class="ng-scope">
+                                                                            <td class="cw100 ng-binding"><label>@Html.Raw(Model.materialCosts[i].Materail)</label></td>
+                                                                            <td class="cw100 tright ng-binding"><label>@Html.Raw(Model.materialCosts[i].ReturnQty)</label></td>
+                                                                            <td class="cw100 tright ng-binding"><label>@Html.Raw(Model.materialCosts[i].UsedQty)</label></td>
+                                                                            <td class="cw100 tright">
+                                                                                <label class="ng-binding TblCost">@Html.Raw(Model.materialCosts[i].Cost)</label>
+                                                                            </td>
+                                                                        </tr>
+                                                                        <!-- end ngRepeat: row in MaterialCostList -->
+                                                                    }
+                                                                </tbody>
+                                                                <tfoot>
+                                                                    <tr>
+                                                                        <td class="cw100 tbold" colspan="3">Total</td>
+                                                                        <td id="MaterialTotal" class="cw100 tright ng-binding"></td>
+                                                                    </tr>
+                                                                </tfoot>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="boxWraper">
+                                            <table class="taW tcollapse padding">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="grid-header tbold" colspan="4">Additional Services</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="ttop" colspan="4">
+                                                            <table id="tblServiceCost" class="tableData taW ">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th class="cw100">Service</th>
+                                                                        <th class="cw100">Description</th>
+                                                                        <th class="cw100">Cost</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody style="max-height:100%">
+                                                                    @for (int i = 0; i < Model.services.Count; i++)
+                                                                    {
+                                                                        <!-- ngRepeat: row in AdditionalServiceList -->
+                                                                        <tr>
+                                                                            <td class="cw100 ng-binding"><label>@Html.Raw(Model.services[i].ServiceName)</label></td>
+                                                                            <td class="cw100 ng-binding"><label>@Html.Raw(Model.services[i].Description)</label></td>
+                                                                            <td class="cw100 tright ng-binding AdCost"><label>@Html.Raw(Model.services[i].Cost)</label></td>
+                                                                        </tr>
+                                                                    }
+
+                                                                </tbody>
+                                                                <tfoot>
+                                                                    <tr>
+                                                                        <td class="cw100 tbold" colspan="2">Total</td>
+                                                                        <td id="ServiceTotal" class="cw100 tright ng-binding"></td>
+                                                                    </tr>
+                                                                </tfoot>
+
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="boxWraper">
+                                            <table class="taW tcollapse padding">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="grid-header tbold" colspan="4">External Labour</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="ttop" colspan="4">
+                                                            <table id="tblOutLabourCost" class="tableData taW ">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th class="cw100">Vendor</th>
+
+                                                                        <th class="cw100">No. of Person</th>
+                                                                        <th class="cw100">Cost</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody style="max-height:100%">
+                                                                    @for (int i = 0; i < Model.outLabourCosts.Count; i++)
+                                                                    {
+                                                                        <tr>
+                                                                            <td class="cw100"><label class="ng-binding">@Html.Raw(Model.outLabourCosts[i].Labour_Vendor)</label></td>
+
+                                                                            <td class="cw100 tright"><label class="ng-binding">@Html.Raw(Model.outLabourCosts[i].Labour_OutsideNo)</label></td>
+                                                                            <td class="cw100 tright ng-binding OutLabourCost">@Html.Raw(Model.outLabourCosts[i].Labour_Cost)</td>
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                                <tfoot>
+                                                                    <tr>
+                                                                        <td class="cw100 tbold" colspan="2">Total</td>
+                                                                        <td id="OutLabourTotal" class="cw100 tright ng-binding"></td>
+                                                                    </tr>
+                                                                </tfoot>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <div class="boxWraper">
+                                            <table class="taW tcollapse padding">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="grid-header tbold" colspan="4">Document List</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="ttop" colspan="4">
+                                                            <table class="tableData taW ">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th class="cw150">Document Name</th>
+                                                                        <th class="cw150">File Name</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody style="max-height:100%">
+                                                                    @for (int i = 0; i < Model.docUpload.docLists.Count; i++)
+                                                                    {
+                                                                        <tr>
+                                                                            <td class="cw150"><label class="ng-binding">@Html.Raw(Model.docUpload.docLists[i].DocName)</label></td>
+                                                                            <td class="cw150"><label class="ng-binding">@Html.Raw(Model.docUpload.docLists[i].FileName)</label></td>
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hidden-print">
+                                    <td>
+                                        <div class="boxWraper">
+                                            <table class="taW tcollapse padding">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="ttop">
+                                                            <table class="tableData taW ">
+                                                                <tfoot>
+                                                                    <tr>
+                                                                        <td class="cw100 tbold" colspan="">Grand Total</td>
+                                                                        <td id="GrandTotal" class="cw100 tright ng-binding"></td>
+                                                                    </tr>
+                                                                </tfoot>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>@*class="hidden-print"*@
+                                    <td>
+                                        <div class="boxWraper">
+                                            <table class="taW tcollapse padding">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="grid-header tbold ng-binding" colspan="3">Generated By : @Html.Raw(UserSession.GetUserSession().UserName)&nbsp;</td>
+                                                        <td class="grid-header tbold ng-binding">
+                                                            Generated On :
+                                                            <script>document.write(new Date().toDateString() + " " + new Date().toLocaleTimeString());</script>
+                                                        </td>
+                                                    </tr>
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+
+    @Scripts.Render("~/bundles/jqueryval")
+
+    @*@Styles.Render("~/Content/icheckcss")
+        @Scripts.Render("~/bundles/icheck")*@
+
+    @Styles.Render("~/Content/summernote")
+    @Scripts.Render("~/bundles/jquery-ui")
+    @Scripts.Render("~/bundles/summernote")
+    @Scripts.Render("~/bundles/bgiframe")
+
+    @Scripts.Render("~/bundles/custom")
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+
+            GrandTotal();
+        });
+
+        function GrandTotal() {
+
+
+            var TotalAmount = 0;
+            var GrandTotal = 0;
+
+            $('#tblMaterialCost tbody tr').each(function (index, tr) {
+
+                //var issueqty = parseInt($(this).find('.TblIssuedQty').val());
+                //var returnqty = parseInt($(this).find('.TblReturnQty').val());
+                //var rate = parseFloat($(this).find('.TblRate').val());
+                //if (!isNaN(issueqty) && !isNaN(returnqty) && !isNaN(rate)) {
+                //    $(this).find('.TblCost').val(((issueqty - returnqty) * rate));
+                //}
+                debugger;
+                TotalAmount = TotalAmount + parseFloat($(this).find('.TblCost').text());
+
+                
+            });
+
+            if (!isNaN(TotalAmount)) {
+
+                $('#MaterialTotal').html('<label>' + TotalAmount+'</label>');
+                GrandTotal = GrandTotal + TotalAmount;
+            }
+
+            TotalAmount = 0;
+
+
+            $('#tblLabourCost tbody tr').each(function (index, tr) {
+
+                TotalAmount = TotalAmount + parseFloat($(this).find('.CrewEmpTotal').text());
+            });
+
+            if (!isNaN(TotalAmount)) {
+
+                $('#CrewTotal').html('<label>' + TotalAmount + '</label>');
+                GrandTotal = GrandTotal + TotalAmount;
+            }
+
+            TotalAmount = 0;
+
+
+            $('#tblTransportCost tbody tr').each(function (index, tr) {
+
+                TotalAmount = TotalAmount + parseFloat($(this).find('.VehicleCost').text());
+            });
+
+            if (!isNaN(TotalAmount)) {
+
+                $('#VehicleTotal').html('<label>' + TotalAmount + '</label>');
+                GrandTotal = GrandTotal + TotalAmount;
+            }
+
+            TotalAmount = 0;
+
+
+            $('#tblServiceCost tbody tr').each(function (index, tr) {
+
+                TotalAmount = TotalAmount + parseFloat($(this).find('.AdCost').text());
+            });
+
+            if (!isNaN(TotalAmount)) {
+
+                $('#ServiceTotal').html('<label>' + TotalAmount + '</label>');
+                GrandTotal = GrandTotal + TotalAmount;
+            }
+
+            TotalAmount = 0;
+
+
+            $('#tblOutLabourCost tbody tr').each(function (index, tr) {
+
+                TotalAmount = TotalAmount + parseFloat($(this).find('.OutLabourCost').text());
+            });
+
+            if (!isNaN(TotalAmount)) {
+
+                $('#OutLabourTotal').html('<label>' + TotalAmount + '</label>');
+                GrandTotal = GrandTotal + TotalAmount;
+            }
+
+            $('#GrandTotal').html('<label>' + GrandTotal + '</label>');
+        }
+
+    </script>
+</body>
+</html>

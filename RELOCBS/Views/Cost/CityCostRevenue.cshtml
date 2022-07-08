@@ -1,0 +1,71 @@
+﻿@model RELOCBS.Entities.CityCostRevenue
+@{
+    ViewBag.Title = "Additional Services Base City Rates";
+}
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+<div class="modal-body">
+    <div class="row">
+        <div class="col-sm-4 col-md-4">
+            <div class="form-group">
+                <strong>City :</strong>&nbsp;<strong>@Html.Raw(Model.City)</strong>
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            <div class="form-group">
+                <strong>RMC :</strong>&nbsp;<strong>@Html.Raw(Model.RMC)</strong>
+            </div>
+        </div>
+        <div class="col-sm-5 col-md-5">
+            <div class="form-group">
+                <strong>EffectiveFrom :</strong>&nbsp;<strong>@Html.Raw(Model.EffectiveFrom.ToString("dd-MMM-yyyy"))</strong>&nbsp;<strong>To</strong>&nbsp;<strong>@Html.Raw(Model.EffectiveTo.ToString("dd-MMM-yyyy"))</strong>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12 m-b-lg">
+            <div class="table-responsive">
+                <table class="table table-striped fixed_header">
+                    <thead class="ibox-title">
+                        <tr>
+                            <th>ServiceName</th>
+                            <th>Base City Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @for (int i = 0; i < Model.revenueLists.Count; i++)
+                        {
+                            <tr>
+                                
+                                <td>
+                                    @Html.Raw(Model.revenueLists[i].CostHead)
+                                </td>
+                                <td>
+                                    @Html.Raw(Model.revenueLists[i].Revenue) &nbsp; @Html.Raw(Model.revenueLists[i].Currency)
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    @*<hr />
+    <div class="row">
+        <div class="col-sm-12 col-md-12">
+            <div class="form-group">
+                <strong>Note :</strong>&nbsp;<strong>the City Rate shown above are independent of RMC</strong>
+            </div>
+        </div>
+    </div>*@
+</div>
+<div class="modal-footer">
+    <div class="pull-right">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+    </div>
+</div>
+

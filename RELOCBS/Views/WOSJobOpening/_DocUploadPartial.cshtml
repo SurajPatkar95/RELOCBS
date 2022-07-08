@@ -1,0 +1,156 @@
+﻿@model RELOCBS.Entities.WOSJobOpening
+
+@{
+    string _PageID = "71";
+
+    Model.WOSJobDocUpload.ID = Convert.ToInt64(Model.MoveID);
+    Model.WOSJobDocUpload.DocFromType = "WOS";
+}
+
+<div class="ibox-content">
+    @using (Html.BeginForm("Create", "WOSJobOpening", FormMethod.Post, new { enctype = "multipart/form-data", @name = "formWOSDocUpload", @id = "formWOSDocUpload" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true)
+
+        @Html.HiddenFor(m => m.WOSMoveID, new { @id = "WOSMoveID" })
+        @Html.HiddenFor(m => m.WOSJobDocUpload.ID)
+        @Html.HiddenFor(m => m.WOSJobDocUpload.DocFromType)
+        <div class="row">
+            <div class="col-sm-2 form-group">
+                <label>Document Type</label>
+                @Html.DropDownListFor(m => m.WOSJobDocUpload.DocTypeID, new SelectList((System.Collections.IEnumerable)ViewData["DocTypeList"], "Value", "Text"), "Select One", new { id = "DocTypeDropdown", @class = "form-control input-sm clearfix enableselect", @onchange = "javascript:DocType_OnChange(this.value);" })
+                @Html.ValidationMessageFor(m => m.WOSJobDocUpload.DocTypeID, "", new { @class = "text-danger" })
+            </div>
+            <div class="col-sm-2 form-group">
+                <label>Document Name</label>
+                @Html.DropDownListFor(m => m.WOSJobDocUpload.DocNameID, new List<SelectListItem>(), "Select One", new { id = "DocNameDropdown", @class = "form-control input-sm clearfix enableselect" })
+                @Html.ValidationMessageFor(m => m.WOSJobDocUpload.DocNameID, "", new { @class = "text-danger" })
+            </div>
+            <div class="col-sm-2 form-group">
+                <label>Description</label>
+                @Html.EditorFor(m => m.WOSJobDocUpload.DocDescription, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                @Html.ValidationMessageFor(m => m.WOSJobDocUpload.DocDescription, "", new { @class = "text-danger" })
+            </div>
+            <div class="col-sm-3 form-group">
+                <label>File Upload (Max Size: 20MB)</label>
+                @Html.TextBoxFor(m => m.WOSJobDocUpload.file, new { type = "file", @class = "inputfile inputfile-4 form-control", accept = ".xls,.xlsx,.doc,.docx,.jpg,.jpeg,.png,.pdf,.ppt,.pptx,.csv", @multiple = "multiple", @title = "Max Size: 20MB" })
+                @Html.ValidationMessageFor(m => m.WOSJobDocUpload.file, "", new { @class = "text-danger" })
+            </div>
+            <div class="col-sm-1 form-group">
+                @Html.CheckBoxFor(m => m.WOSJobDocUpload.IsShowToAssignee, new { @class = "checkbox-inline" }) Show To Assignee
+                @Html.ValidationMessageFor(m => m.WOSJobDocUpload.IsShowToAssignee, "", new { @class = "text-danger" })
+            </div>
+            <div class="col-sm-2 form-group">
+                <div class="clearfix">
+                    <input type="submit" id="btnDocUpload" name="Save" value="Upload" class="btn btn-primary btn-sm filter-custom-margin">
+                    <button type="button" id="btnDocSearch" name="Search" class="btn btn-default m-l-sm btn-sm filter-custom-margin"><i class="fa fa-search"></i></button>
+                </div>
+            </div>
+        </div>
+    }
+    <div>
+        @using (Html.BeginForm("GetDocumentList", "WOSJobOpening", FormMethod.Post, new { @name = "DocCustomFilter", @id = "DocCustomFilter", @class = "form-inline" }))
+        {
+            @Html.Hidden("id", Model.MoveID)
+            @Html.Hidden("DocTypeID")
+            @Html.Hidden("DocNameID")
+            @Html.Hidden("DocDescription")
+        }
+    </div>
+    <div class="row" id="docgrid">
+        @Html.Partial("_DocListPartial", Model)
+    </div>
+</div>
+
+<script type="text/javascript">
+    function DocType_OnChange(_DocType) {
+        $("#DocNameDropdown").text('');
+        $("#DocNameDropdown").val('');
+        $("#DocNameDropdown").empty();
+        $("#DocNameDropdown").append($('<option>').text("--Select Docuement Name--").attr('value', ''));
+        if (_DocType != null && _DocType != "") {
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetDocName", "Combo")?DocType=" + _DocType,
+                async: 'false',
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    $.each(data, function (number, municipe) {
+                        $("#DocNameDropdown").append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+                    });
+                },
+                error: function (reponse) {
+                    alert("error : " + reponse);
+                }
+            });
+        }
+    }
+    function DeleteJobDoc() {
+        if (confirm('Are you sure you want to delete this record?')) {
+            return true;
+        }
+        return false;
+    }
+    function isDate(val) {
+        var d = new Date(val);
+        return !isNaN(d.valueOf());
+    }
+    function sortTable(f, n) {
+        var rows = $('#DocTable tbody  tr').get();
+        rows.sort(function (a, b) {
+            var A = getVal(a);
+            var B = getVal(b);
+
+            if (A < B) {
+                return -1 * f;
+            }
+            if (A > B) {
+                return 1 * f;
+            }
+            return 0;
+        });
+        function getVal(elm) {
+            var v = $(elm).children('td').eq(n).text().toUpperCase().trim();
+            if ($.isNumeric(v)) {
+                v = parseInt(v, 10);
+            }
+            else if (isDate(v)) {
+                v = new Date(v);
+            }
+            return v;
+        }
+        $.each(rows, function (index, row) {
+            $('#DocTable').children('tbody').append(row);
+        });
+    }
+
+    var f_sl = 1;
+    var f_nm = 1;
+
+    document.getElementById('sl').addEventListener('click', function (event) {
+        f_sl *= -1;
+        var n = $(this).prevAll().length;
+        sortTable(f_sl, n);
+        event.preventDefault();
+    })
+    document.getElementById('nm').addEventListener('click', function (event) {
+        f_nm *= -1;
+        var n = $(this).prevAll().length;
+        sortTable(f_nm, n);
+        event.preventDefault();
+    })
+    document.getElementById('DocType').addEventListener('click', function (event) {
+        f_nm *= -1;
+        var n = $(this).prevAll().length;
+        sortTable(f_nm, n);
+        event.preventDefault();
+    })
+    document.getElementById('CreateBy').addEventListener('click', function (event) {
+        f_nm *= -1;
+        var n = $(this).prevAll().length;
+        sortTable(f_nm, n);
+        event.preventDefault();
+    })
+</script>

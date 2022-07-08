@@ -1,0 +1,397 @@
+﻿@model RELOCBS.Entities.JobLabel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Job Label</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style type="text/css">
+        .ft2 {
+
+            font-size:50px;
+
+        }
+
+        div.solid {
+            border-style: solid;
+            margin-left: 180px;
+            margin-right: 180px;
+        }
+
+        .ft1 {
+            font-size: 40px;
+        }
+
+        .ft0 {
+            font-size: 25px;
+        }
+
+        .ttop {
+            vertical-align: top !important;
+        }
+
+        body {
+        }
+
+        .floatLeft {
+            float: left;
+        }
+
+        .tcenter {
+            text-align: center !important;
+        }
+
+        .boxWraper {
+            border: 1px solid #7b7b7b;
+            display: block;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+            .boxWraper .padding tr td {
+                padding: 3px 6px;
+            }
+
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        tr.border_bottom td {
+            border-bottom: 1pt solid black;
+        }
+
+        .tableData {
+            border: 0 !important;
+            line-height: 16px;
+        }
+
+
+        .tableData tr td {
+            background: #fff;
+            height: 100%;
+            vertical-align: middle;
+            border: 1px solid #e3e7ee;
+        }
+
+        .boxWraper tr th {
+            border: 1px solid #e3e7ee;
+            text-align: center;
+            padding: 3px 6px;
+        }
+
+
+        .marginLR {
+            margin: 0 auto;
+        }
+
+        table {
+            
+            width: 100%;
+            table-layout: auto;
+            background-color: transparent;
+        }
+
+        .fixed {
+            table-layout: fixed;
+        }
+
+        .text-solid {
+            font-weight: bold;
+        }
+
+        .border-solid th,
+        .border-solid td {
+            padding: 5px;
+            border: solid 2px;
+        }
+
+        u {
+
+            font-weight:bold;
+        }
+
+        .text-upper {
+            text-transform: uppercase;
+        }
+
+        .pad-n {
+
+            padding:0;
+            margin:0;
+        }
+
+        th,
+        td {
+            padding: 5px;
+        }
+
+        /*table {
+            border-collapse: separate;
+            border-spacing: 2px;
+        }*/
+
+        table,
+        td,
+        th {
+            border-collapse: collapse;
+        }
+
+        /*table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+        }*/
+
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 14px;
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            color: #808080;
+            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: subpixel-antialiased;
+            background: #fff;
+        }
+
+        .cw100 {
+            width: 100px !important;
+        }
+
+        .cw150 {
+            width: 150px !important;
+        }
+
+        .cw200 {
+            width: 200px !important;
+        }
+
+        .cw110 {
+            width: 110px !important;
+        }
+
+        .cw80 {
+            width: 80px !important;
+        }
+
+        .cw120 {
+            width: 120px !important;
+        }
+
+        .cw140 {
+            width: 140px !important;
+        }
+
+        .cw130 {
+            width: 140px !important;
+        }
+
+        .tbold {
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            font-weight: 600;
+        }
+
+        .tright {
+            text-align: right !important;
+        }
+
+        label {
+            margin-bottom: 0;
+        }
+
+        .tcollapse {
+            border-collapse: collapse;
+        }
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+        .taW {
+            width: 100% !important;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: normal;
+            font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+        }
+    </style>
+    <style type="text/css">
+        @@media print {
+            .grid-header {
+                background: #eee;
+                font-size: 13px;
+            }
+
+            body {
+                font-family: Serif;
+            }
+
+            h2 {
+                font-size: 20px;
+                text-transform: uppercase;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            h4 {
+                font-size: 13px;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+        }
+    </style>
+
+</head>
+<body>
+    <div class="col-lg-12 col-sm-12 col-md-12" style=" flex-align:center">
+        <table class="marginLR" style="width:20cm;">
+            <tbody>
+                <tr>
+                    <td>
+                        <table class="taW">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        @*<h2 class="tcenter">WRITER RELOCATIONS</h2>
+                                        <h4 class="tcenter">105, DR. B. AMBEDKAR RD, LALBAUG <nobr>MUMBAI-400</nobr> 033</h4>
+                                        <h4 class="tcenter">INDIA</h4>*@
+                                        <div class="tcenter m-t-sm solid ft1">@Html.Raw((Model.JobNo.Length > 11) ? Model.JobNo.Substring(0, Model.JobNo.Length - 5) : Model.JobNo)<span class="ft2"> @Html.Raw((Model.JobNo.Length > 11) ? Model.JobNo.Substring(Model.JobNo.Length - 5, 5) : "")</span></div>
+                                        <table class="m-t-lg text-upper">
+                                            <tr>
+                                                <td class="text-left"> <u> CLIENT / ACCOUNT</u></td>
+                                                <td class="text-center"><u>MOVE CONSULTANT</u></td>
+                                                <td class="text-right"><u>CORPORATE</u></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">@Html.Raw(Model.CLIENT)</td>
+                                                <td class="text-center">@Html.Raw(Model.MoveCordinator)</td>
+                                                <td class="text-right">@Html.Raw(Model.CORPORATE)</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3" class="text-center pad-n m-t-lg"><u>SHIPPER</u></td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3" class="text-center pad-n ft0">@Html.Raw(Model.SHIPPER)</td>
+                                            </tr>
+                                        </table>
+                                        <table class="text-center text-upper m-t-sm">
+                                            <tr>
+                                                <td class="text-center"><u> ORIGIN</u></td>
+                                                <td class="text-center"><u> DESTINATION</u></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-center">@Html.Raw(Model.ORIGIN)</td>
+                                                <td class="text-center">@Html.Raw(Model.DESTINATION)</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <u>OA</u> : @Html.Raw(Model.ORIGIN_Agent)
+                                                </td>
+                                                <td class="text-left">
+                                                    <u>DA</u> : @Html.Raw(Model.DESTINATION_Agent)
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <table class="border-solid fixed m-t-lg">
+                                            <tr>
+                                                <th class="text-left text-upper">Shipper Address</th>
+                                                <th class="text-left text-upper">Client Address</th>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <div class="m-t-xs">@Html.Raw(Model.Shipper_Address)</div>
+                                                    <div class="m-t-xs"><u>Phone 1</u> : @Html.Raw(Model.Shipper_Phone1)</div>
+                                                    <div class="m-t-xs"><u>Phone 2</u> : @Html.Raw(Model.Shipper_Phone2)</div>
+                                                    <div class="m-t-xs"><u>Email</u> : @Html.Raw(Model.Shipper_Email)</div>
+                                                    <div class="m-t-xs"><u>Fax</u> :@Html.Raw(Model.Shipper_Fax)</div>
+                                                </td>
+                                                <td class="text-left">
+                                                    <div class="m-t-xs">@Html.Raw(Model.Client_Address)</div>
+                                                    <div class="m-t-xs"><u>Phone 1</u> : @Html.Raw(Model.Client_Phone1)</div>
+                                                    <div class="m-t-xs"><u>Phone 2</u> : @Html.Raw(Model.Client_Phone2)</div>
+                                                    <div class="m-t-xs"><u>Fax</u> :@Html.Raw(Model.Client_Fax)</div>
+
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <table class="m-t-lg">
+                                            <tr>
+                                                <td class="text-solid">MODE :</td>
+                                                <td>@Html.Raw(Model.Mode)</td>
+                                                <td class="text-solid">CONTROLLER :</td>
+                                                <td>@Html.Raw(Model.BusinessLine)</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-solid">TYPE :</td>
+                                                <td>@Html.Raw(Model.ShipmentType)</td>
+                                                <td class="text-solid">INSURANCE :</td>
+                                                <td>@Html.Raw(Model.Insurance)</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-solid">DELIVERY DATE :</td>
+                                                <td>______________________________</td>
+                                                <td class="text-solid">SD HANDOVER DATE :</td>
+                                                <td>______________________________</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-solid">DAMAGES:</td>
+                                                <td colspan="3"> Y / N &nbsp;&nbsp; &nbsp;&nbsp; LIGHT / MODERATE / HEAVYY</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-solid">SERVICE LEVEL:</td>
+                                                <td colspan="3">TOP / GOOD / LOW</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-solid" colspan="4">
+                                                    INSURANCE ARRANGED :_____________________________________________________________________________________________
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-solid" colspan="4">
+                                                    DESPATCH APPROVED :________________________________________________________________________________________________
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-solid" colspan="4">
+                                                    B/L :_______________________________________________________________________________________________________________________
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-solid" colspan="4">
+                                                    DELIVERY BY :___________________________________________________________________________________________________________
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jquery-ui")
+    @Scripts.Render("~/bundles/custom")
+</body>
+</html>

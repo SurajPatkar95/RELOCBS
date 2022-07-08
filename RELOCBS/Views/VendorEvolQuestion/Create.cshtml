@@ -1,0 +1,125 @@
+﻿@model RELOCBS.Entities.JobVendorEvalQuestion
+
+@{
+    //Layout = null;
+    ViewBag.Title = "New Question";
+}
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+@using (Html.BeginForm("Create", "VendorEvolQuestion", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+
+        <div class="row">
+            <div class="col-sm-12">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.HiddenFor(model => model.IsRMCBuss)
+                @Html.HiddenFor(model => model.CompanyID)
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.RateCompID, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.RateCompID, new SelectList((System.Collections.IEnumerable)ViewData["RateComp"], "Value", "Text"), "Select One", new { @class = "form-control input-sm clearfix" })
+                        @Html.ValidationMessageFor(model => model.RateCompID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.QuestionDetail, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.QuestionDetail, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.QuestionDetail, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Weightage, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Weightage, new { htmlAttributes = new { @class = "form-control input-sm", onkeypress = "return OnlyInteger(this, event);" } })
+                        @Html.ValidationMessageFor(model => model.Weightage, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-2">
+                        <div class="col-md-5">
+                            @Html.CheckBoxFor(model => model.IsActive, new { htmlAttributes = new { @class = "form-control input-sm" } }) Active
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnCreate" />
+        </div>
+    </div>
+
+}
+<script>
+    $(document).ready(function () {
+        $("[data-val-required]").each(function () {
+            $("label[for=" + this.id + "]").addClass("requiredlabel")
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+
+        $("input").attr("autocomplete", "off");
+
+        var form = $("#mdlAddEdit form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+
+
+        $('#mdlAddEdit').on('shown.bs.modal', function () {
+
+        });
+
+        AutoDropFill();
+        $('#mdlAddEdit form').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+
+            $('#mdlAddEdit .modal-content').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '#mdlAddEdit .modal-content',
+                success: function (data) {
+                    $('#mdlAddEdit .modal-content').html(data.Result);
+                    if (data.Success) {
+                        $('#mgrid .pagination li.active a').trigger('click');
+                        toastr.success("Question saved successfully.");
+                        $('#mdlAddEdit').modal('hide');
+                    }
+                    $('#mdlAddEdit .modal-content').unmask();
+                }
+            });
+        });
+        function AutoDropFill() {
+            var returnResult = [];
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetAutoPopulateList", "VendorEvolQuestion")",
+                method: 'GET',
+            async: 'false',
+            dataType: 'json',
+            success: function (result) {
+                var data = $.map(result, function (obj) {
+                    obj.value = obj.Text; // desired field
+                    obj.data = obj.Value; // desired field
+                    returnResult.push(obj);
+                    $("#Vendor_Name").autocomplete({
+                        lookup: returnResult
+                    });
+
+                });
+            },
+            error: function () { }
+        });
+    }
+
+    });
+
+</script>

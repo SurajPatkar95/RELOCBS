@@ -1,0 +1,653 @@
+﻿@using RELOCBS.Utility;
+@{
+
+    string _PageID = "18";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+}
+
+<style>
+    #mgrid {
+        overflow: auto;
+    }
+</style>
+
+<div id="InstructionModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg width-100" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Instruction Sheet</h4>
+            </div>
+            <div class="modal-body" style="overflow-y:auto; height:480px">
+                <div id="frmInstruction">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="MyWarehouse" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            @using (Html.BeginForm("ChangeWarehouse", null, FormMethod.Post, new { @name = "WarehouseFrm", @id = "WarehouseFrm", @class = "form-inline" }))
+            {
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">
+                        &times;
+                    </button>
+                    <h4 class="modal-title">Change Warehouse</h4>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group col-md-6">
+                        <label class="marr-5">Warehouse</label>
+                        <div class="clearfix">
+                            @Html.DropDownList("WarehouseID", new SelectList((System.Collections.IEnumerable)ViewData["WarehouseList"], "Value", "Text", Convert.ToString(ViewData["WarehouseID"])), "Select Warehouse", new { @class = "form-control input-sm enableselect" })
+                        </div>
+                    </div>
+                </div>
+
+            <div class="modal-footer">
+                <button type="submit" id="btnSave" name="Save" value="Save" class="btn btn-primary btn-sm">Save</button>
+                <button type="button" class="btn btn-default btn-sm" data-dismiss="modal" value="Close">Close</button>
+            </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+    <div class="col-lg-12 col-sm-12 col-md-12" style="padding-right:20px;">
+        <div class="pnl-gridtop clearfix">
+            <div id="divJobAllocation">
+                @using (Html.BeginForm(null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="pnl-filter row">
+                        <div class="form-group col-md-6">
+                            <label class="clearfix m-r-sm">Select Job Type </label>
+                            <label class="radio-inline">
+                                @Html.RadioButton("JobType", "1", Convert.ToInt16(ViewData["SelectedJobType"]) == 1 ? true : false)Regular Job
+                            </label>
+                            <label class="radio-inline">
+                                @Html.RadioButton("JobType", "0", (Convert.ToInt16(ViewData["SelectedJobType"]) == 0 ? true : false)) Warehouse Job
+                            </label>
+                        </div>
+                        <div class="form-group col-md-4">
+                                @if (ViewData["WarehouseID"] == null || string.IsNullOrWhiteSpace(Convert.ToString(ViewData["WarehouseID"])))
+                                {
+                                    <a href="#" OnClick="ShowWarehousePopup(this)" class="btn btn-sm m-n btn-danger pull-right">Change Warehouse</a>
+                                }
+                                else
+                                {
+                                    @Html.Hidden("WarehouseID", Convert.ToString(ViewData["WarehouseID"]))
+                                   <span class="font-bold" >Warehouse : </span>  @Html.Display("Warehouse", Convert.ToString(ViewData["Warehouse"]))
+                                   <a href="#" OnClick="ShowWarehousePopup(this)" class="btn btn-sm m-n btn-danger pull-right">Change Warehouse</a>
+                                }
+                        </div>
+                        <div class="form-group col-md-2">
+                            @Html.Hidden("HFVJobType")
+                            <input type="submit" id="btnCreate" name="Search" class="btn btn-primary m-n btn-sm" value="Create Job Allocation" formaction="@Url.Action("JobDiary","JobAllocation")" formmethod="post" />
+                        </div>
+                    </div>
+                    <div class="clearfix pnl-filter row no-gutters">
+                        <div class="form-group col-md-2">
+                            <label>Estimated start From</label>
+                            @Html.TextBox("FromDate", null, new { @class = "form-control input-sm joballocation_datepicker" })
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label>To</label>
+                            <div class="clearfix">
+                                @Html.TextBox("ToDate", null, new { @class = "form-control input-sm joballocation_datepicker" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-2 shipper-search-div">
+                            <label class="marr-5">Shipper</label> 
+                            <div class="clearfix">
+                                @Html.TextBox("Shipper", null, new { @class = "form-control input-sm" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="marr-5">Job No</label>
+                            <div class="clearfix m-t-n">
+                                @Html.ListBox("JobNo", new SelectList(Enumerable.Empty<SelectListItem>(), "Value", "Text"), new { @class = "form-control input-sm multipleselect", @multiple = "multiple" })
+                                @*@Html.ListBox("JobNo", new SelectList((System.Collections.IEnumerable)ViewData["JobNoList"], "Value", "Text"), new { @id = "DropdownJobNo", @class = "form-control input-sm DropdownJobNo" })*@
+                            </div>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="marr-5">Job Status</label>
+                            <div class="clearfix">
+                                @Html.DropDownList("AllocationStatus", new SelectList((System.Collections.IEnumerable)ViewData["AllocationStatusList"], "Value", "Text"), "Select JobStatus", new { @class = "form-control input-sm enableselect" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-1">
+                                <input type="submit" id="btnSearch" name="Search" class="btn btn-default btn-sm filter-custom-margin" value="Search"
+                                       formaction="@Url.Action("Index","JobAllocation")" formmethod="post" />
+                        </div>
+                        @*<form method="post" action="@Url.Action("BulkCreate","JobAllocation")">*@
+                        
+                        @*</form>*@
+                        @*<a class="btn btn-default btn-sm lnkExportToExcel m-r-sm pull-right hide"><i class="fa fa-file-excel-o m-r-sm hide"></i>Export to Excel</a>*@
+                    </div>
+                }
+                <div id="mgrid">
+                    @Html.Partial("_AjaxPartial")
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<div id="JobDocumentModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+
+        </div>
+    </div>
+</div>
+@section Scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+    <script>
+
+        function ShowWarehousePopup(sender) {
+
+            $("#MyWarehouse").modal("show");
+
+            return false;
+        }
+
+        $('input[type=radio][name=JobType]').change(function () {
+
+            SwitchSearchType();
+        });
+
+
+        function SwitchSearchType() {
+            
+            var shipperdiv = $(".shipper-search-div");
+            var IsWarehouse = false;
+            var SelectedJobType = $("input[name='JobType']:checked").val();
+            if (SelectedJobType == '1') {
+                shipperdiv.removeClass('hide');
+            }
+            else {
+
+                shipperdiv.addClass('hide');
+                IsWarehouse = true;
+            }
+
+            loadJobNo(IsWarehouse);
+
+        }
+
+
+        $(document).on("click", "input[type=checkbox]", function () {
+
+            debugger;
+            if ($(this).is(':checked')) {
+                $(this).attr('checked', true);
+            } else {
+                $(this).attr('checked', false);
+            }
+        });
+
+
+        $("#btnCreate").click(function (e) {
+
+            e.preventDefault();
+            
+            // // avoid to execute the actual submit of the form.
+
+            var form = $(this).attr("formaction");
+            var url = form;
+
+            var stringArray = new Array();
+            var count = 0;
+            var RateComponent = 0;
+            var Warehouse = 0;
+
+            var Error = "";
+
+            $('.subT > tbody  > tr').each(function (index, tr) {
+
+                debugger;
+
+                if ($(this).find('td').find('input[type=checkbox]').is(':checked')==true) {
+
+                    if (count==0) {
+                         Warehouse = $(this).find('#WarehouseID').val();
+                        RateComponent = $(this).find('#RateComponentID').val();
+                        //stringArray[count] = $(this).find('input[type="checkbox"]').val();
+                    }
+
+                    if (count > 0 && (Warehouse != $(this).find('#WarehouseID').val() || RateComponent != $(this).find('#RateComponentID').val())) {
+
+                        Error = "You can't combine two different Warehouse and RateComponent Instructions for Allocation";
+                        return;
+                    }
+                    else {
+                        stringArray[count] = $(this).find('input[type="checkbox"]').val();
+                    }
+
+                    
+                    count++;
+                }
+
+            });
+
+            if (Error != "") {
+
+                alert(Error);
+
+                return false;
+            }
+
+            var JobType = $('#HFVJobType').val();
+            if (stringArray.length > 0) {
+
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: { InstID: stringArray, JobType: JobType },
+                    success: function(data) {
+                        if (data.url) {
+                            window.location.href = data.url;
+                        }
+                    }
+                });
+            }
+            else {
+
+                alert('Select Atleast one InstructionSheet');
+
+                return false;
+
+            }
+
+        });
+
+
+        $('.btnJobReport').click(function (e) {
+            debugger;
+            window.location.href = $(this).attr('href');
+        });
+
+        $(document).ready(function () {
+
+            $('.multipleselect').multiselect({
+                includeSelectAllOption: false,
+                enableFiltering: true,
+                filterPlaceholder: 'Search',
+                maxHeight: 250,
+                buttonWidth: '250px'
+            });
+
+            //$('#DropdownJobNo').addClass('hide');
+
+            $('.joballocation_datepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('#FromDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+
+            $('#ToDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+
+            $('#Shipper').on('change', function () {
+                loadJobNo(false);
+            });
+
+            SwitchSearchType();
+        });
+
+        function loadJobNo(IsWarehouse=false) {
+            debugger;
+            var url = !IsWarehouse ? '@Url.Action("GetJobNoList", "Combo")' : '@Url.Action("GetWarehouseJobNoList", "Combo")';
+            var ShipperText = $('#Shipper').val();
+            if (ShipperText == null || (ShipperText.trim()).length == 0 || (ShipperText.trim()).length >= 3) {
+
+                var name = !IsWarehouse ? { shipper: ShipperText, Type: 'B' } : { Type: 'B' };
+                var selectdepartment = $('.multipleselect');
+                selectdepartment.multiselect('disable');
+
+                $.getJSON(url, name, function (data) {
+                    selectdepartment.multiselect('enable');
+                    selectdepartment.empty();
+                    if (data.length > 0) {
+
+                        //$(selectdepartment).append('<option value=0>Please Select</option>');
+                        for (var i = 0; i < data.length; i++) {
+                            selectdepartment.append('<option value="' + data[i].Value + '">' + data[i].Text + '</option>');
+                        }
+                    }
+
+                    selectdepartment.multiselect('destroy').removeData().multiselect(
+                        {
+                            includeSelectAllOption: false,
+                            enableFiltering: true,
+                            filterPlaceholder: 'Search',
+                            maxHeight: 250,
+                            buttonWidth: '250px'
+                        }
+                    );
+
+                    // selectdepartment.multiselect('refresh'); //refresh the select here
+
+                });
+            }
+            
+        };
+
+        function GridBind() {
+
+            var size = $("#mgrid #gridT > thead > tr >th").size(); // get total column
+            $("#mgrid #gridT > thead > tr >th").last().remove(); // remove last column
+            $("#mgrid #gridT > thead > tr").prepend("<th></th>"); // add one column at first for collapsible column
+            $("#mgrid #gridT > tbody > tr").each(function (i, el) {
+                $(this).prepend(
+                    $("<td></td>")
+                        .addClass("expands")
+                        .addClass("hoverEff")
+                        .attr('title', "click for show/hide")
+                        .attr('style', "width:100px;")
+                );
+
+                //Now get sub table from last column and add this to the next new added row
+                var table = $("table", this).parent().html();
+                //add new row with this subtable
+                $(this).after("<tr><td></td><td style='padding:5px; margin:0px;' colspan='" + (size - 1) + "'>" + table + "</td></tr>");
+                $("table", this).parent().remove();
+                // ADD CLICK EVENT FOR MAKE COLLAPSIBLE
+                $(".hoverEff", this).on('click', function () {
+                    $(this).parent().closest("tr").next().slideToggle(100);
+                    $(this).toggleClass("expands collapses");
+                });
+            });
+
+            //by default make all subgrid in collapse mode
+            $("#mgrid #gridT > tbody > tr td.expands").each(function (i, el) {
+                $(this).toggleClass("expands collapses");
+                $(this).parent().closest("tr").next().slideToggle(100);
+            });
+
+
+            $('#mgrid #gridT .subT th a,.btnInstructionView,.btnEdit').on("click", function (e) {
+                e.preventDefault();
+            });
+
+            //debugger;
+            //$("#subT TH:last-child").eq(0).hide();
+            //$("#subT TH:nth-last-child(2)").eq(0).hide();
+
+            $('.subT').each(function (index, value) {
+
+                $(this).find('TH:last-child').eq(0).hide();
+                $(this).find('TH:nth-last-child(2)').eq(0).hide();
+            });
+
+            //$("td.btnEdit").html(function () {
+
+            //    return "<a class='btn btn-primary btn-sm Edit' href='javascript:void(0)' onclick='Grid_OnEdit(this)'><i class='glyphicon glyphicon-pencil'></i></a>";
+            //});
+
+            //$("td.btnDelete").html(function () {
+            //    return "<a class='btn btn-primary btn-sm Delete' href='javascript:void(0)' onclick='Grid_OnDelete(this)'><i class='glyphicon glyphicon-trash'></i></a>";
+            //});
+
+            OpenGrid();
+
+        }
+
+        function Grid_OnEdit(sender) {
+
+            var url = $(sender).attr('href');
+            if (url!=null && url!="") {
+
+                window.open(url);
+            }
+        }
+
+        function OpenGrid() {
+
+            debugger;
+            var table = document.getElementById("gridT");
+            var tbody = table.tBodies[0];
+
+            if (tbody.rows.length == 2) {
+
+                $('.hoverEff').trigger('click');
+            }
+        }
+        
+        /////search form data
+        function PagedOnCompleteBinds() {
+            $(document).ready(function () {
+                //$('select').select2();
+                $('.grid-header-title a').on('click', function (e) {
+                    e.preventDefault();
+                    var sturl = "@Url.Action("Index", "JobAllocation")" + $(this).attr('href');
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('#mgrid .pagination li a').on('click', function (e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    var sturl = $('#mgrid .sorted.grid-header-title a').attr('href');
+                    if (typeof sturl != 'undefined') {
+                        var gdir = url("?grid-dir", sturl);
+                        sturl = sturl.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0 ? 1 : 0));
+                        sturl = sturl.replace('?', '&');
+                    }
+
+                    var sturl2 = $(this).attr('href');
+                    if (sturl2 == undefined) {
+                        sturl2 = "@Url.Action("Index", "JobAllocation")?page=" + parseInt($(this).html());
+                    }
+
+                    if (sturl == undefined && typeof sturl2 != 'undefined') {
+                        sturl = sturl2;
+                    }
+
+                    //sturl = sturl2 + sturl.replace(/page=\d+/i, "");
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('form.frmRWDelete').on('submit', function (e) {
+                    e.preventDefault();
+                    $frmRWDelete = this;
+                    swal({
+                        title: "Are you sure you want to delete this record?",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Delete",
+                        cancelButtonText: "No",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $('#mgrid').mask("Loading...");
+                            $($frmRWDelete).ajaxSubmit({
+                                success: function (data) {
+                                    if (data.Success) {
+                                        toastr.success("Job deleted successfully.");
+                                    $('#mgrid .pagination li.active a').trigger('click');
+                                    } else if (!data.Success) {
+                                        swal({
+                                            text: "Job Delete Failed.",
+                                            type: "error"
+                                        });
+                                    }
+                                    $('#mgrid').unmask();
+                                },
+                                complete: function () {
+                                    $('#mgrid').unmask();
+                                }
+                            });
+                        } else {
+                            swal("", "Job Delete Cancelled.", "error");
+                        }
+                    });
+                });
+                $('.lnkExportToExcel').on('click', function () {
+                    var url = '@Url.Action("ExportToExcel", "JobAllocation", new { })';
+                    window.location.href = url;
+                });
+            });
+        }
+
+        function PagedOnComplete(obj) {
+            $('#mgrid table').unmask();
+            GridBind();
+            PagedOnCompleteBinds();
+
+        }
+
+        $(document).ready(function () {
+            GridBind();
+            PagedOnCompleteBinds();
+            AutoDropFill();
+
+            $('body').on('hidden.bs.modal', '.modal', function () {
+                $(this).removeData('bs.modal');
+            });
+
+            //pageGrids.mainGrid.onRowSelect(function (e) {
+            //    console.log($('#pnlGridTopActions #btnEdit, #pnlGridTopActions #btnDelete').length)
+            //    $('#pnlGridTopActions #btnEdit, #pnlGridTopActions #btnDelete').removeAttr('disabled');
+            //    $('#pnlGridTopActions #btnEdit').on('click', function (ev) {
+            //        ev.preventDefault();
+            //        $('#mgrid tr.grid-row.grid-row-selected').find('.btnEdit').click();
+            //    });
+            //    $('#pnlGridTopActions #btnDelete').on('click', function (ev) {
+            //        ev.preventDefault();
+            //        $('#mgrid tr.grid-row.grid-row-selected').find('.btnDelete').click();
+            //    });
+            //});
+
+            $('form#CustomFilter').on('submit', function (e) {
+                e.preventDefault();
+                $(this).ajaxSubmit({
+                    target: '#mgrid',
+                    success: function () {
+                        PagedOnCompleteBinds();
+                        GridBind();
+                        $('#HFVJobType').val($("input[name='JobType']:checked").val());
+                    }
+                });
+            });
+
+            //$('#btnReset').on('click', function (e) {
+            //    e.preventDefault();
+            //    $('form#CustomFilter').find("input[type=text], textarea").val("");
+            //    $('form#CustomFilter').submit();
+            //});
+        });
+
+        function ShowInstruction(sender) {
+
+            var button = $(sender);
+            var url = button.attr("href");
+
+            $("#frmInstruction").load(url, function () {
+
+                $('#InstructionModal').modal({
+                    backdrop: 'static'
+                });
+                return false;
+
+            });
+            return false;
+        }
+
+        $(function () {
+
+            $('.JobDocModal').on("click", function (e) {
+                e.preventDefault();
+                debugger;
+                var button = $(sender);
+                var url = button.attr("href");
+
+                $("#JobDocumentModal .modal-content").load(url, function () {
+
+                    //perform the url load  then
+                    $('#JobDocumentModal').modal({
+                        keyboard: true,
+                        backdrop: 'static'
+                    }, 'show');
+
+                });
+
+                
+                return false;
+            });
+
+            
+
+        });
+
+        function AutoDropFill() {
+            var returnResult = [];
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetShipperNameList", "Combo")",
+                method: 'GET',
+            async: 'false',
+            dataType: 'json',
+            success: function (result) {
+                var data = $.map(result, function (obj) {
+                    obj.value = obj.Text; // desired field
+                    obj.data = obj.Value; // desired field
+                    returnResult.push(obj);
+                    $("#Shipper").autocomplete({
+                        lookup: returnResult
+                    });
+
+                });
+            },
+            error: function () { }
+        });
+    }
+
+        //function kp_numeric() {
+        //    if ((event.keyCode != 45) && (event.keyCode < 48 || event.keyCode > 57) && (event.keyCode != 46))
+        //        event.returnValue = false;
+
+        //    if (event.keyCode == 46) {
+        //        if (event.srcElement.value.indexOf(".") > -1)
+        //            event.returnValue = false;
+        //    }
+
+        //    if (event.keyCode == 45) {
+        //        if (event.srcElement.value.indexOf("-") > -1)
+        //            event.returnValue = false;
+        //    }
+        //}
+    </script>
+
+
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+
+
+}

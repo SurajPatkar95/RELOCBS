@@ -1,0 +1,276 @@
+﻿@model RELOCBS.Entities.Insurance_Master
+
+@{
+    ViewBag.Title = "Edit Insurance Master";
+
+}
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+
+@using (Html.BeginForm("Edit", "InsuranceMaster", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-sm-12">
+
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.HiddenFor(model => model.Ins_M_Id)
+                @Html.HiddenFor(model => model.CompID)
+
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.InsComp_ID, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.InsComp_ID, new SelectList((System.Collections.IEnumerable)ViewData["InsuranceCompList"], "Value", "Text"), "--Select Insurance Company--", new { @class = "form-control input-sm clearfix sampleValidate" })
+                        @Html.ValidationMessageFor(model => model.InsComp_ID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Policy_No, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Policy_No, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Policy_No, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Policy_Date, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2  requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Policy_Date, new { htmlAttributes = new { @class = "form-control input-sm datetimepicker" } })
+                        @Html.ValidationMessageFor(model => model.Policy_Date, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Service_Tax, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Service_Tax, new { htmlAttributes = new { @class = "form-control input-sm", onkeypress = "return OnlyDouble(this, event);" } })
+                        @Html.ValidationMessageFor(model => model.Service_Tax, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Stamp_Duty, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Stamp_Duty, new { htmlAttributes = new { @class = "form-control input-sm", onkeypress = "return OnlyDouble(this, event);" } })
+                        @Html.ValidationMessageFor(model => model.Stamp_Duty, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Prem_Percent_Amt, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Prem_Percent_Amt, new { htmlAttributes = new { @class = "form-control input-sm", onkeypress = "return OnlyDecimal(this, event);" } })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Sum_Ins, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Sum_Ins, new { htmlAttributes = new { @class = "form-control input-sm", onkeypress = "return OnlyDouble(this, event);" } })
+                        @Html.ValidationMessageFor(model => model.Sum_Ins, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Premium_Amt, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Premium_Amt, new { htmlAttributes = new { @class = "form-control input-sm", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" } })
+                        @Html.ValidationMessageFor(model => model.Premium_Amt, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Min_Prem, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Min_Prem, new { htmlAttributes = new { @class = "form-control input-sm", onkeypress = "return OnlyDouble(this, event);" } })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Cheq_Date, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2  requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Cheq_Date, new { htmlAttributes = new { @class = "form-control input-sm datetimepicker" } })
+                        @Html.ValidationMessageFor(model => model.Cheq_Date, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Cheq_No, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Cheq_No, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.Cheq_No, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Bal_SI, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Bal_SI, new { htmlAttributes = new { @class = "form-control input-sm", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" } })
+                        @Html.ValidationMessageFor(model => model.Bal_SI, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Bal_Prem, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.Bal_Prem, new { htmlAttributes = new { @class = "form-control input-sm", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" } })
+                        @Html.ValidationMessageFor(model => model.Bal_Prem, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.PostedFile, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2" })
+                    <div class="col-md-5">
+                        @Html.TextBoxFor(a => a.PostedFile, new { type = "file", @class = "form-control input-sm", placeholder = "Policy Doc.", title = "Policy Doc." })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-2">
+                        <div class="col-md-5">
+                            @Html.CheckBoxFor(model => model.IsActive, new { htmlAttributes = new { @class = "form-control input-sm" } }) Active
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnCreate" />
+        </div>
+    </div>
+}
+
+<script>
+  $(document).ready(function () {
+      $("[data-val-required]").each(function () {
+          $("label[for=" + this.id + "]").addClass("requiredlabel")
+      });
+  });
+
+    $('#Sum_Ins ,#Prem_Percent_Amt').on('input', function () {
+
+        //$('#Bal_SI').val($('#Sum_Ins').val());
+        CalculatePremium();
+
+    });
+
+    function CalculatePremium() {
+
+        debugger;
+
+        var prm_percent = $('#Prem_Percent_Amt').val();
+        var insured_amt = $('#Sum_Ins').val();
+        var Premium_Amt = 0;
+
+        if (prm_percent.length && insured_amt.length) {
+
+            Premium_Amt = Math.round((parseFloat(insured_amt) * parseFloat(prm_percent)) / 100);
+        }
+
+        $('#Premium_Amt').val(Premium_Amt);
+        //$('#Bal_Prem').val(Premium_Amt);
+
+    }
+
+</script>
+<script>
+    $(document).ready(function () {
+
+        $("input").attr("autocomplete", "off");
+
+        $('select').select2();
+
+        $('.datetimepicker').datetimepicker({
+            format: "DD-MMM-YYYY",
+            widgetPositioning: {
+                horizontal: 'right',
+                vertical: 'bottom'
+            }
+        });
+
+        var form = $("#mdlAddEdit form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+
+
+        $('#mdlAddEdit').on('shown.bs.modal', function () {
+            $('#Ins_Name').focus();
+        });
+
+
+        AutoDropFill();
+        $('#mdlAddEdit form').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+
+            $('#mdlAddEdit .modal-content').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '#mdlAddEdit .modal-content',
+                success: function (data) {
+                    $('#mdlAddEdit .modal-content').html(data.Result);
+                    if (data.Success) {
+                        $('#mgrid .pagination li.active a').trigger('click');
+                        toastr.success("Insurance Master saved successfully.");
+                        $('#mdlAddEdit').modal('hide');
+                    }
+                    $('#mdlAddEdit .modal-content').unmask();
+                }
+            });
+        });
+        function AutoDropFill() {
+            var returnResult = [];
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetAutoPopulateList", "InsuranceMaster")",
+                method: 'GET',
+            async: 'false',
+            dataType: 'json',
+            success: function (result) {
+                var data = $.map(result, function (obj) {
+                    obj.value = obj.Text; // desired field
+                    obj.data = obj.Value; // desired field
+                    returnResult.push(obj);
+                    $("#Ins_Name").autocomplete({
+                        lookup: returnResult
+                    });
+
+                });
+            },
+            error: function () { }
+        });
+        }
+
+        
+    });
+
+    function OnlyDecimal(s, e, decimalplaces) {
+        if (!decimalplaces) decimalplaces = 4;
+        var keynum;
+        var keychar;
+        var numcheck;
+        if (window.event) // IE
+        {
+            keynum = e.keyCode;
+        }
+        else if (e.which) // Netscape/Firefox/Opera
+        {
+            keynum = e.which;
+        }
+        if (!keynum) return true;
+        if (keynum == 13 || keynum == 10 || keynum == 8) return true;
+        keychar = String.fromCharCode(keynum);
+        var ValidText = "0123456789.";
+        if (ValidText.indexOf(keychar) >= 0) {
+            try {
+                if (keychar != '.' || s.value.indexOf(".") < 0) {
+                    var patt = s.value.split(".");
+                    if (patt[1].length < decimalplaces)
+                        return true;
+                    else
+                        return false;
+                }
+                else
+                    return false;
+            }
+            catch (err) {
+                return true;
+            }
+        }
+        else
+            return false;
+    }
+</script>

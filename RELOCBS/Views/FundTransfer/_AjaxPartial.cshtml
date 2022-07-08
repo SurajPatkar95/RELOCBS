@@ -1,0 +1,73 @@
+﻿@using RELOCBS.Utility;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+@model RELOCBS.Entities.FundTranfer
+@{
+    ViewBag.Title = "Index";
+}
+
+
+@*@Html.Grid(Model.InvGrid).Named("mainGrid").Columns(columns =>
+{
+columns.Add(o => o.Project)
+    .Titled("Job No.")
+    .Css("col-md-1 hide")
+    .SetWidth(2)
+    .SortInitialDirection(GridMvc.Sorting.GridSortDirection.Descending);
+columns.Add(o => o.BillNo)
+.Titled("Bill No")
+.Css("col-md-1")
+.SetWidth(2);
+
+columns.Add(o => o.BillDate).Format("{0:dd-MMM-yyyy}")
+.Css("col-md-1")
+.Titled("Bill Date")
+.SetWidth(10);
+
+columns.Add(o => o.Value)
+.Css("col-md-3")
+.Titled("Amount")
+.SetWidth(10);
+//columns.Add(o => o.BussLineName)
+//.Css("col-md-1")
+//.Titled("Bussiness Line Name")
+//.SetWidth(10);
+
+
+
+columns.Add(o => o.Description)
+.Titled("Description").Css("col-md-3")
+.SetWidth(10);
+
+columns.Add(o => o.Account)
+.Titled("Account").Css("col-md-3")
+.SetWidth(10);
+
+columns.Add(o => o.AccountCode)
+.Titled("Account Code").Css("col-md-3")
+.SetWidth(10);
+
+columns.Add(o => o.FAClientCode)
+.Css("col-md-3")
+.Titled("FA Client Code")
+.SetWidth(10);
+
+columns.Add(o => o.FACode)
+.Css("col-md-3")
+.Titled("FA Code")
+.SetWidth(10);
+
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("Check All <input type=\"checkbox\" onclick=\"CheckAll();\"></input>")
+.RenderValueAs(d =>
+
+    @<span>
+         <input type="hidden" name="BillNo" value="@d.BillNo"/>
+    <input type="checkbox" name="IsExport" class="chkList" />
+</span>
+);
+}).Sortable()*@

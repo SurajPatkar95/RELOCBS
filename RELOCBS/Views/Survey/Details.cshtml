@@ -1,0 +1,166 @@
+﻿@using RELOCBS.Common
+@model RELOCBS.Entities.SurveyViewModel
+
+@{
+
+    ViewBag.Title = "Survey Cost Head";
+}
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="form-group">
+            <label><strong>Survey No. :</strong></label>
+            <label><strong>@Model.shipmentDetail.SurveyID</strong></label>
+        </div>
+    </div>
+    <div class="row">
+        <fieldset class="col-sm-12 border m-r-5">
+            <legend>Survey Detail</legend>
+            <div class="row">
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>Loose/Cased</label>
+                        @Html.DropDownListFor(a => a.shipmentDetail.SurveyLooseCased, CommonService.Loosecased, new { @class = "form-control", id = "SurveyLooseCasedDropDown", title = "SurveyLooseCased" })
+                        @Html.ValidationMessageFor(model => model.shipmentDetail.SurveyLooseCased, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>LCL/FCL</label>
+                        @Html.DropDownListFor(a => a.shipmentDetail.SurveyLCLorFCL, CommonService.LCLFCL, new { @class = "form-control", id = "SurveyLCLorFCLDropDown", title = "SurveyLCLorFCL" })
+                        @Html.ValidationMessageFor(model => model.shipmentDetail.SurveyLCLorFCL, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>Density Factor</label>
+                        @Html.TextBoxFor(a => a.shipmentDetail.SurveyDensityFact, new { @class = "form-control input-sm Survey-vol-wt", placeholder = "Density Factor", title = "Density Factor", @id = "SurveyDensityFact", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(model => model.shipmentDetail.SurveyDensityFact, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <label>Container</label>
+                    @Html.DropDownListFor(a => a.shipmentDetail.Survey_ContainerID, new SelectList((System.Collections.IEnumerable)ViewData["ContainerUnitList"], "Value", "Text", ViewData["ContainerID"]), "--Select One--", new { @class = "form-control", id = "SurveyContainerDropDown", title = "SurveyContainer" })
+                    @Html.ValidationMessageFor(model => model.shipmentDetail.Survey_ContainerID, "", new { @class = "text-danger" })
+
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>Volume Unit</label>
+                        @Html.DropDownListFor(a => a.shipmentDetail.Survey_VolumeUnitID, new SelectList((System.Collections.IEnumerable)ViewData["VolumeUnitList"], "Value", "Text"), "--Select One--", new { @class = "form-control", id = "SurveyVolumeUnitDropDown", title = "SurveyVolumeUnit" })
+                        @Html.ValidationMessageFor(model => model.shipmentDetail.Survey_VolumeUnitID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>To be Packed</label>
+                        @Html.TextBoxFor(a => a.shipmentDetail.Survey_Volume_TobePackedValue, new { @class = "form-control input-sm Survey-vol-wt", placeholder = "To be Packed", title = "To be Packed", @id = "SurveyVolumeTobePack", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(model => model.shipmentDetail.Survey_Volume_TobePackedValue, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label>Net</label>
+                        @Html.TextBoxFor(a => a.shipmentDetail.Survey_Volume_NetValue, new { @class = "form-control input-sm Survey-vol-wt", placeholder = "Net", title = "Net", @id = "SurveyNetVolume", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(model => model.shipmentDetail.Survey_Volume_NetValue, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label>Gross</label>
+                        @Html.TextBoxFor(a => a.shipmentDetail.Survey_Volume_GrossValue, new { @class = "form-control input-sm Survey-vol-wt", placeholder = "Gross", title = "Gross", @id = "SurveyGrossVolume", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(model => model.shipmentDetail.Survey_Volume_GrossValue, "", new { @class = "text-danger" })
+
+                    </div>
+                </div>
+
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>Weight Unit</label>
+                        @Html.DropDownListFor(a => a.shipmentDetail.Survey_WeightUnitID, new SelectList((System.Collections.IEnumerable)ViewData["WeightUnitList"], "Value", "Text"), "--Select One--", new { @class = "form-control", id = "SurveyWtUnitDropDown", title = "SurveyWeightUnit" })
+                        @Html.ValidationMessageFor(model => model.shipmentDetail.Survey_WeightUnitID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label>Net</label>
+                        @Html.TextBoxFor(a => a.shipmentDetail.Survey_Weight_NetValue, new { @class = "form-control input-sm Survey-vol-wt", placeholder = "Net", title = "SurveyWeight_Gross", @id = "SurveyWtNet", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(model => model.shipmentDetail.Survey_Weight_NetValue, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label>Gross</label>
+                        @Html.TextBoxFor(a => a.shipmentDetail.Survey_Weight_GrossValue, new { @class = "form-control input-sm Survey-vol-wt", placeholder = "Gross", title = "Gross", @id = "SurveyWtGross", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(model => model.shipmentDetail.Survey_Weight_GrossValue, "", new { @class = "text-danger" })
+
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label>ACWT</label>
+                        @Html.TextBoxFor(a => a.shipmentDetail.Survey_Weight_ACWTValue, new { @class = "form-control input-sm Survey-vol-wt", placeholder = "ACWT", title = "ACWTValue", @id = "SurveyWtACWT", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(model => model.shipmentDetail.Survey_Weight_ACWTValue, "", new { @class = "text-danger" })
+
+                    </div>
+                </div>
+            </div>
+
+        </fieldset>
+    </div>
+    <div class="row">
+        <fieldset class="col-md-12 border" style="height:250px;overflow:auto">
+            <legend>Cost Head</legend>
+            <div id="divCostHead">
+                @try
+                {
+                    <div class="table-responsive" id="pnl-rates">
+
+                        <table class="table table-striped" id="CostHeadtable">
+                            <thead class="ibox-title">
+                                <tr>
+                                    <th class="tdNone"></th>
+                                    <th class="tdNone"></th>
+                                    <th>Rate Component</th>
+                                    <th>Cost Head</th>
+                                    <th>Detail</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (RELOCBS.Entities.ServiceDetail row in Model.ServiceDetailList)
+                                {
+                                    <tr>
+                                        <td class="tdNone">
+                                            <input type="hidden" class="TblHFVSurveyDetailID" name="HFVSurveyDetail" id="HFVSurveyDetailID" value="@row.SurveyDetailsID" />
+                                            <input type="hidden" class="TblHFVRateComp" name="HFVRateComp" id="HFVRateCompID" value="@row.RateCompID" />
+                                        </td>
+                                        <td class="tdNone">
+                                            <input type="hidden" class="TblHFVCostHead" name="HFVCostHead" id="HFVCostHeadID" value="@row.CostHeadID" />
+                                        </td>
+                                        <td class="RateComp">
+                                            @row.RateCompName
+                                        </td>
+                                        <td class="CostHead">
+                                            @row.CostHeadName
+                                        </td>
+                                        <td class="Detail">
+                                            @row.RemarksOnCostHead
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                }
+                catch { }
+            </div>
+
+        </fieldset>
+    </div>
+</div>
+

@@ -1,0 +1,876 @@
+﻿@model RELOCBS.Entities.LoadCharts
+
+@using RELOCBS.Common;
+@using RELOCBS.Utility;
+
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string _PageID = "34";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+<style>
+    .table-fixed-header thead {
+        width: 97%;
+    }
+
+    .table-fixed-header tbody {
+        height: 100px;
+        overflow-x: auto;
+        overflow-y: auto;
+        width: 99%;
+    }
+
+    .table-fixed-header thead, .table-fixed-header tbody, .table-fixed-header tr, .table-fixed-header td, .table-fixed-header th {
+        display: block;
+    }
+
+        .table-fixed-header tbody td, .table-fixed-header thead > tr > th {
+            display: inline-block;
+            border-bottom-width: 0;
+        }
+
+        .table-fixed-header thead > tr > th {
+            background-color: #f39c12;
+            border-color: #e67e22;
+           color:white;
+        }
+
+        .table-fixed-header thead > tr {
+            border-bottom-width: 2px;
+        }
+</style>
+
+@using (Html.BeginForm("Create", "LoadChart", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.ValidationSummary(false, "")
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(a => a.LoadChartID)
+    @Html.HiddenFor(a => a.HFVBranchAccess)
+    @Html.HiddenFor(a => a.HFVloadChartShipments)
+
+    <fieldset class="col-md-12 border-grey m-t-xs">
+        <div class="row m-t-xs">
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Branch</label>
+                    @Html.DropDownListFor(model => Model.BranchID, new SelectList((System.Collections.IEnumerable)ViewData["BranchList"], "Value", "Text"), "--Select Branch--", new { @class = "form-control input-sm clearfix Branch enableselect" })
+                    @Html.ValidationMessageFor(a => a.BranchID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-1 col-md-1">
+                <div class="form-group">
+                    <label>Mode</label>
+                    @Html.DropDownListFor(model => Model.ModeID, new SelectList((System.Collections.IEnumerable)ViewData["ModeList"], "Value", "Text"), "--Select Mode--", new { @class = "form-control input-sm clearfix Mode" })
+                    @Html.ValidationMessageFor(a => a.ModeID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>TLC-Id</label>
+                    @Html.TextBoxFor(model => Model.TLCID, new { @class = "form-control input-sm clearfix TLCID", @readonly = "readonly" })
+                    @Html.ValidationMessageFor(a => a.TLCID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Date</label>
+                    @Html.TextBoxFor(model => Model.LoadChartDate, new { @class = "form-control input-sm clearfix LoadChartDate datetimepicker", @readonly = "readonly" })
+                    @Html.ValidationMessageFor(a => a.LoadChartDate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Truck No.</label>
+                    @Html.TextBoxFor(model => Model.TruckNo, new { @class = "form-control input-sm clearfix TruckNo" })
+                    @Html.ValidationMessageFor(a => a.TruckNo, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="clearfix m-t-md">
+                    <button type="submit" class="btn btn-primary btn-sm pull-left" name="submit" value="Save" id="btnSave">Save</button>
+                    @if(Model.LoadChartID > 0)
+                    { 
+                       <a href="@Url.Action("GetLoadChartPrint", "LoadChart", new { LoadChartID = Model.LoadChartID })" class="btn btn-primary btn-sm m-l-sm" title="Print LoadChart" target="_blank"><i class='glyphicon glyphicon-print'></i></a>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Seal No.</label>
+                    @Html.TextBoxFor(model => Model.SealNo, new { @class = "form-control input-sm clearfix SealNo" })
+                    @Html.ValidationMessageFor(a => a.SealNo, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Transporter</label>
+                    @Html.DropDownListFor(model => Model.TransporterID, new SelectList((System.Collections.IEnumerable)ViewData["TransporterList"], "Value", "Text"), "--Select Transporter--", new { @class = "form-control input-sm clearfix Transporter enableselect" })
+                    @Html.ValidationMessageFor(a => a.TransporterID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Vehicle Type</label>
+                    @Html.DropDownListFor(model => Model.VehicleTypeID, new SelectList((System.Collections.IEnumerable)ViewData["VehicleTypeList"], "Value", "Text"), "--Select VehicleType--", new { @class = "form-control input-sm clearfix VehicleType enableselect" })
+                    @Html.ValidationMessageFor(a => a.VehicleTypeID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Escorted By</label>
+                    @Html.DropDownListFor(model => Model.EscortedByID, new SelectList((System.Collections.IEnumerable)ViewData["EmployeeList"], "Value", "Text"), "--Select EscortedBy--", new { @class = "form-control input-sm clearfix EscortedBy enableselect" })
+                    @Html.ValidationMessageFor(a => a.EscortedByID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Escorted Branch</label>
+                    @Html.DropDownListFor(model => Model.EscortedByBranchID, new SelectList((System.Collections.IEnumerable)ViewData["BranchList"], "Value", "Text"), "--Select Escorted Branch--", new { @class = "form-control input-sm clearfix EscortedByBranch enableselect" })
+                    @Html.ValidationMessageFor(a => a.EscortedByBranchID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Left On Date</label>
+                    @Html.TextBoxFor(model => Model.LeftOnDate, new { @class = "form-control input-sm clearfix LeftOnDate datetimepicker" })
+                    @Html.ValidationMessageFor(a => a.LeftOnDate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Loaded At</label>
+                    @Html.TextBoxFor(model => Model.LoadedAtBranchID, new { @class = "form-control input-sm clearfix LoadedAt Loaded" })
+                    @Html.ValidationMessageFor(a => a.LoadedAtBranchID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Loaded To</label>
+                    @Html.TextBoxFor(model => Model.LoadedToBranchID, new { @class = "form-control input-sm clearfix LoadedTo Loaded" })
+                    @Html.ValidationMessageFor(a => a.LoadedToBranchID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    <label>Via</label>
+                    @Html.TextBoxFor(model => Model.LoadedViaBranchID, new { @class = "form-control input-sm clearfix Via Loaded" })
+                    @Html.ValidationMessageFor(a => a.LoadedViaBranchID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-5">
+                <div class="row m-t-sm">
+                    <div class="col-md-5 col-sm-5  clearfix">
+                        <label>@Html.CheckBoxFor(m => m.IsOutSideVehicle) Outside Vehicle</label>
+                    </div>
+                    <div class="form-group col-md-7 col-sm-7">
+                        <label class="control-label col-sm-6" for="CostForVehicle">Vehicle Cost</label>
+                        <div class="col-sm-6">
+                            @Html.TextBoxFor(model => Model.CostForVehicle, new { @class = "form-control input-sm clearfix CostForVehicle", onkeypress = "return OnlyDouble(this, event);" })
+                            @Html.ValidationMessageFor(a => a.CostForVehicle, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-5 col-sm-5">
+                        <div class="clearfix">
+                            <label>@Html.CheckBoxFor(m => m.IsDirectDelivery) Vehicle Direct Delivery</label>
+                        </div>
+                    </div>
+                    <div class="col-md-7 col-sm-7">
+                        <div class="clearfix">
+                            <label>@Html.CheckBoxFor(m => m.IsTallyChartPrepared) Tally Chart Prepared</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row m-t-sm">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="clearfix">
+                            <label>@Html.CheckBoxFor(m => m.IsTallyChartPrepared) Tally Chart Sent to Destination</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row m-t-sm">
+                    <div class="col-sm-12 col-md-12">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2" for="Remarks">Remark</label>
+                            <div class="col-sm-10">
+                                @Html.TextBoxFor(model => Model.Remarks, new { @class = "form-control input-sm clearfix Remarks" })
+                                @Html.ValidationMessageFor(a => a.Remarks, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row m-t-sm">
+                    <div class="col-sm-12 col-md-12">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2" for="Remarks">Notes</label>
+                            <div class="col-sm-10">
+                                @Html.TextBoxFor(model => Model.Notes, new { @class = "form-control input-sm clearfix Notes" })
+                                @Html.ValidationMessageFor(a => a.Notes, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row m-t-sm">
+                    <div class="col-sm-12 col-md-12">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2" for="Remarks">Common</label>
+                            <div class="col-sm-10">
+                                @Html.TextBoxFor(model => Model.Common, new { @class = "form-control input-sm clearfix Common" })
+                                @Html.ValidationMessageFor(a => a.Common, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <fieldset id="divBranchAccess" class="row col-md-12 border-grey m-xs">
+                    <legend> Branch Access</legend>
+                    <div class="row">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-sm-5 col-md-5 form-group">
+                                        <label class="control-label col-sm-5" for="AccessType">Access Type</label>
+                                        <div class="col-sm-7">
+                                            @Html.DropDownList("AccessType", new SelectList((System.Collections.IEnumerable)ViewData["AccessTypeList"], "Value", "Text"), "--Select AccessType--", new { @class = "form-control input-sm clearfix enableselect AccessType" })
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-5 col-md-5 form-group">
+                                        <label class="control-label col-sm-4" for="AccessBranch">Branch</label>
+                                        <div class="col-md-8">
+                                            @Html.DropDownList("AccessBranch", new SelectList((System.Collections.IEnumerable)ViewData["BranchList"], "Value", "Text"), "--Select Access Branch--", new { @class = "form-control input-sm clearfix enableselect AccessBranch" })
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2 col-md-2">
+                                        <input type="button" id="btnAddAccess" value="Add" class="btn btn-primary btn-sm" onclick="AddAccess()">
+                                    </div>
+                                </div>
+                            </div>
+                            <table id="tblBranchAccess" class="table table-fixed-header">
+                                <thead>
+                                    <tr>
+                                        <th class="col-md-5">AccessType</th>
+                                        <th class="col-md-5">Branch</th>
+                                        <th style="width:55px">&nbsp;</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (var i = 0; i < Model.BranchAccess.Count; i++)
+                                    {
+                                        <tr>
+                                            <td class="col-md-5">
+                                                @Html.DropDownListFor(model => Model.BranchAccess[i].BranchAccessTypeID, new SelectList((System.Collections.IEnumerable)ViewData["AccessTypeList"], "Value", "Text", Model.BranchAccess[i].BranchAccessTypeID), "--Select AccessType--", new { @class = "form-control input-sm clearfix enableselect BranchAccessTypeID" })
+                                            </td>
+                                            <td class="col-md-5">
+                                                @Html.DropDownListFor(model => Model.BranchAccess[i].BranchID, new SelectList((System.Collections.IEnumerable)ViewData["BranchList"], "Value", "Text", Model.BranchAccess[i].BranchID), "--Select Branch--", new { @class = "form-control input-sm clearfix enableselect BranchID" })
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btnDeleteAccess btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveAccess(this)"></button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="col-md-12 m-n pad-none border-grey">
+        <legend>
+            Shipments
+        </legend>
+        <div class="m-t-sm" id="SODetails">
+            <div class="row">
+                <div class="col-sm-2 col-md-2 form-group hide">
+                    <label>ServiceLine</label>
+                    @Html.DropDownList("ServiceLine", new SelectList((System.Collections.IEnumerable)ViewData["ServiceLineList"], "Value", "Text"), "--Select ServiceLine--", new { @class = "form-control input-sm clearfix enableselect ServiceLine" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Job No.</label>
+                    @Html.DropDownList("Job", new SelectList((System.Collections.IEnumerable)ViewData["JobNoList"], "Value", "Text"), "--Select Job No--", new { @class = "form-control input-sm clearfix enableselect Job" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Shipper</label>
+                    @Html.TextBox("Shipper", null, new { @class = "form-control input-sm clearfix Shipper", @readonly = "readonly" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Account</label>
+                    @Html.TextBox("Account", null, new { @class = "form-control input-sm clearfix Account", @readonly = "readonly" })
+                </div>
+                <div class="col-sm-3 col-md-3 form-group">
+                    <label>Pack Details</label>
+                    @Html.TextBox("PackDetail", null, new { @class = "form-control input-sm clearfix PackDetail" })
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-1 col-md-1 form-group">
+                    <label>Vol(CFT)</label>
+                    @Html.TextBox("Vol", null, new { @class = "form-control input-sm clearfix Vol", @placeholder = "Volume CFT", onkeypress = "return OnlyDouble(this, event);" })
+                </div>
+                <div class="col-sm-1 col-md-1 form-group">
+                    <label>Revenue</label>
+                    @Html.TextBox("Revenue", null, new { @class = "form-control input-sm clearfix Revenue", @placeholder = "Revenue", onkeypress = "return OnlyDouble(this, event);" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Apprx. Cost</label>
+                    @Html.TextBox("ApprxCost", null, new { @class = "form-control input-sm clearfix ApprxCost", @placeholder = "ApprxCost", onkeypress = "return OnlyDouble(this, event);" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Load At</label>
+                    @Html.TextBox("LoadAt", null, new { @class = "form-control input-sm clearfix LoadAt Loaded" })
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Supervisor</label>
+                    @Html.DropDownList("Supervisor", new SelectList((System.Collections.IEnumerable)ViewData["SupervisorList"], "Value", "Text"), "--Select Supervisor--", new { @class = "form-control input-sm clearfix Supervisor enableselect" })
+                </div>
+                <div class="col-sm-1 col-md-1 form-group">
+                    <div class="clearfix">
+                        <input type="button" id="btnAdd" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="Add()">
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2 form-group">
+                    <label>Total Revenue</label>
+                    @Html.TextBox("TRevenue", null, new { @class = "form-control input-sm clearfix TxtRevenue" ,@readonly="readonly", onkeypress = "return OnlyDouble(this, event);" })
+                </div>
+                <div class="col-sm-1 col-md-1 form-group">
+                    <label>Total Saving</label>
+                    @Html.TextBox("TSaving", null, new { @class = "form-control input-sm clearfix TxtSaving", @readonly = "readonly", onkeypress = "return OnlyDouble(this, event);" })
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <table id="tblShippments" class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Job No</th>
+                                <th>Shipper</th>
+                                <th>Account</th>
+                                <th>NoOfPacsDetails</th>
+                                <th>Vol(CFT)</th>
+                                <th>Revenue</th>
+                                <th>ApproxCost</th>
+                                <th>Saving</th>
+                                <th>Load At</th>
+                                <th>Supervisor</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.loadChartShipments.Count; i++)
+                            {
+
+                                <tr>
+                                    <td>
+                                        @Html.EditorFor(a => Model.loadChartShipments[i].JobNo, new { htmlAttributes = new { @placeholder = "Job No", @tooltip = "JobNo", @class = "form-control input-sm JobNo", title = "JobNo", @readonly = "readonly" } })
+                                        @Html.HiddenFor(x => Model.loadChartShipments[i].MoveID, new { @class = "MoveID" })
+                                        @Html.HiddenFor(x => Model.loadChartShipments[i].ShipmentID, new { @class = "ShipmentID" })
+                                        @Html.HiddenFor(x => Model.loadChartShipments[i].LoadedBySupervisorID, new { @class = "LoadedBySupervisorID" })
+                                        @*@Html.ValidationMessageFor(x => Model.activities[i].ActivityTypeID, "", new { @class = "text-danger" })*@
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(a => Model.loadChartShipments[i].Shipper, new { htmlAttributes = new { @placeholder = "Shipper", @tooltip = "Shipper", @class = "form-control input-sm Shipper", title = "Shipper", @readonly = "readonly" } })
+                                        @*@Html.ValidationMessageFor(a => Model.activities[i].FromDate, "", new { @class = "text-danger" })*@
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(a => Model.loadChartShipments[i].AccountName, new { htmlAttributes = new { @placeholder = "Account", @tooltip = "Account", @class = "form-control input-sm AccountName", title = "Account", @readonly = "readonly" } })
+                                        @*@Html.ValidationMessageFor(a => Model.activities[i].ToDate, "", new { @class = "text-danger" })*@
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(x => Model.loadChartShipments[i].NoOfPacsDetails, new { htmlAttributes = new { @class = "form-control input-sm clearfix NoOfPacsDetails" } })
+                                        @*@Html.ValidationMessageFor(a => Model.activities[i].FromLocation, "", new { @class = "text-danger" })*@
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(x => Model.loadChartShipments[i].Vol, new { htmlAttributes = new { @class = "form-control input-sm clearfix Vol", onkeypress = "return OnlyDouble(this, event);" } })
+                                        @*@Html.ValidationMessageFor(a => Model.activities[i].ToLocation, "", new { @class = "text-danger" })*@
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(a => Model.loadChartShipments[i].Revenue, new { htmlAttributes = new { @placeholder = "Revenue", @tooltip = "Revenue", @class = "form-control input-sm clearfix Revenue", onkeypress = "return OnlyDouble(this, event);" } })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(x => Model.loadChartShipments[i].ApproxCost, new { htmlAttributes = new { @placeholder = "ApproxCost", @tooltip = "ApproxCost", @class = "form-control input-sm clearfix ApproxCost", onkeypress = "return OnlyDouble(this, event);" } })
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(a => Model.loadChartShipments[i].Savings, new { htmlAttributes = new { @placeholder = "Savings", @tooltip = "Savings", @class = "form-control input-sm Savings", title = "Savings", @readonly = "readonly", onkeypress = "return OnlyDouble(this, event);" } })
+                                        @*@Html.ValidationMessageFor(a => Model.activities[i].FromDate, "", new { @class = "text-danger" })*@
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(a => Model.loadChartShipments[i].LoadAt, new { htmlAttributes = new { @placeholder = "LoadAt", @tooltip = "LoadAt", @class = "form-control input-sm LoadAt Loaded", title = "LoadAt" } })
+                                        @*@Html.ValidationMessageFor(a => Model.activities[i].FromDate, "", new { @class = "text-danger" })*@
+                                    </td>
+                                    <td>
+                                        @Html.EditorFor(a => Model.loadChartShipments[i].LoadedBySupervisor, new { htmlAttributes = new { @placeholder = "LoadedBySupervisor", @tooltip = "LoadedBySupervisor", @class = "form-control input-sm LoadedBySupervisor", title = "LoadedBySupervisor" , @readonly = "readonly" } })
+                                        @*@Html.ValidationMessageFor(a => Model.activities[i].FromDate, "", new { @class = "text-danger" })*@
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="Remove(this)"></button>
+                                    </td>
+                                </tr>
+
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+}
+
+
+@section Scripts{
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            GetTotal();
+            AutoDropFill();
+
+            $('#btnSave').on('click', function () {
+
+
+                var data = GetData(false);
+                if (data!=null && data.length>0) {
+
+                    $('#HFVloadChartShipments').val(JSON.stringify(data));
+                }
+                debugger;
+                data = GetData(true);
+                
+                if (data != null && data.length > 0) {
+
+                    $('#HFVBranchAccess').val(JSON.stringify(data));
+                }
+
+            });
+
+            $(".Revenue,.ApproxCost").on('input', function () { GetTotal(); });
+
+            
+        });
+
+        function checkAccessExists(Access,Branch) {
+
+            var result = false;
+
+            $("#tblBranchAccess > TBODY > tr").each(function () {
+
+                if ($('.BranchAccessTypeID').val() === Access && parseInt($('.BranchAccessID').val()) === Branch) {
+                    result = true;
+                    return false;
+                }
+
+            });
+
+            return result;
+
+        }
+
+        function RemoveAccess(sender) {
+
+            //Determine the reference of the Row using the Button.
+            var row = $(sender).closest("TR");
+            var name = row[0].rowIndex;
+            if (confirm("Do you want to delete row " + name)) {
+
+                var table = $("#tblBranchAccess")[0];
+                table.deleteRow(row[0].rowIndex);
+                return false;
+            }
+
+            return false;
+
+        }
+
+        function AddAccess() {
+
+
+            var AccessType = $('#AccessType option:selected');
+            var AccessBranch = $('#AccessBranch option:selected');
+            
+            if (AccessType.val() != null && AccessType.val()!="" && parseInt(AccessBranch.val()) > 0) {
+
+                var tBody = $("#tblBranchAccess > TBODY")[0];
+                var rowCount = $('#tblBranchAccess > TBODY > tr').length;
+
+                var row = tBody.insertRow(-1);
+                row.className = "package-row";
+
+                $('#divBranchAccess .enableselect').select2("destroy");
+
+                var cell = $(row.insertCell(-1));
+                cell.addClass("col-md-5");
+                var td = duplicate_select("AccessType", "BranchAccess_" + rowCount + "__BranchAccessTypeID", "BranchAccess[" + rowCount + "].BranchAccessTypeID", 'AccessType','BranchAccessTypeID');
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+                cell.addClass("col-md-5");
+                var td = duplicate_select("AccessBranch", "BranchAccess_" + rowCount + "__BranchID", "BranchAccess[" + rowCount + "].BranchID", 'AccessBranch','BranchID');
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+                var tdremove = '<button type="button" class="btnAccessDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveAccess(this)" />';
+                cell.append(tdremove);
+                
+                $('#divBranchAccess .enableselect').select2();
+
+                $('#divBranchAccess .enableselect').trigger("change");
+
+            }
+            else {
+
+                alert('Access Type ,Branch is required');
+            }
+
+        }
+        
+        function  duplicate_select(Id,tblId,tblName,Cls,tblCls) {
+            ////Destroy all active select2
+            //$("#" + Id).each(function (index, value) {
+            //    var temp_selecte2 = $(value).select2();
+            //    temp_selecte2.select2('destroy');
+            //});
+
+            //Get First Select Node that I want to duplicate
+            //var first_node = $("#" + Id).first().prop('outerHTML');
+            var first_node = $("#" + Id).clone();
+
+            first_node.attr('id', tblId);
+            first_node.attr('name', tblName);
+            first_node.removeClass(Cls);
+            first_node.addClass(tblCls);
+            first_node.val($("#" + Id).val());
+
+            return first_node;
+        }
+
+
+        function checkExists(Job) {
+
+            var result = false;
+
+            $("#tblShippments > TBODY").find('.MoveID').each(function () {
+
+                if (parseInt($(this).val()) === Job) {
+                    result = true;
+                    return false;
+                }
+
+            });
+
+            return result;
+
+        }
+
+        function Add() {
+
+            var JobNo = $("#Job option:selected");
+            var Shipper = $("#Shipper").val();
+            var Account = $("#Account").val();
+            var PackDetail = $("#PackDetail").val();
+            var Vol = $("#Vol").val();
+            var Revenue = $("#Revenue").val();
+            var ApproxCost = $("#ApprxCost").val();
+            var LoadAt = $("#LoadAt").val();
+            var SupervisorID = $("#Supervisor option:selected").val();
+            var Supervisor = $("#Supervisor option:selected").val() != "" ? $("#Supervisor option:selected").text() : "";
+
+            if (parseInt(JobNo.val()) > 0 && Vol != null && Vol != "" && Revenue != null && Revenue != "" && ApprxCost != null && ApprxCost != "") {
+
+                if (!checkExists(parseInt(JobNo.val()))) {
+
+                    var Saving = parseFloat(Revenue) - parseFloat(ApproxCost);
+
+                    var tBody = $("#tblShippments > TBODY")[0];
+                    var rowCount = $('#tblShippments > TBODY > tr').length;
+
+                    var row = tBody.insertRow(-1);
+                    row.className = "package-row";
+
+                    var cell = $(row.insertCell(-1));
+                    var td = '<input class="form-control input-sm clearfix JobNo" id="loadChartShipments_' + rowCount + '__JobNo" name="loadChartShipments[' + rowCount + '].JobNo" type="text" value="' + JobNo.text() + '" readonly="readonly" autocomplete="off"></input>'
+                        + '<input class="MoveID" data-val="true" data-val-number="The field MoveID must be a number." data-val-required="The MoveID field is required." id="activities_' + rowCount + '__MoveID" name="loadChartShipments[' + rowCount + '].MoveID" type="hidden" value="' + parseInt(JobNo.val()) + '" autocomplete="off"></input>'
+                        + '<input data-val="true" class="ShipmentID" data-val-number="The field ShipmentID must be a number." data-val-required="The ShipmentID field is required." id="loadChartShipments_' + rowCount + '__ShipmentID" name="loadChartShipments[' + rowCount + '].ShipmentID" type="hidden" value="-1" autocomplete="off"></input>'
+                        + '<input class="LoadedBySupervisorID" data-val="true" data-val-number="The field LoadedBySupervisorID must be a number." id="loadChartShipments_' + rowCount + '__LoadedBySupervisorID" name="loadChartShipments[' + rowCount + '].LoadedBySupervisorID" type="hidden" value="'+parseInt(SupervisorID)+'" autocomplete="off">'
+                        +'<span class="field-validation-valid text-danger" data-valmsg-for="loadChartShipments[' + rowCount + '].MoveID" data-valmsg-replace="true"></span>';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix Shipper text-box single-line valid" data-val="false" data-val-required="The Shipper field is required."  id="loadChartShipments_' + rowCount + '__Shipper" name="loadChartShipments[' + rowCount + '].Shipper" type="text" value="' + Shipper + '" autocomplete="off" readonly="readonly"></input>';
+                        //+ '<span class="text-danger field-validation-valid" data-valmsg-for="loadChartShipments[' + rowCount + '].Shipper" data-valmsg-replace="true"></span>'
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix AccountName text-box single-line valid" data-val="false" data-val-required="The AccountName field is required."  id="loadChartShipments_' + rowCount + '__AccountName" name="loadChartShipments[' + rowCount + '].AccountName" type="text" value="' + Account + '" autocomplete="off" readonly="readonly"></input>';
+                       // + '<span class="text-danger field-validation-valid" data-valmsg-for="loadChartShipments[' + rowCount + '].AccountName" data-valmsg-replace="true"></span>'
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix NoOfPacsDetails text-box single-line valid" data-val="false" data-val-required="The NoOfPacsDetails field is required."  id="loadChartShipments_' + rowCount + '__NoOfPacsDetails" name="loadChartShipments[' + rowCount + '].NoOfPacsDetails" type="text" value="' + PackDetail + '" autocomplete="off" ></input>';
+                        //+ '<span class="text-danger field-validation-valid" data-valmsg-for="loadChartShipments[' + rowCount + '].NoOfPacsDetails" data-valmsg-replace="true"></span>'
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix Vol" data-val="true" data-val-number="The field Vol must be a number." data-val-required="The Vol field is required." id="loadChartShipments_' + rowCount + '__Vol" name="loadChartShipments[' + rowCount + '].Vol" type="text" value="' + Vol + '" autocomplete="off"  onkeypress = "return OnlyDouble(this, event);" >';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix Revenue" data-val="true" data-val-number="The field Revenue must be a number." data-val-required="The Revenue field is required." id="loadChartShipments_' + rowCount + '__Revenue" name="loadChartShipments[' + rowCount + '].Revenue" type="text" value="' + Revenue + '" autocomplete="off"  onkeypress = "return OnlyDouble(this, event);" >';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix ApproxCost" data-val="true" data-val-number="The field ApproxCost must be a number." data-val-required="The ApproxCost field is required." id="loadChartShipments_' + rowCount + '__Revenue" name="loadChartShipments[' + rowCount + '].ApproxCost" type="text" value="' + ApproxCost + '" autocomplete="off"  onkeypress = "return OnlyDouble(this, event);" >';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix Savings" data-val="true" data-val-number="The field Savings must be a number." data-val-required="The Savings field is required." id="loadChartShipments_' + rowCount + '__Savings" name="loadChartShipments[' + rowCount + '].Savings" type="text" value="' + Saving + '" autocomplete="off" readonly="readonly"  onkeypress = "return OnlyDouble(this, event);" >';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm clearfix LoadAt text-box single-line valid Loaded" data-val="true" data-val-required="The LoadAt field is required."  id="loadChartShipments_' + rowCount + '__LoadAt" name="loadChartShipments[' + rowCount + '].LoadAt" type="text" value="' + LoadAt + '" autocomplete="off" ></input>';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm LoadedBySupervisor text-box single-line" id="loadChartShipments_' + rowCount + '__LoadedBySupervisor" name="loadChartShipments[' + rowCount + '].LoadedBySupervisor" placeholder="LoadedBySupervisor" title="LoadedBySupervisor" tooltip="LoadedBySupervisor" type="text" value="' + Supervisor +'" autocomplete="off" readonly="readonly" >';
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="Remove(this)" />';
+                    cell.append(tdremove);
+
+                    GetTotal();
+                }
+                else {
+
+                    alert('Job No. already exists in list');
+                }
+
+            }
+            else {
+
+                alert('Job No. ,Vol,Revenue,ApproxCost is required');
+            }
+
+
+        }
+
+
+        function Remove(sender) {
+            
+            var row = $(sender).closest("TR");
+            var name = row[0].rowIndex;
+            if (confirm("Do you want to delete row " + name)) {
+                
+                var table = $("#tblShippments")[0];
+                
+                table.deleteRow(row[0].rowIndex);
+                
+            }
+
+            GetTotal();
+
+            return false;
+
+        }
+
+        function GetTotal() {
+
+            var Revenue = 0;
+            var Saving = 0;
+            
+
+            $("#tblShippments > TBODY > tr").each(function () {
+
+                debugger;
+                
+                var amount = (parseFloat($(this).find('.Revenue').val()) > 0 ? parseFloat($(this).find('.Revenue').val()) : 0) - (parseFloat($(this).find('.ApproxCost').val()) > 0 ? parseFloat($(this).find('.ApproxCost').val()) : 0);
+                $(this).find('.Savings').val(amount);
+                Revenue = Revenue + (parseFloat($(this).find('.Revenue').val()) > 0 ? parseFloat($(this).find('.Revenue').val()) : 0);
+                Saving = Saving + (!isNaN(parseFloat($(this).find('.Savings').val())) ? parseFloat($(this).find('.Savings').val()) : 0); 
+            });
+
+            $('#TRevenue').val(Revenue);
+            $('#TSaving').val(Saving);
+
+        }
+
+
+        function GetData(Access) {
+            var data = [];
+
+            if (Access===true) {
+
+                $('#tblBranchAccess tbody tr').each(function () {
+                    
+                    debugger;
+                    var BranchAccessTypeID = $(this).find('.BranchAccessTypeID option:selected').val();
+                    var BranchID = $(this).find('.BranchID option:selected').val();
+
+                    var alldata = {
+                        'BranchAccessTypeID': BranchAccessTypeID,
+                        'BranchID': BranchID
+                    }
+
+                    data.push(alldata);
+                });   
+            }
+            else {
+
+                $('#tblShippments tbody tr').each(function () {
+
+                    var JobNo = $(this).find('.JobNo').val();
+                    var MoveID = $(this).find('.MoveID').val();
+                    var ShipmentID = $(this).find('.ShipmentID').val();
+                    var Shipper = $(this).find('.Shipper').val();
+                    var AccountName = $(this).find('.AccountName').val();
+                    var NoOfPacsDetails = $(this).find('.NoOfPacsDetails').val();
+                    var Vol = $(this).find('.Vol').val();
+                    var Revenue = $(this).find('.Revenue').val();
+                    var ApproxCost = $(this).find('.ApproxCost').val();
+                    var Savings = $(this).find('.Savings').val();
+                    var LoadAt = $(this).find('.LoadAt').val();
+                    var alldata = {
+                        'JobNo': JobNo,
+                        'MoveID': MoveID,
+                        'ShipmentID': ShipmentID,
+                        'Shipper': Shipper,
+                        'AccountName': AccountName,
+                        'NoOfPacsDetails': NoOfPacsDetails,
+                        'Vol': Vol,
+                        'Revenue': Revenue,
+                        'ApproxCost': ApproxCost,
+                        'Savings': Savings,
+                        'LoadAt': LoadAt
+                    }
+                    data.push(alldata);
+                });
+
+            }
+
+            return data;
+        }
+
+
+        $('#ServiceLine').change(function () {
+            var id = $(this).val();
+
+            if (id != null && id != "") {
+
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("GetServiceLineJobNoList", "Combo")' + '?ServiceLineID=' + id,
+                    data: "{ServiceLineID:'" + id + "'}",
+                    success: function (data) {
+
+                        if ($("#ServiceLine").val() != "") {
+                            $("#Job").prop("disabled", true);
+
+                            $("#Job").empty();
+                            var s = '<option value="-1">--Select JobNo--</option>';
+                            $("#Job").append(s);
+                            $.each(data, function (index, item) {
+                                $("#Job").append($('<option></option>').text(item.Text).val(item.Value));
+                            });
+
+
+
+                            $("#Job").prop("disabled", false);
+
+                        }
+                    },
+                    failure: function (data) {
+                        //alert('error occured');
+                    }
+
+                });
+                
+            }
+
+        });
+
+        $('#Job').change(function() {
+            var id = $(this).val();
+
+            if (id != null && id != "") {
+
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("GetJobDetail", "LoadChart")' + '?MoveID=' + id,
+                    data: "{MoveID:'" + id + "'}",
+                    success: function (data) {
+
+                        if (data != null) {
+
+                            $('#Shipper').val(data.Shipper);
+                            $('#Account').val(data.AccountName);
+
+                        }
+                    },
+                    failure: function (data) {
+                        //alert('error occured');
+                    }
+
+                });
+
+                
+            }
+            
+        })
+
+
+        function AutoDropFill() {
+            var returnResult = [];
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetLoadedList", "LoadChart")",
+                method: 'GET',
+            async: 'false',
+            dataType: 'json',
+            success: function (result) {
+                var data = $.map(result, function (obj) {
+                    obj.value = obj.Text; // desired field
+                    obj.data = obj.Value; // desired field
+                    returnResult.push(obj);
+                    $(".Loaded").autocomplete({
+                        lookup: returnResult
+                    });
+
+                });
+            },
+            error: function () { }
+        });
+    }
+
+        $(document).ready(function () {
+
+            var Joburl = '@Url.Action("GetLoadChartJobSearchList", "Combo",new { Type = "B" })';
+            AjaxFillDropDown(".Job", Joburl);
+        });  
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+
+}

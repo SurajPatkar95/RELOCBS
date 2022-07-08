@@ -1,0 +1,201 @@
+﻿@model RELOCBS.Entities.User
+
+@{
+    ViewBag.Title = "New User";
+}
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+
+@using (Html.BeginForm("Create", "User", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+        @Html.HiddenFor(model => model.LoginID)
+        @Html.HiddenFor(model => model.UserID)
+        <div class="row">
+            <div class="col-sm-12">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.LoginType, htmlAttributes: new { @class = "control-label col-md-3 col-md-offset-2 requiredlabel" })
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.LoginType, new SelectList((System.Collections.IEnumerable)ViewData["LoginTypeList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm clearfix" })
+                        @Html.ValidationMessageFor(model => model.LoginType, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="control-label col-md-3 col-md-offset-2 requiredlabel">Employee</label>
+                    <div class="col-md-5">
+                        @Html.DropDownListFor(model => model.EmpId, new SelectList((System.Collections.IEnumerable)ViewData["EmployeeList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm clearfix enableselect" })
+                        @Html.ValidationMessageFor(model => model.EmpId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="control-label col-md-3 col-md-offset-2">UserName(Display)</label>
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.UserName, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.UserName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="control-label col-md-3 col-md-offset-2 requiredlabel">Standard Login</label>
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.LoginText, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.LoginText, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="control-label col-md-3 col-md-offset-2">Login Expiry Date</label>
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.LoginExpiryDate, new { htmlAttributes = new { @class = "form-control input-sm datetimepicker" } })
+                        @Html.ValidationMessageFor(model => model.LoginExpiryDate, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="control-label col-md-3 col-md-offset-2">AD Login</label>
+                    <div class="col-md-5">
+                        @Html.EditorFor(model => model.ADLoginText, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                        @Html.ValidationMessageFor(model => model.ADLoginText, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-3 col-xs-offset-2">
+                        @Html.CheckBoxFor(model => model.IsADLogin, new { htmlAttributes = new { @class = "form-control input-sm" } }) Allow AD Login
+                    </div>
+                    <div class="col-md-4">
+                        @Html.CheckBoxFor(model => model.IsStandardLogin, new { htmlAttributes = new { @class = "form-control input-sm" } }) Allow Standard Login
+                    </div>
+                    <div class="col-md-2">
+                        @Html.CheckBoxFor(model => model.isActive, new { htmlAttributes = new { @class = "form-control input-sm" } }) Active
+                    </div>
+                </div>
+                @if(!Model.isActive)
+                { 
+                    <div class="form-group row">
+                        <label class="control-label col-md-3 col-md-offset-2">Deactivated Date</label>
+                        <div class="col-md-5">
+                            @Html.EditorFor(model => model.DeactivatedOn, new { htmlAttributes = new { @class = "form-control input-sm datetimepicker", @readonly= "readonly" } })
+                            @Html.ValidationMessageFor(model => model.DeactivatedOn, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="control-label col-md-3 col-md-offset-2">Deactivated By</label>
+                        <div class="col-md-5">
+                            @Html.EditorFor(model => model.DeactivatedBy, new { htmlAttributes = new { @class = "form-control input-sm", @readonly = "readonly" } })
+                            @Html.ValidationMessageFor(model => model.DeactivatedBy, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnCreate" />
+        </div>
+    </div>
+}
+
+<script>
+    $(document).ready(function () {
+        $("[data-val-required]").each(function () {
+            $("label[for=" + this.id + "]").addClass("requiredlabel")
+        });
+        $('#EmpId').select2();
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("input").attr("autocomplete", "off");
+
+        var form = $("#mdlAddEdit form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+
+        $('.datetimepicker').datetimepicker({
+            format: "DD-MMM-YYYY",
+            widgetPositioning: {
+                horizontal: 'right',
+                vertical: 'bottom'
+            }
+        });
+
+        $('#mdlAddEdit').on('shown.bs.modal', function () {
+            $('#CountryID').focus();
+        });
+
+        $('#mdlAddEdit form').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+            var isEdit = $('#LoginID').val() ? false : true;
+            console.log($('#LoginID').val());
+            $('#mdlAddEdit .modal-content').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '#mdlAddEdit .modal-content',
+                success: function (result) {
+                    var data = result;
+                    if (data.Success) {
+                        $('#mdlAddEdit .modal-content').html(data.Result);
+                        $('#mdlAddEdit').modal('hide');
+                        $('#mgrid .pagination li.active a').trigger('click');
+                        swal({
+                            title: "User Creation",
+                            text: data.Message.split('~')[0],
+                            type: "success",
+                            showConfirmButton: true,
+                            showCancelButton: true,
+                            confirmButtonText: "Open Mapping",
+                            cancelButtonText: "Open Copy Rights"
+                        }, function (isConfirm) {
+                            if (isConfirm == true) {
+                                if (isEdit) {
+                                    $('#mdlLocationListing').modal();
+                                    var route = '@Url.Action("GetLocationList", "User")?LoginId=' + data.Message.split('~')[1] + '&type=All';
+                                    route = route.replace("-1", data.Message.split('~')[1]);
+                                    $('#mdlcontLocationListing').load(route, function () { });
+                                }
+                            }
+                            else if (isConfirm == false) {
+                                $.ajax({
+                                    type: "post",
+                                    dataType: "json",
+                                    contentType: "application/json; charset=utf-8",
+                                    url: "@Url.Action("GetUpdatedUserList", "User")",
+                                    data: null,
+                                    async: false,
+                                    success: function (data) {
+                                        $("#CopyFromLoginID").empty();
+                                        $("#CopyFromLoginID").append('<option value="">Select One</option>');
+                                        $.each(data, function (i, item) {
+                                            $("#CopyFromLoginID").append($('<option>').text(item.Text).attr('value', item.Value));
+                                        });
+                                        $("#CopyToLoginID").empty();
+                                        $("#CopyToLoginID").append('<option value="">Select One</option>');
+                                        $.each(data, function (i, item) {
+                                            $("#CopyToLoginID").append($('<option>').text(item.Text).attr('value', item.Value));
+                                        });
+                                    },
+                                    failure: function () {
+                                        alert('error occured');
+                                    },
+                                    error: function (jqXHR, textStatus, errorThrown) {
+                                        alert('error occured');
+                                    }
+                                });
+                                $('#CopyUserRightsModal').modal('show');
+                            }
+                        });
+                    }
+                    else {
+                        toastr.error(data.Message);
+                    }
+                    $('#mdlAddEdit .modal-content').unmask();
+                }
+            });
+        });
+    });
+</script>

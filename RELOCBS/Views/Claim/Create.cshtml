@@ -1,0 +1,1166 @@
+﻿@model RELOCBS.Entities.Claim
+
+@using RELOCBS.Common;
+@using RELOCBS.Utility;
+
+
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string _PageID = "27";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+    string Readonly = Model.IsSubmitToFinance ? "readonly" : "";
+}
+
+<style type="text/css">
+    .font-weight-bold {
+        font-weight: bold;
+    }
+
+    .table-borderless > tbody > tr > td,
+    .table-borderless > tbody > tr > th,
+    .table-borderless > tfoot > tr > td,
+    .table-borderless > tfoot > tr > th,
+    .table-borderless > thead > tr > td,
+    .table-borderless > thead > tr > th {
+        border: none;
+    }
+</style>
+
+<div>
+    @using (Html.BeginForm("Create", "Claim", new { key = CommonService.GenerateQueryString("MoveID=ParamValue0&ClaimID=ParamValue1", new string[] { Convert.ToString(@Model.MoveID), (string.IsNullOrWhiteSpace(Convert.ToString(@Model.Claim_ID)) ? "-1" : Convert.ToString(@Model.Claim_ID)) }) }, FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.ValidationSummary(false, "")
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(a => a.MoveID)
+        @Html.HiddenFor(a => a.Claim_ID)
+        @Html.HiddenFor(a => a.HFdetails)
+        @Html.HiddenFor(a=> a.HFDocs)
+
+        <fieldset class="col-md-12 border-grey m-t-xs">
+            <div class="row m-t-xs">
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Job No. :</strong>&nbsp;<strong>@Html.Raw(Model.JobNo)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <strong>Claim No. :</strong>&nbsp;<strong>@Html.Raw(Model.Claim_ID > 0 ? Model.Claim_ID : null)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <strong>ServiceLine:</strong>&nbsp;<strong>@Html.Raw(Model.ServiceLine)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label for="ControllerID" class="col-sm-5">Business Line</label>
+                        <div class="col-sm-7">
+                            <strong>@Html.Raw(Model.Controller)</strong>
+                            @Html.HiddenFor(model => Model.ControllerID)
+                            @Html.ValidationMessageFor(a => a.ControllerID, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="clearfix">
+                        @if (!Model.IsFinanceRole)
+                        {
+                            <button type="submit" class="btn btn-primary btn-sm pull-left" name="submit" value="Save" id="btnSave">Save</button>
+                        }
+                        @if (Model.Claim_ID > 0)
+                        {
+                            if (!Model.IsSubmitToFinance)
+                            {
+                                <button type="submit" class="btn btn-primary btn-sm pull-right" name="submit" value="submitFianance" id="btnSentToFinance">Submit to Fianance</button>
+                            }
+                            else if (Model.IsFinanceRole)
+                            {
+                                if (!Model.IsApproved)
+                                {
+                                    <button type="submit" class="btn btn-primary btn-sm pull-right" name="submit" value="approve" id="btnApprove">Approve</button>
+                                }
+                            }
+
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="row m-t-xs">
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Org. City :</strong>&nbsp;<strong>@Html.Raw(Model.OrgCity)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Dest. City :</strong>&nbsp;<strong>@Html.Raw(Model.DestCity)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <strong>Mode:</strong>&nbsp;<strong>@Html.Raw(Model.Mode)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <strong>Corporate:</strong>&nbsp;<strong>@Html.Raw(Model.Corporate)</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Shipper :</strong>&nbsp;<strong>@Html.Raw(Model.ShipperName)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Client :</strong>&nbsp;<strong>@Html.Raw(Model.Client)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Org. Agent:</strong>&nbsp;<strong>@Html.Raw(Model.OrgAgent)</strong>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Dest. Agent:</strong>&nbsp;<strong>@Html.Raw(Model.DestAgent)</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <strong>Delivery Date:</strong>&nbsp;<strong>@Html.Raw(Model.DeliveryDate != null ? Convert.ToDateTime(Model.DeliveryDate).ToString("dd-MM-yyyy") : "")</strong>
+                    </div>
+                </div>
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label for="Pack_Superviser" class="col-xs-4 text-left">Pack Supervisor</label>
+                        <div class="col-xs-8">
+                            @Html.TextBoxFor(model => Model.Pack_Superviser, new { @class = "form-control input-sm clearfix Pack_Superviser" })
+                            @Html.ValidationMessageFor(a => a.Pack_Superviser, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label for="Delivery_Superviser" class="col-xs-5 text-left">Delivery Superviser</label>
+                        <div class="col-xs-7">
+                            @Html.TextBoxFor(model => Model.Delivery_Superviser, new { @class = "form-control input-sm clearfix Delivery_Superviser" })
+                            @Html.ValidationMessageFor(a => a.Delivery_Superviser, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-1 col-md-1">
+                    <div class="clearfix">
+                        <a href="@Url.Action("Create", "DMS", new {  id = @Model.Claim_ID, Type = "Claim" })" class="btn btn-primary btn-sm pull-right m-r-xs" data-toggle="modal" data-target="#mdlDMS" data-cache="false" title="DMS"><i class="glyphicon glyphicon-folder-open m-r-xs"></i>DMS</a>
+                    </div>
+                </div>
+                @if (Model.Claim_ID > 0)
+                {
+                    <div class="col-sm-1 col-md-1">
+                        <div class="clearfix">
+                            <a href="@Url.Action("GetClaimPrint", "Claim",new { Key = CommonService.GenerateQueryString("MoveID=ParamValue0&ClaimID=ParamValue1&Type=ParamValue2", new string[] {Model.MoveID.ToString(),!string.IsNullOrWhiteSpace(Convert.ToString(Model.Claim_ID)) ? Convert.ToString(Model.Claim_ID) : "-1","2"})})" class="btnView btn btn-xs btn-primary glyphicon glyphicon-print pull-left" target="_blank" title="Claim Approval Format"></a>
+                        </div>
+                    </div>
+                }  
+            </div>
+        
+            <div class="row">
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <strong>Status :</strong>&nbsp;<strong>@Html.Raw(Model.Status)</strong>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="col-md-12 border-grey m-t-xs">
+            <legend data-toggle="collapse" data-target="#InsDiv">
+                <i class="more-less glyphicon glyphicon-plus"></i>
+                Insurance Details
+            </legend>
+            <div class="m-t-sm panel-collapse collapse CollapsingFieldSet" id="InsDiv">
+                @Html.Partial("_InsuranceDetail", Model)
+            </div>
+        </fieldset>
+        <fieldset class="col-md-12 border-grey m-t-sm">
+            <div class="row">
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label>Int Date</label>
+                        @Html.TextBoxFor(model => Model.Int_Date, new { @class = "form-control input-sm clearfix Int_Date datetimepicker" })
+                        @Html.ValidationMessageFor(a => a.Int_Date, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label class="text-right">Ackn Date</label>
+                        @Html.TextBoxFor(model => Model.Ackn_Date, new { @class = "form-control input-sm clearfix Ackn_Date datetimepicker" })
+                        @Html.ValidationMessageFor(a => a.Ackn_Date, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-3">
+                    <div class="form-group">
+                        <label class="text-right">Claim File Date</label>
+                        @Html.TextBoxFor(model => Model.Claim_File_Date, new { @class = "form-control input-sm clearfix Claim_File_Date datetimepicker" })
+                        @Html.ValidationMessageFor(a => a.Claim_File_Date, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-3">
+                    <div class="form-group">
+                        <label class="text-right">ClaimReferenceNo</label>
+                        @Html.TextBoxFor(model => Model.Docker_No, new { @class = "form-control input-sm clearfix Docker_No" })
+                        @Html.ValidationMessageFor(a => a.Docker_No, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label for="ClaimFileRemarks" class="text-left col-xs-2">Claim File Remarks</label>
+                    <div class="col-xs-10">
+                        @Html.TextBoxFor(model => Model.ClaimFileRemarks, new { @class = "form-control input-sm clearfix ClaimFileRemarks" })
+                        @Html.ValidationMessageFor(a => a.ClaimFileRemarks, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row m-t-xs">
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group @Readonly">
+                        <label>Rate Curr</label>
+                        @Html.DropDownListFor(model => Model.RateCurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["CurrancyList"], "Value", "Text"), "--Select Rate Curr--", new { @class = "form-control input-sm clearfix RateCurr" })
+                        @Html.HiddenFor(model => model.RateCurrencyID)
+                        @Html.ValidationMessageFor(a => a.RateCurrencyID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group @Readonly">
+                        <label>Conversion Rate</label>
+                        @Html.TextBoxFor(model => Model.ExRate, new { @class = "form-control input-sm clearfix ExRate", onkeypress = "return OnlyDouble(this, event);" })
+                        @Html.ValidationMessageFor(a => a.ExRate, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label>Base Curr</label>
+                        @Html.DropDownListFor(model => Model.BaseCurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["CurrancyList"], "Value", "Text"), "--Select Base Curr--", new { @class = "form-control input-sm clearfix RateCurr", @disabled = "disabled" })
+                        @Html.HiddenFor(model => Model.BaseCurrencyID, new { @class = "BaseCurrency" })
+                        @Html.ValidationMessageFor(a => a.BaseCurrencyID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-1 col-md-1">
+                    <div class="form-group">
+                        <label class="text-right">PkgsPacked</label>
+                        @Html.TextBoxFor(model => Model.PkgsPacked, new { @class = "form-control input-sm clearfix PkgsPacked", onkeypress = "return OnlyIntger(this, event);" })
+                        @Html.ValidationMessageFor(a => a.PkgsPacked, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-1 col-md-1">
+                    <div class="form-group">
+                        <label class="text-right">PkgsDamaged</label>
+                        @Html.TextBoxFor(model => Model.PkgsDamaged, new { @class = "form-control input-sm clearfix PkgsDamaged", onkeypress = "return OnlyIntger(this, event);" })
+                        @Html.ValidationMessageFor(a => a.PkgsDamaged, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="row @Readonly">
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label for="Claim_Amt" class="text-left col-xs-6" title="Claim Amount requested by Shipper">Claim Amt Req by Shipper</label>
+                        @*<span class='glyphicon glyphicon-info-sign my-tooltip' title="Claim Amount requested by Shipper"></span>*@
+                        <div class="col-xs-6">
+                            @Html.TextBoxFor(model => Model.Claim_Amt, new { @class = "form-control input-sm clearfix Claim_Amt Rate", onkeypress = "return OnlyDouble(this, event);" })
+                            @Html.ValidationMessageFor(a => a.Claim_Amt, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2 text-right font-weight-bold">
+                    <span class="BaseCurrText"></span>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        @Html.TextBoxFor(model => Model.Claim_Amt_Ex, new { @class = "form-control input-sm clearfix Claim_Amt_Ex", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(a => a.Claim_Amt_Ex, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+
+            <div class="row @Readonly">
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label for="Ins_Claim_Amt" class="text-left col-xs-6" title="Amount we have managed to negotiate with the customer">Claim amt accpt by Shipper</label>
+                        <div class="col-xs-6">
+                            @Html.TextBoxFor(model => Model.ClaimAmt_Accepted_Shipper, new { @class = "form-control input-sm clearfix ClaimAmt_Accepted_Shipper  Rate", onkeypress = "return OnlyDouble(this, event);" })
+                            @Html.ValidationMessageFor(a => a.ClaimAmt_Accepted_Shipper, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2 text-right font-weight-bold">
+                    <span class="BaseCurrText"></span>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        @Html.TextBoxFor(model => Model.ClaimAmt_Accepted_Shipper_Ex, new { @class = "form-control input-sm clearfix ClaimAmt_Accepted_Shipper_Ex", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(a => a.ClaimAmt_Accepted_Shipper_Ex, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+
+            <div class="row @Readonly">
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label for="Ins_Claim_Amt" class="text-left col-xs-6" title="Insurance Company has agreed to pay only this much">Claim Amt pd by underwriters</label>
+                        <div class="col-xs-6">
+                            @Html.TextBoxFor(model => Model.Ins_Claim_Amt, new { @class = "form-control input-sm clearfix Ins_Claim_Amt  Rate", onkeypress = "return OnlyDouble(this, event);" })
+                            @Html.ValidationMessageFor(a => a.Ins_Claim_Amt, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2 text-right font-weight-bold">
+                    <span class="BaseCurrText"></span>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        @Html.TextBoxFor(model => Model.Ins_Claim_Amt, new { @class = "form-control input-sm clearfix Ins_Claim_Amt_Ex", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(a => a.Ins_Claim_Amt, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+
+            @*<div class="row">
+            <div class="col-sm-4 col-md-4">
+                <div class="form-group">
+                    <label for="InsRoute" class="text-left col-xs-4">InsRoute</label>
+                    <div class="col-xs-8">
+                        @Html.TextBoxFor(model => Model.InsRoute, new { @class = "form-control input-sm clearfix InsRoute Rate", onkeypress = "return OnlyDouble(this, event);" })
+                        @Html.ValidationMessageFor(a => a.InsRoute, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2 text-right font-weight-bold">
+                <span class="BaseCurrText"></span>
+            </div>
+            <div class="col-sm-3 col-md-3">
+                <div class="form-group">
+                    @Html.TextBoxFor(model => Model.InsRoute, new { @class = "form-control input-sm clearfix InsRoute_Ex", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                    @Html.ValidationMessageFor(a => a.InsRoute, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>*@
+            <div class="row m-t-xs @Readonly">
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label for="CompPaidAmt" class="text-left col-xs-6" title="Writer will pay out of their pockets as agreed with underwriters">Claim Amt(deductible)</label>
+                        <div class="col-xs-6">
+                            @Html.TextBoxFor(model => Model.CompPaidAmt, new { @class = "form-control input-sm clearfix CompPaidAmt Rate", onkeypress = "return OnlyDouble(this, event);" })
+                            @Html.ValidationMessageFor(a => a.CompPaidAmt, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2 text-right font-weight-bold">
+                    <span class="BaseCurrText"></span>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        @Html.TextBoxFor(model => Model.CompPaidAmt_Ex, new { @class = "form-control input-sm clearfix CompPaidAmt_Ex", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(a => a.CompPaidAmt_Ex, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="row m-t-xs">
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label for="CompPaidAmt" class="text-left col-xs-6">Claim Amt(Excess)</label>
+                        <div class="col-xs-6">
+                            @Html.TextBoxFor(model => Model.compPaidAdditionalAmt, new { @class = "form-control input-sm clearfix compPaidAdditionalAmt Rate", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(a => a.compPaidAdditionalAmt, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2 text-right font-weight-bold">
+                    <span class="BaseCurrText"></span>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        @Html.TextBoxFor(model => Model.compPaidAdditionalAmt_Ex, new { @class = "form-control input-sm clearfix compPaidAdditionalAmt_Ex", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(a => a.compPaidAdditionalAmt_Ex, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+
+            <div class="row m-t-xs @Readonly">
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label class="text-left col-xs-6" title="It could be agent or Local DMMS vendor">Claim Amt Settled by vendor</label>
+                        <div class="col-xs-6">
+                            @Html.TextBoxFor(model => Model.VendorPaid, new { @class = "form-control input-sm clearfix VendorPaid Rate", onkeypress = "return OnlyDouble(this, event);" })
+                            @Html.ValidationMessageFor(a => a.VendorPaid, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2 text-right font-weight-bold">
+                    <span class="BaseCurrText"></span>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        @Html.TextBoxFor(model => Model.VendorPaid_Ex, new { @class = "form-control input-sm clearfix VendorPaid_Ex", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(a => a.VendorPaid_Ex, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="row m-t-xs @Readonly">
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label for="SurveyAmt" class="text-left col-xs-6"  title="Repairs Expense incurred by writer">Repair Expenses</label>
+                        <div class="col-xs-6">
+                            @Html.TextBoxFor(model => Model.SurveyAmt, new { @class = "form-control input-sm clearfix SurveyAmt Rate", onkeypress = "return OnlyDouble(this, event);" })
+                            @Html.ValidationMessageFor(a => a.SurveyAmt, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2 text-right font-weight-bold">
+                    <span class="BaseCurrText"></span>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        @Html.TextBoxFor(model => Model.SurveyAmt_Ex, new { @class = "form-control input-sm clearfix SurveyAmt_Ex", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(a => a.SurveyAmt_Ex, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="row m-t-xs @Readonly">
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label for="RemarksForOtherExp" class="text-left col-xs-6" title="Other Charges incurred by writer">Other Charges</label>
+                        <div class="col-xs-6">
+                            @Html.TextBoxFor(model => Model.OtherExp, new { @class = "form-control input-sm clearfix OtherExp Rate", onkeypress = "return OnlyDouble(this, event);" })
+                            @Html.ValidationMessageFor(a => a.OtherExp, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2 text-right font-weight-bold">
+                    <span class="BaseCurrText"></span>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        @Html.TextBoxFor(model => Model.OtherExp_Ex, new { @class = "form-control input-sm clearfix OtherExp_Ex", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(a => a.OtherExp_Ex, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+
+            <div class="row m-t-xs">
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label for="RemarksForOtherExp" class="text-left col-xs-6">Summary Writer payout</label>
+                        <div class="col-xs-6">
+                            @Html.TextBoxFor(model => Model.Summary_Comp_payout, new { @class = "form-control input-sm clearfix Summary_Comp_payout Rate", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(a => a.Summary_Comp_payout, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2 text-right font-weight-bold">
+                    <span class="BaseCurrText"></span>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        @Html.TextBoxFor(model => Model.Summary_Comp_payout_Ex, new { @class = "form-control input-sm clearfix Summary_Comp_payout_Ex", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(a => a.Summary_Comp_payout_Ex, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="row m-t-xs">
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label for="ClaimSettledDate" class="text-right col-xs-4">ClaimSettledDate</label>
+                        <div class="col-xs-8">
+                            @Html.TextBoxFor(model => Model.ClaimSettledDate, new { @class = "form-control input-sm clearfix ClaimSettledDate datetimepicker" })
+                            @Html.ValidationMessageFor(a => a.ClaimSettledDate, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label for="ClaimStatusID" class="text-left col-xs-4">ClaimStatus</label>
+                        <div class="col-xs-8">
+                            @Html.DropDownListFor(model => Model.ClaimStatusID, new SelectList((System.Collections.IEnumerable)ViewData["ClaimStatusList"], "Value", "Text"), "--Select Claim Status--", new { @class = "form-control input-sm clearfix ClaimStatus" })
+                            @Html.ValidationMessageFor(a => a.ClaimStatusID, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label for="PayMode" class="text-right col-xs-4">Pay Mode</label>
+                        <div class="col-xs-8">
+                            @Html.DropDownListFor(model => Model.PayMode, new SelectList((System.Collections.IEnumerable)ViewData["PaymodeList"], "Value", "Text"), "--Select Paymode--", new { @class = "form-control input-sm clearfix Paymode" })
+                            @Html.ValidationMessageFor(a => a.PayMode, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="row m-t-sm">
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label for="RemarksForOtherExp" class="text-left col-xs-4">Survey Date</label>
+                        <div class="col-xs-8">
+                            @Html.TextBoxFor(model => Model.SurveyDate, new { @class = "form-control input-sm clearfix SurveyDate datetimepicker" })
+                            @Html.ValidationMessageFor(a => a.SurveyDate, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label for="settlementType" class="text-left col-xs-5">SettlementType</label>
+                        <div class="col-xs-7">
+                            @Html.DropDownListFor(model => Model.settlementType, new SelectList((System.Collections.IEnumerable)ViewData["settlementTypeList"], "Value", "Text"), "--Select settlementType--", new { @class = "form-control input-sm clearfix settlementType" })
+                            @Html.ValidationMessageFor(a => a.settlementType, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-5 col-md-5">
+                    <div class="form-group">
+                        <label for="RemarksForOtherExp" class="text-left col-xs-4">Other Exp.Remark</label>
+                        <div class="col-xs-8">
+                            @Html.TextBoxFor(model => Model.RemarksForOtherExp, new { @class = "form-control input-sm clearfix RemarksForOtherExp" })
+                            @Html.ValidationMessageFor(a => a.RemarksForOtherExp, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row m-t-sm">
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <label class="text-right">VoucherDate</label>
+                        @Html.TextBoxFor(model => Model.VoucherDate, new { @class = "form-control input-sm clearfix VoucherDate datetimepicker" })
+                        @Html.ValidationMessageFor(a => a.VoucherDate, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <label class="text-right">ChqStatus</label>
+                        @Html.DropDownListFor(model => Model.ChqStatus, new SelectList((System.Collections.IEnumerable)ViewData["ChqStatusList"], "Value", "Text"), "--Select ChqStatus--", new { @class = "form-control input-sm clearfix ChqStatus" })
+                        @Html.ValidationMessageFor(a => a.ChqStatus, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-6">
+                    <div class="form-group">
+                        <label class="text-right">Chq To</label>
+                        @Html.TextBoxFor(model => Model.ChqToName, new { @class = "form-control input-sm clearfix ChqToName" })
+                        @Html.ValidationMessageFor(a => a.ChqToName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <label class="text-right">DocRecdDate</label>
+                        @Html.TextBoxFor(model => Model.DocRecdDate, new { @class = "form-control input-sm clearfix DocRecdDate datetimepicker" })
+                        @Html.ValidationMessageFor(a => a.DocRecdDate, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <label class="text-right">ClaimFormRecdDate</label>
+                        @Html.TextBoxFor(model => Model.ClaimFormRecdDate, new { @class = "form-control input-sm clearfix ClaimFormRecdDate datetimepicker" })
+                        @Html.ValidationMessageFor(a => a.ClaimFormRecdDate, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label class="text-right">InsRef</label>
+                        @Html.TextBoxFor(model => Model.InsRef, new { @class = "form-control input-sm clearfix InsRef" })
+                        @Html.ValidationMessageFor(a => a.InsRef, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-sm-5 col-md-5">
+                    <div class="form-group">
+                        <label class="text-right">Instruction To Finance</label>
+                        @Html.TextBoxFor(model => Model.InstToFinance, new { @class = "form-control input-sm clearfix InstToFinance" })
+                        @Html.ValidationMessageFor(a => a.InstToFinance, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="col-md-12 border-grey m-t-sm">
+            <legend data-toggle="collapse" data-target="#CaseDim">
+                <i class="more-less glyphicon glyphicon-plus"></i>
+                Claim Details
+            </legend>
+            <div class="m-t-sm panel-collapse collapse CollapsingFieldSet" id="CaseDim">
+                <div class="row">
+                    <div class="col-sm-2 col-md-2 form-group">
+                        <label>Claim Nature</label>
+                        @Html.DropDownList("NaturesClaim", new SelectList((System.Collections.IEnumerable)ViewData["NaturesClaimList"], "Value", "Text"), "--Select NaturesClaim--", new { @class = "form-control input-sm clearfix enableselect" })
+                    </div>
+                    <div class="col-sm-2 col-md-2 form-group">
+                        <label>Claim Category</label>
+                        @Html.DropDownList("ItemCategory", new SelectList((System.Collections.IEnumerable)ViewData["ItemCategoryList"], "Value", "Text"), "--Select Item Category--", new { @class = "form-control input-sm clearfix enableselect" })
+                    </div>
+                    <div class="col-sm-3 col-md-3 form-group">
+                        <label>Claim Item Details</label>
+                        @Html.DropDownList("ItemDetail", new SelectList((System.Collections.IEnumerable)ViewData["ItemDetailList"], "Value", "Text"), "--Select Item Detail--", new { @class = "form-control input-sm clearfix enableselect" })
+                    </div>
+                    <div class="col-sm-1 col-md-1 form-group">
+                        <label>Item Count</label>
+                        @Html.TextBox("ItemCount", null, new { id = "ItemCount", @class = "form-control input-sm clearfix ItemCount", onkeypress = "return OnlyInteger(this, event);" })
+                    </div>
+                    <div class="col-sm-3 col-md-3 form-group">
+                        <label>Remark</label>
+                        @Html.TextBox("Remark", null, new { id = "Remark", @class = "form-control input-sm clearfix Remark" })
+                    </div>
+                    <div class="col-sm-1 col-md-1 form-group">
+                        <div class="clearfix">
+                            <input type="button" id="btnAdd" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="Add()">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="table-responsive">
+                        <table id="tblItemDetails" class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Claim Nature</th>
+                                    <th>Claim Category</th>
+                                    <th>Claim Item Details</th>
+                                    <th>Item Count</th>
+                                    <th>Remark</th>
+                                    <th>&nbsp;</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.details.Count; i++)
+                                {
+                                    <tr>
+                                        <td>
+                                            @Html.TextBoxFor(model => Model.details[i].ClaimNature, new { @class = "form-control input-sm clearfix TblClaimNature", @readonly = "readonly" })
+                                            @Html.HiddenFor(model => Model.details[i].ClaimNatureID, new { @class = "TblClaimNatureID" })
+                                        </td>
+                                        <td>
+                                            @Html.TextBoxFor(model => Model.details[i].ClaimCategoryName, new { @class = "form-control input-sm clearfix TblClaimCategoryName", @readonly = "readonly" })
+                                            @Html.HiddenFor(model => Model.details[i].ClaimItemCategoryId, new { @class = "TblClaimItemCategoryId" })
+                                        </td>
+                                        <td>
+                                            @Html.TextBoxFor(model => Model.details[i].ClaimItemDetailsName, new { @class = "form-control input-sm clearfix TblClaimItemDetailsName", @readonly = "readonly" })
+                                            @Html.HiddenFor(model => Model.details[i].ClaimItemDetailIsID, new { @class = "TblClaimItemDetailIsID" })
+                                        </td>
+                                        <td>
+                                            @Html.TextBoxFor(model => Model.details[i].NumberOfItem, new { @class = "form-control input-sm clearfix TblNumberOfItem", onkeypress = "return OnlyInteger(this, event);" })
+                                        </td>
+                                        <td>
+                                            @Html.TextBoxFor(model => @Model.details[i].Remarks, new { @class = "form-control input-sm clearfix TblRemarks" })
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="Remove(this)"></button>
+                                        </td>
+                                    </tr>
+
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        
+    }
+</div>
+<!--DMS Model-->
+<div id="mdlDMS" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+        </div>
+    </div>
+</div>
+@section Scripts{
+    <script type="text/javascript">
+
+        function DeleteDocument(sender) {
+
+            //Determine the reference of the Row using the Button.
+            var row = $(sender).closest("TR");
+            var name = $("TD", row).find('.DocTypeList').text().trim();
+            if (confirm("Do you want to delete: " + name.trim())) {
+                //Get the reference of the Table.
+                var table = $("#tblDocList")[0];
+
+                //Delete the Table row using it's Index.
+                table.deleteRow(row[0].rowIndex);
+
+            }
+
+            return false;
+        }
+
+        $('.DocDownload').click(function (e) {
+            debugger;
+            e.preventDefault();
+            var url = $(this).attr('data-url');
+            var antiToken = $('input[name="__RequestVerificationToken"]').val();
+            var DocID = $(this).closest('td').find('#DocID').val();
+            var Claim_ID = $('#Claim_ID').val();
+
+            var form = $('#frmDownload');
+            if (form != null) {
+                form.remove();
+            }
+            var newForm = $('<form>', {
+                'id': 'frmDownload',
+                'action': url,
+                'target': '_blank',
+                'method': 'POST'
+            }).append($('<input>', {
+                'name': 'Claim_ID',
+                'value': Claim_ID,
+                'type': 'hidden'
+            })).append(jQuery('<input>', {
+                'name': '__RequestVerificationToken',
+                'value': antiToken,
+                'type': 'hidden'
+            })).append(jQuery('<input>', {
+                'name': 'DocID',
+                'value': DocID,
+                'type': 'hidden'
+            }));
+
+            newForm.appendTo('body').submit();
+        });
+
+        $(document).ready(function () {
+            
+            DateClass();
+
+            $('.readonly').find('input, textarea').attr('readonly', 'readonly');
+            $('.readonly').find('select').attr('disabled', 'disabled');
+            
+            var ClaimID = $('#Claim_ID').val();
+
+            if ((isNaN(parseInt(ClaimID)) || parseInt(ClaimID) <= 0) && ($('.RateCurrencyID option:selected').val() == null || $('.RateCurrencyID option:selected').val() == "")) {
+
+                $("#BaseCurrencyID option").each(function () {
+
+                    if ($(this).text().toLocaleUpperCase() == "RUPEE" || $(this).text().toLocaleUpperCase() == "INR") {
+                        $(this).attr('selected', 'selected');
+                        $('.BaseCurrency').val($(this).val());
+                        
+                    }
+                });
+                
+                $("#RateCurrencyID option").each(function () {
+
+                    if ($(this).text().toLocaleUpperCase() == "RUPEE" || $(this).text().toLocaleUpperCase() == "INR") {
+                        $(this).attr('selected', 'selected');
+                    }
+                });
+
+                $("#ExRate").val("1");
+
+                $("#ControllerID option").each(function () {
+
+                    if ($(this).text().toLocaleUpperCase().startsWith("WRITER")) {
+                        $(this).attr('selected', 'selected');
+
+                        return false;
+                    }
+                });
+
+            }
+
+            $('.BaseCurrText').html($('#BaseCurrencyID option:selected').val()!="" ? $('#BaseCurrencyID option:selected').text() : "");
+            $('.InsBaseCurrText').html($('#Ins_BaseCurr option:selected').val() != "" ? $('#Ins_BaseCurr option:selected').text() : "");
+
+            CalTotal();
+
+
+            $('#btnSentToFinance').on('click', function (e) {
+                
+
+                if (!confirm('Are you sure,you want to Send Claim to Finance?')) {
+
+                    e.preventDefault();
+                }
+                
+                //var form = $(this).parents('form');
+                //swal({
+                //    title: "Are you sure,you want to Send Claim to Finance?",
+                //    type: "warning",
+                //    showCancelButton: true,
+                //    confirmButtonColor: "#46A049",
+                //    confirmButtonText: "Yes",
+                //    cancelButtonText: "No",
+                //    closeOnConfirm: true,
+                //    closeOnCancel: true
+                //},
+                //    function (isConfirm) {
+                //        if (isConfirm) {
+                //            debugger;
+                //            form.submit();
+
+                //        } else {
+                //            swal("", "Send Claim to Finance Cancelled.", "error");
+                //        }
+                //    });
+            });
+
+            $('#btnApprove').on('click', function (e) {
+
+
+                if (!confirm('Are you sure,you want to Approve this Claim?')) {
+
+                    e.preventDefault();
+                }
+
+                //e.preventDefault();
+                //var form = $(this).parents('form');
+                //swal({
+                //    title: "Are you sure,you want to Approve this Claim?",
+                //    type: "warning",
+                //    showCancelButton: true,
+                //    confirmButtonColor: "#46A049",
+                //    confirmButtonText: "Yes",
+                //    cancelButtonText: "No",
+                //    closeOnConfirm: true,
+                //    closeOnCancel: true
+                //},
+                //    function (isConfirm) {
+                //        if (isConfirm) {
+
+                //            $(this).closest('form').submit();
+
+                //        } else {
+                //            swal("", "Approve Claim Cancelled.", "error");
+                //        }
+                //    });
+            });
+
+
+            AjaxFillDropDown('#ItemDetail', "@Url.Action("GetClaimItemDetailsList", "Combo")");
+
+        });
+
+        function DateClass()
+        {
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+            });
+
+            $('.enableselect').select2();
+        }
+
+
+        $('.Rate, #ExRate').on('input', function (e) {
+
+            CalculateExchange();
+
+        });
+
+        const calculateExchangeAmt = (Amount, ExchangeRate) => {
+
+            return parseFloat(Amount) * parseFloat(ExchangeRate);
+        }
+
+
+        function CalculateExchange() {
+
+            var ExRate = $('#ExRate').val();
+            
+            $('.Rate').each(function () {
+                
+                var Amount = $("."+this.id + "_Ex");
+                var Rate = $(this).val();
+                var Amt = 0;
+                if (Rate.length && ExRate.length) {
+
+                    Amt = calculateExchangeAmt(Rate, ExRate);
+                }
+
+                //if (this.id == "CompPaidAmt" || this.id =="InsRoute") {
+
+                //    SettleAmt = SettleAmt + (!isNaN(parseFloat(Rate)) ? parseFloat(Rate) : 0);
+                //}
+
+                Amount.val(Amt);
+            });
+
+            CalTotal();
+        }
+
+        function CalTotal() {
+
+            var SettleAmt = 0;
+            var ExRate = $('#ExRate').val();
+            var shipper_Amt = parseFloat($('#ClaimAmt_Accepted_Shipper').val()) > 0 ? parseFloat($('#ClaimAmt_Accepted_Shipper').val()) : 0;
+            var Ins_Claim_Amt = parseFloat($('#Ins_Claim_Amt').val()) > 0 ? parseFloat($('#Ins_Claim_Amt').val()) : 0;
+            var CompPaidAmt = parseFloat($('#CompPaidAmt').val()) > 0 ? parseFloat($('#CompPaidAmt').val()) : 0;
+            var VendorPaid = parseFloat($('#VendorPaid').val()) > 0 ? parseFloat($('#VendorPaid').val()) : 0;
+            
+            SettleAmt = shipper_Amt - Ins_Claim_Amt - CompPaidAmt - VendorPaid;
+            $('#compPaidAdditionalAmt').val(SettleAmt);
+            $('#compPaidAdditionalAmt_Ex').val((!isNaN(SettleAmt)  ? calculateExchangeAmt(SettleAmt, ExRate) : 0));
+
+            var OtherExp = parseFloat($('#OtherExp').val()) > 0 ? parseFloat($('#OtherExp').val()) : 0;
+            var SurveyAmt = parseFloat($('#SurveyAmt').val()) > 0 ? parseFloat($('#SurveyAmt').val()) : 0;
+            SettleAmt = SettleAmt + OtherExp + SurveyAmt;
+
+            $('#Summary_Comp_payout').val(SettleAmt);
+            $('#Summary_Comp_payout_Ex').val((!isNaN(SettleAmt) ? calculateExchangeAmt(SettleAmt, ExRate) : 0));
+
+        }
+
+        function GetAllData() {
+            
+            var cdata = [];
+            /////Crew member
+            $('#tblItemDetails tbody tr').each(function () {
+                var TblClaimNature = $(this).find('.TblClaimNature').val();
+                var TblClaimNatureID = $(this).find('.TblClaimNatureID').val();
+                var TblClaimCategoryName = $(this).find('.TblClaimCategoryName').val();
+                var TblClaimItemCategoryId = $(this).find('.TblClaimItemCategoryId').val();
+                var TblClaimItemDetailsName = $(this).find('.TblClaimItemDetailsName').val();
+                var TblClaimItemDetailIsID = $(this).find('.TblClaimItemDetailIsID').val();
+                var TblNumberOfItem = $(this).find('.TblNumberOfItem').val();
+                var TblRemarks = $(this).find('.TblRemarks').val();
+
+                var alldata = {
+
+                    'ClaimNature': TblClaimNature,
+                    'ClaimNatureID': parseInt(TblClaimNatureID),
+                    'ClaimCategoryName': TblClaimCategoryName,
+                    'ClaimItemCategoryId': parseInt(TblClaimItemCategoryId),
+                    'ClaimItemDetailsName': (TblClaimItemDetailsName),
+                    'ClaimItemDetailIsID': parseInt(TblClaimItemDetailIsID),
+                    'NumberOfItem': parseInt(TblNumberOfItem),
+                    'Remarks': TblRemarks
+                }
+                cdata.push(alldata);
+            });
+
+            ////var pair = { 'members': cdata };
+
+            $("#HFdetails").val(JSON.stringify(cdata));
+
+
+            cdata = [];
+
+            ///Documents
+            $('#tblDocList tbody tr').each(function () {
+                var DocID = $(this).find('.DocID').val();
+                var DocTypeID = $(this).find('.DocTypeID').val();
+                var DocumentName = $(this).find('.DocumentName').val();
+                var DocumentType = $(this).find('.DocumentType').val();
+                var alldata = {
+                    'DocID': parseInt(DocID),
+                    'DocTypeID': DocTypeID,
+                    'DocType': DocumentType,
+                    'DocumentName': DocumentName
+                }
+                cdata.push(alldata);
+            });
+            
+            $('#HFDocs').val(JSON.stringify(cdata));
+
+
+        }
+
+
+        function Remove(sender) {
+
+            var row = $(sender).closest("TR");
+            var table = $("#tblItemDetails")[0];
+
+            var RowNo = row[0].rowIndex;
+
+            if (confirm("Do you want to delete row " + RowNo)) {
+                
+                table.deleteRow(row[0].rowIndex);
+
+                return false;
+            }
+
+
+            return false;
+        }
+
+        function Clear() {
+
+            //$("#ActivityType").val('').trigger('change');
+            $("#ItemCount").val('');
+            $('#Remark').val('');
+        }
+
+        function Add() {
+
+
+            var ItemNature = $('#NaturesClaim option:selected');
+            var itemCategory = $('#ItemCategory option:selected');
+            var itemDetail = $('#ItemDetail option:selected');
+
+            var ItemCount = $('#ItemCount').val();
+            var Remark = $('#Remark').val();
+
+            if (!isNaN(parseInt(itemCategory.val())) && !isNaN(parseInt(itemDetail.val())) && !isNaN(parseInt(ItemNature.val()))) {
+
+                var tBody = $("#tblItemDetails > TBODY")[0];
+                var rowCount = $('#tblItemDetails > TBODY > tr').length;
+                var row = tBody.insertRow(-1);
+                row.className = "package-row";
+                var cell = $(row.insertCell(-1));
+                var td = '<input class="form-control input-sm clearfix TblClaimNature" id="details_' + rowCount + '__ClaimNature" name="details[' + rowCount + '].ClaimNature" type="text" value="' + ItemNature.text() + '" readonly="readonly" autocomplete="off"></input>'
+                    + '<input class="TblClaimNatureID" data-val="true" data-val-number="The field ClaimNatureID must be a number." data-val-required="The ClaimNatureID field is required." id="details_' + rowCount + '__ClaimNatureID" name="details[' + rowCount + '].ClaimNatureID" type="hidden" value="' + parseInt(ItemNature.val()) + '" autocomplete="off"></input>';
+                //+'<input data-val="true" class="ActivityID" data-val-number="The field ActivityID must be a number." data-val-required="The ActivityID field is required." id="details_' + rowCount + '__ActivityID" name="details[' + rowCount + '].ActivityID" type="hidden" value="-1" autocomplete="off"></input>';
+                +'<span class="field-validation-valid text-danger" data-valmsg-for="details[' + rowCount + '].ClaimNatureID" data-valmsg-replace="true"></span>'
+                cell.append(td);
+
+
+                var cell = $(row.insertCell(-1));
+                var td = '<input class="form-control input-sm clearfix TblClaimCategoryName" id="details_' + rowCount + '__ClaimCategoryName" name="details[' + rowCount + '].ClaimCategoryName" type="text" value="' + itemCategory.text() + '" readonly="readonly" autocomplete="off"></input>'
+                    + '<input class="TblClaimItemCategoryId" data-val="true" data-val-number="The field ClaimItemCategoryId must be a number." data-val-required="The ClaimItemCategoryId field is required." id="details_' + rowCount + '__ClaimItemCategoryId" name="details[' + rowCount + '].ClaimItemCategoryId" type="hidden" value="' + parseInt(itemCategory.val()) + '" autocomplete="off"></input>';
+                +'<span class="field-validation-valid text-danger" data-valmsg-for="details[' + rowCount + '].ClaimItemCategoryId" data-valmsg-replace="true"></span>'
+                cell.append(td);
+
+                var cell = $(row.insertCell(-1));
+                var td = '<input class="form-control input-sm clearfix TblClaimItemDetailsName" id="details_' + rowCount + '__ClaimItemDetailsName" name="details[' + rowCount + '].ClaimItemDetailsName" type="text" value="' + itemDetail.text() + '" readonly="readonly" autocomplete="off"></input>'
+                    + '<input class="TblClaimItemDetailIsID" data-val="true" data-val-number="The field ClaimItemDetailIsID must be a number." data-val-required="The ClaimItemDetailIsID field is required." id="details_' + rowCount + '__ClaimItemDetailIsID" name="details[' + rowCount + '].ClaimItemDetailIsID" type="hidden" value="' + parseInt(itemDetail.val()) + '" autocomplete="off"></input>';
+                +'<span class="field-validation-valid text-danger" data-valmsg-for="details[' + rowCount + '].ClaimItemDetailIsID" data-valmsg-replace="true"></span>'
+                cell.append(td);
+
+                var cell = $(row.insertCell(-1));
+                var td = '<input class="form-control input-sm clearfix TblNumberOfItem" id="details_' + rowCount + '__NumberOfItem" name="details[' + rowCount + '].NumberOfItem" type="text" value="' + ItemCount + '" autocomplete="off"  onkeypress = "return OnlyInteger(this, event);"></input>'
+                cell.append(td);
+
+
+                var cell = $(row.insertCell(-1));
+                var td = '<input class="form-control input-sm clearfix TblRemarks" id="details_' + rowCount + '__Remarks" name="details[' + rowCount + '].Remarks" type="text" value="' + Remark + '" autocomplete="off"></input>'
+                cell.append(td);
+
+                var cell = $(row.insertCell(-1));
+                var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="Remove(this)" />'
+                cell.append(tdremove);
+                Clear();
+            }
+            else {
+
+                alert('Item Nature, Category and Detail is required');
+            }
+
+            return false; 
+        }
+
+        $('#btnSave').on('click', function () {
+            GetAllData();
+        });
+
+        @*$('#ItemCategory').on('change', function () {
+            
+            if ($('#ItemCategory').val() != null && $('#ItemCategory').val()!="") {
+
+                $("#ItemDetail").val(null);
+                $("#ItemDetail").empty();
+
+                $("#ItemDetail").append($('<option>').text("--Select Item Detail--").attr('value', -1)).trigger('change');
+
+                $.get("@Url.Action("GetItemDetailList", "Combo")", { ItemCategoryID: $('#ItemCategory').val()},
+                     function (data) {
+                         $.each(data, function (number, municipe) {
+
+                             $("#ItemDetail").append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+                         });
+                });
+            }
+        });*@
+
+        $('#InsuranceCompanyID').on('change', function () {
+
+            if ($('#InsuranceCompanyID').val() != null && $('#InsuranceCompanyID').val()!="") {
+
+                        
+                var JobNo=@Model.MoveID;
+                $.get("@Url.Action("GetInsuranceNoList", "Combo")", { JobNo: JobNo ,InsuranceCompID: $('#InsuranceCompanyID').val()},
+                    function (data) {
+
+                        if (data.length > 0) {
+
+                            $("#P_A_No").val(null);
+                            $("#P_A_No").empty();
+                            $("#P_A_No").append($('<option>').text("--Select P.A.No--").attr('value', -1));
+                            $.each(data, function (number, municipe) {
+
+                                $("#P_A_No").append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+                            });
+
+                        }
+                        //debugger;
+                        //if (data.length==1) {
+
+                        //    $('#P_A_No').find('option:eq(1)').prop('selected', true);
+                        //    //$("#P_A_No option:first").attr('selected', 'selected');
+
+                        //    GetInsuranceAmounts(JobNo, $('#P_A_No').val());
+
+                        // }
+                });
+            }
+        });
+
+
+        $('#P_A_No').on('change', function () {
+
+
+            if ($(this).val() != null && parseInt($(this).val()) > 0) {
+
+                var JobNo=@Model.MoveID;
+
+                GetInsuranceAmounts(JobNo, $(this).val());
+            }
+
+        });
+
+        function GetInsuranceAmounts(JobNo,P_A_No){
+
+            debugger;
+            $('#InsDiv').load("@Url.Action("GetInsurance", "Claim")", { JobNo: JobNo, PANO: P_A_No}, function () {
+                // now $(this) contains #somediv
+
+                $('.InsBaseCurrText').html($('#Ins_BaseCurr option:selected').val() != "" ? $('#Ins_BaseCurr option:selected').text() : "");
+                DateClass();
+
+                $('#P_A_No').on('change', function () {
+
+
+                    if ($(this).val() != null && parseInt($(this).val()) > 0) {
+
+                        var JobNo=@Model.MoveID;
+
+                        GetInsuranceAmounts(JobNo, $(this).val());
+                    }
+
+                });
+                
+
+            });
+
+            
+        }
+    </script>
+
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+}

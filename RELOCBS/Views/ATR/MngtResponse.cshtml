@@ -1,0 +1,477 @@
+﻿@using RELOCBS.Common;
+@using RELOCBS.Utility;
+@model RELOCBS.Entities.ATRPointReponse
+@{
+   Layout = null;
+}
+<style type="text/css">
+    .ListBoxHeader {
+        width: 210px;
+        display: table-cell;
+        float: left;
+        font-size: 12px;
+        padding: 2px;
+    }
+
+    .SentDate {
+        font-weight: normal;
+        font-size: 11px;
+        padding-bottom: 3%;
+    }
+
+    .SentMsg {
+        font-weight: normal;
+        font-size: 13px;
+    }
+
+    .ScrollStyle {
+        max-height: 540px;
+        overflow-y: scroll;
+    }
+
+    .rbClearButton,
+    .rbClearButton:hover {
+        background-color: transparent !important;
+        border: none !important;
+        color: #000 !important; /* optional, depending on the background */
+        text-decoration: underline !important;
+    }
+
+        .rbClearButton:hover {
+            border: none !important;
+            color: #555 !important; /* optional, depending on the background */
+            opacity: .7;
+            text-decoration: underline !important;
+        }
+
+    .rbClearButton {
+        text-decoration: underline !important;
+        word-wrap: break-word;
+    }
+</style>
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <h4 class="modal-title" id="myModalLabel">Management Response</h4>
+</div>
+@using (Html.BeginForm("MngtResponse", "ATR", null, FormMethod.Post, new { enctype = "multipart/form-data", id = "ATRResponse", name = "ATRResponse" }))
+{
+    <div class="modal-body" style="overflow-y:auto; height:480px">
+        <div class="m-l-md" id="frmEmp">
+            @Html.HiddenFor(model => model.aTRPoint.ATRPointId)
+            @Html.HiddenFor(model => model.aTRPoint.ComplianceStatusId)
+            @Html.HiddenFor(model => model.aTRPoint.AuditeeStatusId)
+            @Html.HiddenFor(model => model.aTRPoint.DepartmentId)
+            @Html.HiddenFor(model => model.aTRPoint.FirstPersonRespLoginId)
+            @Html.HiddenFor(model => model.aTRPoint.SecondPersonRespLoginId)
+            @Html.HiddenFor(model => model.aTRPoint.RiskId)
+            @Html.HiddenFor(model => model.aTRPoint.CategoryId)
+            @Html.HiddenFor(model => model.aTRPoint.Remark)
+            @Html.HiddenFor(model => model.aTRPoint.AuditReportSource)
+            @Html.HiddenFor(model => model.IsHO)
+            @Html.HiddenFor(model => model.FileDeleteId)
+            @Html.HiddenFor(model => model.submit)
+            <div class="row">
+                <div class="col-xs-6">
+                    <div class="row">
+                        <div class="col-md-12 form-group">
+                            <label for="MgtReponse" class="col-sm-3 col-form-label">Issue Heading</label>
+                            <div class="col-sm-9">
+                                @Html.TextAreaFor(a => a.aTRPoint.IssueHeading, new { @class = "form-control input-sm", rows = "3", placeholder = "IssueHeading", title = "IssueHeading", @readonly = "readonly" })
+                                @Html.ValidationMessageFor(a => a.aTRPoint.IssueHeading, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label for="MgtReponse" class="col-sm-3 col-form-label">Issue Description</label>
+                            <div class="col-sm-9">
+                                @Html.TextAreaFor(a => a.aTRPoint.IssueDescription, new { @class = "form-control input-sm", rows = "3", placeholder = "IssueDescription", title = "IssueDescription", @readonly = "readonly" })
+                                @Html.ValidationMessageFor(a => a.aTRPoint.IssueDescription, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label for="CommittedDate" class="col-sm-3 col-form-label">Month Of Issue</label>
+                            <div class="col-sm-9">
+                                @Html.EditorFor(model => model.aTRPoint.MonthOfIssue, new { htmlAttributes = new { @class = "form-control input-sm clearfix datetimepicker", @readonly = "readonly" } })
+                                @Html.ValidationMessageFor(model => model.aTRPoint.MonthOfIssue, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label for="AuditeeStatusId" class="col-sm-3 col-form-label">Auditee Status</label>
+                            <div class="col-sm-9">
+                                @Html.DropDownListFor(model => model.AuditeeStatusId, new SelectList((System.Collections.IEnumerable)ViewData["AuditeeStatusList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm clearfix" })
+                                @Html.ValidationMessageFor(model => model.AuditeeStatusId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                                <label for="CommittedDate" class="col-sm-3 col-form-label">CommittedDate</label>
+                                <div class="col-sm-9">
+                                    @Html.EditorFor(model => model.CommittedDate, new { htmlAttributes = new { @class = "form-control input-sm clearfix datetimepicker" } })
+                                    @Html.ValidationMessageFor(model => model.CommittedDate, "", new { @class = "text-danger" })
+                                </div>
+                        </div>
+                        @if (Model.IsHO)
+                        {
+                            @*Model.CommittedDate = System.DateTime.Now;
+                            @Html.HiddenFor(model => model.CommittedDate)*@
+                           <div class="col-md-12 form-group col-md-offset-3 text-danger">
+                               <label class="form-check-label">
+                                   @Html.CheckBoxFor(model => model.IsCompliance, new { @class = "form-check-input" }) <b> INTERNAL AUDIT / COMPLIANCE COMMENTS </b>
+                               </label>
+                           </div>
+                        }
+                        else
+                        {
+                            
+                            @Html.HiddenFor(model => model.IsCompliance)
+                        }
+                        <div class="col-md-12 form-group">
+                            <label for="MgtReponse" class="col-sm-3 col-form-label">Response</label>
+                            <div class="col-sm-9">
+                                @Html.TextAreaFor(a => a.MgtReponse, new { @class = "form-control input-sm", rows = "3", placeholder = "Response", title = "Response" })
+                                @Html.ValidationMessageFor(a => a.MgtReponse, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 form-group">
+                            <label for="files" class="col-sm-3 col-form-label">File Upload</label>
+                            <div class="col-sm-9">
+                                @Html.TextBoxFor(model => model.files, new { type = "file", @class = "inputfile inputfile-4 form-control", accept = ".xls,.xlsx,.doc,.docx,.jpg,.jpeg,.png,.pdf,.ppt,.pptx,.csv", @multiple = "multiple" })
+                                @Html.ValidationMessageFor(model => model.files, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label for="DocDescription" class="col-sm-3 col-form-label">Doc.Description</label>
+                            <div class="col-sm-9">
+                                @Html.TextAreaFor(a => a.DocDescription, new { @class = "form-control input-sm", rows = "3", placeholder = "Document Description", title = "Document Description" })
+                                @Html.ValidationMessageFor(a => a.DocDescription, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="table-responsive">
+                            <table class="table table-striped fixed_header">
+                                <thead class="ibox-title">
+                                    <tr>
+                                        @*<th>Document Type</th>
+                                    <th>Document Name</th>*@
+                                        <th>File Name</th>
+                                        <th>Description</th>
+                                        <th>Uploaded By</th>
+                                        <th>Upload Date</th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < Model.docLists.Count; i++)
+                                    {
+                                        <tr>
+                                            @*<td>
+                                            @Html.DisplayFor(model => Model.docLists[i].DocType)
+
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(model => Model.docLists[i].DocName)
+                                        </td>*@
+                                            <td>
+                                                @Html.DisplayFor(model => Model.docLists[i].FileName)
+                                                @Html.HiddenFor(model => Model.docLists[i].FileName, new { @class = "FileName" })
+                                                @Html.HiddenFor(model => Model.docLists[i].FileID, new { @class = "FileId" })
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(model => Model.docLists[i].DocDescription)
+                                                @Html.HiddenFor(model => Model.docLists[i].DocDescription, new { @class = "FileDescription" })
+                                            </td>
+
+                                            <td>
+                                                @Html.DisplayFor(model => Model.docLists[i].UploadBy)
+                                                @Html.HiddenFor(model => Model.docLists[i].UploadBy, new { @class = "FileUplodBy" })
+                                            </td>
+                                            <td>
+                                                @{ string UploadDate = Model.docLists[i].UploadDate.ToString("dd/MM/yyyy"); }
+                                                @UploadDate
+                                                @Html.HiddenFor(model => Model.docLists[i].UploadDate, new { @class = "FileUplodDate" })
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("DocDownload", "ATR", new { id = @Model.docLists[i].FileID })" name="Download" value="Download" target="_blank" class="btn btn-primary btn-sm"><i class="fa fa-download" aria-hidden="true"></i></a>
+                                            </td>
+                                            <td>
+                                                @if (CommonService.IsViewFileButton(@Model.docLists[i].FileName))
+                                                {
+                                                    <a href="@Url.Action("ViewDocument", "ATR", new { id = @Model.docLists[i].FileID })" name="View" value="View" target="_blank" class="btn btn-primary btn-sm"><i class="fa fa-eye" aria-hidden="true"></i></a>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (UserSession.GetUserSession().LoginType == "SA" || UserSession.GetUserSession().LoginType == "AA" || UserSession.GetUserSession().LoginID == Model.docLists[i].UploadById)
+                                                {
+                                                    <button type="submit" id="btnDeleteDoc" name="submit" value="DeleteDoc" class="btn btn-danger btn-sm btnDeleteDoc"><i class="fa fa-trash-o"></i></button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-6">
+                    <div style="border: 1px solid; float: right;width:100%" class="ScrollStyle">
+                        <center><b>Communication History<b /></center>
+                        <ul>
+                            @for (int i = 0; i < Model.history.Count; i++)
+
+                            {
+
+
+                                <li>
+                                    @Html.HiddenFor(model => Model.history[i].Response)
+                                    @Html.HiddenFor(model => Model.history[i].SentDate)
+                                    @Html.HiddenFor(model => Model.history[i].ResponseType)
+                                    @Html.HiddenFor(model => Model.history[i].Status)
+                                     @Html.HiddenFor(model => Model.history[i].CommitedDate)
+                                     @Html.HiddenFor(model => Model.history[i].SentBy)
+                                    @Html.HiddenFor(model => Model.history[i].UploadFiles)
+                                    <div class="SentMsg">
+                                        @if (!string.IsNullOrWhiteSpace(Model.history[i].Status))
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <label>@Model.history[i].StatusType :</label>@Model.history[i].Status
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (Model.history[i].CommitedDate != null)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <label>CommitedDate :</label>@{ string CommitedDate = Model.history[i].CommitedDate == null ? "" : Convert.ToDateTime(Model.history[i].CommitedDate).ToString("dd-MMM-yyyy"); }
+                                                    @CommitedDate
+                                                </div>
+                                            </div>
+                                        }
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <label>@Model.history[i].ResponseType :</label>@Model.history[i].Response
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <label>By :</label>@Model.history[i].SentBy
+                                            </div>
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(Model.history[i].UploadFiles))
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <label>Files :</label> @Html.Raw(Model.history[i].UploadFiles)
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="SentDate">
+                                        <span style="display: inline-block; padding-left: 75%"><b>Sent Date</b> : @{ string sentdate = Model.history[i].SentDate.ToString("dd/MM/yyyy hh:mm"); } @sentdate</span>
+
+                                    </div>
+
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-footer row">
+
+        @if (Model.aTRPoint.ATRPointId > 0)
+        {
+           /* <div id="DivCancel" class="col-md-7 row">
+                @* show Cancel Remark if status other than Completed  *@
+                @if (Model.ACT_StatusID != 5)
+                {
+                    <div class="col-md-3">
+                        <label>Cancel Remark :</label>
+                    </div>
+                    <div class="col-md-7">
+                        @Html.TextBoxFor(model => model.CancelRemark, null, new { @class = "form-control input-sm clearfix CancelRemark", @placeholder = "Cancel Remark ", @title = "Cancel Remark" })
+                    </div>
+                }
+                @* show Cancel button if status is not Completed Or Rejected *@
+                @if (Model.ACT_StatusID != 5 && Model.ACT_StatusID != 6)
+                {
+                    <div class="col-md-2">
+                        <input type="submit" name="submit" value="Canceled" data-loading-text="Loading..." class="btn btn-primary btnSubmit" />
+                    </div>
+                }
+            </div>*/
+        }
+        <div class="col-md-5 pull-right">
+            @if (Model.aTRPoint.ATRPointId > 0)
+            {
+                  if(Model.aTRPoint.ComplianceStatusId!=2)
+                  {
+                    <input type="submit" name="submit" value="Save" data-loading-text="Loading..." class="btn btn-primary btnSubmit" />
+                  }
+            }
+            <button type="button" name="close" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+    </div>
+}
+
+
+<script>
+    $(document).ready(function () {
+        $("[data-val-required]").each(function () {
+            $("label[for=" + this.id + "]").addClass("requiredlabel")
+        });
+
+        $('.enableSelect').select2();
+        DatePickerClass();
+        ButtonSubmitBind();
+
+        $('button[name="submit"]').on('click', function (e) {
+            
+            $('#submit').val($(this).val());
+
+            if ($('#submit').val() == "DeleteDoc") {
+
+                if (!confirm('Are you sure want to delete?')) {
+
+                    e.preventDefault();
+                }
+                var FileId = $(this).closest('tr').find('.FileId').val();;
+                $('#FileDeleteId').val(FileId);
+                $('#AuditeeStatusId').rules('remove');
+                $('#MgtReponse').rules('remove');
+                $('#CommittedDate').rules('remove');
+            }
+            else {
+                if (!$('#AuditeeStatusId').prop('data-val')) {
+
+                    $('#AuditeeStatusId').rules("add", { required: true });
+                    $('#MgtReponse').rules("add", { required: true });
+                    $('#CommittedDate').rules("add", { required: true });
+                }
+                
+            }
+
+            
+        });
+    });
+    function DatePickerClass() {
+        
+        $('.datetimepicker').datetimepicker({
+            format: "DD-MMM-YYYY",
+            sideBySide: true//,
+            //widgetPositioning: {
+            //    vertical: 'bottom'
+            //}
+
+        });
+
+        $('.datetimepicker').each(function () {
+
+            if ($(this).val().includes("0001")) {
+                $(this).val("");
+            }
+        });
+
+        $('.enableselectModel').select2({
+            width: '100%',
+            dropdownParent: $("#myModal .parent-cotent")
+        });
+    }
+
+    function ButtonSubmitBind() {
+
+        $("input").attr("autocomplete", "off");
+
+        var form = $("#myModal form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+
+        $('#myModal').on('shown.bs.modal', function () {
+            $('#AuditeeStatusId').focus();
+        });
+        $('#myModal form').on('submit', function (e) {
+            e.preventDefault();
+
+            
+
+            if (!$(this).valid()) { return; }
+
+            $('#myModal .modal-content').mask("Loading...");
+
+            $(".btnSubmit").attr("disabled", "disabled");
+
+            var formData = new FormData(this);
+            let antikey = $('input[name="__RequestVerificationToken"]').val();
+            
+            formData.delete("__RequestVerificationToken");
+            //var headers = { __RequestVerificationToken: $(this).find('input[name="__RequestVerificationToken"]').val() };
+            formData.append("__RequestVerificationToken", antikey );
+            
+            $.ajax({
+                url: $(this).attr("action"),
+                target: '#myModal .modal-content',
+                type: 'POST',
+                //headers: headers,
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                    $('#myModal .modal-content').html(data.Result);
+                    $(".btnSubmit").removeAttr("disabled");
+                    if (data.Success) {
+                        toastr.success(data.Message);
+                    }
+                    else {
+                        toastr.error(data.Message);
+                    }
+                    $('#myModal .modal-content').unmask();
+                    //DatePickerClass();
+                    //ButtonSubmitBind();
+                },
+                error: function (e) {
+                    
+                    $('#myModal .modal-content').unmask();
+                    toastr.error("something went wrong.unable to save");
+                    $(".btnSubmit").removeAttr("disabled");
+                    //DatePickerClass();
+                    console.log(e.responseText);
+                }
+            });
+        });
+
+    }
+
+    function ModalDeleteClick(sender) {
+
+        var button = $(sender);
+        var url = button.attr("href");
+
+        $.ajax({
+            url: url,
+            type: "GET",
+            success: function (data) {
+
+                $('#frmContent').html(data);
+                $('#myModal').modal({
+                    backdrop: 'static'
+                });//modal('show');
+                $('#frmContent').focus();
+                DatePickerClass();
+                ButtonSubmitBind();
+                return false;
+            }
+        });
+
+    }
+</script>

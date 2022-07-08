@@ -1,0 +1,260 @@
+﻿@model RELOCBS.Entities.ActivityAllocationModel
+@using RELOCBS.Extensions;
+
+<div class="ibox-content">
+    <div class="row">
+        <div class="col-sm-4 col-md-4 form-group">
+            <label>Material Type</label>
+            @Html.ListBox("MaterialType", new SelectList((System.Collections.IEnumerable)ViewData["MaterialTypeList"], "Value", "Text"), new { @class = "form-control input-sm clearfix multipleselect", @multiple = "multiple" })
+        </div>
+        <div class="col-sm-3 col-md-3 form-group hide">
+            <label>Material Rate</label>
+            @Html.TextBox("MaterialRate", null, new { @class = "form-control input-sm clearfix MaterialRate", @readonly = "readonly" })
+        </div>
+        <div class="col-sm-3 col-md-3 form-group hide">
+            <label>Quantity Issued</label>
+            @Html.TextBox("MaterialQty", null, new { @class = "form-control input-sm clearfix MaterialQty" })
+        </div>
+        <div class="col-sm-2 col-md-2 form-group">
+            <div class="clearfix">
+                <input type="button" id="btnAdd" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="AddMaterial()">
+            </div>
+        </div>
+    </div>
+    @*<div class="row hide">
+        <div class="col-sm-3 col-md-3 form-group ">
+            <label>Material Type</label>
+            @Html.TextBox("MaterialType", null, new { @class = "form-control input-sm clearfix MaterialType" , @onkeyup = "SearchMaterail(this)" })
+        </div>
+    </div>*@
+    <div class="row">
+        <div class="table-responsive">
+            <table id="tblMaterial" class="table table-condensed table-scroll">
+                <thead>
+                    <tr>
+                        <th>Material Type</th>
+                        <th>Quantity Issued</th>
+                        <th>Material Rate</th>
+                        <th>&nbsp;</th>
+                    </tr>
+                </thead>
+                <tbody class="body-half-screen">
+                    @for (int i = 0; i < Model.materialUsed.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                @Html.TextBoxFor(model => Model.materialUsed[i].Materail, new { @class = "form-control input-sm clearfix TblMaterail", @readonly = "readonly", tabindex = "-1" })
+                                @Html.HiddenFor(model => Model.materialUsed[i].MaterailId, new { @class = "TblMaterailId" })
+                                @Html.HiddenFor(model => Model.materialUsed[i].M_ID, new { @class = "M_ID" })
+                                @Html.HiddenFor(model => Model.materialUsed[i].PJR_Status, new { @class = "M_PJR_Status" })
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(model => Model.materialUsed[i].IssuedQty, new { @class = "form-control input-sm clearfix TblIssuedQty", onkeypress = "return OnlyInteger(this, event);", onchange = "GetMaterialTotal()" }).DisableIf(() => Model.materialUsed[i].PJR_Status == 1)
+                            </td>
+                            <td>
+                                @*, @readonly = "readonly",*@
+                                @Html.TextBoxFor(model => Model.materialUsed[i].Rate, new { @class = "form-control input-sm clearfix TblRate", tabindex = "-1" }).DisableIf(() => Model.materialUsed[i].PJR_Status == 1)
+                            </td>
+                            <td>
+                                @if (Model.materialUsed[i].PJR_Status == 0)
+                                {
+                                  <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="DeleteMaterial(this)" />
+                                }
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th id="total" colspan="1">Total :</th>
+                        <td>@Html.TextBox("MaterialTotal", null, new { @class = "form-control input-sm clearfix", @readonly = "readonly" })</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+
+
+    function ClearMaterial() {
+
+        $("#MaterialType").val('').trigger('change');
+        $("#MaterialRate").val('');
+        $("#MaterialQty").val('');
+
+    }
+
+    function DeleteMaterial(sender) {
+
+
+        
+        //Determine the reference of the Row using the Button.
+        var row = $(sender).closest("TR");
+        var name = $("TD", row).find('.TblMaterail').text().trim();
+        if (confirm("Do you want to delete: " + name.trim())) {
+            //Get the reference of the Table.
+            var table = $("#tblMaterial")[0];
+
+            //Delete the Table row using it's Index.
+            table.deleteRow(row[0].rowIndex);
+
+            GetMaterialTotal();
+
+        }
+
+        return false;
+    }
+
+    function isMaterialExists(index, value) {
+
+        var result;
+
+        $("#tblMaterial > TBODY").find('.TblMaterailId').each(function () {
+
+            if ($(this).val() === $(value).val()) {
+                result = true;
+                return false;
+            }
+        });
+
+        return result;
+    }
+
+
+    function checkMaterialExists(Material) {
+
+        
+        var exist = Material.filter(isMaterialExists);
+        if (exist.length > 0) { return true; }
+        return false;
+
+    }
+
+    function getKeyByValue(object, value) {
+        for (var i = 0; i < object.length; i++) {
+            if (object[i].ID == value) {
+                return object[i].Rate;
+                break;
+            }
+        }
+    } 
+
+    function AddMaterial() {
+
+        
+        if (!checkMaterialExists($('#MaterialType option:selected'))) {
+            
+            var stringArray = [];
+            var msg;
+            $('#MaterialType option:selected').each(function (i, selected) {
+                stringArray[i] = $(selected).val();
+            });
+            var urls = '@Url.Action("GetMaterialRate", "JobAllocation")';
+            var Rates = {};
+            if (stringArray.length > 0) {
+                //jQuery.ajaxSettings.traditional = true;
+                $.ajax({
+                    url: urls,
+                    type: "GET",
+                    data: { 'MaterailID': stringArray},
+                    traditional: true,
+                    success: function (data) {
+                        
+                        $.each($('#MaterialType option:selected'), function (index, value) { // loop over each option
+
+                            ////selectedIndices.push(index); // add the index to the array
+                            
+                            var Material = $(value).val();
+                            var MaterialText = $(value).text();
+                            var tBody = $("#tblMaterial > TBODY")[0];
+                            var rowCount = $('#tblMaterial > TBODY > tr').length;
+                            var row = tBody.insertRow(-1);
+                            row.className = "package-row";
+                            var cell = $(row.insertCell(-1));
+
+                            var Rate = getKeyByValue(data, $(value).val());
+                            var td = '<input readonly="readonly" class="form-control input-sm clearfix TblMaterail" id="materialUsed_' + rowCount + '__Materail" name="materialUsed[' + rowCount + '].Materail" type="text" value="' + MaterialText + '">'
+                                + '<input data-val="true" class="TblMaterailId" data-val-number="The field MaterailId must be a number." data-val-required="The MaterailId field is required." id="materialUsed_' + rowCount + '__MaterailId" name="materialUsed[' + rowCount + '].MaterailId" type="hidden" value="' + Material + '" autocomplete="off">';
+                            cell.append(td);
+
+                            cell = $(row.insertCell(-1));
+                            td = '<input  class="form-control input-sm clearfix TblIssuedQty" data-val="true" data-val-number="The field IssuedQty must be a number." id="materialUsed_' + rowCount + '__IssuedQty" name="materialUsed[' + rowCount + '].IssuedQty" type="text" value="" onchange="GetMaterialTotal()" onkeypress="return OnlyInteger(this, event);">'
+                            cell.append(td);
+
+                            cell = $(row.insertCell(-1));
+                            td = '<input readonly="readonly" class="form-control input-sm clearfix TblRate"  id="materialUsed_' + rowCount + '__Rate" name="materialUsed[' + rowCount + '].Rate" type="text" value="' + Rate + '">'
+                            cell.append(td);
+
+                            //cell = $(row.insertCell(-1));
+                            //td = '<input readonly="readonly" class="form-control input-sm clearfix TblUsedQty" data-val="true" data-val-number="The field UsedQty must be a number." id="materialUsed_' + rowCount + '__UsedQty" name="materialUsed[' + rowCount + '].UsedQty" type="text" value="0">'
+                            //cell.append(td);
+
+                            //cell = $(row.insertCell(-1));
+                            //td = '<input readonly="readonly" class="form-control input-sm clearfix TblReturnQty" data-val="true" data-val-number="The field ReturnQty must be a number." id="materialUsed_' + rowCount + '__ReturnQty" name="materialUsed[' + rowCount + '].ReturnQty" type="text" value="0">'
+                            //cell.append(td);
+
+                            var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="DeleteMaterial(this)" />'
+                            cell = $(row.insertCell(-1));
+                            cell.append(tdremove);
+
+
+                        });
+
+                        $("#tblMaterial").find(".TblIssuedQty:text[value='']:visible").first().focus();
+                        
+                        return false;
+                    },
+                    error: function (xhr, status, error) {
+                        var err = eval("(" + xhr.responseText + ")");
+                        alert(err.Message);
+                    }
+                });
+
+                $('.TblIssuedQty').change(function () {
+
+                    GetMaterialTotal();
+                });
+            }
+            else {
+                //alert('Select Atleast one Activity');
+            }
+
+            
+
+
+        }
+        else {
+
+            alert('Some of the Selected Material already exists in List');
+            return false;
+
+        }
+        
+        return false;
+    }
+
+    function GetMaterialPrice(sender) {
+
+        if (parseInt($(sender).val()) > 0) {
+
+            var url = '/JobAllocation/GetMaterialCost/' + $(sender).val();
+            $.get(url, function (data, textStatus, jqXHR) {
+                $('#MaterialRate').val(data);
+            });
+        }
+        else {
+            $('#MaterialRate').val(null);
+        }
+
+        return false;
+    }
+    
+</script>
+

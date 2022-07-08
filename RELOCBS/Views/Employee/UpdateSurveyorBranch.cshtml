@@ -1,0 +1,114 @@
+﻿
+@model RELOCBS.Entities.BranchSurveyorMapping
+
+@{
+                /**/
+
+                //Layout = null;
+                ViewBag.Title = "Surveyor Branch Allocation";
+}
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+@using (Html.BeginForm("UpdateSurveyorBranch", "Employee", FormMethod.Post, new { enctype = "multipart/form-data", id = "ModelForm" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-sm-12">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.HiddenFor(model => model.EmployeeId)
+                <div class="form-group row">
+                    <label class="control-label col-md-2 col-md-offset-1 requiredlabel">Name</label>
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.EmployeeName, new { htmlAttributes = new { @class = "form-control input-sm", @readonly = "readonly" } })
+                        @Html.ValidationMessageFor(model => model.EmployeeName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.BranchId, htmlAttributes: new { @class = "control-label col-md-2 col-md-offset-1" })
+                    <div class="col-md-8">
+                        @Html.DropDownListFor(model => model.BranchId, new SelectList(ViewBag.BranchList, "Value", "Text"), "Select One", new { @class = "form-control enableselect", title = "Warehouse" })
+                        @Html.ValidationMessageFor(model => model.BranchId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.FromDate, htmlAttributes: new { @class = "control-label col-md-2 col-md-offset-1" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.FromDate, new { htmlAttributes = new { @placeholder = "From Date", @tooltip = "From Date", @class = "form-control input-sm datetimepicker", title = "From Date" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                        @Html.ValidationMessageFor(model => model.FromDate, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Save" class="btn btn-primary btn-sm" id="btnCreate" />
+            <input type="button" class="btn btn-primary btn-sm" data-dismiss="modal" value="Close">
+        </div>
+    </div>
+
+}
+
+<script type="text/javascript">
+        $(document).ready(function () {
+            $("[data-val-required]").each(function () {
+                $("label[for=" + this.id + "]").addClass("requiredlabel")
+            });
+
+            $('.enableselect').select2();
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                sideBySide: true,
+                widgetPositioning: {
+                    vertical: 'bottom'
+                }
+
+            });
+
+        });
+</script>
+<script>
+    $(document).ready(function () {
+
+        $("input").attr("autocomplete", "off");
+
+        var form = $("#mdlAddEdit form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+
+        $('#mdlAddEdit').on('shown.bs.modal', function () {
+            //$('#EmpName').focus();
+        });
+
+        $('#mdlAddEdit form').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+
+            $('#mdlAddEdit .modal-content').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '#mdlAddEdit .modal-content',
+                success: function (data) {
+                    $('#mdlAddEdit .modal-content').html(data.Result);
+                    if (data.Success) {
+                        $('#mgrid .pagination li.active a').trigger('click');
+                        toastr.success("Data saved successfully.");
+                        $('#mdlAddEdit').modal('hide');
+                    }
+                    $('#mdlAddEdit .modal-content').unmask();
+                }
+            });
+        });
+
+
+    });
+
+</script>

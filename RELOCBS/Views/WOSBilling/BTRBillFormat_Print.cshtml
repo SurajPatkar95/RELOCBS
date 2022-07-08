@@ -1,0 +1,783 @@
+﻿@model RELOCBS.Entities.Billing
+@{
+    ViewBag.Title = "BTRBillFormat_Print";
+    Layout = null;
+    string invLabel = Model.BillType == 'I' ? "Invoice" : "Cr. Note";
+    string Number = Model.BillType == 'I' ? Model.InvoiceNo : Model.CreditNoteNo;
+    //List<SelectListItem> BillingEntityList =  new RELOCBS.BL.ComboBL().GetBillingEntityList(Model.RMCID).ToList();
+
+
+    string BillEntity = string.IsNullOrEmpty(Model.BillingEntityName) ? Model.Client : Model.BillingEntityName;
+    decimal T1 = 0;
+    decimal T0 = 0;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Invoice</title>
+    @Styles.Render("~/Content/css")
+
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style type="text/css">
+        #tblInvoiceItems tbody td {
+            border: solid;
+            border-width: thin;
+            border-color: lightgray;
+        }
+
+        .ttop {
+            vertical-align: top !important;
+        }
+
+        body {
+        }
+
+        .floatLeft {
+            float: left;
+        }
+
+        .tcenter {
+            text-align: center !important;
+        }
+
+        .boxWraper {
+            border: 1px solid #7b7b7b;
+            display: block;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+            .boxWraper .padding tr td {
+                padding: 3px 6px;
+            }
+
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        tr.border_bottom td {
+            border-bottom: 1pt solid black;
+        }
+
+        .tableData {
+            border: 0 !important;
+            line-height: 16px;
+        }
+
+
+            .tableData tr td {
+                background: #fff;
+                height: 100%;
+                vertical-align: middle;
+                border: 1px solid #7b7b7b;
+                padding-left: 5px;
+            }
+
+        .boxWraper tr th {
+            border: 1px solid #e3e7ee;
+            text-align: center;
+            padding: 3px 6px;
+        }
+
+
+        .marginLR {
+            margin: 0 auto;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        /*table {
+            border-collapse: separate;
+            border-spacing: 2px;
+        }*/
+
+        table {
+            background-color: transparent;
+        }
+
+        /*table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+        }*/
+
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            color: #808080;
+            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: subpixel-antialiased;
+            background: #fff;
+        }
+
+        .cw100 {
+            width: 100px !important;
+        }
+
+        .cw110 {
+            width: 110px !important;
+        }
+
+        .cw80 {
+            width: 80px !important;
+        }
+
+        .cw120 {
+            width: 120px !important;
+        }
+
+        .cw140 {
+            width: 140px !important;
+        }
+
+        .cw160 {
+            width: 160px !important;
+        }
+
+        .cw130 {
+            width: 140px !important;
+        }
+
+        .tbold {
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            font-weight: 600;
+        }
+
+        .tright {
+            text-align: right !important;
+        }
+
+        label {
+            margin-bottom: 0;
+            color: black;
+        }
+
+        .tcollapse {
+            border-collapse: collapse;
+        }
+
+
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+        .taW {
+            width: 100% !important;
+        }
+
+            .taW tr td {
+                padding-left: 10px;
+            }
+
+        h4 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: normal;
+            font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+        }
+
+        .numbertd {
+            text-align: right;
+        }
+
+        table, img, svg {
+            break-inside: avoid;
+        }
+
+        .bggrey {
+            background-color: lightgrey;
+        }
+    </style>
+    <style type="text/css">
+        @@media print {
+            .grid-header {
+                background: #eee;
+                font-size: 13px;
+            }
+
+            body {
+                font-family: Serif;
+                -webkit-print-color-adjust: exact;
+            }
+
+            h2 {
+                font-size: 20px;
+                text-transform: uppercase;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            h4 {
+                font-size: 13px;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            img {
+                display: inline;
+            }
+
+            .bggrey {
+                background-color: lightgrey;
+            }
+        }
+    </style>
+</head>
+<body>
+</body>
+</html>
+<div class="col-lg-10 col-sm-10 col-md-10 BillFormat graph-img graph-7" style=" flex-align:center" id="BillFormat">
+    <table class="marginLR" style="width:20cm;">
+        <tbody>
+            <tr>
+                <td>
+                    <img src="~/Content/images/BTR_Logo.PNG" width="200px" height="100px" />
+                </td>
+                <td class="tright">
+                    <div style="float:right">
+                        Unit A20, Basepoint Business Centre, 110 Great Marlings<br />
+                        Luton Beds LU2 8DL<br />
+                        Tel: 01582 495495<br />
+                        Website: www.btrinternational.com<br />
+                        Email: info@btrinternational.com<br />
+                        <img src="~/Content/images/BTRStamp.PNG" width="100px" height="100px" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <table class="taW tableData" style="border:1px solid #7b7b7b;">
+                        <tbody>
+                            <tr>
+                                @if (string.IsNullOrEmpty(Model.CreditNoteEntityName))
+                                {
+                                    if (Model.BillToID == "Client")
+                                    {
+                                        <td style="border-bottom-color: white; width:60%">
+                                            <span class="ng-binding">@Html.Raw(BillEntity)</span> <br />
+                                        </td>
+
+                                    }
+                                    else if (Model.BillToID == "Corporate")
+                                    {
+                                        <td style="border-bottom-color: white; width:60%">
+                                            <span class="ng-binding">@Html.Raw(Model.Account)</span> <br />
+                                        </td>
+                                    }
+                                    else if (Model.BillToID == "Shipper")
+                                    {
+                                        <td style="border-bottom-color: white; width:60%">
+                                            <span class="ng-binding">@Html.Raw(Model.Shipper)</span> <br />
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td style="border-bottom-color: white;width:60%">
+                                            <br />
+                                        </td>
+                                    }
+                                }
+                                else
+                                {
+                                        <td style="border-bottom-color: white; width:60%">
+                                            <span class="ng-binding">@Html.Raw(Model.CreditNoteEntityName)</span> <br />
+                                        </td>
+                                }
+
+                                <td style="border-bottom-color: white; width:20%">
+                                    @invLabel Number:
+                                </td>
+                                <td style="border-bottom-color: white; width:20%">
+                                    @Number
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom-color: white; width:60%">
+                                    @Model.Address1 <br />
+                                </td>
+                                <td style="width:20%"></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom-color: white; width:60%">
+                                    @Model.Address2<br />
+                                </td>
+
+                                <td style="border-bottom-color: white; width:20%">
+                                    Date:
+                                </td>
+                                <td style="border-bottom-color: white; width:20%">
+                                    @if (Model.InvoiceDate != null)
+                                    {@(((DateTime)Model.InvoiceDate).ToString("dd/MMM/yyyy"))}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom-color: white; width:60%">
+                                    @Model.BillToCity<br />
+                                </td>
+
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td style="width:60%">
+                                    @Model.PinCode<br />
+                                </td>
+                                <td style="width:20%">
+                                    Job No:
+                                </td>
+                                <td style="width:20%">
+                                    @Model.JobNo
+                                </td>
+                            </tr>
+                            @*<tr>
+                                    <td>
+                                        <br />
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>*@
+
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    Attention: @Model.Attention<br>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <table class="taW m-t-md" style="border-bottom:10px solid lightgrey;">
+                        <tbody>
+                            <tr style="background-color:lightgrey !important; border-bottom:2px solid #7b7b7b; ">
+                                <td colspan="6" class="tcenter"><b>Item</b></td>
+                                <td class="numbertd"><b>1 @Model.RateCurrName <br />Amount</b> </td>
+                                <td><b>Tax Code</b></td>
+                            </tr>
+                            <tr>
+                                <td colspan="6">Shipper Name : @Model.Shipper</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            @if (!string.IsNullOrEmpty(Model.FileNo))
+                            {
+                                <tr>
+                                    <td colspan="6">File/Ref No. : @Model.FileNo</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.WKNo))
+                            {
+                                <tr>
+                                    <td colspan="6">Work Order No. : @Model.WKNo</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            }
+                            @if (Model.Mode.Trim().Equals("DSP"))
+                            {
+                                <tr>
+                                    <td colspan="6">Service Location: @Html.Raw(Model.DestCity)</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="6">Service: @Html.Raw(Model.BtrServiceName)</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            }
+                            else
+                            {
+                                if (Model.IsCollectionDate)
+                                {
+                                    <tr>
+                                        <td colspan="6">
+                                            Collection Date: @if (Model.PackDate != null)
+                                            {@(((DateTime)Model.PackDate).ToString("dd/MMM/yyyy"))}
+                                        </td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td colspan="6">Collection Location: @Html.Raw(Model.OrgCity)</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="6">Delivery Location: @Html.Raw(Model.DestCity)</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="6">Transport Mode: @Model.Mode</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="6">Service: @Model.BtrServiceName</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+
+                                    @if (Model.IsVolumeValue)
+                                    {
+                                        if (Model.IsWtValue)
+                                        {
+                                            <td colspan="6"> Cubic Capacity: @Model.VolumeValue/@Model.WtValue </td>
+                                        }
+                                        else if (Model.IsGrossWtValue)
+                                        {
+                                            <td colspan="6"> Cubic Capacity: @Model.VolumeValue/@Model.GrossWtValue </td>
+                                        }
+                                        else
+                                        {
+                                            <td colspan="6"> Cubic Capacity: @Model.VolumeValue </td>
+                                        }
+                                    }
+                                    else if (Model.IsGrossVolumeValue)
+                                    {
+                                        if (Model.IsWtValue)
+                                        {
+                                            <td colspan="6"> Cubic Capacity: @Model.GrossVolumeValue/@Model.WtValue </td>
+                                        }
+                                        else if (Model.IsGrossWtValue)
+                                        {
+                                            <td colspan="6"> Cubic Capacity: @Model.GrossVolumeValue/@Model.GrossWtValue </td>
+                                        }
+                                        else
+                                        {
+                                            <td colspan="6"> Cubic Capacity: @Model.GrossVolumeValue </td>
+                                        }
+                                    }
+                                    else if (Model.IsWtValue)
+                                    {
+                                        <td colspan="6"> Cubic Capacity: @Model.WtValue </td>
+                                    }
+                                    else if (Model.IsGrossWtValue)
+                                    {
+                                        <td colspan="6"> Cubic Capacity: @Model.GrossWtValue </td>
+                                    }
+                                    else
+                                    {
+                                        <td colspan="6"></td>
+                                    }
+
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+
+                            }
+
+
+
+
+
+                            <tr>
+                                <td colspan="6"><br /></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="6"><br /></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+
+                            @if (Model.BillItems != null)
+                            {
+                                for (int i = 0; i < Model.BillItems.Count; i++)
+                                {
+                                    string Desc = "<p>" + Model.BillItems[i].Description.Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>";
+                                    //string Desc = "<p>" + (desc).Replace("\n\n", "</p><p><br></p><p>").Replace("\n", "</p><p>") + "</p>";
+                                    if (Desc.Contains("</p><p><br></p><p>"))
+                                    {
+                                        Desc = Desc.Substring(0, Desc.LastIndexOf("</p><p><br></p><p>"));
+                                    }
+
+
+
+                                    Model.BillItems[i].ConvRate = Model.ConvRate;
+                                    if (Model.BaseCurrID != 2 && Model.RateCurrancyID != 2)
+                                    {
+                                        Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount * Model.BillItems[i].ConvRate;
+                                    }
+                                    else if (Model.BaseCurrID != 2 && Model.RateCurrancyID == 2)
+                                    {
+                                        Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount * Model.BillItems[i].ConvRate;
+                                    }
+                                    else if (Model.BaseCurrID == 2 && Model.RateCurrancyID != 2)
+                                    {
+                                        Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount / Model.BillItems[i].ConvRate;
+                                    }
+                                    else
+                                    {
+                                        Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount / Model.BillItems[i].ConvRate;
+                                    }
+                                    //Model.BillItems[i].ConvAmount = Model.BillItems[i].AuditedAmount / Model.BillItems[i].ConvRate;
+                                    Model.BillItems[i].ConvAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].ConvAmount));
+                                    Model.BillItems[i].VatAmt = Model.BillItems[i].TaxApp ? (decimal)(Model.BillItems[i].ConvAmount * Model.BillItems[i].GSTVATPercent / 100) : 0;
+                                    Model.BillItems[i].VatAmt = Convert.ToDecimal(String.Format("{0:0.00}", Model.BillItems[i].VatAmt));
+
+                                    if (Model.BillItems[i].TaxApp)
+                                    {
+                                        T1 = T1 + Model.BillItems[i].ConvAmount;
+                                    }
+                                    else
+                                    {
+                                        T0 = T0 + Model.BillItems[i].ConvAmount;
+                                    }
+                                    if ((Model.BillType == 'C' && Model.BillItems[i].ConvAmount > 0) || Model.BillType == 'I')
+                                    {
+                                        <tr>
+                                            <td colspan="6">@Html.Raw(Desc)</td>
+                                            <td class="numbertd">@Model.BillItems[i].ConvAmount</td>
+                                            @if (Model.BillItems[i].TaxApp)
+                                            {
+                                                if (Model.BillItems[i].SacCode == "T0")
+                                                {
+                                                    <td>0</td>
+                                                }
+                                                else
+                                                {
+                                                    <td>@Model.BillItems[i].SacCode</td>
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                <td>0</td>
+                                            }
+
+
+                                        </tr>
+                                    }
+
+                                }
+                            }
+                            <tr>
+                                <td>
+                                    @Model.BillAddInfo
+                                </td>
+                            </tr>
+                            @{decimal TotalAmt = Model.BillItems.Sum(x => x.ConvAmount) + Model.BillItems.Sum(x => x.VatAmt);
+                                TotalAmt = Decimal.Round(TotalAmt, 2);}
+                            <tr>
+                                <td colspan="5"><b>Tax Analysis</b></td>
+                                <td class="tright">Sub Total:</td>
+                                <td class="numbertd"><b>@Model.BillItems.Sum(x => x.ConvAmount)</b></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td><b>Code</b></td>
+                                <td><b>Rate</b></td>
+                                <td><b>Goods</b></td>
+                                <td><b>Tax</b></td>
+                                <td></td>
+                                <td class="tright">Tax:</td>
+                                <td class="numbertd"><b>@Model.BillItems.Sum(x => x.VatAmt)</b></td>
+                                <td></td>
+                            </tr>
+                            @for (int i = 0; i < Model.BtrTaxList.Count(); i++)
+                            {
+
+
+
+                                <tr>
+                                    @if (Model.BtrTaxList[i].Code == "TC001")
+                                    {
+                                        <td>T1</td>
+                                    }
+                                    else
+                                    {
+                                        <td>@Model.BtrTaxList[i].Code</td>
+                                    }
+
+                                    <td>@Model.BtrTaxList[i].Rate</td>
+
+                                    @if (Model.BtrTaxList.Count() > 1)
+                                    {
+                                        if (Model.BtrTaxList[i].Tax != 0)
+                                        {
+                                            <td>
+                                                @Convert.ToDecimal(String.Format("{0:0.00}", T1))
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td>
+                                                @Convert.ToDecimal(String.Format("{0:0.00}", T0))
+                                            </td>
+                                        }
+                                        @*<td>
+                        @Convert.ToDecimal(String.Format("{0:0.00}", Model.BtrTaxList[i].Goods))
+                    </td>*@
+                                    }
+                                    else
+                                    {
+                                        <td>
+                                            @Model.BillItems.Sum(x => x.ConvAmount)
+                                        </td>
+                                    }
+
+
+                                    @if (@Model.BtrTaxList[i].Tax != 0)
+                                    {
+                                        <td>@Model.BillItems.Sum(x => x.VatAmt)</td>
+                                    }
+                                    else
+                                    {
+                                        <td>0.00</td>
+                                    }
+
+                                    <td></td>
+                                    @if (i == 0)
+                                    {
+                                        <td class="tright">Total:</td>
+                                        <td class="numbertd"><b>@TotalAmt</b></td>
+                                        <td>1 @Model.RateCurrName</td>
+                                    }
+                                    else
+                                    {
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    }
+                                </tr>
+                            }
+
+
+                        </tbody>
+
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    Payment Terms: @Model.BtrPaymentTermName<br>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    Customer Tax Number: @Model.Other.GSTNo
+                </td>
+                <td class="tright">
+                    VAT Reg No: @Model.Other.VATNo
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="bggrey" style="padding: 10px; bac">
+                        <b>Remittance Details:</b><br /><br />
+                        @foreach (var item in Model.Bank)
+                        {
+                            if (!string.IsNullOrEmpty(item.Header))
+                            {
+                                if (item.Header == "iban:")
+                                {
+                                    <br />
+                                }
+                                <span class="ng-binding"><b>@item.Header</b></span> <span class="ng-binding">@item.Value</span>
+                            }
+                            else
+                            {
+                                <span class="ng-binding">@item.Value</span> <br /><br />
+                            }
+                        }
+                        @*National Westminster Bank Plc, 4 High Street North, Dunstable, Beds, LU6 1JU, England
+                            <br />
+                            Account Name: BTR International Number: 36396478 Sort Code: 60-07-08 iban: GB87 NWBK 6007 0836 3964 78 Swift:
+                            <br />
+                            NWBK GB 2L*@
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="tcenter">
+                    <br /><br /><br />
+                    @Model.Other.BottomLine1<br />
+                    @Model.Other.BottomLine2<br />
+                    @Model.Other.BottomLine3<br />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="col-sm-1" style="border-radius: 50%;">
+    <button onclick="printPage('BillFormat','.Billheading{display:none;}')" style="border-radius: 5%;" class="btn btn-primary btn-sm pull-right m-r-lg m-t-lg" title="Print">Print Format </button>
+    @*<button onclick="printPage('BillFormat',null)" style="border-radius: 5%;" class="btn btn-primary btn-sm pull-right m-r-lg m-t-sm" title="Print">Email Format</button>*@
+</div>
+<script type="text/javascript">
+    function printPage(elementId, headerclass) {
+        var divToPrint = document.getElementById('BillFormat');
+
+        var newWin = window.open('', 'Print-Window');
+
+        newWin.document.open();
+        var style = '';
+        //style = style + ' <link href="~/Content/bootstrap.css" rel="stylesheet" />';
+        //style = style + ' <link href="~/Content/style.css" rel="stylesheet" />';
+        //style = style + ' <link href="~/Content/custom.css" rel="stylesheet" />';
+        //style = style + ' <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">';
+        style = '<style type="text/css">#tblInvoiceItems tbody td {border: solid;border-width: thin;border-color: lightgray;} .ttop {vertical-align: top !important;} .text-right { text-align: right; }' +
+            'body {} .floatLeft {float: left;} .tcenter {text-align: center !important;} .boxWraper {border: 1px solid #7b7b7b;display: block;overflow: hidden;margin-bottom: 5px;} .boxWraper.padding tr td {padding: 3px 6px;}' +
+            '.grid-header {background: #eee;font-size: 13px;} tr.border_bottom td {border-bottom: 1pt solid black;} .tableData {border: 0!important;line-height: 16px;} .tableData tr td {background: #fff;height: 100%;vertical-align: middle;border: 1px solid #e3e7ee; padding-left:10px}' +
+            '.boxWraper tr th {border: 1px solid #e3e7ee; text-align: center;padding: 3px 6px;} .marginLR {margin: 0 auto;} table { border-collapse: collapse;} table {background-color: transparent;}' +
+            'body {padding: 0;margin: 0;font-size: 12px;' +
+            'font-family: Lato, \'Open Sans\', verdana, arialo, "Helvetica Neue", sans-serif;color: #808080;' +
+            ' -webkit-font-smoothing: antialiased;-webkit-font-smoothing: subpixel-antialiased;' +
+            'background: #fff;} .cw100 {width: 100px!important;}.cw110 {width: 110px!important;} .cw80 {width: 80px!important;}.cw120 {width: 120px!important;} .cw140 {width: 140px!important;}' +
+            '.cw160 {width: 160px!important;}.cw130 {width: 140px!important;}' +
+            '.tbold {font-family: Lato, \'Open Sans\', verdana, arialo, "Helvetica Neue", sans-serif;font - weight: 600;}' +
+            '.tright {text - align: right!important;} label {margin-bottom: 0;color: black;} .tcollapse { border-collapse: collapse;} .boxWraper.padding tr td {padding: 3px 6px;}' +
+            '.taW {width: 100% !important;}h4 {font-size: 14px;margin: 6px 0;font-weight: normal;font-family: Lato, verdana, arial, "Helvetica Neue", Helvetica, sans-serif;}' +
+            '.numbertd {text-align: right;} table, img, svg {break-inside: avoid;} .tright {text-align: right!important;} .taW tr td {padding-left:10px;}' +
+            headerclass +
+            '</style > ';
+        style = style + '<style>@@media print { .grid - header {background: #eee;font-size: 13px;}body {font-family: Serif; -webkit-print-color-adjust: exact;} h2 {font-size: 20px;text-transform: uppercase;text-decoration: underline;margin: 6px 0;font-family: Serif;} h4 {font-size: 13px;text-decoration: underline;margin: 6px 0;font-family: Serif;} img {display: inline;} .bggrey {background-color:#D3D3D3 !important;}}</style>';
+
+
+        debugger;
+        newWin.document.write('<html><head>' + style +
+            '</head><body onload="window.print()">' + divToPrint.innerHTML + '</body></html>');
+
+        newWin.document.close();
+
+        setTimeout(function () { newWin.close(); }, 10);
+        //var printContent = document.getElementById(elementId);
+        //var windowUrl = 'about:blank';
+        //var uniqueName = new Date();
+        //var windowName = 'Print' + uniqueName.getTime();
+        //var printWindow = window.open(windowUrl, windowName, 'left=50000,top=50000,width=0,height=0');
+
+        //printWindow.document.write(printContent.innerHTML);
+        //printWindow.document.close();
+        //printWindow.focus();
+        //printWindow.print();
+        //printWindow.close();
+        //newWin.document.close();
+        //setTimeout(function () { printWindow.close(); }, 10);
+    }
+</script>

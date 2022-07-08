@@ -1,0 +1,241 @@
+﻿@model RELOCBS.Entities.EClaimPrint
+
+@using RELOCBS.Utility;
+@{
+    ViewBag.Title = "_EClaimPrintWord";
+    string imageurl = Request.ServerVariables["APPL_PHYSICAL_PATH"] + @"Content\images\EClaimTataAIG.png";
+
+}
+
+<div id="Content" class="col-lg-12 col-sm-12 col-md-12" style="flex-align:center">
+    <table class="marginLR" style="width:20cm;">
+        <tbody>
+            <tr>
+                <td>
+                    <table class="taW">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <table>
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="2" class="tcenter tdLogo">
+                                                    @if (Model.FormatType.ToUpper() == "B")
+                                                    {
+                                                        <img class="logo" src="@imageurl">
+                                                    }
+                                                    else
+                                                    {
+                                                        <div style="height:10px">&nbsp;</div>
+                                                    }
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="width: 166.5pt;" class="thBoldL">
+                                                    <p class="thFont"><strong>DESCRIPTION</strong></p>
+                                                </td>
+                                                <td style="width: 351pt;" class="thBoldR">
+                                                    <p class="thFont"><strong>INFORMATION TO BE PROVIDED BY INSURED.</strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">Insured&#39;s Name</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong>: @Html.Raw(Model.InsuredName) </strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">Policy No</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong>: @Html.Raw(Model.PolicyNo)</strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">Date of Loss &amp; Time</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong>: @Html.Raw(Model.DateTimeofLoss.ToString("dd-MMM-yyyy"))</strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">Loss Location</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong>: @Html.Raw(Model.LossLocation)</strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">Loss Description&nbsp;</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong>: @Html.Raw(Model.LossDescription)</strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">Contact Person&#39;s Name at location</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong>: @Html.Raw(Model.Contact_Person)</strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">Contact No.</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong>:</strong></p>
+                                                    <p class="tdPara"><span style="color:navy;">(M) -</span><strong>@Html.Raw(Model.SenderContactNo_Mob)</strong><span style="color:navy;">&nbsp; (O) - <strong>@Html.Raw(Model.SenderContactNo_Off)</strong></span></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">Estimated Loss Amount</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong>: @Html.Raw(Model.EstimatedLossAmount)</strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" class="thBold">
+                                                    <p class="thFont"><strong>ADDITIONAL DETAILS FOR MARINE CLAIMS</strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">LR No. / AWB / Bill of Lading/ RR No. &amp; Date</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong><span>: &nbsp; &nbsp;&nbsp;</span></strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">Name of the Carrier</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong><span>: &nbsp; &nbsp;&nbsp;</span></strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">Invoice No. &amp; Amount</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong><span>:&nbsp;</span></strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">Transit :</p>
+
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong>: @Html.Raw(Model.Transit)</strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" class="thBold">
+                                                    <p class="thFont"><strong>CLIENT INFORMATION</strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">&nbsp;</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong> &nbsp;</strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">Sender&#39;s Name</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong>: @Html.Raw(Model.SenderName)</strong></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">Contact no.</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong>:</strong></p>
+                                                    <p class="tdPara"><span style="color:navy;">(M) - @Html.Raw(Model.SenderContactNo_Mob) &nbsp; (O) - @Html.Raw(Model.SenderContactNo_Off)</span></p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tColHead">
+                                                    <p class="tdTitle">Email id</p>
+                                                </td>
+                                                <td class="tColDesc">
+                                                    <p class="tdPara"><strong>: @Html.Raw(Model.SenderEmail)</strong></p>
+                                                </td>
+                                            </tr>
+                                            @if (Model.FormatType.ToUpper() == "B")
+                                            {
+                                                <tr>
+                                                    <td colspan="2" class="thBold">
+                                                        <p class="thFont"><strong>PLEASE NOTE : FOR REGISTRATION OF CLAIMS</strong></p>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tColHead">
+                                                        <p class="tdTitle">&nbsp;</p>
+                                                    </td>
+                                                    <td class="tColDesc">
+                                                        <p class="tdPara"><strong>&nbsp;</strong></p>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tColHead">
+                                                        <p class="tdTitle">1. Email notification can be sent at</p>
+                                                    </td>
+                                                    <td class="tColDesc">
+                                                        <p class="tdPara">
+                                                            @Html.Raw(Model.Email_notification)
+                                                        </p>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tColHead">
+                                                        <p class="tdTitle">2. Call on our Toll Free number</p>
+                                                    </td>
+                                                    <td class="tColDesc">
+                                                        <p class="tdPara"><strong> @Html.Raw(Model.Toll_Free)</strong></p>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="width: 166.5pt;border-right: 1pt solid windowtext;border-bottom: 1pt solid windowtext;border-left: 1pt solid windowtext;border-image: initial;border-top: none;background: rgb(204, 204, 204);padding: 0cm 5.4pt;height: 11.65pt;vertical-align: top;">
+                                                        <p style='margin:0cm;margin-bottom:.0001pt;font-size:16px;font-family:"Times New Roman",serif;'><strong><span style="color:gray;">&nbsp;</span></strong></p>
+                                                    </td>
+                                                    <td style="width:351.0pt;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;background:#CCCCCC;padding:0cm 5.4pt 0cm 5.4pt;height:11.65pt;">
+                                                        <p style='margin:0cm;margin-bottom:.0001pt;font-size:16px;font-family:"Times New Roman",serif;'><strong><span style="color:gray;">&nbsp;</span></strong></p>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                    <p style='margin:0cm;margin-bottom:.0001pt;font-size:16px;font-family:"Times New Roman",serif;'>&nbsp;</p>
+                                    <p style='margin:0cm;margin-bottom:.0001pt;font-size:16px;font-family:"Times New Roman",serif;'>&nbsp;</p>
+                                    <p style='margin:0cm;margin-bottom:.0001pt;font-size:16px;font-family:"Times New Roman",serif;'>&nbsp;</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+
+</div>
+
+

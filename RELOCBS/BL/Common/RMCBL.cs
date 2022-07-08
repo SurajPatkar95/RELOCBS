@@ -93,11 +93,15 @@ namespace RELOCBS.BL.Common
                                {
                                    RMCName = Convert.ToString(rw["RMCName"]),
                                    ShortRMCName = Convert.ToString(rw["ShortRMCName"]),
-                                   CityName = Convert.ToString(rw["CityName"]),
-                                   CountryName = Convert.ToString(rw["CountryName"]),
+                                   //CityName = Convert.ToString(rw["CityName"]),
+                                   //CountryName = Convert.ToString(rw["CountryName"]),
                                    RMCID = Convert.ToInt32(rw["RMCID"]),
-                                   CityID = Convert.ToInt32(rw["CityID"]),
-                                   CountryID = Convert.ToInt32(rw["CountryID"]),
+                                   CityID = !string.IsNullOrWhiteSpace(Convert.ToString(rw["CityID"])) ? Convert.ToInt32(rw["CityID"]) : (int?)null,
+                                   CountryID = !string.IsNullOrWhiteSpace(Convert.ToString(rw["CountryID"])) ? Convert.ToInt32(rw["CountryID"]) : (int?)null,
+                                   RateTypeGrpID = Convert.ToInt32(rw["RateTypeGrpID"]),
+                                   Address1 = Convert.ToString(rw["Address1"]),
+                                   Address2 = Convert.ToString(rw["Address2"]),
+                                   Address3 = Convert.ToString(rw["Address3"]),
                                    isActive = Convert.ToBoolean(rw["isActive"])
                                }).First();
 

@@ -1,0 +1,226 @@
+﻿@using RELOCBS.Entities
+@model IEnumerable<Lead>
+@{
+    bool IsDisplay = !(ViewBag.IsDisplay);
+    if (IsDisplay)
+    { Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+    IEnumerable<Lead> dtSea = (IEnumerable<Lead>)ViewData["dtSea"];
+    IEnumerable<Lead> dtAir = (IEnumerable<Lead>)ViewData["dtAir"];
+    Lead leadDet = dtSea.FirstOrDefault();
+
+
+    string OrgAgent=leadDet.OrgAgent;
+    string OrgPort = leadDet.OrgPort;
+    string DestAgent = leadDet.DestAgent;
+    string DestPort = leadDet.DestPort;
+    bool IsRoad = (ViewBag.IsRoad);
+    string mode = "Sea";
+    if (IsRoad)
+    {
+        mode = "Road";
+    }
+}
+<div class="modal-header">
+    @if (!IsDisplay)
+    {
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    }
+
+    @*<input type="button" name="btnExport" class="btn btn-warning btn-sm pull-right m-r-sm" value="Export" id="btnExport" />*@
+    <h4 class="modal-title">SFR Download</h4>
+</div>
+    <div class="modal-body no-padding panel no-borders no-margins" id="pnl-leadadd" style="max-height:500px;">
+        <div class="panel-body bg-white">
+
+            <div class="row m-t-xs">
+                @*<div class="col-sm-12">
+            <label>Lane : <strong> @Model.Rows[0]["Lane"]</strong></label>
+            <label class="m-l-lg">Origin Agent : <strong>@Model.Rows[0]["OriginAgent"]</strong></label>
+            <label class="m-l-lg">Destination Agent : <strong>@Model.Rows[0]["DestinationAgent"]</strong></label>
+        </div>*@
+                <div class="col-sm-6 m-t-sm">
+                    <span><b>Org. Agent : @OrgAgent</b></span>
+                </div>
+                <div class="col-sm-6 m-t-sm">
+                    <span><b>Dest. Agent : @DestAgent</b></span>
+                </div>
+
+                <div class="col-sm-6 m-t-sm">
+                    
+                    <span><b>Org. Port : @OrgPort</b></span>
+                </div>
+                <div class="col-sm-6 m-t-sm">
+                    
+                    <span><b>Dest. Port : @DestPort</b></span>
+                </div>
+
+                <div class="col-sm-6 m-t-sm">
+                    <div class="ibox float-e-margins border">
+                        <div class="ibox-title">
+                            <h5>@mode</h5>
+                        </div>
+                        <div class="ibox-content" id="tbl-list1">
+                            <div class="table-responsive">
+                                <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+                                    <table class="table table-bordered dataTables-example dataTable" id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info" role="grid">
+                                        <thead>
+                                            <tr role="row">
+                                                @*<th tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" style="width: 167px;">Sea</th>*@
+                                                <th tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" style="width: 222px;">Weight Slab</th>
+                                                <th tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" style="width: 200px;">Rate</th>
+                                                <th tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" style="width: 200px;">Time Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var itm in dtSea)
+                                            {
+                                                <tr role="row">
+                                                    @*<td>@itm.ItemArray[10].ToString() </td>*@
+                                                    <td>
+                                                        @String.Format("{0:0}", @itm.pricing.WeightFrom)
+                                                    </td>
+                                                    <td>
+                                                        @String.Format("{0:0}", @itm.pricing.FSFR)
+                                                    </td>
+                                                    <td>
+                                                        @String.Format("{0:0}", @itm.pricing.TransitTime)
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                @if (!IsRoad)
+                {
+                    <div class="col-sm-6 m-t-sm">
+                        <div class="ibox float-e-margins border">
+                            <div class="ibox-title">
+                                <h5>Air</h5>
+                            </div>
+
+                            <div class="ibox-content">
+                                <div class="table-responsive">
+                                    <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+                                        <table class="table table-bordered dataTables-example dataTable" id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info" role="grid">
+                                            <thead>
+                                                <tr role="row">
+                                                    @*<th tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" style="width: 167px;">Air</th>*@
+                                                    <th tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" style="width: 222px;">Weight Slab</th>
+                                                    <th tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" style="width: 200px;">Rate</th>
+                                                    <th tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" style="width: 200px;">Transit Time</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var itm in dtAir)
+                                                {
+                                                    <tr role="row">
+                                                        <td>
+                                                            @String.Format("{0:0}", @itm.pricing.WeightFrom)
+                                                        </td>
+                                                        <td>
+                                                            @String.Format("{0:0}", @itm.pricing.FSFR)
+                                                        </td>
+                                                        <td>
+                                                            @String.Format("{0:0}", itm.pricing.TransitTime)
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            </div>
+            @if (!IsDisplay)
+            {
+                <div class="row">
+                    <div class="table-responsive">
+                        <table class="table table-striped text-center" id="headerTable">
+                            <thead>
+                                <tr>
+                                    <th>Weight Slab</th>
+                                    <th>Rate</th>
+                                    <th>Transit Time</th>
+                                    @*@foreach (var col in Model)
+                                {
+                                    <th>@col.</th>
+                                }*@
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in Model)
+                                {
+                                    <tr>
+                                        <td>@row.pricing.WeightFrom</td>
+                                        <td>@row.pricing.FSFR</td>
+                                        <td>@row.pricing.TransitTime</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+    <div class="modal-footer">
+        <input type="button" name="btnExport" class="btn btn-primary pull-right m-r-sm" value="Export" id="btnExport" />
+    </div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#headerTable').hide();
+        $('#tbl-list1').slimScroll({
+            height: '400px'
+        });
+
+        $("#btnExport").on("click", function (e) {
+            
+            var tab_text = "<table border='2px'><tr bgcolor='#87AFC6'>";
+            var textRange; var j = 0;
+            tab = document.getElementById('headerTable'); // id of table
+
+            for (j = 0; j < tab.rows.length; j++) {
+                
+                tab_text = tab_text + tab.rows[j].innerHTML + "</tr><tr>";
+                //tab_text=tab_text+"</tr>";
+            }
+
+            tab_text = tab_text.replace(/<tr>/g, "");
+            //tab_text = tab_text.replace(/_([^]*)$/, '$1'); //a_bc
+            
+            tab_text = tab_text + "</table>";
+            tab_text = tab_text.replace(/<A[^>]*>|<\/A>/g, "");//remove if u want links in your table
+            tab_text = tab_text.replace(/<img[^>]*>/gi, ""); // remove if u want images in your table
+            tab_text = tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+
+            var ua = window.navigator.userAgent;
+            var msie = ua.indexOf("MSIE ");
+
+            if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer
+            {
+                txtArea1.document.open("txt/html", "replace");
+                txtArea1.document.write(tab_text);
+                txtArea1.document.close();
+                txtArea1.focus();
+                sa = txtArea1.document.execCommand("SaveAs", true, "PricingData.xls");
+            }
+            else                 //other browser not tested on IE 11
+                sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+
+            return (sa);
+        });
+    });
+</script>

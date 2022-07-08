@@ -1,0 +1,142 @@
+﻿@model RELOCBS.Entities.CostViewModel
+
+<style>
+    #tblWHServiceCost {
+        counter-reset: serial-number;
+    }
+
+        #tblWHServiceCost > tbody > tr > td:first-child:before {
+            counter-increment: serial-number;
+            content: counter(serial-number);
+        }
+</style>
+
+@using (Html.BeginForm("WHServiceCost", "Cost", new { SurveyID = @Model.SurveyID }, FormMethod.Post, new { enctype = "multipart/form-data", @id = "EstimateManpower" }))
+{
+    @Html.HiddenFor(a => a.SurveyID)
+    @Html.HiddenFor(a => a.WHServiceCost.RateCompRateID)
+    @Html.HiddenFor(a => a.WHServiceCost.RateCompRateBatchID)
+    @Html.HiddenFor(a => a.WHServiceCostListHidden)
+
+    <div class="container-fluid">
+        @*<div class="row row-no-gutters">
+                <input type="submit" id="btnSaveWHServiceCost" name="SaveWHServiceCost" class="btn btn-primary m-r-sm pull-right btn-sm" value="Save" />
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label><strong>Survey No. :</strong></label>
+                    <label><strong>@Model.SurveyID</strong></label>
+                </div>
+            </div>*@
+        <div class="row">
+            <fieldset class="col-sm-12 border m-r-5">
+                <legend>WH Service Cost</legend>
+                <div class="row">
+                    <div class="col-sm-2 col-md-2">
+                        <div class="form-group">
+                            <label>Rate Comp</label>
+                            @Html.DropDownListFor(a => a.WHServiceCost.RateCompID, new SelectList((System.Collections.IEnumerable)ViewData["RateComponent"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm", @id = "RateCompID" })
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-md-2">
+                        <div class="form-group">
+                            <label>Emp Type</label>
+                            @Html.DropDownListFor(a => a.WHServiceCost.EmpTypeID, new SelectList((System.Collections.IEnumerable)ViewData["EmpTypeList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm", id = "EmpTypeID" })
+                        </div>
+                    </div>
+                    <div class="col-sm-1 col-md-1">
+                        <div class="form-group">
+                            <label>Base Curr</label>
+                            @Html.DropDownListFor(a => a.WHServiceCost.BaseCurrID, new SelectList((System.Collections.IEnumerable)ViewData["CurrencyList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm", id = "BaseCurrID", @disabled = "disabled" })
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-md-2">
+                        <div class="form-group">
+                            <label>Conv Rate</label>
+                            @Html.TextBoxFor(a => a.WHServiceCost.BaseCurrConversRate, new { @class = "form-control input-sm", placeholder = "Conv Rate", title = "Conv Rate", @id = "BaseCurrConversRate", onkeypress = "return OnlyDouble(this, event, 2);", @oncopy = "return false", @onpaste = "return false" })
+                        </div>
+                    </div>
+                    <div class="col-sm-1 col-md-1">
+                        <div class="form-group">
+                            <label>Rate Curr</label>
+                            @Html.DropDownListFor(a => a.WHServiceCost.RateCurrID, new SelectList((System.Collections.IEnumerable)ViewData["CurrencyList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm", id = "RateCurrID" })
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-md-2">
+                        <div class="form-group">
+                            <label>Net Amt</label>
+                            @Html.TextBoxFor(a => a.WHServiceCost.RateCurrValue, new { @class = "form-control input-sm", placeholder = "Net Amt", title = "Net Amt", @id = "RateCurrValue", onkeypress = "return OnlyDouble(this, event, 2);", @oncopy = "return false", @onpaste = "return false" })
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-md-2">
+                        <div class="form-group">
+                            <label>Work Hrs</label>
+                            @Html.TextBoxFor(a => a.WHServiceCost.WorkHrs, new { @class = "form-control input-sm", placeholder = "Work Hrs", title = "Work Hrs", @id = "WorkHrs", onkeypress = "return OnlyDouble(this, event, 2);", @oncopy = "return false", @onpaste = "return false" })
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="form-group clearfix text-center">
+                            <input type="button" id="btnAddWHServiceCost" name="Add" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Add Details" onclick="AddWHServiceCost();" formnovalidate="formnovalidate" />
+                            <input type="button" id="btnClearWHServiceCost" name="Clear" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Cancel" onclick="ClearWHServiceCost();" formnovalidate="formnovalidate" />
+                        </div>
+                    </div>
+                </div>
+                <div class="clearfix col-md-12 col-sm-12 well well-sm" style="overflow-x: auto;">
+                    <table class="table table-bordered table-responsive table-hover" id="tblWHServiceCost" style="width: 100%;">
+                        <thead class="ibox-title">
+                            <tr>
+                                <th class="tdSequence">Sr. No.</th>
+                                <th class="tdRateComp">Rate Comp</th>
+                                <th class="tdEmpType">Emp Type</th>
+                                <th class="tdBaseCurr">Base Curr</th>
+                                <th class="tdBaseCurrConversRate">Conv Rate</th>
+                                <th class="tdRateCurr">Rate Curr</th>
+                                <th class="tdRateCurrValue">Net Amt</th>
+                                <th class="tdWorkHrs">Work Hrs</th>
+                                <th class="tdAction">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.WHServiceCostList.Count; i++)
+                            {
+                                <tr>
+                                    <td class="tdSequence">
+                                        @Html.HiddenFor(m => m.WHServiceCostList[i].Ser_CostHeadRateID, new { @class = "tdSer_CostHeadRateID" })
+                                        @Html.HiddenFor(m => m.WHServiceCostList[i].SurveyID, new { @class = "tdSurveyID" })
+                                        @Html.HiddenFor(m => m.WHServiceCostList[i].RateCompRateID, new { @class = "tdRateCompRateID" })
+                                        @Html.HiddenFor(m => m.WHServiceCostList[i].RateCompRateBatchID, new { @class = "tdRateCompRateBatchID" })
+                                        @Html.HiddenFor(m => m.WHServiceCostList[i].RateCompID, new { @class = "tdRateCompID" })
+                                        @Html.HiddenFor(m => m.WHServiceCostList[i].EmpTypeID, new { @class = "tdEmpTypeID" })
+                                        @Html.HiddenFor(m => m.WHServiceCostList[i].BaseCurrID, new { @class = "tdBaseCurrID" })
+                                        @Html.HiddenFor(m => m.WHServiceCostList[i].RateCurrID, new { @class = "tdRateCurrID" })
+                                    </td>
+                                    <td class="tdRateComp">@Model.WHServiceCostList[i].RateComp</td>
+                                    <td class="tdEmpType">@Model.WHServiceCostList[i].EmpType</td>
+                                    <td class="tdBaseCurr">@Model.WHServiceCostList[i].BaseCurr</td>
+                                    <td class="tdBaseCurrConversRate">@Model.WHServiceCostList[i].BaseCurrConversRate</td>
+                                    <td class="tdRateCurr">@Model.WHServiceCostList[i].RateCurr</td>
+                                    <td class="tdRateCurrValue">@Model.WHServiceCostList[i].RateCurrValue</td>
+                                    <td class="tdWorkHrs">@Model.WHServiceCostList[i].WorkHrs</td>
+                                    <td class="tdAction">
+                                        <button type="button" value="Edit" class="btnEditWHServiceCost btn btn-sm btn-primary pull-left" onclick="EditWHServiceCost(this);"><i class="glyphicon glyphicon-pencil"></i></button>
+                                        <button type="button" value="Delete" class="btnDeleteWHServiceCost btn btn-sm btn-danger pull-left" onclick="DeleteWHServiceCost(this);"><i class="glyphicon glyphicon-trash"></i></button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </fieldset>
+        </div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12">
+                <div class="form-group clearfix text-center">
+                    <input type="submit" id="btnSaveWHServiceCost" name="SaveWHServiceCost" class="btn btn-primary m-r-sm pull-right btn-sm text-center" value="Save" />
+                    <input type="button" id="btnWHDeliveryReport" name="WHDeliveryReport" class="btn btn-primary m-r-sm pull-right btn-sm text-center" value="WH Delivery Report" />
+                </div>
+            </div>
+        </div>
+    </div>
+}

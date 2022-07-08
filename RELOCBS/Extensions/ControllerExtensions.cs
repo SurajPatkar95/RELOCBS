@@ -172,5 +172,50 @@ namespace RELOCBS.Extensions
             }
         }
 
+        public static ToastMessage AddToastMessage(this Controller controller, string title, string message, ToastType toastType = ToastType.Info)
+        {
+            Toastr toastr = controller.TempData["Toastr"] as Toastr;
+            toastr = toastr ?? new Toastr();
+
+            var toastMessage = toastr.AddToastMessage(title, message, toastType);
+            controller.TempData["Toastr"] = toastr;
+            return toastMessage;
+        }
+
+        public static string FullyQualifiedApplicationPath
+        {
+            get
+            {
+                //Return variable declaration
+                var appPath = string.Empty;
+
+                //Getting the current context of HTTP request
+                var context = HttpContext.Current;
+
+                //Checking the current context content
+                if (context != null)
+                {
+                    //Formatting the fully qualified website url/name
+                    appPath = string.Format("{0}://{1}{2}{3}",
+                                            context.Request.Url.Scheme,
+                                            context.Request.Url.Host,
+                                            context.Request.Url.Port == 80
+                                                ? string.Empty
+                                                : ":" + context.Request.Url.Port,
+                                            context.Request.ApplicationPath);
+                }
+
+                if (!appPath.EndsWith("/"))
+                    appPath += "/";
+
+                return appPath;
+            }
+        }
+
+        public static RedirectResult RedirectSameDomain(this Controller controller, string url)
+        {
+            return new RedirectResult(FullyQualifiedApplicationPath + url);
+        }
+
     }
 }

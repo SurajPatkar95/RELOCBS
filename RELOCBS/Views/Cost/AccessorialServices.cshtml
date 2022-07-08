@@ -1,0 +1,831 @@
+﻿@model RELOCBS.Entities.AccessorialServicesViewModel
+
+<div class="ibox-content">
+
+    <div class="tabs-container" id="tabRateUpload">
+        <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="active"><a href="#JobOpening" aria-controls="JobOpening" role="tab" data-toggle="tab" aria-expanded="true">City Rates</a></li>
+            <li role="presentation"><a href="#Instruction" aria-controls="Instruction" role="tab" data-toggle="tab" aria-expanded="true">Upload City Rates</a></li>
+        </ul>
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="JobOpening">
+
+                @using (Html.BeginForm("AccessorialServices", "Cost", FormMethod.Post, new { enctype = "multipart/form-data", @name = "Filter", @id = "Filter" }))
+                {
+                    @Html.AntiForgeryToken()
+
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="m-xs">
+                        <div class="row">
+                            <div class="col-sm-2 col-md-2">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.RMCID, htmlAttributes: new { @class = "control-label" })
+                                    @Html.DropDownListFor(model => model.RMCID, new SelectList((System.Collections.IEnumerable)ViewData["RMC"], "Value", "Text"), "--Select RMC--", new { id = "RMCDropdown", @class = "form-control input-sm clearfix", @onchange = "javascript:RMC_OnChange(this.value);" })
+                                    @Html.ValidationMessageFor(model => model.RMCID, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-sm-2 col-md-2 country">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.CountryID, htmlAttributes: new { @class = "control-label" })
+                                    @Html.DropDownListFor(model => model.CountryID, new SelectList((System.Collections.IEnumerable)ViewData["CountryList"], "Value", "Text"), "--Select Country--", new { id = "CountryDropdown", @class = "form-control input-sm clearfix enableselect" })
+                                    @Html.ValidationMessageFor(model => model.CountryID, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-sm-2 col-md-2 city">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.CityID, htmlAttributes: new { @class = "control-label" })
+                                    @Html.DropDownListFor(model => model.CityID, new List<SelectListItem>() ,new { id = "CityIDDropdown", @class = "form-control input-sm clearfix enableselect CityDrp" })
+                                    @Html.ValidationMessageFor(model => model.CityID, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-sm-2 col-md-2">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.AgentID, htmlAttributes: new { @class = "control-label" })
+                                    @Html.DropDownListFor(model => model.AgentID, new SelectList((System.Collections.IEnumerable)ViewData["Agent"], "Value", "Text"), "--Select Agent--", new { id = "AgentDropdown", @class = "form-control input-sm clearfix enableselect" })
+                                    @Html.ValidationMessageFor(model => model.AgentID, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-sm-2 col-md-2">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.CostHeadID, htmlAttributes: new { @class = "control-label" })
+                                    @Html.DropDownListFor(model => model.CostHeadID, new SelectList((System.Collections.IEnumerable)ViewData["CostHeadList"], "Value", "Text"), "--Select Service--", new { id = "CostHeadDropdown", @class = "form-control input-sm clearfix" })
+                                    @Html.ValidationMessageFor(model => model.CostHeadID, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-sm-2 col-md-2">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.ServiceIncluded, htmlAttributes: new { @class = "control-label" })
+                                    @Html.DropDownListFor(model => model.ServiceIncluded, new SelectList((System.Collections.IEnumerable)ViewData["YESNO"], "Value", "Text"), "--Select ServiceIncluded--", new { id = "ServiceIncludedDropdown", @class = "form-control input-sm clearfix" })
+                                    @Html.ValidationMessageFor(model => model.ServiceIncluded, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-2 col-sm-2">
+                                <label>Amount</label>
+                                @Html.EditorFor(model => model.Amount, new { htmlAttributes = new { @class = "form-control input-sm clearfix", id = "txtAmount", @onkeypress = "return OnlyDouble(this, event);" } })
+                                @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
+                            </div>
+                            <div class="col-sm-2 col-md-2">
+                                <div class="form-group">
+                                    <label>Agent Currency</label>
+                                    @Html.DropDownListFor(model => model.BaseCurrencyRateID, new SelectList((System.Collections.IEnumerable)ViewData["BaseCurrencyRate"], "Value", "Text"), "--Select BaseCurrency Rate--", new { id = "BaseCurrencyRateDropdown", @class = "form-control input-sm clearfix BaseCurrencyRate" })
+                                    @Html.ValidationMessageFor(model => model.BaseCurrencyRateID, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-sm-2 col-md-2">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.ConversionRate, htmlAttributes: new { @class = "control-label" })
+                                    @Html.EditorFor(model => model.ConversionRate, new { htmlAttributes = new { @class = "form-control input-sm clearfix ConversionRate", id = "txtConversionRate", @onkeypress = "return OnlyDouble(this, event);" } })
+                                    @Html.ValidationMessageFor(model => model.ConversionRate, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-sm-2 col-sm-2">
+                                <label>Value in USD</label>
+                                @Html.EditorFor(model => model.USDRate, new { htmlAttributes = new { @class = "form-control input-sm clearfix", id = "txtUSDRate", @onkeypress = "return OnlyDouble(this, event);", disabled = "disabled", @readonly = "readonly" } })
+                            </div>
+                            @*<div class="col-sm-2 col-md-2">
+            <div class="form-group">
+                <label>Rate Currency</label>
+                @Html.DropDownListFor(model => model.RateCurrencyID, new SelectList((System.Collections.IEnumerable)ViewData["RateCurrency"], "Value", "Text"), "--Select Rate Currency--", new { id = "RateCurrencyDropdown", @class = "form-control input-sm clearfix", @disabled = "disabled" })
+                @Html.ValidationMessageFor(model => model.RateCurrencyID, "", new { @class = "text-danger" })
+            </div>
+        </div>*@
+                            <div class="col-sm-2">
+                                <label>Rate Applicable From</label>
+                                <div class="input-group input-group-sm date" id="dtp_SurveyDate">
+                                    @Html.EditorFor(a => a.EffectiveFromDate, new { htmlAttributes = new { @placeholder = "Rate Applicable From Date", @tooltip = "Rate Applicable From Date", @class = "form-control input-sm datepicker", title = "Rate Applicable From Date", id = "EffectiveFromDate" } })
+                                    <span class="input-group-addon" style="display: none">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    </span>
+                                </div>
+                                @Html.ValidationMessageFor(model => model.EffectiveFromDate, "", new { @class = "text-danger" })
+                            </div>
+                            <div class="col-sm-2 col-md-2">
+                                <div class="clearfix">
+                                    <input type="submit" id="BtnSave" name="Save" class="btn btn-primary btn-sm filter-custom-margin" value="Save" />
+                                    <span class="m-l-md"></span>
+                                    <input type="button" id="BtnRevnue" name="Revenue" class="btn btn-primary btn-sm filter-custom-margin" value="View Revenue" />
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <hr />
+                    </div>
+                }
+
+                @using (Html.BeginForm("AgentAccessService", "Cost", FormMethod.Post, new { enctype = "multipart/form-data", @name = "Filter", @id = "FilterAgent" }))
+                {
+
+                    <div class="m-xs">
+                        <div class="row">
+                            <div class="col-sm-2 col-md-2 col-form-label">
+                                <label for="txtbxWriterProfit">Value Profit</label>
+                            </div>
+                            <div class="col-sm-2 col-md-2">
+                                <select class="select2_demo_1 form-control select2-accessible" tabindex="-1" aria-hidden="true" id="ddlUSDPM">
+                                    <option value="0" selected>Select</option>
+                                    <option value="F">USD</option>
+                                    <option value="P">%</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-2 col-md-2">
+                                @Html.TextBox("txtbxWriterProfit", null, new { @class = "form-control", @placeholder = "Writer Profit" })
+                            </div>
+                            <div class="col-sm-6 col-md-6">
+                                    <input type="submit" id="BtnSave" name="Save" class="btn btn-primary btn-sm pull-right m-r-sm" value="Save RGP" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="m-xs">
+                        <div class="row">
+                            <div id="pnl-CityRates" class="table-responsive">
+                            </div>
+                        </div>
+                    </div>
+
+                }
+
+
+            </div>
+            <div role="tabpanel" class="tab-pane" id="Instruction">
+                 @{
+                     var Md = new RELOCBS.Entities.CityCostUpload();
+
+                     Html.RenderPartial("CityCostUpload", Md);
+                 }
+            </div>
+        </div>   
+
+            
+        </div>
+
+
+    <div class="modal modal-wide fade" id="RevenueModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                
+            </div>
+        </div>
+    </div>
+
+        @section Scripts{
+            @Scripts.Render("~/bundles/jqueryval")
+            @Scripts.Render("~/bundles/jqunobtrusive")
+            @Scripts.Render("~/bundles/bootstrap-select")
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            @*AjaxFillDropDown('.CityDropDown', "@Url.Action("GetCityList", "Cost")");
+            AjaxFillDropDown('#CityIDDropdown', "@Url.Action("GetCityList", "Cost")", '@Model.CityID');*@
+            $("#ddlUSDPM").val("P");
+
+            
+            
+
+            if ($("#EffectiveFromDate").val() == "01-Jan-0001 00:00:00" || $("#EffectiveFromDate").val() == "01-Jan-0001") {
+
+                var date = new Date();
+                var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+                $("#EffectiveFromDate").val("");
+
+                $('.datepicker').datetimepicker({
+                    format: "DD-MMM-YYYY",
+                    widgetPositioning: {
+                        horizontal: 'right',
+                        vertical: 'bottom'
+                    }
+                }).datepicker("setDate", today);;
+
+            }
+            else {
+
+                $('.datepicker').datetimepicker({
+                    format: "DD-MMM-YYYY",
+                    widgetPositioning: {
+                        horizontal: 'right',
+                        vertical: 'bottom'
+                    }
+                });
+
+            }
+
+            $("#BaseCurrencyRateDropdown").change(function (event) {
+
+                if ($("#BaseCurrencyRateDropdown").text().toUpperCase() == "USD") {
+                    $("#txtConversionRate").val("1");
+                }
+                else {
+                    $("#txtConversionRate").val("");
+                }
+
+                event.preventDefault();
+
+            });
+
+            $("#BaseCurrRateDropdown").change(function (event) {
+
+                if ($("#BaseCurrRateDropdown").text().toUpperCase() == "USD") {
+                    $("#txtConvRate").val("1");
+                }
+                else {
+                    $("#txtConvRate").val("");
+                }
+
+                event.preventDefault();
+
+            });
+
+
+
+            //$("#txtConversionRate, #txtAmount").on('focus', function () {
+            //    // On first focus, check to see if we have the default text saved
+            //    // If not, save current value to data()
+            //    if (!$(this).data('defaultText')) $(this).data('defaultText', $(this).val());
+
+            //    // check to see if the input currently equals the default before clearing it
+            //    if ($(this).val() == $(this).data('defaultText')) $(this).val('');
+            //});
+
+
+            $("#txtConversionRate, #txtAmount").blur(function() {
+
+                var result = parseFloat($('#txtConversionRate').val()) * parseFloat($('#txtAmount').val());
+                if (isNaN(parseFloat(result))==false) {
+
+                    $("#txtUSDRate").val(result);
+                }
+                else {
+                    $("#txtUSDRate").val(0);
+                }
+
+
+            });
+
+
+            $("#RMCDropdown ,#CityIDDropdown ,#GoodsDescriptionDropdown").change(function (event) {
+
+
+                GetCityService();
+                event.preventDefault();
+
+            });
+
+            $('#BtnRevnue').click(function (e) {
+                e.preventDefault();
+                if (parseInt($("#CityIDDropdown option:selected").val()) > 0 && parseInt($("#RMCDropdown option:selected").val()) > 0) {
+
+                    debugger;
+
+                    $('#RevenueModal  .modal-content').load('@Url.Action("CityRevenue", "Cost")',
+                        { cityid: $("#CityIDDropdown option:selected").val(), rmcid: $("#RMCDropdown option:selected").val() },
+                        function (data, status, jqXGR) {
+                            $('#RevenueModal').modal('show');
+                        });
+
+                }
+                else {
+
+                    alert('RMC & City required');
+                }
+
+                
+            });
+
+            $(".country select").change(function (event) {
+                debugger;
+                var Selected = $('option:selected', this).val();
+                var city = $(this).parent().parent().siblings(".city").find('select');
+                city.text('');
+                city.val('');
+                city.empty();
+                city.append($('<option>').text("--Select City--").attr('value', ''));
+                $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    url: "@Url.Action("GetCity", "Combo")?CountryID=" + Selected,
+                    async: 'false',
+                    dataType: 'json',
+                    type: "GET",
+                    success: function (data) {
+                        $.each(data, function (number, municipe) {
+
+                            city.append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+
+                        });
+                    },
+                    error: function (reponse) {
+                        alert("error : " + reponse);
+                    }
+                });
+
+                event.preventDefault();
+
+            });
+
+            var CityID = '@Model.CityID';
+            if (!isNaN(parseInt(CityID)) && isNaN(parseInt(CityID))) {
+
+                AjaxFillDropDown('.CityDrp', "@Url.Action("GetCityList", "Cost")", CityID);
+                AjaxFillDropDown('..CityDrp2', "@Url.Action("GetCityList", "Cost")", CityID);   
+            }
+            
+
+            GetCityService();
+            
+        });
+
+
+        function defaultCitySelect() {
+
+            debugger;
+
+            var Selected = $('#CountryDropdown option:selected').val();
+            var CityID = '@Model.CityID';
+            var city = $('.CityDrp');
+            city.text('');
+            city.val('');
+            city.empty();
+            city.append($('<option>').text("--Select City--").attr('value', ''));
+                $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    url: "@Url.Action("GetCity", "Combo")?CountryID=" + Selected,
+                    async: 'false',
+                    dataType: 'json',
+                    type: "GET",
+                    success: function (data) {
+                        $.each(data, function (number, municipe) {
+
+                            if (CityID == municipe.Value) {
+
+                                city.append($('<option>').text(municipe.Text).attr('value', municipe.Value)).attr('selected','selected');
+                            }
+                            else {
+                                city.append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+                            }
+                            
+
+                        });
+                    },
+                    error: function (reponse) {
+                        alert("error : " + reponse);
+                    }
+                });
+
+        }
+        /////On RMC Change
+    function RMC_OnChange(_RMC) {
+        $("#CostHeadDropdown").text('');
+        $("#CostHeadDropdown").val('');
+        $("#CostHeadDropdown").empty();
+        $("#CostHeadDropdown").append($('<option>').text("--Select CostHead--").attr('value', ''));
+        if (_RMC != null && _RMC != "") {
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetCostHead", "Combo")?RMCID=" + _RMC,
+                async: 'false',
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    $.each(data, function (number, municipe) {
+
+                        $("#CostHeadDropdown").append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+
+                    });
+                },
+                error: function (reponse) {
+                    alert("error : " + reponse);
+                }
+            });
+        }
+
+        }
+
+
+
+        function fnFindWbCost(flag) {
+
+            $('#tblCityRates tr').each(function (index) {
+
+                if (index >= 0) {
+                    var numlist = [];
+
+
+                    $(this).find('td').each(function (innerindex) {
+                        if (innerindex > 0) {
+
+                            var tdval = $(this).find('[name="CitywiseVendors"]').html()
+                            if (tdval != "" && tdval != null && !isNaN(parseFloat(tdval)) && parseFloat(tdval) != 0) {
+                                numlist.push(parseFloat(tdval));
+                            }
+                        }
+                    });
+                    if (index > 0) {
+
+                            var MaxValue = 0;
+                            if (numlist.length > 0) {
+                                MaxValue = Math.max.apply(Math, numlist);
+                            }
+
+                            var MinValue = 0;
+                            if (numlist.length > 0) {
+                                MinValue = Math.min.apply(Math, numlist);
+                            }
+
+                            var newindex = index - 1;
+                            $(this).find('td').find('[name="CitywiseAdditionalServiceRates[' + newindex + '].MaxAmt"]').val(MaxValue);
+                            $(this).find('td').find('[name="CitywiseAdditionalServiceRates[' + newindex + '].MinAmt"]').val(MinValue);
+
+                            //--
+                            var wp = $(this).find('td').find('[name="CitywiseAdditionalServiceRates[' + newindex + '].WriterProfit"]').val();
+                            var value = $(this).find('td').find('[name="CitywiseAdditionalServiceRates[' + newindex + '].USDPM"]').val();
+
+                            if (value == 'P') {
+                                if (wp != '') {
+                                    var BaseVal = (flag=="Min") ? MinValue: MaxValue;
+                                    var calculated = parseFloat(BaseVal) * parseFloat(wp) / 100;
+                                    var rate = parseFloat(BaseVal) + parseFloat(calculated);
+                                    $(this).find('td').find('[name="CitywiseAdditionalServiceRates[' + newindex + '].Rate"]').val(parseFloat(rate).toFixed(3));
+                                }
+                            } else if (value == 'F') {
+                                if (wp != '') {
+                                    var BaseVal = (flag == "Min") ? MinValue : MaxValue;
+                                    var rate = parseFloat(BaseVal) + parseFloat(wp);
+                                    $(this).find('td').find('[name="CitywiseAdditionalServiceRates[' + newindex + '].Rate"]').val(parseFloat(rate).toFixed(3));
+                                }
+                            }
+                            //--
+
+                    }
+                }
+            });
+
+        }
+
+
+        $("#txtbxWriterProfit").change(function () {
+
+            if ($(this).val() != null && $(this).val() != "" && parseFloat($(this).val())) {
+
+                $('.WriterProfit').val($(this).val());
+
+                fnFindWbCost(($('.Min').is(':checked') ? "Min" : "Max"));
+
+            }
+
+        });
+
+
+
+        $("#ddlUSDPM").change(function () {
+
+            if ($(this).val() != null && $(this).val() != "") {
+
+                $('.USDPM').val($(this).val());
+                $(".USDPM option[value='" + $(this).val() + "']").attr("selected", "selected");
+                fnFindWbCost(($('.Min').is(':checked') ? "Min" : "Max"));
+
+            }
+
+        });
+
+
+        function GetCityService() {
+
+           var url="@Url.Action("ShowAgentCityAccessService", "Cost")";
+
+            if (parseInt($("#CityIDDropdown").val()) > 0 && parseInt($("#RMCDropdown").val()) > 0) {
+                $.ajax({
+                    url: url,
+                    method: 'GET',
+                    async: 'false',
+                    dataType: 'html',
+                    data: ({
+                        CityID: parseInt($("#CityIDDropdown").val()),
+                        RMCID: parseInt($("#RMCDropdown").val()),
+
+                    }),
+                    success: function (result) {
+
+                        $('#pnl-CityRates').html(result);
+                        $('.Min').attr("checked", "checked").v;
+                        $('.Max').removeAttr("checked");
+                        fnFindWbCost("Min");
+
+                        $('.Min,.Max').bind('click', function () {
+
+                            if ($(this).val() == "Min") {
+
+                                fnFindWbCost("Min");
+                            }
+                            else {
+
+                                fnFindWbCost("Max");
+                            }
+
+                        });
+
+                        $('.WriterProfit').bind('blur', function () {
+
+                            debugger;
+                            var row = $(this).closest('TR');
+                            var wp = $(this).val();
+                            var value = row.find('.USDPM').val();
+
+                            if (wp != '' && isNaN(parseFloat(wp)) == false) {
+
+                                if (value == 'P') {
+                                    
+                                        var BaseVal = $('.Min').is(':checked') ? $("TD", row).find(".MinAmt").val() : $("TD", row).find(".MaxAmt").val();
+
+                                        if (isNaN(parseFloat(BaseVal)) == false) {
+
+                                            var calculated = parseFloat(BaseVal) * parseFloat(wp) / 100;
+                                            var rate = parseFloat(BaseVal) + parseFloat(calculated);
+                                            $("TD", row).find('.Rate').val(parseFloat(rate).toFixed(3));
+                                        }
+                                        else {
+
+                                            $("TD", row).find('.Rate').val("0");
+
+                                        }
+                                    
+                                }
+                                else if (value == 'F')
+                                {  
+                                        var BaseVal = $('.Min').is(':checked') ? $("TD", row).find(".MinAmt").val() : $("TD", row).find(".MaxAmt").val();
+                                        if (isNaN(parseFloat(BaseVal)) == false) {
+                                            var rate = parseFloat(BaseVal) + parseFloat(wp);
+                                            $("TD", row).find('.Rate').val(parseFloat(rate).toFixed(3));
+                                        }
+                                        else {
+                                            $("TD", row).find('.Rate').val("0");
+                                        }
+                                }
+    
+                            }
+                        });
+
+                    },
+                    error: function (jqXHR, exception) {
+                        console.log(jqXHR);
+                        console.log(exception);
+                        toastr.error("Failed to show rates.");
+                        $('#mdlCityRate').modal('hide');
+                    }
+                });
+            }
+            else {
+                $('#pnl-CityRates').html("");
+            }
+
+
+        }
+
+        $(document).ready(function () {
+
+            if ($(".BaseCurrencyRate").val() == null || $(".BaseCurrencyRate").val() == "" || $(".BaseCurrencyRate").val()=="0") {
+
+                $(".BaseCurrencyRate").val(1);
+                $(".ConversionRate").val(1);
+            }
+
+            $('form#FilterAgent').submit(function () {
+
+                debugger;
+                var serializedForm = $(this).serialize();
+                $.ajax({
+                    url: '@Url.Action("AgentAccessService")',
+                    type: "POST",
+                    data: serializedForm,
+                    success: function (result) {
+                        if (result.Success) {
+                            toastr.success(result.Message);
+                            $('#pnl-CityRates').html("");
+                        }
+                        else {
+                            toastr.error(result.message);
+                        }
+                    },
+                    error: function (result) {
+
+                        console.log(result);
+
+                        toastr.error("Unable to save");
+
+                    }
+
+                });
+            return false;
+            });
+
+
+            $('#BtnUploadSave').on("click",function (e) {
+                
+                debugger;
+                e.preventDefault();
+
+                //if ($("#myForm").validate({
+                //    // your options,
+                //    ignore: ":hidden, #yourDiv :input"
+                //}).valid()) {
+
+                //}
+
+                var Form = $(this).closest('form');
+                var serializedForm = Form.serializeArray();
+                //var serializedForm = new FormData(Form);
+
+                $.ajax({
+                    url: '@Url.Action("CityCostUpload")',
+                    type: "POST",
+                    data: serializedForm,
+                    success: function (result) {
+                        if (result.Success) {
+                            toastr.success(result.Message);
+                            $('#CityCostHeadList').html("");
+                        }
+                        else {
+                            toastr.error(result.message);
+                        }
+                        defaultCitySelect();
+                    },
+                    error: function (result) {
+
+                        console.log(result);
+
+                        toastr.error("Unable to save");
+                        defaultCitySelect();
+                    }
+
+                });
+                return false;
+
+            });
+
+
+            $('form#CostFormat').submit(function (e) {
+
+                e.preventDefault();
+                var _this = $(this);
+                var _form = _this.closest("form");
+
+                if (_form.validate().valid()) {
+
+                    //var data = _form.serializeArray();
+                    //data.pop("file");
+                    //data.push("file", $('#file')[0].files[0]);
+
+                    var data = _form.serializeArray();
+                    //var uniquekey = {
+                    //    name: "file",
+                    //    value: $('#file')[0].files[0]
+                    //};
+                    //data.push(uniquekey);
+                    
+                    // Create FormData object  
+                    var formData = new FormData();
+
+                    // Looping over all files and add it to FormData object  
+                    for (var i = 0; i < data.length; i++) {
+                        formData.append(data[i].name.toString(), data[i].value);
+                    }
+
+                    var fileUpload = $('#file')[0].files[0];
+                    formData.append('file', fileUpload);
+                    
+
+                    $.ajax({
+                        url: _form.attr("action"),
+                        type: "POST",
+                        contentType: false, // Not to set any content header  
+                        processData: false, // Not to process data  
+                        data: formData,
+                        success: function (response, status, xhr) {
+
+                            var ct = xhr.getResponseHeader("content-type") || "";
+                            if (ct.indexOf('html') > -1) {
+                                $('#CityCostHeadList').html(response);
+
+                                $('.tdAmount').on('blur', function () {
+
+                                    debugger;
+                                    //$('.tdAmount').blur(function () {
+                                    var Amount = $(this).val();
+                                    var Conversion = $('#txtConvRate').val();
+                                    if ($.isNumeric(Amount) && $.isNumeric(Conversion)) {
+                                        var USDRate = $(this).closest('tr').find('.tdUSDRate');
+                                        USDRate.val(parseFloat(Conversion) * parseFloat(Amount));
+                                    }
+                                });
+
+                            }
+                            if (ct.indexOf('json') > -1) {
+
+                                if (response.Success) {
+                                    toastr.success(response.Message);
+                                }
+                                else {
+                                    toastr.error(response.message);
+                                }
+                            }
+
+                            defaultCitySelect();
+                        },
+                        error: function (err) {
+                            alert("something went wrong");
+                            defaultCitySelect();
+                        }
+                    });
+
+
+                    //$.ajax({
+                    //    url: _form.attr("action"),
+                    //    type: 'POST',
+                    //    data: data,
+                    //    enctype: 'multipart/form-data',
+                    //    contentType: false, 
+                    //    processData: false, 
+                    //    success: function (response, status, xhr) {
+
+                    //        var ct = xhr.getResponseHeader("content-type") || "";
+                    //        if (ct.indexOf('html') > -1) {
+                    //            $('#CityCostHeadList').html(response);
+                    //        }
+                    //        if (ct.indexOf('json') > -1) {
+
+                    //            if (response.Success) {
+                    //                toastr.success(response.Message);
+                    //            }
+                    //            else {
+                    //                toastr.error(response.message);
+                    //            }
+                    //        }
+
+                    //    },
+                    //    error: function (jqXHR, status, err) {
+                    //        toastr.error('Something went wrong');
+                    //        console.log(err);
+                    //    } 
+                    //});
+
+
+                    //$.post(_form.attr("action"), _form.serialize(), function (response, status, xhr) {
+                    //    var ct = xhr.getResponseHeader("content-type") || "";
+                    //    if (ct.indexOf('html') > -1) {
+                    //        $('#CityCostHeadList').html(response);
+                    //    }
+                    //    if (ct.indexOf('json') > -1) {
+
+                    //        if (response.Success) {
+                    //            toastr.success(response.Message);
+                    //        }
+                    //        else {
+                    //            toastr.error(response.message);
+                    //        }
+                    //    }
+                    //});
+                }
+
+
+                @*debugger;
+                var serializedForm = $(this).serialize();
+                $.ajax({
+                    url: '@Url.Action("CityCostFormat")',
+                    type: "POST",
+                    data: serializedForm,
+                    success: function (result) {
+
+
+
+                        //if (result.Success) {
+                        //    toastr.success(result.Message);
+                        //    $('#pnl-CityRates').html("");
+                        //}
+                        //else {
+                        //    toastr.error(result.message);
+                        //}
+                    },
+                    error: function (result) {
+
+                        console.log(result);
+
+                        toastr.error("Unable to save");
+
+                    }
+
+                });
+                return false;*@
+
+        });
+
+
+
+
+    });
+
+    </script>
+        }

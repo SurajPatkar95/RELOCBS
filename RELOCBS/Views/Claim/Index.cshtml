@@ -1,0 +1,332 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.Common;
+@{
+
+    ViewBag.Title = "Claim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string _PageID = "27";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+@using (Html.BeginForm(null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+{
+    @Html.AntiForgeryToken()
+    <div id="main" class="m-t-sm">
+        <div class="row no-gutters">
+            <div class="col-sm-2 col-md-2 filter-custom-margin m-r-n">
+                <span class="input-sm font-bold">
+                    @Html.CheckBox("IsJobDate", false) Job Date &nbsp;
+                </span>
+                <span class="input-sm font-bold">
+                    @Html.CheckBox("IsClaimDate", false)Claim Date
+                </span>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>From Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_FromDate">
+                        @Html.Editor("FromDate", new { htmlAttributes = new { @placeholder = "From Date", @tooltip = "From Date", @class = "form-control input-sm datetimepicker onkeydtp", title = "From Date", id = "FromDate" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>To Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.Editor("ToDate", new { htmlAttributes = new { @placeholder = "To Date", @tooltip = "To Date", @class = "form-control input-sm datetimepicker onkeydtp", title = "To Date", id = "ToDate" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Claim No</label>
+                    <div class="input-group input-group-sm">
+                        @Html.DropDownList("ClaimNo", new SelectList((System.Collections.IEnumerable)ViewData["ClaimList"], "Value", "Text", ViewData["ClaimId"]), "Select Claim No", new { @class = "form-control input-sm" })
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Job No</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.Editor("JobNo", new { htmlAttributes = new { @placeholder = "JobNo", @tooltip = "JobNo", @class = "form-control input-sm ", title = "JobNo", id = "JobNo" } })
+                    </div>
+                    @*@Html.DropDownList("JobNo", new SelectList((System.Collections.IEnumerable)ViewData["JobNoList"], "Value", "Text", ViewData["MoveId"]), "Select Job No", new { @class = "form-control input-sm" })*@
+                </div>
+            </div>
+            <div class="form-group col-md-1">
+                <div class="clearfix">
+                    <input type="submit" id="btnSearch" name="Search" class="btn btn-primary btn-sm filter-custom-margin" value="Search" />
+                </div>
+            </div>
+
+            @if(Convert.ToInt32(ViewBag.IsFinanceUser)==0)
+            { 
+                <div class="form-group col-md-1">
+                    <div class="clearfix">
+                        <a id="btnCreate" name="Create" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Create Claim" formnovalidate="formnovalidate" href="@Url.Action("Create", "Claim",new { Key = "-1"})" title="Create">Create</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+
+}
+<div id="mgrid">
+    @Html.Partial("_AjaxPartial")
+</div>
+
+@section Scripts{
+
+    <script type="text/javascript">
+
+
+    $('select').select2();
+
+    $('select#JobNo').on('change', function () {
+
+                var JobNo = $('option:selected', this).val();
+
+                if (JobNo != null && JobNo!="") {
+
+                        $.get("@Url.Action("GetaJAXQueryString", "Claim")", { JobNo: JobNo },
+                        function (data) {
+
+                            //alert(data.AccountMgr);
+                            var url = $("#btnCreate").attr('href');
+                            url = url.replace('-1', data.querystring);
+                            $("#btnCreate").attr('href',url);
+                        });
+                    }
+
+        });
+
+    $(document).ready(function () {
+
+        AutoDropFill();
+
+        $('#FromDate,#ToDate,#TentDate').on('focus', function () {
+            $(this).siblings('.input-group-addon').click();
+        });
+
+        $('.datetimepicker').datetimepicker({
+            format: "DD-MMM-YYYY",
+            widgetPositioning: {
+                horizontal: 'right',
+                vertical: 'bottom'
+            }
+        });
+
+
+        $("input:checkbox").click(function () {
+
+            if ($(this).attr("name") =="IsJobDate") {
+
+                $("#IsClaimDate").attr("checked", false);
+                //$("#IsJobDate").attr("checked", true);
+            }
+
+            if ($(this).attr("name") == "IsClaimDate") {
+
+                
+                $("#IsJobDate").attr("checked", false);
+                //$("#IsClaimDate").attr("checked", true);
+            }
+            
+        });
+
+        PagedOnCompleteBinds();
+
+        $('body').on('hidden.bs.modal', '.modal', function () {
+            $(this).removeData('bs.modal');
+        });
+
+        pageGrids.mainGrid.onRowSelect(function (e) {
+            console.log($('#pnlGridTopActions #btnEdit, #pnlGridTopActions #btnDelete').length)
+            $('#pnlGridTopActions #btnEdit, #pnlGridTopActions #btnDelete').removeAttr('disabled');
+            $('#pnlGridTopActions #btnEdit').on('click', function (ev) {
+                ev.preventDefault();
+                $('#mgrid tr.grid-row.grid-row-selected').find('.btnEdit').click();
+            });
+            $('#pnlGridTopActions #btnDelete').on('click', function (ev) {
+                ev.preventDefault();
+                $('#mgrid tr.grid-row.grid-row-selected').find('.btnDelete').click();
+            });
+        });
+
+        $('form#CustomFilter').on('submit', function (e) {
+            e.preventDefault();
+            $(this).ajaxSubmit({
+                target: '#mgrid',
+                success: function () {
+                    PagedOnCompleteBinds();
+                }
+            });
+        });
+
+        $('#Shipper').on('change', function () {
+            loadJobNo();
+        });
+
+
+        $('#btnCreate').on('click', function (e) {
+
+            debugger;
+            e.preventDefault();
+            var JobNo= $('#JobNo').val();
+            if (JobNo == null || JobNo == "") {
+
+                alert('Select Job No.');
+            }
+            else if (JobNo != null && JobNo!="") {
+                        e.preventDefault();
+                        $.get("@Url.Action("GetaJAXQueryString", "Claim")", { JobNo: JobNo },
+                        function (data) {
+                            debugger;
+                            if (data.querystring != null && data.querystring!="") {
+
+                                var url = $("#btnCreate").attr('href');
+                                url = url.replace('-1', data.querystring);
+                                window.open(url, "_blank");
+                                //$("#btnCreate").attr('href', url);
+                                //$("#btnCreate").click();
+
+                            }
+                            else {
+                                alert("Invalid Job No.");
+                            }        
+
+                            //
+                            
+                        });
+                    }
+            
+        });
+
+        //$('#btnCreate').on('click', function ()
+        //{
+        //    //var JobNo = 'JobNo=' +
+        //    //$(this).attr('href').replace('param', JobNo)
+        //})
+    });
+
+
+
+    //////Search Form Data
+
+    function PagedOnCompleteBinds() {
+            $(document).ready(function () {
+
+                $('.grid-header-title a').on('click', function (e)
+                {
+                    e.preventDefault();
+                    var sturl = "@Url.Action("Index", "Claim")" + $(this).attr('href');
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('#mgrid .pagination li a').on('click', function (e) {
+                    e.preventDefault();
+
+                    e.stopImmediatePropagation();
+                    var sturl = $('#mgrid .sorted.grid-header-title a').attr('href');
+                    if (typeof sturl != 'undefined') {
+                        var gdir = url("?grid-dir", sturl);
+                        var gcol = url("?grid-column", sturl);
+                        sturl = sturl.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0) ? 1 : 0);
+                        sturl = sturl.replace('?', '&');
+                    }
+
+                    var sturl2 = $(this).attr('href');
+                    if (sturl2 == undefined) {
+                        sturl2 = "@Url.Action("Index", "Claim")?page=" + parseInt($(this).html());
+                    }
+                    sturl = sturl2 + sturl.replace(/page=\d+/i, "");
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('form.frmRWDelete').on('submit', function (e) {
+                    e.preventDefault();
+                    $frmRWDelete = this;
+                    swal({
+                        title: "Are you sure you want to delete this record?",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Delete",
+                        cancelButtonText: "No",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                        function (isConfirm) {
+                            if (isConfirm) {
+                                $('#mgrid').mask("Loading...");
+                                $($frmRWDelete).ajaxSubmit({
+                                    success: function (data) {
+                                        if (data.Success) {
+                                            toastr.success("Claim deleted successfully.");
+                                            $('#mgrid .pagination li.active a').trigger('click');
+                                        } else if (!data.Success) {
+                                            swal({
+                                                text: "Claim Delete Failed.",
+                                                type: "error"
+                                            });
+                                        }
+                                        $('#mgrid').unmask();
+                                    },
+                                    complete: function () {
+                                        $('#mgrid').unmask();
+                                    }
+                                });
+                            } else {
+                                swal("", "Claim Delete Cancelled.", "error");
+                            }
+                        });
+                });
+                $('.lnkExportToExcel').on('click', function () {
+                    var url = '@Url.Action("ExportToExcel", "Claim", new { })';
+                    window.location.href = url;
+                });
+            });
+        }
+
+        function PagedOnComplete(obj) {
+            $('#mgrid table').unmask();
+            PagedOnCompleteBinds();
+        }
+
+
+        function AutoDropFill() {
+            var returnResult = [];
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetJobNo", "Combo")",
+                method: 'GET',
+                async: 'false',
+                dataType: 'json',
+                success: function (result) {
+                    var data = $.map(result, function (obj) {
+                        obj.value = obj.Text; // desired field
+                        obj.data = obj.Value; // desired field
+                        returnResult.push(obj);
+                        $("#JobNo").autocomplete({
+                            lookup: returnResult
+                        });
+
+                    });
+                },
+                error: function () { }
+            });
+
+        }     
+
+    </script>
+
+}

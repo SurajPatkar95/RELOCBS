@@ -1,0 +1,2296 @@
+﻿@using RELOCBS.Common
+@model RELOCBS.Entities.Enquiry
+@{
+    ViewBag.Title = "Enquiry";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    IEnumerable<RELOCBS.Entities.EnquiryDetail> EnquiryDetailList = ViewBag.EnquiryDetailList;
+    var displayDate = Model.EnqDate.HasValue ? Model.EnqDate.Value.ToString("dd-MMM-yyyy") : DateTime.Now.ToString("dd-MMM-yyyy");
+    var EnqId = Model.EnqID;
+    Model.StatusDate = (Model.StatusDate == null) ? DateTime.Now : Model.StatusDate;
+    //var EnqId = Model.EnquiryDetail.;
+    string param = "EnqID=ParamValue0";
+    int i = 1;
+    string sendmobcss = "btn btn-primary m-r-sm btn-sm pull-right hide";
+    int AccountID = Model.ClientDetails == null ? 0 : Model.ClientDetails.Client;
+}
+
+@using (Html.BeginForm("SaveFollowUpDetails", "Enquiry", FormMethod.Post, new { enctype = "multipart/form-data", id = "ModalFollowUp" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.FollowUp.FollowUpDate);
+    @Html.HiddenFor(model => model.FollowUp.FollowUpRemark);
+    @Html.HiddenFor(model => model.FollowUp.IsClose);
+    @Html.HiddenFor(model => model.FollowUp.EnqDetID);
+    @Html.HiddenFor(model => model.EnqID);
+}
+
+@using (@Html.BeginForm("Save", "Enquiry", new { GridList = "" }, FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.ValidationSummary(false, "")
+
+    <div class="modal modal-wide" id="FollowUpModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    Follow Up Details
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="FollowUp" style="height:500px;overflow:scroll;">
+                    <div class="m-t-sm pad-none">
+                        <div class="row">
+                            <div class="col-sm-4 col-md-4">
+                                <div class="form-group">
+                                    <label>Followup Date</label>
+                                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                                        @Html.Editor("dtFollowUpDate", new { htmlAttributes = new { @placeholder = "FollowUp Date", @tooltip = "FollowUp Date", @class = "form-control input-sm datetimepicker", title = "FollowUp Date", id = "dtFollowUpDate" } })
+                                        <span class="input-group-addon" style="display: none">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="col-sm-4 col-md-4">
+                                <div class="form-group">
+                                    <label>Remark</label>
+                                    @Html.TextBox("txtFollowUpRemark", null, new { @class = "form-control input-sm ", placeholder = "Remark", title = "Remark", @id = "txtFollowUpRemark" })
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12">
+                                <div class="row">
+                                    <div class="col-sm-2 col-md-2">
+                                        <input type="button" id="btnSaveFollowup" name="SaveFollowup" class="btn btn-primary m-t-sm m-r-sm btn-sm filter-custom-margin m-n"
+                                               value="Save" form="ModalFollowUp" onclick="Set_ModalFollowUp(false,this)" />
+                                    </div>
+                                    <div class="col-sm-2 col-md-2">
+                                        <input type="button" id="btnClose" name="Close" class="btnFollowUpClose btn btn-danger m-t-sm m-r-sm btn-sm filter-custom-margin m-n"
+                                               value="Close Shipment" form="ModalFollowUp" onclick="Set_ModalFollowUp(true,this)" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12">
+                                <table class="table table-bordered tblFollowUp">
+                                    <tbody>
+                                        <tr>
+
+                                            <th class="label-success p-xs">FollowUp Date</th>
+                                            <th class="label-success col-sm-5">Remarks</th>
+                                            <th class="label-success p-xs">Added By</th>
+                                            <th class="label-success p-xs">Added On</th>
+                                            <th class="label-success p-xs">Closed By</th>
+                                            <th class="label-success p-xs">Closed On</th>
+                                        </tr>
+                                        @if (Model.FollowUpList != null)
+                                        {
+                                            foreach (var item in Model.FollowUpList)
+                                            {
+                                                <tr class="m-n pad-none">
+                                                    <td class="hide TblEnqDetID">@item.EnqDetID</td>
+                                                    <td class="m-n pad-none">
+                                                        @if (item.FollowUpDate != null)
+                                                        {@(((DateTime)item.FollowUpDate).ToString("dd/MMM/yyyy"))}
+                                                    </td>
+                                                    <td class="m-n pad-none">
+                                                        @item.FollowUpRemark
+                                                    </td>
+                                                    @if (item.IsClose)
+                                                    {
+                                                        <td class="m-n pad-none"></td>
+                                                        <td class="m-n pad-none"></td>
+                                                        <td class="m-n pad-none">@item.CreatedBy</td>
+                                                        <td class="m-n pad-none">
+                                                            @if (item.CreatedDate != null)
+                                                            {@(((DateTime)item.CreatedDate).ToString("dd/MMM/yyyy"))}
+                                                        </td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td class="m-n pad-none">@item.CreatedBy</td>
+                                                        <td class="m-n pad-none">
+                                                            @if (item.CreatedDate != null)
+                                                            {@(((DateTime)item.CreatedDate).ToString("dd/MMM/yyyy"))}
+                                                        </td>
+                                                        <td class="m-n pad-none"></td>
+                                                        <td class="m-n pad-none"></td>
+                                                    }
+
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ibox-content no-border-t pad-none m-t-n">
+        <div class="form-group col-md-12 m-n">
+            <div class="clearfix text-center">
+
+                <span class="pull-left m-r-xl "><h4>Enquiry Id : @EnqId</h4></span>
+                @if (EnqId > 0)
+                {
+                    <span class="pull-left m-r-xl "><h4>Enquiry No : @Model.EnqNo</h4></span>
+                }
+
+                <span class="pull-left m-r-xl  m-l-xl">
+                    <h4>
+                        Enquiry Entered Date : @(((DateTime)Model.EnqDate).ToString("dd/MMM/yyyy"))
+                        @*@if (Model.EnqDate != null && Model.EnqDate != DateTime.MinValue)
+                            {
+                                @displayDate;
+                            }
+                            else
+                            {
+                                @Html.EditorFor(a => a.EnqDate, new { htmlAttributes = new { @placeholder = "Enq Date", @tooltip = "Enq Date", @class = "form-control input-sm datetimepicker", title = "Enq Date", id = "EnqDate" } })
+                                <span class="input-group-addon" style="display: none">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            }*@
+                    </h4>
+                </span>
+                <span class="pull-left m-r-xl m-l-xl "><h4>Enquiry Status : @Model.EnqStatus </h4></span>
+                <span class="pull-left m-r-xl m-l-xl"><h4>Status Date : @(((DateTime)Model.StatusDate).ToString("dd/MMM/yyyy") ) </h4></span>
+                @if (EnqId > 0)
+                {
+                    <span class="pull-left m-r-xl "><h4>Enquiry Entered By : @Model.Createdby</h4></span>
+                }
+                @*<input type="submit" id="btnAdd" name="Add" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Add" formnovalidate="formnovalidate" onclick="Add_click()"/>*@
+                @if (!Model.IsEnqLost)
+                {
+                    <input type="submit" id="btnSubmit" name="Add" class="btn btn-primary btn-sm pull-right" value="Save" />
+                    <a id="btnReport" class="btn btn-primary btn-sm pull-right" href="@Url.Action("GetReport","Enquiry",new {EnqID = Model.EnqID})" target="_blank">View Report</a>
+                    if (Model.EnqID > 0)
+                    {
+                        <a href="javascript:void(0);" data-id="@Model.EnqID" data-type="Enquiry" class="btn btn-primary btn-sm m-r-sm pull-right" title="DMS" onclick="OnBtnUpload(this)"><i class="glyphicon glyphicon-folder-open m-r-xs"></i>DMS</a>
+                        <a id="btnCreate" name="Create" class="btn btn-primary m-r-sm btn-sm pull-right" value="New Enquiry" formnovalidate="formnovalidate" @*onclick="SaveData();"*@ href="@Url.Action("Create", "Enquiry",new { Key = CommonService.GenerateQueryString(param, new string[] {"0"})})" title="Create">New Enquiry</a>
+                        <a id="btnSendtoMobile" name="SendtoMobile" class="@sendmobcss" formnovalidate="formnovalidate" @*onclick="SaveData();"*@ href="@Url.Action("SentToMobile", "Enquiry",new { EnqID = Model.EnqID})" title="Create">Send To Mobile</a>
+                    }
+                }
+
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="tabs-container" id="tabEnquiry">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li role="presentation" class="active" id="Main"><a href="#main" aria-controls="Main" role="tab" data-toggle="tab" aria-expanded="true"><span class="t">Main</span></a></li>
+                        <li role="presentation" id="Detail"><a href="#details" aria-controls="Details" role="tab" data-toggle="tab" aria-expanded="false"><span class="t">Details</span></a></li>
+                    </ul>
+                    @Html.HiddenFor(a => a.EnquiryListHidden)
+                    @Html.HiddenFor(a => a.EnqID)
+                    @Html.HiddenFor(a => a.EnqDate)
+                    @Html.HiddenFor(a => a.EnqStatus)
+                    @Html.HiddenFor(a => a.StatusDate)
+                    @Html.HiddenFor(a => a.RevenueBr)
+                    @Html.HiddenFor(a => a.RMCBuss)
+                    @Html.HiddenFor(a => a.CompId)
+                    @*@Html.HiddenFor(a => a.BussLineName)*@
+                    @*<input type="button" id="btnClearOriginFields" class="btn btn-default btn-sm pull-right" value="Clear Data" />*@
+
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="main">
+                            <div class="row tab-panecontainer">
+                                <fieldset class="col-md-12 border  m-n">
+                                    <legend>Details</legend>
+                                    <div class="m-t-sm  m-n pad-none">
+                                        <div class="row">
+                                            @*<div class="col-sm-2">
+                                                    <div class="form-group">
+                                                        <label>Enq Id</label>
+                                                        @Html.TextBoxFor(a => a.EnqID, new { @class = "form-control input-sm", placeholder = "EnqId", title = "EnqId", @id = "EnqId", @readonly = "readonly" })
+                                                        @Html.HiddenFor(model => model.OriginRate.CityID, new { id = "OCityID", name = "OCityID" })
+                                                        @Html.ValidationMessageFor(model => model.OriginRate.CityName, "", new { @class = "text-danger" })*
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <div class="form-group">
+                                                        <label>Enq Date</label>
+                                                        <div class="input-group input-group-sm date" id="dtp_FromDate">
+                                                            @Html.EditorFor(a => a.EnqDate, new { htmlAttributes = new { @placeholder = "Enq Date", @tooltip = "Enq Date", @class = "form-control input-sm datetimepicker", title = "Enq Date", id = "EnqDate" } })
+                                                            <span class="input-group-addon" style="display: none">
+                                                                <span class="glyphicon glyphicon-calendar"></span>
+                                                            </span>
+
+                                                        </div>
+
+                                                        @Html.ValidationMessageFor(a => a.EnqDate , "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>*@
+                                            <div class="col-sm-2 no-padding-r">
+                                                <div class="form-group">
+                                                    <label>Revenue Branch</label>
+                                                    @Html.DropDownListFor(a => a.RevenueBrId, new SelectList((System.Collections.IEnumerable)ViewData["RevenueBranchList"], "Value", "Text", ViewData["RevenueBranchList"]), "Select One", new { @class = "form-control", id = "RevenueBranch", title = "Revenue Branch" })
+                                                    @*@Html.HiddenFor(model => model.OriginRate.AirPortId, new { id = "OAirPortId", name = "OAirPortId" })*@
+                                                    @Html.ValidationMessageFor(a => a.RevenueBrId, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-1  no-padding-r">
+                                                <div class="form-group">
+                                                    <label>Move Class</label>
+                                                    @Html.DropDownListFor(a => a.MoveQuoteID, new SelectList((System.Collections.IEnumerable)ViewData["MoveQuoteList"], "Value", "Text", ViewData["MoveQuoteIDList"]), "Select One", new { @class = "form-control", id = "MoveQuoteID", title = "Move Class" })
+                                                    @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })*@
+                                                    @Html.ValidationMessageFor(model => model.MoveQuoteID, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-1  no-padding-r">
+                                                <div class="form-group">
+                                                    <label>Info Source</label>
+                                                    @Html.DropDownListFor(a => a.EnqSourceID, new SelectList((System.Collections.IEnumerable)ViewData["EnqSourceList"], "Value", "Text", ViewData["EnqSourceList"]), "Select One", new { @class = "form-control", id = "EnqSourceId", title = "Enq Source" })
+                                                    @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })*@
+                                                    @Html.ValidationMessageFor(model => model.EnqSourceID, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-1  no-padding-r">
+                                                <div class="form-group">
+                                                    <label>Controller</label>
+                                                    @Html.HiddenFor(a => a.BussinessLineID)
+                                                    @Html.TextBoxFor(a => a.BussLineName, new { @class = "form-control", title = "Bussiness Line", @readonly = "true" })
+                                                    @*@Html.DropDownListFor(a => a.BussinessLineID, new SelectList((System.Collections.IEnumerable)ViewData["BussinessLineList"], "Value", "Text", ViewData["BussinessLineList"]), "Select One", new { @class = "form-control", id = "BussinessLineID", title = "Bussiness Line" })
+                                                                                                    @Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                        @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-3 no-padding-r">
+                                                <div class="form-group">
+                                                    <label>Enq From(Name)</label>
+                                                    @Html.TextBoxFor(a => a.EnqFrom, new { @class = "form-control input-sm", placeholder = "EnqFrom", title = "EnqFrom", @id = "EnqFrom" })
+                                                    @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                        @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-2">
+                                                <div class="form-group">
+                                                    <label>Tent Move Date</label>
+                                                    @Html.EditorFor(a => a.TentativeDate, new { htmlAttributes = new { @placeholder = "Tentitive Move Date", @tooltip = "Tentitive Move Date", @class = "form-control input-sm enqtentdatetimepicker onkeydtp", title = "Tentitive Move Date", id = "EnqTentDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                    @Html.ValidationMessageFor(a => a.TentativeDate, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-2">
+                                                <div class="form-group">
+                                                    <label>Enq Received Date</label>
+                                                    @Html.EditorFor(a => a.ContactDate, new { htmlAttributes = new { @placeholder = "Contact Date", @tooltip = "Contact Date", @class = "form-control input-sm datetimepicker onkeydtp", title = "Contact Date", id = "ContactDate" } })
+                                                    <span class="input-group-addon" style="display: none">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                    @Html.ValidationMessageFor(a => a.ContactDate, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+
+
+                                            @*<div class="row">
+                                                    <div class="col-sm-2">
+                                                        <div class="form-group">
+                                                            <label>Enq Status</label>
+                                                            @Html.TextBoxFor(a => a.EnqStatus, new { @class = "form-control input-sm", placeholder = "EnqStatus", title = "EnqStatus", @id = "EnqStatus" })
+                                                            @Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                            @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-2">
+                                                        <div class="form-group">
+                                                            <label>Status Date</label>
+                                                            <div class="input-group input-group-sm date" id="dtp_FromDate">
+                                                                @Html.EditorFor(a => a.StatusDate, new { htmlAttributes = new { @placeholder = "Status Date", @tooltip = "Status Date", @class = "form-control input-sm datetimepicker", title = "Status Date", id = "StatusDate" } })
+                                                                <span class="input-group-addon" style="display: none">
+                                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                                </span>
+                                                            </div>
+                                                            @Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                            @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })
+                                                        </div>
+                                                    </div>
+                                                </div>*@
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-3 no-padding-r">
+                                                <div class="form-group">
+                                                    <label>ReloSmrt Enq No.</label>
+                                                    @Html.TextBoxFor(a => a.ReloSmrtEnqNo, new { @class = "form-control input-sm", placeholder = "ReloSmrtEnqNo", title = "ReloSmrtEnqNo", @id = "ReloSmrtEnqNo" })
+                                                    @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                        @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                @*<hr />*@
+                                <fieldset class="col-md-12 border p-2  m-n">
+                                    <legend class="w-auto">Client Details</legend>
+                                    <div class="m-t-sm  m-n pad-none">
+                                        <div class="row">
+                                            <div class="col-sm-9 form-group no-padding-r width-auto">
+                                                <label>Client</label>
+                                                @Html.DropDownListFor(a => a.AgentID, new List<SelectListItem>(), new { @class = "form-control enableselect AgentDropDown", id = "Agent", title = "Client" })
+                                                @*@Html.DropDownListFor(a => a.AgentID, new SelectList((System.Collections.IEnumerable)ViewData["ClientList"], "Value", "Text", ViewData["ClientList"]), "Select One", new { @class = "form-control enableselect", id = "Agent", title = "Client" })*@
+                                                @*@Html.HiddenFor(model => model.OriginRate.CityID, new { id = "OCityID", name = "OCityID" })*@
+                                                @Html.ValidationMessageFor(model => model.AgentID, "", new { @class = "text-danger" })
+
+                                            </div>
+                                            <div class="col-sm-2 form-group no-padding-r width-auto">
+                                                <label>GST/VAT/TIN No</label>
+                                                @Html.TextBoxFor(a => a.ClientDetails.ClientGSTNO, new { @class = "form-control input-sm", placeholder = "GST No", title = "GST No", @id = "ClientGSTNO", @readonly = true })
+                                                @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                    @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-2 form-group no-padding-r width-auto">
+                                                <label>Client Ref</label>
+                                                @Html.TextBoxFor(a => a.ClientRef, new { @class = "form-control input-sm", placeholder = "ClientRef", title = "Client Ref", @id = "ClientRef" })
+                                                @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                    @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+
+                                            </div>
+                                            <div class="col-sm-2 form-group no-padding-r width-auto">
+                                                <label>Client CP</label>
+                                                @Html.TextBoxFor(a => a.ClientCP, new { @class = "form-control input-sm", placeholder = "ClientCP", title = "Client CP", @id = "ClientCP" })
+                                                @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                    @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+                                            </div>
+                                            <div class="col-sm-2 form-group  no-padding-r width-auto">
+                                                <label>CP Email</label>
+                                                @Html.TextBoxFor(a => a.CPEmail, new { @class = "form-control input-sm", placeholder = "CPEmail", title = "CP Email", @id = "CPEmail" })
+                                                @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                    @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <fieldset class="col-md-12 border p-2 m-n">
+                                    <legend>Corporate Details</legend>
+                                    <div class="m-t-sm  m-n pad-none">
+                                        <div class="row">
+                                            <div class="col-sm-9 form-group no-padding-r width-auto">
+                                                <label>Corporate</label>
+                                                @Html.DropDownListFor(a => a.ClientDetails.Client, new List<SelectListItem>(), new { @class = "form-control enableselect AgentDropDown", id = "Account", title = "Account", autocomplete = "on" })
+                                                @*@Html.DropDownListFor(a => a.ClientDetails.Client, new SelectList((System.Collections.IEnumerable)ViewData["AccountList"], "Value", "Text", ViewData["AccountList"]), "Select One", new { @class = "form-control enableselect", id = "Account", title = "Account", autocomplete = "on" })*@
+                                                @*@Html.HiddenFor(model => model.OriginRate.CityID, new { id = "OCityID", name = "OCityID" })*@
+                                                @Html.ValidationMessageFor(model => model.ClientDetails.Client, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-sm-2 form-group no-padding-r width-auto">
+                                                <label>GST/VAT/TIN No</label>
+                                                @Html.TextBoxFor(a => a.ClientDetails.AccountGSTNO, new { @class = "form-control input-sm", placeholder = "GST No", title = "GST No", @id = "AccountGSTNO", @readonly = true })
+                                                @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                    @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+
+                                            </div>
+                                            <div class="col-sm-2 form-group no-padding-r width-auto">
+                                                <label>Account Manager</label>@*<a class="pull-right" href="javascript:void(0)" id="chg_AccMgr">Change</a>*@
+                                                @*@Html.TextBoxFor(a => a.ClientDetails.AccountMgr, new { @class = "form-control input-sm", placeholder = "AccountMgr", title = "AccountMgr", @id = "AccountMgr", @readonly = "readonly" })*@
+                                                @Html.DropDownListFor(a => a.ChangeAcctMgrID, new SelectList((System.Collections.IEnumerable)ViewData["AcctMgrList"], "Value", "Text", ViewData["AcctMgrList"]), "Select One", new { @class = "form-control enableselect", id = "chgAcctMgr", title = "AcctMgr" })
+                                                @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                    @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <fieldset class="col-md-12 border m-n">
+                                    <legend>Shipper Details</legend>
+                                    <div class="m-t-sm m-n pad-none">
+                                        <div class="row">
+                                            <div class="form-group col-sm-1 col-md-1 m-r-n no-padding-r width-auto">
+                                                <label @*style = "width:50px"*@></label>
+                                                @Html.DropDownListFor(a => a.ShipperTitle, new SelectList((System.Collections.IEnumerable)ViewData["TitleList"], "Value", "Text"), "Select One", new { @class = "form-control ", @style = "width:75%", id = "Title", title = "Title" })
+                                            </div>
+                                            <div class="form-group col-sm-3 col-md-2 no-padding-left-right width-auto">
+                                                <label>First Name</label>
+                                                @Html.TextBoxFor(a => a.ShipperFName, new { @class = "form-control input-sm ", placeholder = "First Name", title = "First Name", @id = "ShipperFName" })
+                                                @Html.ValidationMessageFor(a => a.ShipperFName, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group col-sm-3 col-md-2 no-padding-left-right width-auto">
+                                                <label>Last Name</label>
+                                                @Html.TextBoxFor(a => a.ShipperLName, new { @class = "form-control input-sm", placeholder = "Last Name", title = "Last Name", @id = "ShipperLName" })
+                                            </div>
+                                            @* dESIGNATION *@
+                                            <div class="form-group col-sm-2 col-md-2 no-padding-r width-auto">
+                                                <label>Designation</label>
+                                                @*@Html.TextBoxFor(a => a.Designation, new { @class = "form-control input-sm", placeholder = "Designation", title = "Designation", @id = "Designation" })*@
+                                                @Html.HiddenFor(a => a.Designation)
+                                                @Html.DropDownList("ddl_Designation", new SelectList((System.Collections.IEnumerable)ViewData["DesignationList"], "Value", "Text", ViewBag.Desig), "Select One", new { @class = "form-control input-sm m-n pad-none desigControl", id = "ddl_Designation", title = "Designation" })
+                                                @Html.TextBox("txt_Designation", Model.Designation, new { @class = "form-control input-sm desigControl", placeholder = "Oth Designation", title = "Oth Designation", @id = "txt_Designation" })
+                                            </div>
+
+                                            <div class="form-group col-sm-1 col-md-1 no-padding-r width-auto">
+                                                <label>Shipper Type</label>
+                                                @Html.DropDownListFor(a => a.ShipTypeID, new SelectList((System.Collections.IEnumerable)ViewData["ShipperTypeList"], "Value", "Text", ViewData["ShipperTypeList"]), "Select One", new { @class = "form-control input-sm m-n pad-none", id = "ShipperType", title = "Shipper Type" })
+                                                @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })*@
+                                                @Html.ValidationMessageFor(model => model.ShipTypeID, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group col-sm-1 col-md-1 no-padding-r width-auto">
+                                                <label>Shp Category</label>
+                                                @Html.DropDownListFor(a => a.ShipCategoryID, new SelectList((System.Collections.IEnumerable)ViewData["ShipperCategoryList"], "Value", "Text", ViewData["ShipperCategoryList"]), "Select One", new { @class = "form-control input-sm m-n pad-none", id = "ShipperCategory", title = "Shipper Category" })
+                                                @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })*@
+                                                @Html.ValidationMessageFor(model => model.ShipCategoryID, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group col-sm-2 m-r-n">
+                                                <label>Email</label>
+                                                @Html.TextBoxFor(a => a.Email, new { @class = "form-control input-sm", placeholder = "Email", title = "Email", @id = "Email" })
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="form-group col-sm-2 m-r-n">
+                                                <label>Address 1</label>
+                                                @Html.TextBoxFor(a => a.Address1, new { @class = "form-control input-sm", placeholder = "Address1", title = "Address 1", @id = "Address1" })
+                                            </div>
+                                            <div class="form-group col-sm-2 m-r-n">
+                                                <label>Address 2</label>
+                                                @Html.TextBoxFor(a => a.Address2, new { @class = "form-control input-sm", placeholder = "Address1", title = "Address 1", @id = "Address1" })
+                                            </div>
+                                            <div class="form-group col-sm-2 m-r-n">
+                                                <label>City</label>
+                                                @Html.DropDownListFor(a => a.AddressCityID, new List<SelectListItem>(), new { @class = "form-control enableselect CityDropDown", id = "City", title = "City" })
+                                            </div>
+                                            <div class="form-group col-sm-1 m-r-n">
+                                                <label>PIN Code</label>
+                                                @Html.TextBoxFor(a => a.PIN, new { @class = "form-control input-sm", placeholder = "PIN", title = "PIN", @id = "PIN" })
+                                            </div>
+                                            <div class="form-group col-sm-2 m-r-n">
+                                                <label>Nationality</label>
+
+                                                @Html.DropDownListFor(a => a.Nationality, new SelectList((System.Collections.IEnumerable)ViewData["NationalityList"], "Value", "Text", ViewData["NationalityList"]), "Select One", new { @class = "form-control input-sm m-n pad-none", id = "Nationality", title = "Nationality" })
+                                                @*@Html.TextBoxFor(a => a.Nationality, new { @class = "form-control input-sm", placeholder = "Nationality", title = "Nationality", @id = "Nationality" })*@
+                                            </div>
+                                            <div class="form-group col-sm-2 m-r-n">
+                                                <label>Phone 1</label>
+                                                @Html.TextBoxFor(a => a.Phone1, new { @class = "form-control input-sm", placeholder = "Phone1", title = "Phone 1", @id = "Phone1" })
+                                                @Html.ValidationMessageFor(a => a.Phone1, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group col-sm-2 m-r-n">
+                                                <label>Phone 2</label>
+                                                @Html.TextBoxFor(a => a.Phone2, new { @class = "form-control input-sm", placeholder = "Phone2", title = "Phone 2", @id = "Phone2" })
+                                                @Html.ValidationMessageFor(a => a.Phone2, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <fieldset class="col-md-12 border m-n">
+                                    <legend>Other Details</legend>
+                                    <div class="m-t-sm m-n pad-none">
+                                        <div class="row">
+                                            <div class="col-sm-4">
+                                                <div class="form-group">
+                                                    <label>Enq Remarks</label>
+                                                    @Html.TextBoxFor(a => a.Remarks, new { @class = "form-control input-sm", placeholder = "Enquiry Remark", title = "Enquiry Remark", @id = "Remark" })
+                                                    @*@Html.HiddenFor(model => model.OriginRate.CityID, new { id = "OCityID", name = "OCityID" })
+                                                        @Html.ValidationMessageFor(model => model.OriginRate.CityName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <div class="form-group">
+                                                    @*<label>Assign To</label>*@
+                                                    @*@Html.DropDownListFor(a => a.los, new SelectList((System.Collections.IEnumerable)ViewData["LostToList"], "Value", "Text", ViewData["LostToList"]), "Select One", new { @class = "form-control", id = "LostTo", title = "Lost To" })*@
+                                                    @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                        @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Lost Reason</label>
+                                                    @Html.DropDownListFor(a => a.LostReasonID, new SelectList((System.Collections.IEnumerable)ViewData["LostReasonList"], "Value", "Text", ViewData["LostReasonList"]), "Select One", new { @class = "form-control", id = "LostReason", title = "Lost Reason" })
+                                                    @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                        @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <div class="form-group">
+                                                    <label>Lost To</label>
+                                                    @Html.TextBoxFor(a => a.LostTo, new { @class = "form-control input-sm", placeholder = "Lost To", title = "Lost To", @id = "LostTo" })
+                                                    @*@Html.texFor(a => a.LostToCompitID, new SelectList((System.Collections.IEnumerable)ViewData["LostToList"], "Value", "Text", ViewData["LostToList"]), "Select One", new { @class = "form-control", id = "LostTo", title = "Lost To" })*@
+                                                    @*@Html.HiddenFor(model => model.OriginRate.SeaPortId, new { id = "OSeaPortId", name = "OSeaPortId" })
+                                                        @Html.ValidationMessageFor(model => model.OriginRate.SeaPortName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <div class="form-group">
+                                                    <label>Lost Remarks</label>
+                                                    @Html.TextBoxFor(a => a.LostRemarks, new { @class = "form-control input-sm", placeholder = "Lost Remark", title = "Lost Remark", @id = "LostRemark" })
+                                                    @*@Html.HiddenFor(model => model.OriginRate.CityID, new { id = "OCityID", name = "OCityID" })
+                                                        @Html.ValidationMessageFor(model => model.OriginRate.CityName, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+
+                        </div>
+
+                        <div role="tabpanel" class="tab-pane tab-panecontainer" id="details">
+                            <fieldset class="col-md-12 border m-n">
+                                <legend>Details</legend>
+                                <div class="m-t-sm m-n pad-none">
+                                    @Html.Hidden("HfProject")
+                                    <div class="row">
+                                        <div class="col-sm-2">
+                                            <div class="form-group">
+                                                <label>Handling Branch</label>
+                                                @Html.DropDownListFor(a => a.EnquiryDetail.HandlingBrId, new SelectList((System.Collections.IEnumerable)ViewData["HandlingBranchList"], "Value", "Text", ViewData["HandlingBranchList"]), "Select One", new { @class = "form-control", id = "HandlingBrId", title = "Handling Branch" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="form-group">
+                                                <label>Service Line</label>
+                                                @Html.DropDownListFor(a => a.EnquiryDetail.ServiceLineID, new SelectList((System.Collections.IEnumerable)ViewData["ServiceLineList"], "Value", "Text", ViewData["ServiceLineList"]), "Select One", new { @class = "form-control", id = "ServiceLineId", title = "Service Line", @onchange = "GetListBasedOnServiceLn($(this).val());" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="form-group">
+                                                <label>Transit Mode</label>
+                                                @Html.DropDownListFor(a => a.EnquiryDetail.Mode, new List<SelectListItem>(), "Select One", new { @class = "form-control  vol-wt", id = "Mode", title = "Transit Mode" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="form-group">
+                                                <label>Shipment Type</label>
+                                                @Html.DropDownListFor(a => a.EnquiryDetail.ShipmentTypeID, new List<SelectListItem>(), "Select One", new { @class = "form-control", id = "ShipmentTypeID", title = "Shipment Type" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="form-group">
+                                                <label>Commodity</label>
+                                                @Html.DropDownListFor(a => a.EnquiryDetail.GoodsDescId, new List<SelectListItem>(), "Select One", new { @class = "form-control", id = "Commodity", title = "Commodity" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <label>Tentative Date</label>
+                                            <div class="input-group input-group-sm date" id="dtp_ToDate">
+                                                @Html.EditorFor(a => a.EnquiryDetail.TentativeMovedate, new { htmlAttributes = new { @placeholder = "Tentative Date", @tooltip = "Tentative Date", @class = "form-control input-sm datetimepicker onkeydtp", title = "Tentative Move Date", id = "TentativeMovedate" } })
+                                                <span class="input-group-addon" style="display: none">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label>Origin</label>
+                                                @Html.DropDownListFor(a => a.EnquiryDetail.FromCity, new List<SelectListItem>(), new { @class = "form-control enableselect CityDropDown", id = "FromCity", title = "Origin" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label>Destination</label>
+                                                @Html.DropDownListFor(a => a.EnquiryDetail.ToCityID, new List<SelectListItem>(), new { @class = "form-control enableselect CityDropDown", id = "ToCityID", title = "Destination" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Shipment Remarks</label>
+                                                @Html.TextBoxFor(a => a.EnquiryDetail.Remarks, new { @class = "form-control input-sm", placeholder = "Shipment Remarks", title = "Shipment Remarks", @id = "ShipmentRemarks" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <fieldset class="col-md-12 m-n">
+                                    <legend data-toggle="collapse" data-target="#Details">
+                                        <i class="more-less glyphicon glyphicon-plus"></i>
+                                        <a href="javascript:void(0)">Sch.Survey Details</a>
+                                    </legend>
+                                    <div class="m-t-sm panel-collapse collapse" id="Details">
+                                        <div class="row">
+                                            <div class="col-sm-2">
+                                                <div class="form-group">
+                                                    <label>Sch.Surveyor Name</label>
+                                                    @Html.DropDownListFor(a => a.EnquiryDetail.SchSurveyorID, new SelectList((System.Collections.IEnumerable)ViewData["SurveyorList"], "Value", "Text", ViewData["SurveyorList"]), "Select One", new { @class = "form-control", id = "Surveyor", title = "Surveyor Name" })
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-2">
+                                                <div class="form-group">
+                                                    <label>Sch.Survey Date</label>
+                                                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                                                        @Html.EditorFor(a => a.EnquiryDetail.SchSurveyDate, new { htmlAttributes = new { @placeholder = "Survey Date", @tooltip = "Survey Date", @class = "form-control input-sm datetimepicker1 onkeydtp", title = "Survey Date", id = "SchSurveyDate" } })
+                                                        <span class="input-group-addon" style="display: none">
+                                                            <span class="glyphicon glyphicon-calendar"></span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label>Sch Surveyor Remarks</label>
+                                                    @Html.TextBoxFor(a => a.EnquiryDetail.SchSurveyorRemark, new { @class = "form-control input-sm", placeholder = "Sch Surveyor Remarks", title = "Sch Surveyor Remarks", @id = "SchSurveyorRemarks" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <fieldset class="col-md-12 m-n">
+                                    <legend data-toggle="collapse" data-target="#EDetails">
+                                        <i class="more-less glyphicon glyphicon-plus"></i>
+                                        <a href="javascript:void(0)">Entitlement Details</a>
+                                    </legend>
+                                    <div class="m-t-sm panel-collapse collapse" id="EDetails">
+                                        <div class="row">
+                                            <div class="col-sm-2">
+                                                <div class="form-group">
+                                                    <label>Density Factor</label>
+                                                    @Html.TextBoxFor(a => a.EnquiryDetail.DensiyFactor, new { @class = "form-control input-sm vol-wt", placeholder = "Density Factor", title = "Density Factor", @id = "DensityFact", onkeypress = "return OnlyDouble(this, event);" })
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <div class="form-group">
+                                                    <label>Loose/Cased</label>
+                                                    @Html.DropDownListFor(a => a.EnquiryDetail.LooseCased, new List<SelectListItem>(), new { @class = "form-control", id = "LOOSEDCASED", title = "LOOSEDCASED" })
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <div class="form-group">
+                                                    <label>LCL/FCL</label>
+                                                    @Html.DropDownListFor(a => a.EnquiryDetail.LCLFCL, new List<SelectListItem>(), new { @class = "form-control vol-wt", id = "LCLFCL", title = "LCLFCL" })
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-2">
+                                                <div class="form-group">
+                                                    <label>ContainerType</label>
+                                                    @Html.DropDownListFor(a => a.EnquiryDetail.ContainerTypeID, new SelectList((System.Collections.IEnumerable)ViewData["ContainerList"], "Value", "Text", ViewData["ContainerList"]), "Select One", new { @class = "form-control", id = "ContainerTypeID", title = "ContainerTypeID" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-1">
+                                                <div class="form-group">
+                                                    <label>Vol Unit</label>
+                                                    @Html.DropDownListFor(a => a.EnquiryDetail.VolumeUnitID, new SelectList((System.Collections.IEnumerable)ViewData["VolumeUnitList"], "Value", "Text", ViewData["VolumeUnitList"]), new { @class = "form-control", id = "VolumeUnitId", title = "Volume Unit" })
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-2 form-group width-auto">
+                                                @*<div class="form-group">*@
+                                                <label>To Be Packed</label>
+                                                @Html.TextBoxFor(a => a.EnquiryDetail.VolumeToPack, new { @class = "form-control input-sm vol-wt", placeholder = "To Pack", title = "To Pack", @id = "VolumeToPack" })
+                                                @*</div>*@
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <div class="form-group">
+                                                    <label>Net</label>
+                                                    @Html.TextBoxFor(a => a.EnquiryDetail.VolumeNet, new { @class = "form-control input-sm vol-wt", placeholder = "Net", title = "Net", @id = "VolumeNet" })
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <div class="form-group">
+                                                    <label>Gross</label>
+                                                    @Html.TextBoxFor(a => a.EnquiryDetail.VolumeGross, new { @class = "form-control input-sm vol-wt", placeholder = "Gross", title = "Gross", @id = "VolumeGross" })
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1 vdivide">
+                                                <div class="form-group">
+                                                    <hr />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-1">
+                                                <div class="form-group">
+                                                    <label>Wt Unit</label>
+                                                    @Html.DropDownListFor(a => a.EnquiryDetail.WtUnitid, new SelectList((System.Collections.IEnumerable)ViewData["WeightUnitList"], "Value", "Text", ViewData["VolumeUnitList"]), new { @class = "form-control", id = "WtUnitid", title = "Weight Unit" })
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <div class="form-group">
+                                                    <label>Net</label>
+                                                    @Html.TextBoxFor(a => a.EnquiryDetail.WtNet, new { @class = "form-control input-sm vol-wt", placeholder = "Net", title = "Net", @id = "WtNet" })
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <div class="form-group">
+                                                    <label>Gross</label>
+                                                    @Html.TextBoxFor(a => a.EnquiryDetail.WtGross, new { @class = "form-control input-sm vol-wt", placeholder = "Gross", title = "Gross", @id = "WtGross" })
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <div class="form-group">
+                                                    <label>ACWT</label>
+                                                    @Html.TextBoxFor(a => a.EnquiryDetail.WtACWT, new { @class = "form-control input-sm vol-wt", placeholder = "ACWT", title = "ACWT", @id = "WtACWT" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <div class="form-group col-md-12">
+                                    <div class="clearfix text-center">
+                                        <input type="button" id="btnAdd" name="Add" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Add Shipment" formnovalidate="formnovalidate" />
+
+                                        <input type="button" id="btnClear" name="Clear" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Cancel" formnovalidate="formnovalidate" />
+                                        @*@Html.ActionLink("Add", "AddGrid", Model.ClientDetails)*@
+                                    </div>
+                                </div>
+
+                            </fieldset>
+                            <div id="divCostHead">
+                                @try
+                                {
+
+                                    <div class="row">
+                                        <div class="col-sm-12 m-b-lg">
+                                            <div class="ibox float-e-margins">
+                                                <div class="table-responsive" id="pnl-rates" style="height: 340px">
+
+                                                    <table class="Gridbody table table-striped border" id="CostHeadtable">
+                                                        <thead class="ibox-title">
+                                                            <tr>
+                                                                <th class="tdNone">Shipment No</th>
+                                                                <th>Handling Br</th>
+                                                                <th>Service Ln</th>
+                                                                <th>Mode</th>
+                                                                <th>Ship.Type</th>
+                                                                <th>Commodity</th>
+                                                                <th>Origin</th>
+                                                                <th>Destination</th>
+                                                                <th class="hidden">Surveyor</th>
+                                                                <th class="hidden">Surveyor Date</th>
+                                                                <th class="hidden">Container Type</th>
+                                                                <th class="hidden">Density Fact</th>
+                                                                <th class="hidden">Loosed/Cased</th>
+                                                                <th class="hidden">LCL/FCL</th>
+                                                                <th class="hidden">Volume Unit</th>
+                                                                <th class="hidden">VolumeToPack</th>
+                                                                <th class="hidden">VolumeNet</th>
+                                                                <th class="hidden">VolumeGross</th>
+                                                                <th class="hidden">Wt Unit</th>
+                                                                <th class="hidden">WtACWT</th>
+                                                                <th class="hidden">WtNet</th>
+                                                                <th class="hidden">WtGross</th>
+                                                                @*<th>Container Type</th>*@
+                                                                <th class="col-sm-3">Shipment Remarks</th>
+                                                                <th class="col-sm-1">Shp. Status</th>
+                                                                <th class="hidden">SchSurveyor Remarks</th>
+                                                                <th></th>
+                                                                <th></th>
+                                                                <th></th>
+                                                                <th></th>
+                                                                <th></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+
+                                                            @foreach (RELOCBS.Entities.EnquiryDetail row in EnquiryDetailList)
+                                                            {
+                                                                if (row.ShowSendToMobile)
+                                                                {
+                                                                    sendmobcss = "btn btn-primary m-r-sm btn-sm pull-right";
+                                                                }
+                                                            <tr>
+                                                                <td class="tdNone">
+                                                                    <input type="hidden" class="TblEnquiryId" name="HFVEnqID" id="HFVWtEnqID" value="@row.EnqID" />
+                                                                    <input type="hidden" class="TblHFVEnqDetailID" name="HFVEnqDetailID" id="HFVEnqDetailID" value="@row.EnqDetailID" />
+                                                                    <input type="hidden" class="TblHFVHandlingBr" name="HFVHandlingBr" id="HFVHandlingBrID" value="@row.HandlingBrId" />
+                                                                    <input type="hidden" class="TblHFVSRVLN" name="TblHFVSRVLN" id="TblHFVSRVLNID" value="@row.ServiceLineID" />
+                                                                    <input type="hidden" class="TblHFVMode" name="HFVMode" id="HFVModeID" value="@row.Mode" />
+                                                                    <input type="hidden" class="TblHFVShipmentType" name="HFVShipmentTypeID" id="HFVShipmentTypeID" value="@row.ShipmentTypeID" />
+                                                                    <input type="hidden" class="TblHFVCommodity" name="HFVCommodity" id="HFVCommodityID" value="@row.GoodsDescId" />
+                                                                    <input type="hidden" class="TblHFVFromCity" name="HFVFromCity" id="HFVFromCity" value="@row.FromCity" />
+                                                                    <input type="hidden" class="TblHFVToCity" name="HFVToCity" id="HFVToCityID" value="@row.ToCityID" />
+                                                                    <input type="hidden" class="TblHFVSurveyor" name="HFVSurveyor" id="HFVSurveyorID" value="@row.SchSurveyorID" />
+                                                                    <input type="hidden" class="TblHFVContainerType" name="HFVContainerType" id="HFVContainerTypeID" value="@row.ContainerTypeID" />
+                                                                    <input type="hidden" class="TblHFVVolumeUnit" name="HFVVolumeUnit" id="HFVVolumeUnitId" value="@row.VolumeUnitID" />
+                                                                    <input type="hidden" class="TblHFVWtUnit" name="HFVWtUnit" id="HFVWtUnitid" value="@row.WtUnitid" />
+                                                                    @row.EnqSequenceID
+                                                                </td>
+
+                                                                <td class="HandlingBr col-sm-1">
+
+                                                                    @row.HandlingBr
+                                                                </td>
+                                                                <td class="ServiceLine">
+                                                                    @row.ServiceLine
+                                                                </td>
+                                                                <td class="TMode">
+                                                                    @row.TMode
+                                                                </td>
+                                                                <td class="ShipmentType">
+                                                                    @row.ShipmentType
+                                                                </td>
+                                                                <td class="GoodsDesc">
+                                                                    @row.GoodsDesc
+                                                                </td>
+                                                                <td class="FCity">
+                                                                    @row.FCity
+                                                                </td>
+                                                                <td class="ToCity">
+                                                                    @row.ToCity
+                                                                </td>
+                                                                <td class="SchSurveyor hidden">
+                                                                    @row.SchSurveyor
+                                                                </td>
+                                                                <td class="SchSurveyDate hidden">
+                                                                    @row.SchSurveyDate
+                                                                </td>
+                                                                <td class="ContainerType hidden">
+                                                                    @row.ContainerType
+                                                                </td>
+
+
+                                                                <td class="DensityFact hidden">
+                                                                    @row.DensiyFactor
+                                                                </td>
+                                                                <td class="LOOSEDCASED hidden">
+                                                                    @row.LooseCased
+                                                                </td>
+                                                                <td class="LCLFCL hidden">
+                                                                    @row.LCLFCL
+                                                                </td>
+                                                                <td class="VolumeUnit hidden">
+                                                                    @row.VolumeUnit
+                                                                </td>
+                                                                <td class="VolumeToPack hidden">
+                                                                    @row.VolumeToPack
+                                                                </td>
+                                                                <td class="VolumeNet hidden">
+                                                                    @row.VolumeNet
+                                                                </td>
+                                                                <td class="VolumeGross hidden">
+                                                                    @row.VolumeGross
+                                                                </td>
+                                                                <td class="WtUnit hidden">
+                                                                    @row.WtUnit
+                                                                </td>
+                                                                <td class="WtACWT hidden">
+                                                                    @row.WtACWT
+                                                                </td>
+                                                                <td class="WtNet hidden">
+                                                                    @row.WtNet
+                                                                </td>
+                                                                <td class="WtGross hidden">
+                                                                    @row.WtGross
+                                                                </td>
+                                                                <td class="TentativeMovedate hidden">
+                                                                    @row.TentativeMovedate
+                                                                </td>
+                                                                <td class="ShipmentRemarks col-sm-3">
+                                                                    @row.Remarks
+                                                                </td>
+                                                                <td class="SchSurveyorRemarks hidden">
+                                                                    @row.SchSurveyorRemark
+                                                                </td>
+                                                                <td class="ShpStatus">
+                                                                    @row.ShpStatus
+                                                                </td>
+                                                                @*<td><input type="button" value="Remove" class="btnDelete btn btn-xs btn-danger fa fa-trash-o marl-5 pull-left" onclick="Remove(this)" /></td>*@
+                                                                @if (row.AllowEdit)
+                                                                {
+                                                                    <td><button type="button" value="Edit" class="btnEdit btn btn-sm btn-primary pull-left" onclick="Edit(this)"><i class="glyphicon glyphicon-pencil"></i></button></td>
+                                                                }
+
+                                                                @if (row.IsShowSurvey)
+                                                                {
+                                                                    <td><input type="button" value="Survey" class="btnSurvey btn btn-sm btn-info pull-left" onclick="Survey(this)" /></td>
+                                                                }
+
+                                                                @if (row.ShowSendToMobile)
+                                                                {
+                                                                    <td><a id="btnSendtoMobile" name="SendtoMobile" class="btn btn-primary m-r-sm btn-sm pull-right" formnovalidate="formnovalidate" href="@Url.Action("SentToMobile", "Enquiry", new { EnqID = row.EnqID, EnqDetailID = row.EnqDetailID })" title="Create">Send To Mobile</a></td>
+                                                                }
+                                                                <td><input type="button" value="Billing_Collection" class="btnBNC btn btn-sm btn-info pull-left" onclick="Bill_Coll(this)" /></td>
+                                                                <td>
+                                                                    @if (@row.EnqDetailID > 0)
+                                                                    {
+                                                                        <a id="btndmsUpload" href="javascript:void(0);" data-id="@row.EnqDetailID" data-type="EnqDetail" class="btndmsUpload btn btn-sm btn-info pull-left" title="DMS" onclick="OnBtnUpload(this)"><i class="glyphicon glyphicon-folder-open m-r-xs"></i><span>DMS</span></a>
+                                                                    }
+                                                                </td>
+                                                                
+                                                                    <td>
+                                                                        <a id="FollowUpDetails" class="btn btn-xs btn-default m-r-sm pull-right" data-cache="false" title="FollowUp Details"
+                                                                           data-toggle="modal" data-target="#FollowUpModal" onclick="FollowUp(this);">FollowUp Details</a>
+                                                                    </td>
+                                                                
+                                                            </tr>
+                                                                i++;
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    //if (Model.CostHeadList.Count > 0)
+                                    //{
+                                    //}
+                                }
+                                catch { }
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+    <style>
+        #FollowUpModal .modal-dialog {
+            width: 70%;
+        }
+
+        .Gridbody {
+            height: 250px;
+            display: block;
+            overflow-x: auto;
+        }
+
+            .Gridbody tbody {
+                overflow-y: auto;
+                height: 200px;
+            }
+
+        hr {
+            border: none;
+            border-left: 1px solid hsla(200, 10%, 50%,100);
+            min-height: 50px;
+            width: 1px;
+        }
+
+        .col-sm-1.vdivide {
+            width: 1px;
+        }
+
+        .tdHide {
+            display: none;
+        }
+
+        .bg {
+            border-left: 5px solid red;
+        }
+
+
+        /*.enableselect .select2-search {
+                                                                                                            display: block;
+                                                                                                        }
+                                                                                                        .disableselect .select2-search {
+                                                                                                            display: none;
+                                                                                                        }*/
+    </style>
+    <div class="ibox m-t-sm">
+
+
+
+    </div>
+}
+
+<!--DMS Model-->
+<div id="mdlDMS" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts
+{
+    <script type="text/javascript">
+        //if (!$('#Agent').val()) {
+        //    $('#Agent').select2();
+        //}
+        //else {
+        //    $("#Agent").select2({
+        //        minimumResultsForSearch: Infinity
+        //    });
+        //    $("#Agent").attr('disabled', 'disabled');
+        //}
+        var rowIndex = 0;
+        var count = '@i';
+        //if ($('#chgAcctMgr').val()) {
+        //        $('#chgAcctMgr').show();
+        //        $('#chg_AccMgr').hide();
+        //        $('#AccountMgr').hide();
+        //}
+        //else {
+        //    $('#chgAcctMgr').hide();
+        //        $('#chg_AccMgr').show();
+        //}
+        function toggleIcon(e) {
+                $(e.target).closest('fieldset').toggleClass('border');
+                $(e.target)
+                    .prev('legend')
+                    .find(".more-less")
+                    .toggleClass('glyphicon-plus glyphicon-minus');
+        }
+        $('#Details, #EDetails').on('hidden.bs.collapse', toggleIcon);
+        $('#Details, #EDetails').on('shown.bs.collapse', toggleIcon);
+        $(document).ready(function () {
+            //debugger;
+            AjaxFillDropDown('.CityDropDown', "@Url.Action("GetCityList", "Enquiry")");
+            AjaxFillDropDown('#Agent', "@Url.Action("GetAgentList", "Enquiry" ,new { AgentType = "CL" })");
+            AjaxFillDropDown('#Account', "@Url.Action("GetAgentList", "Enquiry", new { AgentType = "C" })");
+            AjaxFillDropDown('#City', "@Url.Action("GetCityList", "Enquiry")", '@Model.AddressCityID');
+            agenturl = '@Url.Action("GetAgentList", "Enquiry",new { AgentType= "CL" })';
+            AjaxFillDropDown('#Agent', agenturl, '@Model.AgentID');
+            agenturl = '@Url.Action("GetAgentList", "Enquiry",new { AgentType= "C" })';
+            AjaxFillDropDown('#Account', agenturl, '@AccountID');
+            $("form").validate().settings.ignore = ":hidden";
+            if (!($("#EnquiryListHidden").val())) {
+                SetHFValue();
+            }
+            $('#SchSurveyDate, #ContactDate').on('focus', function() {
+                    $(this).siblings('.input-group-addon').click();
+            });
+            $('#EnqTentDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+            $('#TentativeMovedate').on('focus', function() {
+                if (!$("#TentativeMovedate").val()) {
+                        $("#TentativeMovedate").val($('#EnqTentDate').val());
+                }
+
+            });
+
+            $('.datetimepicker1').datetimepicker({
+            format: 'DD-MMM-YYYY HH:mm',
+                    widgetPositioning:
+                {
+                horizontal: 'right',
+                        vertical: 'bottom'
+                    }
+            });
+
+            $('.datetimepicker').datetimepicker({
+            format: "DD-MMM-YYYY",
+                    widgetPositioning:
+                {
+                horizontal: 'right',
+                        vertical: 'bottom'
+                    }
+            });
+            //$('.enqtentdatetimepicker').datetimepicker('setStartDate', $('#EnqTentDate').val());
+            $('.enqtentdatetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                //setStartDate: new Date($('#EnqTentDate').val()),
+
+                widgetPositioning:
+                {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+
+            });
+            //$('#chg_AccMgr').click(function() {
+            //    if ($('#chg_AccMgr').text() == 'Change') {
+            //            $('#AccountMgr').hide();
+            //            $('#chgAcctMgr').show();
+            //            $('#chg_AccMgr').text('Revert');
+            //    }
+            //        else {
+            //            $('#AccountMgr').show();
+            //            $('#chgAcctMgr').hide();
+            //            $('#chg_AccMgr').text('Change');
+            //            $('#chgAcctMgr').val(null);
+            //    }
+            //});
+
+            $('#WtUnitid, #VolumeUnitId').change(function() {
+            var unit = $('option:selected', this).text();
+            var unitfrom, control, value;
+            if ($(this).attr('id') == 'VolumeUnitId') {
+                unitfrom = unit == 'CBM' ? 'CFT' : 'CBM';
+                //alert(unit + '-' + unitfrom);
+                control = $('#VolumeToPack');
+                value = parseFloat(control.val());
+                control.val(parseFloat(Unit(value, null, unitfrom, unit) || 0).toFixed(2));
+                control = $('#VolumeNet');
+                value = parseFloat(control.val());
+                control.val(parseFloat(Unit(value, null, unitfrom, unit) || 0).toFixed(2));
+                control = $('#VolumeGross');
+                value = parseFloat(control.val());
+                control.val(parseFloat(Unit(value, null, unitfrom, unit) || 0).toFixed(2));
+            }
+                else {
+                unitfrom = unit == 'KG' ? 'LBS' : 'KG';
+                control = $('#WtACWT');
+                control.val(parseFloat(Unit(parseFloat(control.val()), null, unitfrom, unit) || 0).toFixed(2));
+                control = $('#WtNet');
+                control.val(parseFloat(Unit(parseFloat(control.val()), null, unitfrom, unit) || 0).toFixed(2));
+                control = $('#WtGross');
+                control.val(parseFloat(Unit(parseFloat(control.val()), null, unitfrom, unit) || 0).toFixed(2));
+            }
+        });
+            $('.vol-wt').focus(function() {
+                    $(this).select();
+        });
+            $('.vol-wt').change(function()
+            {
+                var id = $(this).attr('id');
+                var ControlID = $(this).attr('id');
+                //alert('a');
+                // debugger;
+                var value = $(this).val();
+                var dens_fact = $('#DensityFact').val() ? $('#DensityFact').val() : 0;
+                var ship_type = $("#Mode :selected").text();
+                var UnitType = $("#WtUnitid :selected").text();
+                var VolUnitType = $("#VolUnitid :selected").text();
+                var LOOSEDCASED = $("#LOOSEDCASED :selected").val();
+                var LCLFCL = $("#LCLFCL").val();
+                var control, actcontrol = 0;
+                if (id == "DensityFact" || id == "LCLFCL" || id == "LOOSEDCASED") {
+                    actcontrol = 1;
+                }
+                if (id == 'Mode' || id == 'DensityFact')
+                {
+                    //if (id == 'Mode')
+                    //{
+                    //    var a = value == 1 ? 'Loose' : 'Cased';
+                    //        $("#LOOSEDCASED").val(a).attr("selected", "selected");
+                    //}
+                    $('.vol-wt').each(function() {
+                        if (this.id != 'Mode' && this.id != 'DensityFact' && this.value)
+                        {
+                            value = this.value;
+                            id = this.id;
+                            return false;
+                        }
+                    });
+                }
+
+                if (ControlID != 'Mode')
+                {
+                    switch (id) {
+                        case 'VolumeToPack':
+                            control = 'VOL_TO_PACK';
+                            break;
+                        case 'VolumeNet':
+                            control = 'VOL_NET';
+                            break;
+                        case 'VolumeGross':
+                            control = 'VOL_GROSS';
+                            break;
+                        case 'WtACWT':
+                            control = 'WT_ACWT';
+                            break;
+                        case 'WtNet':
+                            control = 'WT_NET';
+                            break;
+                        case 'WtGross':
+                            control = 'WT_GROSS';
+                            break;
+                    }
+
+                    //var LoosedCased = $("#LOOSEDCASED :selected").val();
+
+                    var result = WtVol_Calculation(control, value, dens_fact, ship_type, UnitType,VolUnitType, LCLFCL, LOOSEDCASED, actcontrol);
+                    //console.log(result);
+                    $('#VolumeToPack').val(parseFloat(result.topack || 0).toFixed(2));
+                    $('#VolumeNet').val(parseFloat(result.volnet || 0).toFixed(2));
+                    $('#VolumeGross').val(parseFloat(result.volgross || 0).toFixed(2));
+                    $('#WtACWT').val(parseFloat(result.acwt || 0).toFixed(2));
+                    $('#WtNet').val(parseFloat(result.wtnet || 0).toFixed(2));
+                    $('#WtGross').val(parseFloat(result.wtgross || 0).toFixed(2));
+
+                    if (result.errmsg) {
+                        $('#DensityFact').focus();
+                    }
+                }
+        });
+
+$('#Account').on('change',function ()
+        {
+
+            var client = parseInt($(this).val());
+            $("#AccountMgr").val(null);
+            if (!isNaN(client)) {
+                $.get("@Url.Action("GetaJAXClientDetails", "Enquiry")", { ClientId: client, Mode: 'C' }, function (data) {
+                    //alert(data.AccountMgr);
+                    if (data.result) {
+                        if (data.result.AccountMgr) {
+                            $("#chgAcctMgr").val(data.result.AccountMgr).change();
+                        }
+                        $("#AccountGSTNO").val(data.result.AccountGSTNO);
+                    }
+                });
+            }
+        });
+
+
+            $('#Agent').on('change',function () {
+                var client = parseInt($(this).val());
+
+                if (!isNaN(client)) {
+                    $.get("@Url.Action("GetaJAXClientDetails", "Enquiry")", { ClientId: client, Mode: 'A' },
+                function (data)
+                {
+
+                    if (data.result)
+                    {
+
+                        $("#BussinessLineID").val(data.result.BussLnID);
+                        $("#BussLineName").val(data.result.BussLnName);
+                        $("#ClientCP").val(data.result.ContactPerson);
+                        $("#ClientGSTNO").val(data.result.ClientGSTNO);
+                        if (data.result.BussLnName == "LOCAL") {
+                            $('#Account').val(client).attr('selected', 'selected').trigger('change');
+                        }
+                    }
+                });
+                }
+
+            });
+            @*$('#Account').on('change',function ()
+        {
+
+            var client = parseInt($(this).val());
+            $("#AccountMgr").val(null);
+            if (!isNaN(client)) {
+                $.get("@Url.Action("GetaJAXClientDetails", "Enquiry")", { ClientId: client, Mode: 'C' }, function (data) {
+                    //alert(data.AccountMgr);
+                    if (data.result) {
+                        if (data.result.AccountMgr) {
+                            $("#chgAcctMgr").val(data.result.AccountMgr).change();
+                        }
+                        $("#AccountGSTNO").val(data.result.AccountGSTNO);
+                    }
+                });
+            }
+        });
+
+
+            $('#Agent').on('change',function () {
+                var client = parseInt($(this).val());
+                if (!isNaN(client)) {
+                    $.get("@Url.Action("GetaJAXClientDetails", "Enquiry")", { ClientId: client, Mode: 'A' },
+                function (data)
+                {
+                    if (data.result)
+                    {
+                        $("#BussinessLineID").val(data.result.BussLnID);
+                        $("#BussLineName").val(data.result.BussLnName);
+                        $("#ClientCP").val(data.result.ContactPerson);
+                        $("#ClientGSTNO").val(data.result.ClientGSTNO);
+                        if (data.result.BussLnName == "LOCAL") {
+                            $('#Account').val(client).attr('selected', 'selected').trigger('change');
+                        }
+                    }
+                });
+                }
+
+            });*@
+
+            $('ul.nav li').click(function (e) {
+                var Tab = $(this).find('span.t').text();
+                $('#Tab').val(Tab);
+            });
+	    ////Nikhils Changes
+            ////Mode change adn LCLFCL Change
+            $('#Mode').on('change',function () {
+
+                debugger;
+                var mode = $('#Mode').val();
+                var route = '@Url.Action("GetListBasedOnMode", new { Mode = "-1" })';
+                route = route.replace("-1", $(this).val());
+                $.ajax({
+                    type: "GET",
+                    url: route,
+                    async: false,
+                    success: function (data) {
+                        if (data.LoosedCasedList.length > 0) {
+                            $('#LOOSEDCASED').find('option').remove();
+                            $('#LCLFCL').find('option').remove();
+                            if (!data.IsStorage)
+                                $('#LOOSEDCASED').append($('<option></option>').val("0").html("Select One"));
+                            else
+                                $('#LOOSEDCASED').change();
+                            $.each(data.LoosedCasedList, function (i) {
+                                $('#LOOSEDCASED').append($('<option></option>').val(data.LoosedCasedList[i].Value).html(data.LoosedCasedList[i].Text));
+                            });
+                        }
+                        else {
+                            $('#LOOSEDCASED').find('option').remove();
+                            $('#LCLFCL').find('option').remove();
+                        }
+                    },
+                });
+            });
+            $('#LOOSEDCASED').on('change',function () {
+                //debugger;
+                var mode = $('#Mode').val();
+                var looseCased = $('#LOOSEDCASED').val();
+                if (looseCased != "0") {
+                    var route = '@Url.Action("GetListBasedOnLoosedCased", new { LOOSEDCASED = "-1", Mode = "-2" })';
+                    route = route.replace("-1", looseCased);
+                route = route.replace("-2", mode);
+                route = route.replace(/&amp;/g, '&');
+                $.ajax({
+                    type: "GET",
+                    url: route,
+                    async: false,
+                    success: function (data) {
+                        if (data.LCLFCLList.length > 0) {
+                            $('#LCLFCL').find('option').remove();
+                            if (!data.IsStorage)
+                                $('#LCLFCL').append($('<option></option>').val("0").html("Select One"));
+                            $.each(data.LCLFCLList, function (i) {
+                                $('#LCLFCL').append($('<option></option>').val(data.LCLFCLList[i].Value).html(data.LCLFCLList[i].Text));
+                            });
+                        }
+                        else {
+                            $('#LOOSEDCASED').find('option').remove();
+                            $('#LCLFCL').find('option').remove();
+                        }
+                    },
+                })
+                }
+
+            });
+	    ////Nikhils Changes ends
+            
+        });
+
+        //To hide/show and active/inactive tab
+        function SetTab() {
+            if (Tab == 'Details')
+            {
+                    $('ul.nav li').removeClass('active');
+                    $('#Detail').addClass('active');
+                    $('ul.nav li').find('a').attr("aria-expanded", "false");
+                    $('#Detail').find('a').attr("aria-expanded", "true");
+            }
+        }
+
+        /////Cost head table Add/Remove from list
+        function getAllData() {
+                                                                                                        var data = [];
+                                                                                                            $('#CostHeadtable tbody tr').each(function() {
+
+                                                                                                            var EnquiryDetailId = $(this).find('.TblHFVEnqDetailID').val();
+                                                                                                            var EnqID = $(this).find('.TblEnquiryId').val();
+                                                                                                            var HandlingBrId = $(this).find('.TblHFVHandlingBr').val();
+                                                                                                            var HandlingBrName = $(this).find('td.HandlingBr').html();
+                                                                                                            var ServiceLineID = $(this).find('.TblHFVSRVLN').val();
+                                                                                                            var ServiceLineName = $(this).find('td.ServiceLine').html();//$("TD", this).eq(2).html();
+                                                                                                            var Mode = $(this).find('.TblHFVMode').val();
+                                                                                                            var TMode = $("TD", this).eq(3).html();
+                                                                                                            var GoodsDescId = $(this).find('.TblHFVCommodity').val();
+                                                                                                            var GoodsDesc = $(this).find('td.GoodsDesc').html();
+                                                                                                            var ShipmentTypeID = $(this).find('.TblHFVShipmentType').val();
+                                                                                                            var ShipmentType = $(this).find('td.ShipmentType').html();
+                                                                                                                var FromCity = JSON.parse($(this).find('.TblHFVFromCity').val()) ? $(this).find('.TblHFVFromCity').val() : 0;
+
+                                                                                                            var FCity = $(this).find('td.FCity').html();
+                                                                                                            var ToCityID = JSON.parse($(this).find('.TblHFVToCity').val()) ? $(this).find('.TblHFVToCity').val() : 0;
+                                                                                                                var ToCity = $(this).find('td.ToCity').html();
+
+                                                                                                                var SurveyorId = 0;
+                                                                                                                if ($(this).find('td .TblHFVSurveyor').val()) {
+                                                                                                                    SurveyorId = $(this).find('td .TblHFVSurveyor').val() == undefined || !(JSON.parse($(this).find('td .TblHFVSurveyor').val())) ? 0 : $(this).find('.TblHFVSurveyor').val();
+                                                                                                                }
+
+                                                                                                            var Surveyor = $(this).find('td.SchSurveyor').html();
+                                                                                                            var SurveyorDate = $(this).find('.SchSurveyDate').html() == undefined ? null : $(this).find('.SchSurveyDate').html().trim();
+                                                                                                            var ContainerTypeID = $(this).find('.TblHFVContainerType').val();
+                                                                                                            var ContainerType = $("TD", this).eq(11).html();
+                                                                                                            var VolumeUnitID = $(this).find('.TblHFVVolumeUnit').val();
+                                                                                                            var VolumeUnit = $("TD", this).eq(15).html();
+                                                                                                            var WtUnitid = $(this).find('.TblHFVWtUnit').val();
+                                                                                                            var WtUnit = $("TD", this).eq(19).html();
+                                                                                                            var DensityFact = $(this).find('.DensityFact').html();
+                                                                                                            var VolumeToPack = $(this).find('.VolumeToPack').html();
+                                                                                                            var VolumeNet = $(this).find('.VolumeNet').html();
+                                                                                                            var VolumeGross = $(this).find('.VolumeGross').html();
+                                                                                                            var WtNet = $(this).find('.WtNet').html();
+                                                                                                            var WtGross = $(this).find('.WtGross').html();
+                                                                                                            var WtACWT = $(this).find('.WtACWT').html();
+                                                                                                            var LOOSEDCASED = $(this).find('.LOOSEDCASED').html();
+                                                                                                            var LCLorFCL = $(this).find('.LCLFCL').html();
+                                                                                                            var Remarks = $(this).find('.Remarks').html();
+                                                                                                            var TentativeDate = $(this).find('.TentativeMovedate').html() == undefined ? null : $(this).find('.TentativeMovedate').html().trim();
+                                                                                                            var SchSurveyorRemarks = $(this).find('.SchSurveyorRemarks').html();
+                                                                                                            var ShipmentRemarks = $(this).find('.ShipmentRemarks').html();
+                                                                                                                var alldata = {
+                                                                                                                    'EnqDetailID': parseInt(EnquiryDetailId),
+                                                                                                                    'EnqID': parseInt(EnqID),
+                                                                                                                    'HandlingBrId': parseInt(HandlingBrId),
+                                                                                                                    'HandlingBr': HandlingBrName == undefined ? null : HandlingBrName,
+                                                                                                                    'ServiceLineID': parseInt(ServiceLineID),
+                                                                                                                    'ServiceLine': ServiceLineName == undefined ? null : ServiceLineName.trim(),
+                                                                                                                    'FromCity': parseInt(FromCity),
+                                                                                                                    'FCity': FCity == undefined ? null : FCity.trim(),
+                                                                                                                    'ToCityID': parseInt(ToCityID),
+                                                                                                                    'ToCity': ToCity == undefined ? null : ToCity.trim(),
+                                                                                                                    'Mode' : TMode.trim(),
+                                                                                                                    'ModeID': parseInt(Mode),
+                                                                                                                    'ShipmentTypeID': parseInt(ShipmentTypeID),
+                                                                                                                    'ShipmentType': ShipmentType == undefined ? null : ShipmentType.trim(),
+                                                                                                                    'GoodsDescId': parseInt(GoodsDescId),
+                                                                                                                    'GoodsDesc': GoodsDesc == undefined ? null : GoodsDesc.trim(),
+                                                                                                                    'WtUnitid': parseInt(WtUnitid),
+                                                                                                                    'WtNet': parseFloat(WtNet),
+                                                                                                                    'WtGross': parseFloat(WtGross),
+                                                                                                                    'WtACWT': parseFloat(WtACWT),
+                                                                                                                    'VolumeUnitID': parseInt(VolumeUnitID),
+                                                                                                                    'VolumeToPack': parseFloat(VolumeToPack),
+                                                                                                                    'VolumeNet': parseFloat(VolumeNet),
+                                                                                                                    'VolumeGross': parseFloat(VolumeGross),
+                                                                                                                    'LooseCased': LOOSEDCASED,
+                                                                                                                    'DensityFact': parseFloat(DensityFact),
+                                                                                                                    'LCLorFCL': LCLorFCL,
+                                                                                                                    'ContainerTypeID': ContainerTypeID,
+                                                                                                                    'Remarks': ShipmentRemarks,
+                                                                                                                    'TentativeMovedate': TentativeDate.format('DD-MMM-YYYY').toString(),//moment().format('DD-MMM-YYYY'),
+                                                                                                                    'SchSurveyorID': SurveyorId,
+                                                                                                                    'SchSurveyDate': SurveyorDate ? SurveyorDate.format('DD-MMM-YYYY HH:ss').toString():null,
+                                                                                                                    'SchSurveyorRemarks': SchSurveyorRemarks,
+                                                                                                                    'IsActive':true
+                                                                                                                }
+                                                                                                        data.push(alldata);
+                                                                                                        //console.log(data);
+                                                                                                    });
+
+                                                                                                            return data.length > 0 ? { 'EnqDetail' : data } : '';
+}
+
+        $("body").on("click", "#btnClear", function () {
+            Clear();
+        });
+        $("body").on("click", "#btnAdd", function ()
+        {
+            var EnquiryId = @EnqId;//$("#@EnqId").val();
+            var EnquiryDetailId = null;
+            var table = $("#CostHeadtable")[0];
+            if ($('#btnAdd').text() != 'Add Shipment') {
+                EnquiryDetailId = $('tr', table).eq(rowIndex).find('.TblHFVEnqDetailID').val();
+            }
+            //alert(EnquiryDetailId);
+            var HandlingBrDropdown = $("#HandlingBrId");
+            var HandlingBrDropdownSelected = HandlingBrDropdown.val();
+            var HandlingBrDropdownText = HandlingBrDropdownSelected ?$("#HandlingBrId :selected").text():"";
+            var SRVLnDropdown = $("#ServiceLineId");
+            var SRVLnDropdownSelected = SRVLnDropdown.val();
+            var SRVLnDropdownText = SRVLnDropdownSelected ? $("#ServiceLineId :selected").text() : "";
+            var ModeDropdown = $("#Mode");
+            var ModeDropdownSelected = ModeDropdown.val();
+            var ModeDropdownText = ModeDropdownSelected ? $("#Mode :selected").text():"";
+
+            var CommodityDropdown = $("#Commodity");
+            var CommodityDropdownSelected = CommodityDropdown.val();
+            var CommodityDropdownText = CommodityDropdownSelected ? $("#Commodity :selected").text() : "";
+
+            var SurveyorDropdown = $("#Surveyor");
+            var SurveyorDropdownSelected = SurveyorDropdown.val();
+            var SurveyorDropdownText = SurveyorDropdownSelected ? $("#Surveyor :selected").text() : "";
+
+            var FromCityDropdown = $("#FromCity");
+            var FromCityDropdownSelected = FromCityDropdown.val();
+            var FromCityDropdownText = FromCityDropdownSelected ?$("#FromCity :selected").text():"";
+
+            var ToCityDropdown = $("#ToCityID");
+            var ToCityDropdownSelected = ToCityDropdown.val();
+            var ToCityDropdownText = ToCityDropdownSelected ?$("#ToCityID :selected").text():"";
+
+            var SchSurveyDateTxt = $("#SchSurveyDate").val();
+
+            var ContainerTypeDropdown = $("#ContainerTypeID");
+            var ContainerTypeDropdownSelected = ContainerTypeDropdown.val();
+            var ContainerTypeDropdownText = (ContainerTypeDropdownSelected) ?$("#ContainerTypeID :selected").text() : "";
+
+            var VolumeUnitDropdown = $("#VolumeUnitId");
+            var VolumeUnitDropdownSelected = VolumeUnitDropdown.val();
+            var VolumeUnitDropdownText = (VolumeUnitDropdownSelected) ? $("#VolumeUnitId :selected").text():"";
+
+            var WtUnitDropdown = $("#WtUnitid");
+            var WtUnitDropdownSelected = WtUnitDropdown.val();
+            var WtUnitDropdownText = WtUnitDropdownSelected ? $("#WtUnitid :selected").text():"";
+
+            var ShipTypeDropdown = $("#ShipmentTypeID");
+            var ShipTypeDropdownSelected = ShipTypeDropdown.val();
+            var ShipTypeDropdownText = (ShipTypeDropdownSelected) ? $("#ShipmentTypeID :selected").text() : "";
+
+            var txtDensityFact = $("#DensityFact");
+            var DensityFact = txtDensityFact.val();
+
+            var txtShipmentRemarks = $("#ShipmentRemarks");
+            var ShipmentRemarks = txtShipmentRemarks.val();
+
+            var txtSchSurveyorRemarks = $("#SchSurveyorRemarks");
+            var SchSurveyorRemarks = txtSchSurveyorRemarks.val();
+
+
+            var txtLOOSEDCASED = $("#LOOSEDCASED");
+            var LOOSEDCASED = txtLOOSEDCASED.val();
+
+            var txtLCLFCL = $("#LCLFCL");
+            var LCLFCL = txtLCLFCL.val();
+
+            var txtVolumeToPack = $("#VolumeToPack");
+            var VolumeToPack = txtVolumeToPack.val();
+
+            var txtVolumeNet = $("#VolumeNet");
+            var VolumeNet = txtVolumeNet.val();
+
+            var txtVolumeGross = $("#VolumeGross");
+            var VolumeGross = txtVolumeGross.val();
+
+            var txtWtACWT = $("#WtACWT");
+            var WtACWT = txtWtACWT.val();
+
+            var txtWtNet = $("#WtNet");
+            var WtNet = txtWtNet.val();
+
+            var txtWtGross = $("#WtGross");
+            var WtGross = txtWtGross.val();
+
+            var txtTentativeMovedate = $("#TentativeMovedate");
+            var TentativeMovedate = txtTentativeMovedate.val();
+            var CityValidate = /*$('#HfProject').val() == 'IMP' || */(FromCityDropdownSelected > 0);
+
+            var isValid = true;
+            if (SurveyorDropdownSelected > 0 && !(SchSurveyDateTxt)) {
+                isValid = false;
+            }
+
+            if (HandlingBrDropdownSelected > 0 && SRVLnDropdownSelected > 0 &&
+                ModeDropdownSelected > 0 && ToCityDropdownSelected > 0 &&
+                CityValidate &&
+                ShipTypeDropdownSelected > 0 && TentativeMovedate && isValid)
+            {
+
+
+                var tBody = $("#CostHeadtable > TBODY")[0];
+
+                var rowCount = $('#CostHeadtable > TBODY > tr').length;
+                //debugger;
+                var tdHFVRateComp = '<input type="hidden" class="TblHFVHandlingBr" name="HFVHandlingBr" id="HFVHandlingBrID_' + (rowCount + 1) + '" value="' + HandlingBrDropdownSelected + '" />'
+
+                    + '<input type="hidden" class="TblHFVSRVLN" name="TblHFVSRVLN" id="TblHFVSRVLNID_' + (rowCount + 1) + '" value="' + SRVLnDropdownSelected + '" />'
+
+                    + '<input type="hidden" class="TblHFVMode" name="HFVMode" id="HFVModeID_' + (rowCount + 1) + '" value="' + ModeDropdownSelected + '" />'
+
+                    + '<input type="hidden" class="TblHFVShipmentType" name="HFVShipmentTypeID" id="HFVShipmentTypeID' + (rowCount + 1) + '" value="' + ShipTypeDropdownSelected + '" />'
+
+                    + '<input type="hidden" class="TblHFVCommodity" name="HFVCommodity" id="HFVCommodityID_' + (rowCount + 1) + '" value="' + CommodityDropdownSelected + '" />'
+
+                    + '<input type="hidden" class="TblHFVSurveyor" name="HFVSurveyor" id="HFVSurveyorID_' + (rowCount + 1) + '" value="' + SurveyorDropdownSelected + '" />'
+
+                    + '<input type="hidden" class="TblHFVFromCity" name="HFVFromCity" id="HFVFromCity_' + (rowCount + 1) + '" value="' + FromCityDropdownSelected + '" />'
+
+                    + '<input type="hidden" class="TblHFVToCity" name="HFVToCity" id="HFVToCityID_' + (rowCount + 1) + '" value="' + ToCityDropdownSelected + '" />'
+
+                    + '<input type="hidden" class="TblHFVContainerType" name="HFVContainerType" id="HFVContainerTypeID_' + (rowCount + 1) + '" value="' + ContainerTypeDropdownSelected + '" />'
+
+                    + '<input type="hidden" class="TblHFVVolumeUnit" name="HFVVolumeUnit" id="HFVVolumeUnitId_' + (rowCount + 1) + '" value="' + VolumeUnitDropdownSelected + '" />'
+
+                    + '<input type="hidden" class="TblHFVWtUnit" name="HFVWtUnit" id="HFVWtUnitid_' + (rowCount + 1) + '" value="' + WtUnitDropdownSelected + '" />'
+
+                    + '<input type="hidden" class="TblEnquiryId" name="HFVEnquiryId" id="HFVEnquiryId_' + (rowCount + 1) + '" value="' + EnquiryId + '" />'
+
+                    + '<input type="hidden" class="TblHFVEnqDetailID" name="HFVEnquiryDetailId" id="HFVEnquiryDetailId_' + (rowCount + 1) + '" value="' + EnquiryDetailId + '" />'
+                    ;
+                //+  count.padStart(3, '0');
+                var row;
+                var Survey;
+                var bnc; var mobile;
+                tdHFVRateComp += EnquiryDetailId == undefined ? "" : rowCount;
+                //Add Row.
+                debugger;
+                if (rowIndex != 0)
+                {
+
+                    Survey = $('tr', table).eq(rowIndex).find("input[value='Survey']").val();
+                    bnc = $('tr', table).eq(rowIndex).find("input[value='Billing_Collection']").val();
+                    mobile = $('tr', table).eq(rowIndex).find("#btnSendtoMobile").html();
+                    dms = $('tr', table).eq(rowIndex).find("#btndmsUpload");
+                    table.deleteRow(rowIndex);
+                    row = tBody.insertRow(rowIndex - 1);
+
+
+                }
+                else
+                {
+                    row = tBody.insertRow(-1);
+                }
+
+                //Add RateCompID cell.
+                var cell = $(row.insertCell(-1));
+                cell.html(tdHFVRateComp);
+                cell.addClass("tdNone");
+
+                cell = $(row.insertCell(-1));
+                cell.html(HandlingBrDropdownText);
+                cell.addClass("HandlingBr");
+
+                cell = $(row.insertCell(-1));
+                cell.html(SRVLnDropdownText);
+                cell.addClass("ServiceLine");
+
+                cell = $(row.insertCell(-1));
+                cell.html(ModeDropdownText);
+                cell.addClass("Mode");
+
+                cell = $(row.insertCell(-1));
+                cell.html(ShipTypeDropdownText);
+                cell.addClass("ShipmentType");
+
+                cell = $(row.insertCell(-1));
+                cell.html(CommodityDropdownText);
+                cell.addClass("GoodsDesc");
+
+                cell = $(row.insertCell(-1));
+                cell.html(FromCityDropdownText)
+                cell.addClass("FCity");
+
+                cell = $(row.insertCell(-1));
+                cell.html(ToCityDropdownText);
+                cell.addClass("ToCity");
+
+                cell = $(row.insertCell(-1));
+                cell.html(SurveyorDropdownText);
+                cell.addClass("hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(SchSurveyDateTxt);
+                cell.addClass("SchSurveyDate hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(ContainerTypeDropdownText);
+                cell.addClass("hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(DensityFact);
+                cell.addClass("DensityFact hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(LOOSEDCASED);
+                cell.addClass("LOOSEDCASED hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(LCLFCL);
+                cell.addClass("LCLFCL hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(VolumeUnitDropdownText);
+                cell.addClass("hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(VolumeToPack);
+                cell.addClass("VolumeToPack hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(VolumeNet);
+                cell.addClass("VolumeNet hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(VolumeGross);
+                cell.addClass("VolumeGross hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(WtUnitDropdownText);
+                cell.addClass("hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(WtACWT);
+                cell.addClass("WtACWT hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(WtNet);
+                cell.addClass("WtNet hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(WtGross);
+                cell.addClass("WtGross hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(ShipmentRemarks);
+                cell.addClass("ShipmentRemarks col-sm-3");
+
+                cell = $(row.insertCell(-1));
+                cell.html(SchSurveyorRemarks);
+                cell.addClass("SchSurveyorRemarks hidden");
+
+                cell = $(row.insertCell(-1));
+                cell.html(TentativeMovedate);
+                cell.addClass("TentativeMovedate hidden");
+                //Add Button cell.
+                //cell = $(row.insertCell(-1));
+                //var btnRemove = $("<input />");
+                //btnRemove.attr("type", "button");
+                //btnRemove.attr("onclick", "Remove(this);");
+                //btnRemove.attr("class", "btnDelete btn btn-xs btn-danger fa fa-trash-o marl-5 pull-left");
+                //btnRemove.val("Remove");
+                //cell.append(btnRemove);
+                cell = $(row.insertCell(-1));
+                var btnEdit = $("<button><i class=\"glyphicon glyphicon-pencil\"></i></button>");
+                btnEdit.attr("type", "button");
+                btnEdit.attr("onclick", "Edit(this);");
+                btnEdit.attr("class", "btnEdit btn btn-sm btn-primary pull-left");
+                //btnEdit.val("Edit");
+                cell.append(btnEdit);
+                var btnSurvey = $("<input />");
+                btnSurvey.attr("type", "button");
+                btnSurvey.attr("onclick", "Survey(this);");
+                btnSurvey.attr("class", "btnSurvey btn btn-sm btn-info pull-left");
+                btnSurvey.val("Survey");
+                if (rowIndex != 0 && Survey == 'Survey')
+                {
+                    cell = $(row.insertCell(-1));
+                    cell.append(btnSurvey);
+                }
+
+                mobileurl = "@Url.Action("SentToMobile", "Enquiry", new { EnqID = "-1", EnqDetailID = "-2" })";
+                mobileurl = mobileurl.replace('-1', EnquiryId);
+                mobileurl = mobileurl.replace('-2', EnquiryDetailId);
+                mobileurl = mobileurl.replace(/&amp;/g, "&");
+                var btnmob = $("<a>Send To Mobile</a>");
+                btnmob.attr("href", mobileurl);
+                btnmob.attr("formnovalidate", "formnovalidate");
+                btnmob.attr("class", "btn btn-primary btn-sm pull-right");
+                btnmob.attr("id", "btnSendtoMobile");
+                if (rowIndex != 0 && mobile == 'Send To Mobile') {
+
+                    cell = $(row.insertCell(-1));
+                    cell.append(btnmob);
+                }
+
+
+                var btnbnc = $("<input />");
+                btnbnc.attr("type", "button");
+                btnbnc.attr("onclick", "Bill_Coll(this);");
+
+                btnbnc.attr("class", "btnBNC btn btn-sm btn-info pull-left");
+                btnbnc.val("Billing_Collection");
+                if (rowIndex != 0 && bnc == 'Billing_Collection')
+                {
+                    cell = $(row.insertCell(-1));
+                    cell.append(btnbnc);
+                }
+
+                @*dmsurl = "@Url.Action("Create", "DMS", new {  id = "-1", Type = "EnqDetail" })";
+                dmsurl = dmsurl.replace('-1', EnquiryDetailId);
+                //dmsurl = mobileurl.replace('-2', EnquiryDetailId);
+                dmsurl = dmsurl.replace(/&amp;/g, "&");
+                var btndms = $("<a><i class=\"glyphicon glyphicon-folder-open m-r-xs\"></i><span>DMS</span></a>");
+                btndms.attr("href", dmsurl);
+                btndms.attr("data-toggle", "modal");
+                btndms.attr("data-target", "#mdlDMS");
+                btndms.attr("data-cache", false);
+                btndms.attr("class", "btn btn-sm btn-info pull-left");
+                btndms.attr("id", "btndmsUpload");*@
+
+                if (rowIndex != 0 && dms !=null) {
+
+                    cell = $(row.insertCell(-1));
+                    cell.append(dms);
+                }
+                else {
+                    var space = "&nbsp;&nbsp;";
+                    cell = $(row.insertCell(-1));
+                    cell.append(space);
+                }
+
+                //Clear the TextBoxes.
+                Clear();
+                SetHFValue();
+                $('#btnAdd').val('Add Shipment');
+            }
+            else
+            {
+                if (!isValid) {
+                    alert('Sch. Survey Date is required');
+                    return false;
+                }
+                else {
+                    alert('Details are required');
+                    return false;
+                }
+            }
+        });
+
+        function Remove(button)
+        {
+            //Determine the reference of the Row using the Button.
+            var row = $(button).closest("TR");
+            var name = $("TD", row).eq(1).html();
+            if (confirm("Do you want to delete: " + name))
+            {
+                //Get the reference of the Table.
+                var table = $("#CostHeadtable")[0];
+
+                //Delete the Table row using it's Index.
+                table.deleteRow(row[0].rowIndex);
+                SetHFValue();
+            }
+        };
+
+        function AjaxSingleFillDropDown(control, url, value)
+        {
+            //debugger;
+
+
+
+  //          $.get(url, { Value: value }, function (data) {
+		//	//alert(data.AccountMgr);
+		//	debugger;
+		//	if (data.CountryList) {
+
+  //              // Create a DOM Option and pre-select by default
+  //              var newOption = new Option(data.CountryList[0].text, data.CountryList[0].id, true, true);
+  //              // Append it to the select
+  //              $(control).append(newOption).trigger('change');
+
+  //              $(control).trigger({
+  //                  type: 'select2:select',
+  //                  params: {
+  //                      data: data.CountryList[0]
+  //                  }
+  //              });
+		//		//$(control).select2('data', { id: data.CountryList[0].Value, text: data.CountryList[0].Text });
+  //              //$(control).append('<option value="' + data.CountryList[0].Value + '">' + data.CountryList[0].Text + '</option>');
+
+
+
+		//		//$(control).select2('val', data.CountryList[0].Value, true);
+
+		//		//$(control).val(data.CountryList.id).trigger('change');
+		//		//$(control)
+		//	}
+		//});
+        }
+
+        function Edit(button)
+        {
+
+            //Determine the reference of the Row using the Button..\
+            var row = $(button).closest("TR");
+            $('#EnqId').val(row.find('.TblHFVEnqID').val());
+            $('#EnqDetailID').val(row.find('.TblHFVEnqDetailID').val());
+            $('#HandlingBrId').val(row.find('.TblHFVHandlingBr').val()).attr("selected", "selected");
+            $("#ServiceLineId").val(row.find('.TblHFVSRVLN').val()).attr("selected", "selected");
+            GetListBasedOnServiceLn(row.find('.TblHFVSRVLN').val());
+            $("#Mode").val(row.find('.TblHFVMode').val()).attr("selected", "selected");
+            $("#Mode").trigger('change');
+	    ////Nikhils Changes
+
+            let loosedCased = row.find('.LOOSEDCASED').html().trim();
+            $("#LOOSEDCASED").val(loosedCased == '' ? '0' : loosedCased).attr("selected", "selected");
+	    ////Nikhils Changes ends
+            $('#LOOSEDCASED').trigger('change');
+            $("#LCLFCL").val(row.find('.LCLFCL').html().trim());
+            $("#Commodity").val(row.find('.TblHFVCommodity').val()).attr("selected", "selected");
+            $("#Surveyor").val(row.find('.TblHFVSurveyor').val()).attr("selected", "selected");
+            $("#SchSurveyDate").val(row.find('.SchSurveyDate').html().trim().split(/:/, 2).join(",").replace(',', ':'));
+            //$("#FromCity").select2("trigger", "select", {
+            //    data: { id: "5" }
+            //});
+            AjaxFillDropDown('#FromCity', "@Url.Action("GetCityList", "Enquiry")", row.find('.TblHFVFromCity').val());
+            @*AjaxFillDropDown('#FromCity', "@Url.Action("GetCityList", "Enquiry")", row.find('.FromCityText').val());*@
+            //$("#FromCity").val(row.find('.TblHFVFromCity').val()).trigger('change');//attr("selected", "selected");
+            AjaxFillDropDown('#ToCityID', "@Url.Action("GetCityList", "Enquiry")", row.find('.TblHFVToCity').val());
+            //$("#ToCityID").val(row.find('.TblHFVToCity').val()).trigger('change');//.attr("selected", "selected");
+            $("#ContainerTypeID").val(row.find('.TblHFVContainerType').val()).attr("selected", "selected");
+            $("#VolumeUnitId").val(row.find('.TblHFVVolumeUnit').val()).attr("selected", "selected");
+            $("#WtUnitid").val(row.find('.TblHFVWtUnit').val()).attr("selected", "selected");
+            $("#ShipmentTypeID").val(row.find('.TblHFVShipmentType').val()).attr("selected", "selected");
+            $("#DensityFact").val(row.find('.DensityFact').html().trim());
+            $("#ShipmentRemarks").val(row.find('.ShipmentRemarks').html().trim());
+            $("#VolumeNet").val(row.find('.VolumeNet').html().trim());
+            $("#VolumeGross").val(row.find('.VolumeGross').html().trim());
+            $("#VolumeToPack").val(row.find('.VolumeToPack').html().trim());
+            $("#WtNet").val(row.find('.WtNet').html().trim());
+            $("#WtGross").val(row.find('.WtGross').html().trim());
+            $("#WtACWT").val(row.find('.WtACWT').html().trim());
+
+
+            $("#SchSurveyorRemarks").val(row.find('.SchSurveyorRemarks').html().trim());
+            $("#TentativeMovedate").val(row.find('.TentativeMovedate').html().trim().split(/\s(.+)/)[0]);
+
+            //row.css('background-color', 'red');
+            //alert(row.find('.SchSurveyorRemarks').html().trim());
+            row.closest('table').find('tr').each(function () { $(this).removeClass('bg') });
+            row.addClass('bg');
+            rowIndex = row[0].rowIndex;
+            $('#btnAdd').val('Update Shipment');
+            $('#btnSubmit').attr("disabled", "disabled");
+        };
+
+        function Clear() {
+            var HandlingBrDropdown = $("#HandlingBrId");
+            HandlingBrDropdown.val('').attr("selected", "selected");
+
+            var SRVLnDropdown = $("#ServiceLineId");
+            SRVLnDropdown.val('').attr("selected", "selected");
+
+            var ModeDropdown = $("#Mode");
+            ModeDropdown.val('').attr("selected", "selected");
+
+            var CommodityDropdown = $("#Commodity");
+            CommodityDropdown.val('').attr("selected", "selected");
+
+            var FromCityDropdown = $("#FromCity");
+            FromCityDropdown.val('').trigger('change');//.attr("selected", "selected");
+
+            var ToCityDropdown = $("#ToCityID");
+            ToCityDropdown.val('').trigger('change');//attr("selected", "selected");
+
+            /*var SurveyorDropdown = $("#SurveyorId");
+            SurveyorDropdown.val(0).attr("selected", "selected");*/
+
+            var ContainerTypeDropdown = $("#ContainerTypeID");
+            ContainerTypeDropdown.val('').attr("selected", "selected");
+
+            var VolumeUnitDropdown = $("#VolumeUnitId");
+            VolumeUnitDropdown.val('3').attr("selected", "selected") ;
+
+            var WtUnitDropdown = $("#WtUnitid");
+            WtUnitDropdown.val('1').attr("selected", "selected");
+
+            var ShipTypeDropdown = $("#ShipmentTypeID");
+            ShipTypeDropdown.val('').attr("selected", "selected");
+
+            var txtDensityFact = $("#DensityFact");
+            txtDensityFact.val('').attr("selected", "selected");
+
+            var txtShipmentRemarks = $("#ShipmentRemarks");
+            txtShipmentRemarks.val('').attr("selected", "selected");
+
+            var txtLOOSEDCASED = $("#LOOSEDCASED");
+            txtLOOSEDCASED.val('Loose').attr("selected", "selected");
+
+            var txtLCLFCL = $("#LCLFCL");
+            txtLCLFCL.val('LCL').attr("selected", "selected");
+
+            var txtVolumeToPack = $("#VolumeToPack");
+            txtVolumeToPack.val('');
+
+            var txtVolumeNet = $("#VolumeNet");
+            txtVolumeNet.val('');
+
+            var txtVolumeGross = $("#VolumeGross");
+            txtVolumeGross.val('');
+
+            var txtWtACWT = $("#WtACWT");
+            txtWtACWT.val('');
+
+            var txtWtNet = $("#WtNet");
+            txtWtNet.val('');
+
+            var txtWtGross = $("#WtGross");
+            txtWtGross.val('');
+
+            $('#SchSurveyorRemarks').val('');
+            $('#TentativeMovedate').val('');
+            $('#CostHeadtable tbody tr').each(function () { $(this).removeClass('bg') });
+            rowIndex = 0;
+            $('#btnAdd').val('Add Shipment');
+            $('#btnSubmit').removeAttr("disabled");
+        }
+
+        function nth(d) {
+            if (d > 3 && d < 21) return 'th'; // thanks kennebec
+            switch (d % 10) {
+                case 1: return "st";
+                case 2: return "nd";
+                case 3: return "rd";
+                default: return "th";
+            }
+        }
+
+        function Bill_Coll(button)
+        {
+            var row = $(button).closest("TR");
+            var EnquiryDetailId = row.find('.TblHFVEnqDetailID').val();
+            var url = '@Url.Action("Create", "Billing_Collection", new { Enquirydetid = "__id__" })';
+                window.location.href = url.replace('__id__', EnquiryDetailId);
+        }
+
+
+        function Survey(button) {
+            //debugger;
+            var row = $(button).closest("TR");
+            var EnquiryDetailId = row.find('.TblHFVEnqDetailID').val();
+
+            var rowstr = "";
+            //console.log($('#CostHeadtable tbody tr'));
+            $('#CostHeadtable tbody tr').each(function () {
+                var EnqDetId = $(this).find('.TblHFVEnqDetailID').val();
+                //console.log($(this).find('.TblHFVEnqDetailID').val());
+                if (EnqDetId == undefined) {
+                    rowstr = nth($(this).index() + 1)+',';
+                }
+            });
+            if (rowstr != null && rowstr!="") {
+                if (confirm(rowstr.trimRight(',') + " details are not save. \n Do you want to save the details?")) {
+                    javascript: document.forms[0].submit();
+                }
+            }
+            else {
+
+                /////Commneted due not able to redirect from the url
+
+@*$.ajax({
+contentType: "application/json; charset=utf-8",
+url: "@Url.Action("Survey", "Enquiry")",
+method: 'POST',
+async: 'false',
+dataType: 'json',
+data: JSON.stringify({ EnquiryDetailId: EnquiryDetailId }),
+success: function (result) {
+window.location.href = result.redirectUrl;
+}
+});*@
+
+                var url = '@Url.Action("Create", "Survey", new { EnqDetailID = "__id__" })';
+                window.location.href = url.replace('__id__', EnquiryDetailId);
+
+
+            }
+        }
+
+
+        $('#RevenueBranch').on('change', function ()
+        {
+
+            var RevBrDropdownText = $("#RevenueBranch :selected").text() ;
+            $('#RevenueBr').val(RevBrDropdownText);
+        });
+
+        function SetHFValue()
+        {
+        var str = getAllData();
+        if (str)
+        $("#EnquiryListHidden").val(JSON.stringify(str));
+        else
+        $("#EnquiryListHidden").val(null);
+        }
+
+
+
+                                                                                                @*$('#btnReport').on('click', function () {
+                                                        var getUrl = window.location;
+                                                        var URL = @Url.Action("~/Reports/ReportViewer.aspx")
+                                                        window.open(getUrl.origin+'/'+'Reports/ReportViewer.aspx', '_blank');
+                                                    });*@
+
+        function GetListBasedOnServiceLn(ServiceLineID)
+        {
+            var route = '@Url.Action("GetaJAXListBasedOnServiceLine", new { ServiceLine = "-1" })';
+            route = route.replace("-1", ServiceLineID);
+            $.ajax({
+                type: "GET",
+                url: route,
+                async: false,
+                success: function (data) {
+                    if (data.ModeList.length > 0) {
+                        $('#Mode').find('option').remove();
+                        $('#Mode').append($('<option></option>').val("0").html("Select One"));
+                        $.each(data.ModeList, function (i) {
+                            $('#Mode').append($('<option></option>').val(data.ModeList[i].Value).html(data.ModeList[i].Text));
+                        });
+                    }
+                    if (data.ShipmentTypeList.length > 0) {
+                        $('#ShipmentTypeID').find('option').remove();
+                        $('#ShipmentTypeID').append($('<option></option>').val("0").html("Select One"));
+                        $.each(data.ShipmentTypeList, function (i) {
+                            $('#ShipmentTypeID').append($('<option></option>').val(data.ShipmentTypeList[i].Value).html(data.ShipmentTypeList[i].Text));
+                        });
+                    }
+                    if (data.CommodityList.length > 0) {
+                        $('#Commodity').find('option').remove();
+                        $('#Commodity').append($('<option></option>').val("0").html("Select One"));
+                        $.each(data.CommodityList, function (i) {
+                            $('#Commodity').append($('<option></option>').val(data.CommodityList[i].Value).html(data.CommodityList[i].Text));
+                        });
+                    }
+                    $('#HfProject').val(data.Project);
+                },
+            });
+        }
+
+
+        $(document).ready(function () {
+
+            $("#mdlDMS").on('show.bs.modal', function () {
+                //debugger;
+                //$('.enableselect').select2();
+            });
+            //debugger;
+            $('#ddl_Designation').trigger('change');
+        });
+
+        $('#ddl_Designation').on('change', function () {
+            //debugger;
+            var desigControl = $(this).val();
+            if (desigControl == "Others") {
+                $('#txt_Designation').removeClass('hide');
+            }
+            else {
+                $('#txt_Designation').addClass('hide');
+                $('#txt_Designation').val('');
+            }
+        });
+        $('.desigControl').on('blur', function ()
+        {
+            var desigControl = $(this).val();
+            //var desigControlID = $(this).attr();
+            $('#Designation').val(desigControl);
+        });
+
+        var TeamDetailPostBackURL = '@Url.Action("Create", "DMS")';
+
+        function OnBtnUpload(sender) {
+
+            var $buttonClicked = $(sender);
+            var id = $buttonClicked.attr('data-id');
+            var type = $buttonClicked.attr('data-type');
+            var options = { "backdrop": "static", keyboard: true };
+            $.ajax({
+                type: "GET",
+                url: TeamDetailPostBackURL,
+                contentType: "application/json; charset=utf-8",
+                data: { "id": id , "Type" : type },
+                datatype: "json",
+                success: function (data) {
+                    debugger;
+                    $('#mdlDMS .modal-content').html(data);
+                    $('#mdlDMS').modal(options);
+                    $('#mdlDMS').modal('show');
+
+                    AjaxFillDropDown('.CityDropDown', "@Url.Action("GetCityList", "Enquiry")");
+                },
+                error: function () {
+                    alert("Dynamic content load failed.");
+                }
+            });
+
+            return false;
+        }
+
+        $('#Mode').change(function () {
+            var mode = $(this).val();
+var route = '@Url.Action("GetListBasedOnMode", new { Mode = "-1" })';
+            route = route.replace("-1", $(this).val());
+            $.ajax({
+                type: "GET",
+                url: route,
+                async: false,
+                success: function (data) {
+                    if (data.LoosedCasedList.length > 0) {
+                        $('#LOOSEDCASED').find('option').remove();
+                        $('#LCLFCL').find('option').remove();
+                        if (!data.IsStorage)
+                            $('#LOOSEDCASED').append($('<option></option>').val("0").html("Select One"));
+                        else
+                            $('#LOOSEDCASED').change();
+                        $.each(data.LoosedCasedList, function (i) {
+                            $('#LOOSEDCASED').append($('<option></option>').val(data.LoosedCasedList[i].Value).html(data.LoosedCasedList[i].Text));
+                        });
+                    }
+                    else {
+                        $('#LOOSEDCASED').find('option').remove();
+                        $('#LCLFCL').find('option').remove();
+                    }
+                },
+            });
+        });
+        $('#LOOSEDCASED').change(function () {
+            //debugger;
+            var mode = $('#Mode').val();
+            var looseCased = $(this).val();
+            if (looseCased != "0") {
+                var route = '@Url.Action("GetListBasedOnLoosedCased", new { LOOSEDCASED = "-1", Mode = "-2" })';
+                route = route.replace("-1", looseCased);
+            route = route.replace("-2", mode);
+            route = route.replace(/&amp;/g, '&');
+            $.ajax({
+                type: "GET",
+                url: route,
+                async: false,
+                success: function (data) {
+                    if (data.LCLFCLList.length > 0) {
+                        $('#LCLFCL').find('option').remove();
+                        if (!data.IsStorage)
+                            $('#LCLFCL').append($('<option></option>').val("0").html("Select One"));
+                        $.each(data.LCLFCLList, function (i) {
+                            $('#LCLFCL').append($('<option></option>').val(data.LCLFCLList[i].Value).html(data.LCLFCLList[i].Text));
+                        });
+                    }
+                    else {
+                        $('#LOOSEDCASED').find('option').remove();
+                        $('#LCLFCL').find('option').remove();
+                    }
+                },
+            })
+            }
+
+        });
+
+        function FollowUp(control) {
+            $('#FollowUp_EnqDetID').val($(control).closest('tr').find('.tdNone .TblHFVEnqDetailID').val());
+            //$('.tblFollowUp').find('tr').html
+            debugger;
+            $('.tblFollowUp tbody tr').each(function () {
+                if ($(this).index() != 0) {
+                    var EnqDetId = $(this).find('.TblEnqDetID').html();
+                    if (EnqDetId == $(control).closest('tr').find('.tdNone .TblHFVEnqDetailID').val()) {
+                        $(this).removeClass('hide');
+                    }
+                    else {
+                        $(this).addClass('hide');
+                    }
+                }
+
+            });
+            if ($(control).closest('tr').find('.ShpStatus').html().replace('\n', '').trim() == 'Booked') {
+                $('.btnFollowUpClose').addClass('hide');
+            }
+            else {
+                $('.btnFollowUpClose').removeClass('hide');
+            }
+        }
+
+
+        function Set_ModalFollowUp(IsClose, control) {
+            debugger;
+            $('#FollowUp_FollowUpDate').val($('#dtFollowUpDate').val());
+            $('#FollowUp_FollowUpRemark').val($('#txtFollowUpRemark').val());
+            $('#FollowUp_IsClose').val(IsClose);
+            if (IsClose.toString().toUpperCase() == 'TRUE') {
+                $('#ModalFollowUp').submit();
+            }
+            else {
+                if (($('#dtFollowUpDate').val())) {
+                    //control.preventDefault();
+                    $('#ModalFollowUp').submit();
+                }
+                else {
+                    alert("Follow up Date is required.");
+
+                }        
+            }
+            
+        }
+
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+}
+

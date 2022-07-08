@@ -1,0 +1,97 @@
+﻿@model RELOCBS.Entities.CurrencyConversion
+
+@{
+    //Layout = null;
+    ViewBag.Title = "Upload Currency Conversion";
+}
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">@ViewBag.Title</h4>
+</div>
+@using (Html.BeginForm("Importexcel", "CurrencyConversion", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    
+    <div class="modal-body">
+        <div class="form-horizontal">
+            <div class="form-group">
+                <div class="col-md-12">
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-3">Download Format:</label>
+                <div class="col-md-9">
+                    <a href="@Url.Action("DownloadExcel","CurrencyConversion")" class="btn btn-sm btn-primary" title="Download Excel"><i class="fa fa-download"></i></a>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-3">Excel:</label>
+                <div class="col-md-9">
+                    <div class="custom-file">
+                        <input type="file" id="FileUpload" class="custom-file-input" name="FileUpload" accept=".xlsx, .xls, .csv" required />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-right">
+            <input type="submit" value="Upload" class="btn btn-primary btn-sm" id="btnCreate" />
+        </div>
+    </div>
+
+}
+<script>
+    $(document).ready(function () {
+        $("[data-val-required]").each(function () {
+            $("label[for=" + this.id + "]").addClass("requiredlabel")
+        });
+    });
+</script>
+<script>
+
+    $(function () {
+        $('input[type=file]').change(function () {
+            var t = $(this).val();
+            var labelText = 'File : ' + t.substr(12, t.length);
+            $(this).prev('label').text(labelText);
+        })
+    });
+
+    $(document).ready(function () {
+
+        $("input").attr("autocomplete", "off");
+
+        var form = $("#mdlAddEdit form");
+        form.removeData('validator');
+        form.removeData('unobtrusiveValidation');
+        $.validator.unobtrusive.parse(form);
+
+
+        $('#mdlAddEdit').on('shown.bs.modal', function () {
+            $('#CountryID').focus();
+        });
+
+        $('#mdlAddEdit form').on('submit', function (e) {
+            e.preventDefault();
+            if (!$(this).valid()) { return; }
+
+            $('#mdlAddEdit .modal-content').mask("Loading...");
+            $(this).ajaxSubmit({
+                target: '#mdlAddEdit .modal-content',
+                success: function (data) {
+                    $('#mdlAddEdit .modal-content').html(data.Result);
+                    if (data.Success) {
+                        $('#mgrid .pagination li.active a').trigger('click');
+                        toastr.success("City saved successfully.");
+                        $('#mdlAddEdit').modal('hide');
+                    }
+                    $('#mdlAddEdit .modal-content').unmask();
+                }
+            });
+        });
+
+    });
+
+</script>

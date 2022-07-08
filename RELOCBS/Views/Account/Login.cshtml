@@ -4,45 +4,148 @@
     ViewBag.Title = "Log In";
 }
 
-<div class="logo m-t-lg"></div>
-<h2 class="txt-sitename m-t-lg">Global Move Management System</h2>
-
-<div class="row">
-    <div class="col-md-8 col-md-push-2">
+<div>
+    <div>
         <section id="loginForm" class="text-center">
-            @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+            @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form", @id = "modal-details" }))
             {
                 @Html.AntiForgeryToken()
-                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.ValidationSummary(false, "", new { @class = "text-danger", id = "ValidationSummary" })
+                @Html.HiddenFor(model => model.CompId)
+                @Html.HiddenFor(model => model.CompName)
+                @Html.HiddenFor(model => model.BussinessLine)
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-2 col-md-offset-4 m-t-lg">
+                            <div class="card">
+                                <div class="logo m-t-md"></div>
+                                <div class="card-header">
+                                    <h3>@ViewBag.Title</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group input-group">
+                                        <div class="input-group-addon">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        </div>
+                                        @Html.TextBoxFor(model => model.Username, new { @class = "form-control", @placeholder = "Username" })
+                                        @Html.ValidationMessageFor(model => model.Username, "", new { @class = "text-danger" })
+                                    </div>
+                                    <div class="form-group input-group">
+                                        <div class="input-group-addon">
+                                            <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                        </div>
+                                        @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "Password" })
+                                        @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger", @id = "Validation" })
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="button" value="Log in" class="btn float-right login_btn" id="btnLogin" />
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-center links">
+                                    </div>
+                                    <div class="d-flex justify-content-center">
+                                        @Html.ActionLink("Forgot Password", "ForgotPassword")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="mdlAddEdit" class="modal fade" data-backdrop="static" data-keyboard="false">
+                    <div class="modal-dialog">
+                        <div class="modal-content  p-xl">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label>Company</label>
+                                    @Html.DropDownList("CompList", new List<SelectListItem>(), new { @class = "form-control" })
+                                </div>
 
-                <h1 class="login-title m-t-lg">@ViewBag.Title</h1>
-                <div class="form-group m-t-md">
-                    <div>
-                        @Html.EditorFor(model => model.Username, new { @class = "form-control", @placeholder = "Username" })
-                        @Html.ValidationMessageFor(model => model.Username, "", new { @class = "text-danger" })
+                                <div class="col-sm-6">
+                                    <label>Bussiness Line</label>
+                                    @Html.DropDownList("BussLnList", new List<SelectListItem>(), new { @class = "form-control" })
+                                </div>
+                                <div class="col-sm-6 ">
+                                    <input type="submit" value="Submit" class="btn btn-sm btn-primary filter-custom-margin" id="btnSubmit" form="modal-details"/>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="form-group m-t-md">
-                    <div>
-                        @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "Password" })
-                        @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
-                    </div>
-                </div>
-                <p class="pull-right m-t-sm">
-                    @*@Html.ActionLink("Register as a new user", "Register") |*@
-                    @Html.ActionLink("Forgot Password", "ForgotPassword")
-                </p>
-                <div class="form-group">
-                    <div class="">
-                        <input type="submit" value="Log in" class="btn btn-primary" />
-                    </div>
-                </div>
-
             }
         </section>
     </div>
 
+
 </div>
 @section Scripts {
+    <script type="text/javascript">
+
+
+        $('#btnLogin').click(function () {
+            
+            $.get("@Url.Action("GetCompany", "Account")", { UserName: $('#Username').val(), Password: $('#Password').val() }, function (data) {
+                //console.log('a');
+                if (data.errormsg != null && data.errormsg != '') {
+                    toastr.error(data.errormsg);
+                }
+                else {
+                    var IsPopUp = false; var IsSubmit = false;
+                    if (data.CompanyList.length >= 1) {
+                        $('#CompList').find('option').remove();
+                        if (data.CompanyList.length > 1) {
+                            $('#CompList').append($('<option></option>').val("0").html("Select One"));
+                            
+                            IsPopUp = true;
+                        }
+                        else if (data.CompanyList.length == 1) {
+                            $('#CompId').val(data.CompanyList[0].Value);
+                            $('#CompName').val(data.CompanyList[0].Text);
+                        }
+                        $.each(data.CompanyList, function (i) {
+                            $('#CompList').append($('<option></option>').val(data.CompanyList[i].Value).html(data.CompanyList[i].Text));
+                        });
+                    }
+                    if (data.BussinessLineList.length >= 1) {
+                        $('#BussLnList').find('option').remove();
+                        if (data.BussinessLineList.length > 1) {
+                            $('#BussLnList').append($('<option></option>').val("0").html("Select One"));
+                            
+                            IsPopUp = true;
+                        }
+                        else if (data.BussinessLineList.length == 1) {
+                            $('#BussinessLine').val(data.BussinessLineList[0].Text);
+                        }
+                        $.each(data.BussinessLineList, function (i) {
+                            $('#BussLnList').append($('<option></option>').val(data.BussinessLineList[i].Value).html(data.BussinessLineList[i].Text));
+                        });
+                    }
+                    if (JSON.parse(IsPopUp)) {
+                        $('#mdlAddEdit').modal();
+                    }
+                    else {
+                        $('#btnSubmit').click();
+                    }
+                }
+            });
+        });
+
+        $('#CompList').change(function () {
+            $('#CompId').val($('option:selected', this).val());
+            $('#CompName').val($('option:selected', this).text());
+        });
+
+        $('#BussLnList').change(function () {
+            $('#BussinessLine').val($('option:selected', this).val());
+        });
+
+        
+
+        $(document).on("keydown", ":input:not(button):not(submit)", function (e) {
+            if (e.which == 13) {
+                e.preventDefault();
+            }
+        });
+    </script>
     @Scripts.Render("~/bundles/jqueryval")
 }

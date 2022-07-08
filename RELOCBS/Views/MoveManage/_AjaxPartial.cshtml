@@ -1,0 +1,140 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model StaticPagedList<RELOCBS.Entities.MoveManageGrid>
+
+@{
+
+    string _PageID = "10";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+columns.Add(o => o.MoveId)
+.Titled("Move")
+.Css("col-md-2 hide")
+.SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+columns.Add(o => o.JobNo)
+.Titled("Job No")
+.Css("col-md-2");
+//.SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+
+columns.Add(o => o.EnqId)
+.Titled("Enq.No")
+.Css("col-md-2 hide");
+
+columns.Add(o => o.EnqDetailId)
+.Titled("Shp.No")
+.Css("col-md-2 hide");
+
+columns.Add(o => o.EnqNo)
+.Titled("Enq.No")
+.Css("col-md-2");
+
+columns.Add(o => o.EnqSeqID)
+.Titled("Shp.No")
+.Css("col-md-2");
+
+columns.Add(o => o.EnqDate)
+.Titled("Enquiry Date")
+.Css("col-md-2 hide")
+.SetWidth(2).Format("{0:dd-MM-yyyy}");
+
+columns.Add(o => o.SurveyDate)
+.Titled("Survey Date")
+.Css("col-md-2 hide")
+.SetWidth(2).Format("{0:dd-MM-yyyy}");
+
+
+//columns.Add(o => o.SurveyDateTime)
+//.Titled("Survey Time").Css("col-md-1");
+
+columns.Add(o => o.AgentName)
+.Titled("Client").Css("col-md-3");
+
+columns.Add(o => o.AccountName)
+.Titled("Corporate").Css("col-md-3");
+
+
+columns.Add(o => o.BussLineName)
+.Titled("Business Line").Css("col-md-3");
+
+columns.Add(o => o.ServiceLine)
+.Titled("ServiceLine").Css("col-md-3");
+
+columns.Add(o => o.Mode)
+.Titled("Mode").Css("col-md-2");
+
+
+columns.Add(o => o.ShipperName)
+.Css("col-md-3")
+.Titled("Shipper")
+.SetWidth(10);
+
+columns.Add(o => o.JobOpenedDate)
+.Css("col-md-3")
+.Titled("JobOpenedDate");
+
+columns.Add(o => o.JobStatus)
+.Css("col-md-3")
+.Titled("Job Status");
+
+
+//columns.Add(o => o.EnqReceivedbyName)
+//.Titled("Enquiry ReceivedBy").Css("col-md-2");
+
+
+//columns.Add(o => o.SurveyConductedByName)
+//.Titled("Survey By").Css("col-md-2");
+
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("Actions")
+.RenderValueAs(d =>
+@<span>
+    @if (hasAddAccess)
+    {
+        <a href="@Url.Action("Create","Survey",new { EnqDetailID = d.EnqDetailId, IsView = 1 })" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-eye-open pull-left" title="View Survey"></a>
+    }
+</span>
+);
+
+columns.Add().
+Encoded(false).Sanitized(false).Sortable(true).Css("col-md-2").RenderValueAs(d =>
+@<span>
+  @if (hasAddAccess || hasEditAccess)
+  {
+      if (d.BillCollId > 0)
+      {
+          var a = !string.IsNullOrEmpty(d.JobNo) ? "View Job" : "Open Job";
+          <a href="@Url.Action("Create", "MoveManage", new { Indx = 0, SurveyID = d.SurveyId, MoveId = d.MoveId })" class="btn btn-xs btn-default pull-left" title="Job">
+             @a
+          </a>
+      }
+      @*if (!d.IsRMCBuss)
+      {
+          <a href="@Url.Action("Create", "Billing_Collection", new { Enquirydetid = d.EnqDetailId })" class="btn btn-xs btn-default pull-left" title="BillCollection">Billing & Collection</a>
+      }*@
+  }
+</span>
+);
+
+}).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>

@@ -1,0 +1,2199 @@
+﻿@model RELOCBS.Entities.WHAssetMaster
+
+@using RELOCBS.Entities;
+
+@{
+    ViewBag.Title = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string _PageID = "87";
+
+    Model.ActiveTab = Model.ActiveTab ?? "Inward";
+    string ActiveTab = Model.ActiveTab;
+    Int64 MoveID = Model.WHInAssetMaster.MoveID ?? 0;
+}
+
+<style>
+    .disableClick {
+        pointer-events: none;
+    }
+
+    .width-95 {
+        width: 95%;
+    }
+
+    .modal-dialog {
+        overflow-y: initial !important
+    }
+
+    .modal-body {
+        max-height: calc(100vh - 150px);
+        height: 480px;
+        overflow-y: scroll;
+    }
+
+    .bg {
+        border-left: 3px solid red;
+    }
+
+    .ActiveInMastRow {
+        color: black;
+        font-weight: bold;
+        background-color: #C0C0C0;
+    }
+
+    .ActiveOutMastRow {
+        color: black;
+        font-weight: bold;
+        background-color: #C0C0C0;
+    }
+
+    #tblInAssetMast {
+        counter-reset: serial-number-inMast;
+    }
+
+        #tblInAssetMast > tbody > tr > td:first-child:before {
+            counter-increment: serial-number-inMast;
+            content: counter(serial-number-inMast);
+        }
+
+    #tblInAssetDetails {
+        counter-reset: serial-number-in;
+    }
+
+        #tblInAssetDetails > tbody > tr > td:first-child:before {
+            counter-increment: serial-number-in;
+            content: counter(serial-number-in);
+        }
+
+    #tblLiftVanDetails {
+        counter-reset: serial-number-Loc;
+    }
+
+        #tblLiftVanDetails > tbody > tr > td:first-child:before {
+            counter-increment: serial-number-Loc;
+            content: counter(serial-number-Loc);
+        }
+
+    #tblOutAssetMast {
+        counter-reset: serial-number-outMast;
+    }
+
+        #tblOutAssetMast > tbody > tr > td:first-child:before {
+            counter-increment: serial-number-outMast;
+            content: counter(serial-number-outMast);
+        }
+
+    #tblOutAssetDetails {
+        counter-reset: serial-number-out;
+    }
+
+        #tblOutAssetDetails > tbody > tr > td:first-child:before {
+            counter-increment: serial-number-out;
+            content: counter(serial-number-out);
+        }
+</style>
+
+@using (Html.BeginForm("Create", "WHAssetManagement", FormMethod.Post, new { @name = "WHAssetManagementForm", @id = "WHAssetManagementForm", enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(false)
+
+    @Html.HiddenFor(m => m.WHInAssetMaster.InMastID, new { @id = "InMastID" })
+    @Html.HiddenFor(m => m.WHOutAssetMaster.OutMasterID, new { @id = "OutMasterID" })
+    @Html.HiddenFor(m => m.WHInAssetDetailsListHidden, new { @id = "WHInAssetDetailsListHidden" })
+    @Html.HiddenFor(m => m.WHOutAssetDetailsListHidden, new { @id = "WHOutAssetDetailsListHidden" })
+    @Html.HiddenFor(m => m.ActiveTab, new { @id = "ActiveTab" })
+
+    <div class="modal modal-wide fade" id="APIModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>
+                        Result
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </h3>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 APIResult" style="padding-bottom:10px">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal modal-wide fade" id="SendLinkModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    Send Link
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body" id="SendLink" style="height:300px;">
+                    <div class="m-t-sm pad-none">
+                        <div class="row">
+                            <div class="col-sm-offset-1 col-md-offset-1 col-sm-10 col-md-10">
+                                <div class="form-group">
+                                    <label class="requiredlabel">Email To</label>
+                                    @Html.TextBoxFor(m => m.EmailTo, new { @class = "form-control input-sm", @id = "txtEmailTo", @placeholder = "Email To", @title = "Email To" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-offset-1 col-md-offset-1 col-sm-10 col-md-10">
+                                <div class="form-group">
+                                    <label>Email CC</label>
+                                    @Html.TextBoxFor(m => m.EmailCc, new { @class = "form-control input-sm", @id = "txtEmailCc", @placeholder = "Email Cc", @title = "Email Cc" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-offset-1 col-md-offset-1 col-sm-10 col-md-10">
+                                <div class="form-group">
+                                    <label>Email BCC</label>
+                                    @Html.TextBoxFor(m => m.EmailBcc, new { @class = "form-control input-sm", @id = "txtEmailBcc", @placeholder = "Email Bcc", @title = "Email Bcc" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-offset-1 col-md-offset-1 col-sm-10 col-md-10 text-center">
+                                <input type="button" id="btnSendLink" class="btn btn-primary m-t-sm m-r-sm btn-sm filter-custom-margin m-n" value="Send Link" form="ModalSendLink" onclick="SendLink()" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row m-t-sm">
+        <input type="submit" id="btnSave" name="Save" class="btn btn-sm btn-primary m-r-md pull-right" title="Save" value="Save" />
+        @if (Model.WHInAssetMaster.MoveID > 0)
+        {
+            <a id="btnOpenSendLink" class="btn btn-sm btn-primary m-r-md pull-right hide" data-cache="false" title="Send Link" data-toggle="modal" data-target="#SendLinkModal">Send Link</a>
+        }
+    </div>
+    <div class="row">
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label>Move ID : </label>@Model.WHInAssetMaster.MoveID
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label>Job No : </label>@Model.WHInAssetMaster.JobID
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <div class="form-group">
+                <label>Ref Job ID : </label>@Model.WHInAssetMaster.RefJobID
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-3">
+            <div class="form-group">
+                <label>Job Opened Date : </label>@if (Model.WHInAssetMaster.JobOpenedDate != null)
+                {@(((DateTime)Model.WHInAssetMaster.JobOpenedDate).ToString("dd-MMM-yyyy"))}
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-sm-3">
+            <div class="form-group">
+                <label>Shipper Name : </label>@Model.WHInAssetMaster.ShipperName
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-3">
+            <div class="form-group">
+                <label>WareHouse : </label>@Model.WHInAssetMaster.WareHouse
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 col-sm-12 well well-sm">
+        <div id="dvTabList" class="tabs-container">
+            <ul class="nav nav-tabs" role="tablist">
+                <li role="presentation" class="@(ActiveTab == "Inward" ? "active" : "")"><a href="#Inward" aria-controls="Dashboard" role="tab" data-toggle="tab" aria-expanded="true"><span class="t">Inward</span></a></li>
+                @if (Model.WHInAssetMaster.MoveID > 0)
+                {
+                    <li role="presentation" class="@(ActiveTab == "Location Map" ? "active" : "")"><a href="#LocationMap" aria-controls="LocationMap" role="tab" data-toggle="tab" aria-expanded="true"><span class="t">Location Map</span></a></li>
+                    <li role="presentation" class="@(ActiveTab == "Outward" ? "active" : "")"><a href="#Outward" aria-controls="Outward" role="tab" data-toggle="tab" aria-expanded="true"><span class="t">Outward</span></a></li>
+                    <li role="presentation" class="@(ActiveTab == "DMS" ? "active" : "")"><a href="#DMS" aria-controls="DMS" role="tab" data-toggle="tab" aria-expanded="true"><span class="t">DMS</span></a></li>
+                    <li role="presentation" class="@(ActiveTab == "Bingo Sheet" ? "active" : "")"><a href="#BingoSheet" aria-controls="BingoSheet" role="tab" data-toggle="tab" aria-expanded="true"><span class="t">Bingo Sheet</span></a></li>
+                }
+            </ul>
+            <div class="tab-content">
+                <div role="tabpanel" class="@(ActiveTab == "Inward" ? "tab-pane tab-panecontainer active" : "tab-pane tab-panecontainer")" id="Inward">
+                    <div class="row tab-panecontainer">
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>Inward</legend>
+                            <div class="clearfix col-md-12 col-sm-12 well well-sm">
+                                <div class="row">
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label class="control-label">Job No</label>
+                                            @Html.DropDownListFor(m => m.WHInAssetMaster.MoveID, new SelectList((System.Collections.IEnumerable)ViewData["JobNoList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm enableselect", @id = "In_MoveID" })
+                                            @Html.HiddenFor(m => m.WHInAssetMaster.MoveID, new { @id = "In_MoveID" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label class="control-label">Ref Job ID</label>
+                                            @Html.TextBoxFor(m => m.WHInAssetMaster.RefJobID, new { @class = "form-control input-sm", @id = "In_RefJobID", @placeholder = "Ref Job ID", @title = "Ref Job ID" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label class="control-label">WareHouse</label>
+                                            @Html.DropDownListFor(m => m.WHInAssetMaster.WareHouseID, new SelectList((System.Collections.IEnumerable)ViewData["WarehoueList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm", @id = "In_WareHouseID" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="clearfix col-md-12 col-sm-12 well well-sm">
+                                <div class="row">
+                                    <div style="display: none;">
+                                        @Html.HiddenFor(m => m.WHInAssetMaster.GateChallanNumber, new { @id = "In_GateChallanNumber" })
+                                        @Html.HiddenFor(m => m.WHInAssetMaster.GateChalanDate, new { @id = "In_GateChalanDate" })
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Inward Date Time</label>
+                                            @Html.TextBoxFor(m => m.WHInAssetMaster.InDateTime, new { @class = "form-control input-sm datetimepicker onkeydtp", @id = "In_InDateTime", @placeholder = "Inward Date Time", @title = "Inward Date Time" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>No Of Package</label>
+                                            @Html.TextBoxFor(m => m.WHInAssetMaster.NoOfPackaage, new { @class = "form-control input-sm", @id = "In_NoOfPackaage", @placeholder = "No Of Packaage", @title = "No Of Packaage", @onkeypress = "return OnlyInteger(this, event);" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1 col-sm-1">
+                                        <div class="form-group">
+                                            <label class="control-label">Vol Unit</label>
+                                            @Html.DropDownListFor(m => m.WHInAssetMaster.VolUnitID, new SelectList((System.Collections.IEnumerable)ViewData["VolUnitList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm", @id = "In_VolUnitID" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1 col-sm-1">
+                                        <div class="form-group">
+                                            <label>Total Vol</label>
+                                            @Html.TextBoxFor(m => m.WHInAssetMaster.TotalVol, new { @class = "form-control input-sm", @id = "In_TotalVol", @placeholder = "Total Vol", @title = "Total Vol", @onkeypress = "return OnlyDouble(this, event, 2);" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Remarks</label>
+                                            @Html.TextBoxFor(m => m.WHInAssetMaster.Remarks, new { @class = "form-control input-sm", @id = "In_Remarks", @placeholder = "Remarks", @title = "Remarks" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 col-sm-12">
+                                        <div class="form-group clearfix text-center">
+                                            <input type="button" id="btnAddInAssetMast" name="Add" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Add Details" title="Add Details" onclick="AddInAssetMast();" formnovalidate="formnovalidate" />
+                                            <input type="button" id="btnClearInAssetMast" name="Clear" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Cancel" title="Cancel" onclick="ClearInAssetMast();" formnovalidate="formnovalidate" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="clearfix col-md-12 col-sm-12 well well-sm" style="overflow-x: auto;">
+                                <table class="table table-bordered table-responsive table-hover" id="tblInAssetMast" style="width: 100%;">
+                                    <thead class="ibox-title">
+                                        <tr>
+                                            <th class="InM_tdSequence">Sr. No.</th>
+                                            <th class="InM_tdGateChallanNumber">Gate Challan Number</th>
+                                            <th class="InM_tdGateChalanDate">In Challan Entered Date</th>
+                                            <th class="InM_tdInDateTime">Inward Date Time</th>
+                                            <th class="InM_tdNoOfPackaage">No Of Package</th>
+                                            <th class="InM_tdVolUnitID">Vol. Unit</th>
+                                            <th class="InM_tdTotalVol">Total Vol.</th>
+                                            <th class="InM_tdRemarks">Remarks</th>
+                                            <th class="InM_tdAction">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.WHInAssetMasterList.Count; i++)
+                                        {
+                                            <tr>
+                                                <td class="InM_tdSequence">
+                                                    @Html.HiddenFor(m => m.WHInAssetMasterList[i].MoveID, new { @class = "InM_tdMoveID" })
+                                                    @Html.HiddenFor(m => m.WHInAssetMasterList[i].InMastID, new { @class = "InM_tdInMastID" })
+                                                    @Html.HiddenFor(m => m.WHInAssetMasterList[i].VolUnitID, new { @class = "InM_tdVolUnitID" })
+                                                </td>
+                                                <td class="InM_tdGateChallanNumber">@Model.WHInAssetMasterList[i].GateChallanNumber</td>
+                                                <td class="InM_tdGateChalanDate">
+                                                    @if (Model.WHInAssetMasterList[i].GateChalanDate != null)
+                                                    {@(((DateTime)Model.WHInAssetMasterList[i].GateChalanDate).ToString("dd-MMM-yyyy"))}
+                                                </td>
+                                                <td class="InM_tdInDateTime">@Model.WHInAssetMasterList[i].InDateTime</td>
+                                                <td class="InM_tdNoOfPackaage">@Model.WHInAssetMasterList[i].NoOfPackaage</td>
+                                                <td class="InM_tdVolUnit">@Model.WHInAssetMasterList[i].VolUnit</td>
+                                                <td class="InM_tdTotalVol">@Model.WHInAssetMasterList[i].TotalVol</td>
+                                                <td class="InM_tdRemarks">@Model.WHInAssetMasterList[i].Remarks</td>
+                                                <td class="InM_tdAction">
+                                                    <button type="button" value="Edit" class="btnEditInAssetMast btn btn-sm btn-primary pull-left" onclick="EditInAssetMast(this);" title="Edit"><i class="glyphicon glyphicon-pencil"></i></button>
+                                                    <button type="button" value="Show Inward Boxes" class="btnViewInAssetMast btn btn-sm btn-primary pull-left" onclick="ViewInAssetMast(this, @MoveID, @Model.WHInAssetMasterList[i].InMastID);" title="Show Inward Boxes"><i class="glyphicon glyphicon-eye-open"></i></button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12">
+                                    <div class="form-group clearfix text-center">
+                                        <button type="button" value="View All Inward Boxes" class="btnViewInAssetDetails btn btn-sm btn-primary pull-right" onclick="ViewInAssetMast(null, @MoveID, null);" title="View All Inward Boxes"><i class="glyphicon glyphicon-list"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="clearfix col-md-12 col-sm-12 well well-sm">
+                                <div class="row">
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Barcode ID</label>
+                                            @Html.TextBoxFor(m => m.WHInAssetMaster.WHInAssetDetails.BarcodeID, new { @class = "form-control input-sm", @id = "In_BarcodeID", @placeholder = "Barcode ID", @title = "Barcode ID" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Box No</label>
+                                            @Html.TextBoxFor(m => m.WHInAssetMaster.WHInAssetDetails.BarcodeSeqNo, new { @class = "form-control input-sm", @id = "In_BarcodeSeqNo", @placeholder = "Box No", @title = "Box No", @onkeypress = "return OnlyInteger(this, event);" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Asset Ref ID</label>
+                                            @Html.TextBoxFor(m => m.WHInAssetMaster.WHInAssetDetails.AssetRefID, new { @class = "form-control input-sm", @id = "In_AssetRefID", @placeholder = "Asset Ref ID", @title = "Asset Ref ID" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Asset Desc.</label>
+                                            @Html.TextBoxFor(m => m.WHInAssetMaster.WHInAssetDetails.AssetDescription, new { @class = "form-control input-sm", @id = "In_AssetDescription", @placeholder = "Asset Description", @title = "Asset Description" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1 col-sm-1">
+                                        <div class="form-group">
+                                            <label>Vol. Unit</label>
+                                            @Html.DropDownListFor(m => m.WHInAssetMaster.WHInAssetDetails.VolumeUnitID, new SelectList((System.Collections.IEnumerable)ViewData["VolUnitList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm", @id = "In_VolumeUnitID" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Vol.</label>
+                                            @Html.TextBoxFor(m => m.WHInAssetMaster.WHInAssetDetails.AssetVol, new { @class = "form-control input-sm", @id = "In_AssetVol", @placeholder = "Asset Volume", @title = "Asset Volume", @onkeypress = "return OnlyDouble(this, event, 2);" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-1 col-sm-1">
+                                        <div class="form-group">
+                                            <label>Dim. Unit</label>
+                                            @Html.DropDownListFor(m => m.WHInAssetMaster.WHInAssetDetails.DimentionUnitID, new SelectList((System.Collections.IEnumerable)ViewData["DimUnitList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm", @id = "In_DimentionUnitID" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Asset Length</label>
+                                            @Html.TextBoxFor(m => m.WHInAssetMaster.WHInAssetDetails.AssetDimL, new { @class = "form-control input-sm", @id = "In_AssetDimL", @placeholder = "Asset Length", @title = "Asset Length" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Asset Breadth</label>
+                                            @Html.TextBoxFor(m => m.WHInAssetMaster.WHInAssetDetails.AssetDimB, new { @class = "form-control input-sm", @id = "In_AssetDimB", @placeholder = "Asset Breadth", @title = "Asset Breadth" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Asset Height</label>
+                                            @Html.TextBoxFor(m => m.WHInAssetMaster.WHInAssetDetails.AssetDimH, new { @class = "form-control input-sm", @id = "In_AssetDimH", @placeholder = "Asset Height", @title = "Asset Height" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Remarks</label>
+                                            @Html.TextBoxFor(m => m.WHInAssetMaster.WHInAssetDetails.AssetRemarks, new { @class = "form-control input-sm", @id = "In_AssetRemarks", @placeholder = "Remarks", @title = "Remarks" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 col-sm-12">
+                                        <div class="form-group clearfix text-center form-inline">
+                                            <input type="button" id="btnAddInAssetDetails" name="Add" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Add Details" title="Add Details" onclick="AddInAssetDetails();" formnovalidate="formnovalidate" />
+                                            <input type="button" id="btnClearInAssetDetails" name="Clear" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Cancel" title="Cancel" onclick="ClearInAssetDetails();" formnovalidate="formnovalidate" />
+                                            @Html.TextBox("txtInBoxRangeFrom", null, new { @class = "form-control input-sm", @id = "txtInBoxRangeFrom", @placeholder = "In Box Range From", @title = "In Box Range From", @onkeypress = "return OnlyInteger(this, event);", @oncopy = "return false", @onpaste = "return false" })
+                                            @Html.TextBox("txtInBoxRangeTo", null, new { @class = "form-control input-sm", @id = "txtInBoxRangeTo", @placeholder = "In Box Range To", @title = "In Box Range To", @onkeypress = "return OnlyInteger(this, event);", @oncopy = "return false", @onpaste = "return false" })
+                                            <input type="button" id="btnAddInBoxRange" name="Clear" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Add In Box Range" title="Add In Box Range" onclick="AddInBoxRange();" formnovalidate="formnovalidate" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="clearfix col-md-12 col-sm-12 well well-sm" style="overflow-x: auto;">
+                                <table class="table table-bordered table-responsive table-hover" id="tblInAssetDetails" style="width: 100%;">
+                                    <thead class="ibox-title">
+                                        <tr>
+                                            <th class="In_tdSequence">Sr. No.</th>
+                                            <th class="In_tdGateChallanNumber">Gate Challan Number</th>
+                                            <th class="In_tdGateChalanDate">Gate Challan Date</th>
+                                            <th class="In_tdBarcodeID">Barcode ID</th>
+                                            <th class="In_tdBarcodeSeqNo">Box No</th>
+                                            <th class="In_tdAssetRefID">Asset Ref ID</th>
+                                            <th class="In_tdAssetDescription">Asset Desc.</th>
+                                            <th class="In_tdVolumeUnit">Vol. Unit</th>
+                                            <th class="In_tdAssetVol">Vol.</th>
+                                            <th class="In_tdDimentionUnit">Dim. Unit</th>
+                                            <th class="In_tdAssetLength">Length</th>
+                                            <th class="In_tdAssetBreadth">Breadth</th>
+                                            <th class="In_tdAssetHeight">Height</th>
+                                            <th class="In_tdAssetRemarks">Remarks</th>
+                                            <th class="In_tdAction">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.WHInAssetMaster.WHInAssetDetailsList.Count; i++)
+                                        {
+                                            <tr>
+                                                <td class="In_tdSequence">
+                                                    @Html.HiddenFor(m => m.WHInAssetMaster.WHInAssetDetailsList[i].InMastID, new { @class = "In_tdInMastID" })
+                                                    @Html.HiddenFor(m => m.WHInAssetMaster.WHInAssetDetailsList[i].AssetDetID, new { @class = "In_tdAssetDetID" })
+                                                    @Html.HiddenFor(m => m.WHInAssetMaster.WHInAssetDetailsList[i].VolumeUnitID, new { @class = "In_tdVolumeUnitID" })
+                                                    @Html.HiddenFor(m => m.WHInAssetMaster.WHInAssetDetailsList[i].DimentionUnitID, new { @class = "In_tdDimentionUnitID" })
+                                                </td>
+                                                <td class="In_tdGateChallanNumber">@Model.WHInAssetMaster.WHInAssetDetailsList[i].GateChallanNumber</td>
+                                                <td class="In_tdGateChalanDate">@Model.WHInAssetMaster.WHInAssetDetailsList[i].GateChalanDate</td>
+                                                <td class="In_tdBarcodeID">@Model.WHInAssetMaster.WHInAssetDetailsList[i].BarcodeID</td>
+                                                <td class="In_tdBarcodeSeqNo">@Model.WHInAssetMaster.WHInAssetDetailsList[i].BarcodeSeqNo</td>
+                                                <td class="In_tdAssetRefID">@Model.WHInAssetMaster.WHInAssetDetailsList[i].AssetRefID</td>
+                                                <td class="In_tdAssetDescription">@Model.WHInAssetMaster.WHInAssetDetailsList[i].AssetDescription</td>
+                                                <td class="In_tdVolumeUnit">@Model.WHInAssetMaster.WHInAssetDetailsList[i].VolumeUnit</td>
+                                                <td class="In_tdAssetVol">@Model.WHInAssetMaster.WHInAssetDetailsList[i].AssetVol</td>
+                                                <td class="In_tdDimentionUnit">@Model.WHInAssetMaster.WHInAssetDetailsList[i].DimentionUnit</td>
+                                                <td class="In_tdAssetDimL">@Model.WHInAssetMaster.WHInAssetDetailsList[i].AssetDimL</td>
+                                                <td class="In_tdAssetDimB">@Model.WHInAssetMaster.WHInAssetDetailsList[i].AssetDimB</td>
+                                                <td class="In_tdAssetDimH">@Model.WHInAssetMaster.WHInAssetDetailsList[i].AssetDimH</td>
+                                                <td class="In_tdAssetRemarks">@Model.WHInAssetMaster.WHInAssetDetailsList[i].AssetRemarks</td>
+                                                <td class="In_tdAction">
+                                                    <button type="button" value="Edit" class="btnEditInAssetDetails btn btn-sm btn-primary pull-left" onclick="EditInAssetDetails(this);" title="Edit"><i class="glyphicon glyphicon-pencil"></i></button>
+                                                    <button type="button" value="Delete" class="btnDeleteInAssetDetails btn btn-sm btn-danger pull-left" onclick="DeleteInAssetDetails(this);" title="Delete"><i class="glyphicon glyphicon-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div role="tabpanel" class="@(ActiveTab == "Location Map" ? "tab-pane tab-panecontainer active" : "tab-pane tab-panecontainer")" id="LocationMap">
+                    <div class="row tab-panecontainer">
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>Location Map</legend>
+                            <div class="clearfix col-md-12 col-sm-12 well well-sm">
+                                <div class="row">
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Lift Van</label>
+                                            @Html.DropDownListFor(m => m.WHLocationMap.LiftVanID, new SelectList((System.Collections.IEnumerable)ViewData["LiftVanList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm enableselect", @id = "Loc_LiftVanID" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="dvAssetLiftVanMap">
+                                @Html.Partial("_AssetLiftVanMap", (WHAssetMaster)Model)
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div role="tabpanel" class="@(ActiveTab == "Outward" ? "tab-pane tab-panecontainer active" : "tab-pane tab-panecontainer")" id="Outward">
+                    <div class="row tab-panecontainer">
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>Outward</legend>
+                            <div class="clearfix col-md-12 col-sm-12 well well-sm">
+                                <div class="row">
+                                    <div style="display: none;">
+                                        @Html.HiddenFor(m => m.WHOutAssetMaster.GateOutChalanNo, new { @id = "Out_GateOutChalanNo" })
+                                        @Html.HiddenFor(m => m.WHOutAssetMaster.GateOutChalanDate, new { @id = "Out_GateOutChalanDate" })
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Out Date Time</label>
+                                            @Html.TextBoxFor(m => m.WHOutAssetMaster.OutDateTime, new { @class = "form-control input-sm datetimepicker onkeydtp", @id = "Out_OutDateTime", @placeholder = "Out Date Time", @title = "Out Date Time" })
+                                            <span class="input-group-addon" style="display: none">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Out No Package</label>
+                                            @Html.TextBoxFor(m => m.WHOutAssetMaster.OutNoPackage, new { @class = "form-control input-sm", @id = "Out_OutNoPackage", @placeholder = "Out No Package", @title = "Out No Package", @onkeypress = "return OnlyInteger(this, event);" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Out Vol. Unit</label>
+                                            @Html.DropDownListFor(m => m.WHOutAssetMaster.OutVolumeUnitID, new SelectList((System.Collections.IEnumerable)ViewData["VolUnitList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm", @id = "Out_OutVolumeUnitID" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Out Vol.</label>
+                                            @Html.TextBoxFor(m => m.WHOutAssetMaster.OutVolume, new { @class = "form-control input-sm", @id = "Out_OutVolume", @placeholder = "Out Volume", @title = "Out Volume", @onkeypress = "return OnlyDouble(this, event, 2);" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Address</label>
+                                            <div class="radio">
+                                                <label>@Html.RadioButtonFor(m => m.WHOutAssetMaster.AddressType, "Origin", new { @id = "Out_AddressType_Origin" })Origin</label>
+                                                <label>@Html.RadioButtonFor(m => m.WHOutAssetMaster.AddressType, "Destination", new { @id = "Out_AddressType_Destination" })Destination</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Out Loc Name</label>
+                                            @Html.TextBoxFor(m => m.WHOutAssetMaster.OutLocName, new { @class = "form-control input-sm", @id = "Out_OutLocName", placeholder = "Out Loc Name", @title = "Out Loc Name" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Address 1</label>
+                                            @Html.TextBoxFor(m => m.WHOutAssetMaster.OutLocAdd1, new { @class = "form-control input-sm", @id = "Out_OutLocAdd1", placeholder = "Address 1", @title = "Address 1" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>Address 2</label>
+                                            @Html.TextBoxFor(m => m.WHOutAssetMaster.OutLocAdd2, new { @class = "form-control input-sm", @id = "Out_OutLocAdd2", placeholder = "Address 2", @title = "Address 2" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-3">
+                                        <div class="form-group">
+                                            <label>City</label>
+                                            @Html.DropDownListFor(m => m.WHOutAssetMaster.OutLocCityID, new List<SelectListItem>(), new { @class = "form-control enableselect", @id = "Out_OutLocCityID" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Out Loc Pin Code</label>
+                                            @Html.TextBoxFor(m => m.WHOutAssetMaster.OutLocPinCode, new { @class = "form-control input-sm", @id = "Out_OutLocPinCode", placeholder = "Out Loc Pin Code", @title = "Out Loc Pin Code" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Out Loc Phone</label>
+                                            @Html.TextBoxFor(m => m.WHOutAssetMaster.OutLocPhone, new { @class = "form-control input-sm", @id = "Out_OutLocPhone", placeholder = "Out Loc Phone", @title = "Out Loc Phone" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Out Loc Contact Person</label>
+                                            @Html.TextBoxFor(m => m.WHOutAssetMaster.OutLocContactPerson, new { @class = "form-control input-sm", @id = "Out_OutLocContactPerson", placeholder = "Out Loc Contact Person", @title = "Out Loc Contact Person" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Delivery Proof No</label>
+                                            @Html.TextBoxFor(m => m.WHOutAssetMaster.DeliveryProofNo, new { @class = "form-control input-sm", @id = "Out_DeliveryProofNo", placeholder = "Delivery Proof No", @title = "Delivery Proof No" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Is Proof Uploaded</label>
+                                            <div>@Html.CheckBoxFor(m => m.WHOutAssetMaster.IsProofUploaded, new { @class = "", @id = "Out_IsProofUploaded" })</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Remarks</label>
+                                            @Html.TextBoxFor(m => m.WHOutAssetMaster.Remarks, new { @class = "form-control input-sm", @id = "Out_Remarks", placeholder = "Remarks", @title = "Remarks" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 col-sm-12">
+                                        <div class="form-group clearfix text-center">
+                                            <input type="button" id="btnAddOutAssetMast" name="Add" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Add Details" title="Add Details" onclick="AddOutAssetMast();" formnovalidate="formnovalidate" />
+                                            <input type="button" id="btnClearOutAssetMast" name="Clear" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Cancel" title="Cancel" onclick="ClearOutAssetMast();" formnovalidate="formnovalidate" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="clearfix col-md-12 col-sm-12 well well-sm" style="overflow-x: auto;">
+                                <table class="table table-bordered table-responsive table-hover" id="tblOutAssetMast" style="width: 100%;">
+                                    <thead class="ibox-title">
+                                        <tr>
+                                            <th class="OutM_tdSequence">Sr. No.</th>
+                                            <th class="OutM_tdGateOutChalanNo">Gate Out Challan No</th>
+                                            <th class="OutM_tdGateOutChalanDate">Out Challan Entered Date</th>
+                                            <th class="OutM_tdOutDateTime">Out Date Time</th>
+                                            <th class="OutM_tdOutNoPackage">Out No Package</th>
+                                            <th class="OutM_tdOutVolumeUnit">Out Vol. Unit</th>
+                                            <th class="OutM_tdOutVolume">Out Vol.</th>
+                                            <th class="OutM_tdOutLocName">Out Loc Name</th>
+                                            <th class="OutM_tdOutLocAdd1">Out Loc Add 1</th>
+                                            <th class="OutM_tdOutLocAdd2">Out Loc Add 2</th>
+                                            <th class="OutM_tdOutLocCity">Out Loc City</th>
+                                            <th class="OutM_tdOutLocPinCode">Out Loc PinCode</th>
+                                            <th class="OutM_tdOutLocPhone">Out Loc Phone</th>
+                                            <th class="OutM_tdOutLocContactPerson">Out Loc Contact Person</th>
+                                            <th class="OutM_tdDeliveryProofNo">Delivery Proof No</th>
+                                            <th class="OutM_tdIsProofUploaded">Is Proof Uploaded</th>
+                                            <th class="OutM_tdRemarks">Remarks</th>
+                                            <th class="OutM_tdAction">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.WHOutAssetMasterList.Count; i++)
+                                        {
+                                            <tr>
+                                                <td class="OutM_tdSequence">
+                                                    @Html.HiddenFor(m => m.WHOutAssetMasterList[i].MoveID, new { @class = "OutM_tdMoveID" })
+                                                    @Html.HiddenFor(m => m.WHOutAssetMasterList[i].OutMasterID, new { @class = "OutM_tdOutMasterID" })
+                                                    @Html.HiddenFor(m => m.WHOutAssetMasterList[i].OutVolumeUnitID, new { @class = "OutM_tdOutVolumeUnitID" })
+                                                    @Html.HiddenFor(m => m.WHOutAssetMasterList[i].OutLocCityID, new { @class = "OutM_tdOutLocCityID" })
+                                                </td>
+                                                <td class="OutM_tdGateOutChalanNo">@Model.WHOutAssetMasterList[i].GateOutChalanNo</td>
+                                                <td class="OutM_tdGateOutChalanDate">
+                                                    @if (Model.WHOutAssetMasterList[i].GateOutChalanDate != null)
+                                                    {@(((DateTime)Model.WHOutAssetMasterList[i].GateOutChalanDate).ToString("dd-MMM-yyyy"))}
+                                                </td>
+                                                <td class="OutM_tdOutDateTime">@Model.WHOutAssetMasterList[i].OutDateTime</td>
+                                                <td class="OutM_tdOutNoPackage">@Model.WHOutAssetMasterList[i].OutNoPackage</td>
+                                                <td class="OutM_tdOutVolumeUnit">@Model.WHOutAssetMasterList[i].OutVolumeUnit</td>
+                                                <td class="OutM_tdOutVolume">@Model.WHOutAssetMasterList[i].OutVolume</td>
+                                                <td class="OutM_tdOutLocName">@Model.WHOutAssetMasterList[i].OutLocName</td>
+                                                <td class="OutM_tdOutLocAdd1">@Model.WHOutAssetMasterList[i].OutLocAdd1</td>
+                                                <td class="OutM_tdOutLocAdd2">@Model.WHOutAssetMasterList[i].OutLocAdd2</td>
+                                                <td class="OutM_tdOutLocCity">@Model.WHOutAssetMasterList[i].OutLocCity</td>
+                                                <td class="OutM_tdOutLocPinCode">@Model.WHOutAssetMasterList[i].OutLocPinCode</td>
+                                                <td class="OutM_tdOutLocPhone">@Model.WHOutAssetMasterList[i].OutLocPhone</td>
+                                                <td class="OutM_tdOutLocContactPerson">@Model.WHOutAssetMasterList[i].OutLocContactPerson</td>
+                                                <td class="OutM_tdDeliveryProofNo">@Model.WHOutAssetMasterList[i].DeliveryProofNo</td>
+                                                <td class="OutM_tdIsProofUploaded">@(Model.WHOutAssetMasterList[i].IsProofUploaded == true ? "Yes" : "No")</td>
+                                                <td class="OutM_tdRemarks">@Model.WHOutAssetMasterList[i].Remarks</td>
+                                                <td class="OutM_tdAction">
+                                                    <button type="button" value="Edit" class="btnEditOutAssetMast btn btn-sm btn-primary pull-left" onclick="EditOutAssetMast(this);" title="Edit"><i class="glyphicon glyphicon-pencil"></i></button>
+                                                    <button type="button" value="Show Outward Boxes" class="btnViewOutAssetMast btn btn-sm btn-primary pull-left" onclick="ViewOutAssetMast(this, @MoveID, @Model.WHOutAssetMasterList[i].OutMasterID);" title="Show Outward Boxes"><i class="glyphicon glyphicon-eye-open"></i></button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12">
+                                    <div class="form-group clearfix text-center">
+                                        <button type="button" value="View All Outward Boxes" class="btnViewOutAssetDetails btn btn-sm btn-primary pull-right" onclick="ViewOutAssetMast(this, @MoveID, null);" title="View All Outward Boxes"><i class="glyphicon glyphicon-list"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="clearfix col-md-12 col-sm-12 well well-sm">
+                                <div class="row">
+                                    <div class="col-md-4 col-sm-4">
+                                        <div class="form-group">
+                                            <label>Box No</label>
+                                            @Html.DropDownList("Out_AssetDetID", new SelectList((System.Collections.IEnumerable)ViewData["InAssetDetailsList"], "Value", "Text"), "Select One", new { @class = "form-control input-sm enableselect", @id = "Out_AssetDetID" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2">
+                                        <div class="form-group">
+                                            <label>Remarks</label>
+                                            @Html.TextBoxFor(m => m.WHOutAssetMaster.WHOutAssetDetails.AssetRemarks, new { @class = "form-control input-sm", @id = "Out_AssetRemarks", @placeholder = "Remarks", @title = "Remarks" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 col-sm-12">
+                                        <div class="form-group clearfix text-center form-inline">
+                                            <input type="button" id="btnAddOutAssetDetails" name="Add" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Add Details" title="Add Details" onclick="AddOutAssetDetails();" formnovalidate="formnovalidate" />
+                                            <input type="button" id="btnClearOutAssetDetails" name="Clear" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Cancel" title="Cancel" onclick="ClearOutAssetDetails();" formnovalidate="formnovalidate" />
+                                            <input type="button" id="btnAddAllOutAssetDetails" name="Add All" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Add All" title="Add All" onclick="AddAllOutAssetDetails();" formnovalidate="formnovalidate" />
+                                            @Html.TextBox("txtOutBoxRangeFrom", null, new { @class = "form-control input-sm", @id = "txtOutBoxRangeFrom", @placeholder = "Out Box Range From", @title = "Out Box Range From", @onkeypress = "return OnlyInteger(this, event);", @oncopy = "return false", @onpaste = "return false" })
+                                            @Html.TextBox("txtOutBoxRangeTo", null, new { @class = "form-control input-sm", @id = "txtOutBoxRangeTo", @placeholder = "Out Box Range To", @title = "Out Box Range To", @onkeypress = "return OnlyInteger(this, event);", @oncopy = "return false", @onpaste = "return false" })
+                                            <input type="button" id="btnAddOutBoxRange" name="Clear" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin" value="Add Out Box Range" title="Add Out Box Range" onclick="AddOutBoxRange();" formnovalidate="formnovalidate" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="clearfix col-md-12 col-sm-12 well well-sm" style="overflow-x: auto;">
+                                <table class="table table-bordered table-responsive table-hover" id="tblOutAssetDetails" style="width: 100%;">
+                                    <thead class="ibox-title">
+                                        <tr>
+                                            <th class="Out_tdSequence">Sr. No.</th>
+                                            <th class="Out_tdGateOutChalanNo">Gate Out Challan No</th>
+                                            <th class="Out_tdGateOutChalanDate">Out Challan Entered Date</th>
+                                            <th class="Out_tdBarcodeID">Barcode ID</th>
+                                            <th class="Out_tdBarcodeSeqNo">Box No</th>
+                                            <th class="Out_tdAssetRefID">Asset Ref ID</th>
+                                            <th class="Out_tdAssetDescription">In Asset Desc</th>
+                                            <th class="Out_tdAssetRemarks">Remarks</th>
+                                            <th class="Out_tdAction">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.WHOutAssetMaster.WHOutAssetDetailsList.Count; i++)
+                                        {
+                                            <tr>
+                                                <td class="Out_tdSequence">
+                                                    @Html.HiddenFor(m => m.WHOutAssetMaster.WHOutAssetDetailsList[i].OutMasterID, new { @class = "Out_tdOutMasterID" })
+                                                    @Html.HiddenFor(m => m.WHOutAssetMaster.WHOutAssetDetailsList[i].OutDetailID, new { @class = "Out_tdOutDetailID" })
+                                                    @Html.HiddenFor(m => m.WHOutAssetMaster.WHOutAssetDetailsList[i].AssetDetID, new { @class = "Out_tdAssetDetID" })
+                                                </td>
+                                                <td class="Out_tdGateOutChalanNo">@Model.WHOutAssetMaster.WHOutAssetDetailsList[i].GateOutChalanNo</td>
+                                                <td class="Out_tdGateOutChalanDate">@Model.WHOutAssetMaster.WHOutAssetDetailsList[i].GateOutChalanDate</td>
+                                                <td class="Out_tdBarcodeID">@Model.WHOutAssetMaster.WHOutAssetDetailsList[i].BarcodeID</td>
+                                                <td class="Out_tdBarcodeSeqNo">@Model.WHOutAssetMaster.WHOutAssetDetailsList[i].BarcodeSeqNo</td>
+                                                <td class="Out_tdAssetRefID">@Model.WHOutAssetMaster.WHOutAssetDetailsList[i].AssetRefID</td>
+                                                <td class="Out_tdAssetDescription">@Model.WHOutAssetMaster.WHOutAssetDetailsList[i].AssetDescription</td>
+                                                <td class="Out_tdAssetRemarks">@Model.WHOutAssetMaster.WHOutAssetDetailsList[i].AssetRemarks</td>
+                                                <td class="Out_tdAction">
+                                                    <button type="button" value="Edit" class="btnEditOutAssetDetails btn btn-sm btn-primary pull-left" onclick="EditOutAssetDetails(this);" title="Edit"><i class="glyphicon glyphicon-pencil"></i></button>
+                                                    <button type="button" value="Delete" class="btnDeleteOutAssetDetails btn btn-sm btn-danger pull-left" onclick="DeleteOutAssetDetails(this);" title="Delete"><i class="glyphicon glyphicon-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div role="tabpanel" class="@(ActiveTab == "DMS" ? "tab-pane tab-panecontainer active" : "tab-pane tab-panecontainer")" id="DMS">
+                    <div class="row tab-panecontainer">
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>DMS</legend>
+                            <div id="dvDocUploadPartial" class="m-t-sm m-n pad-none">
+                                @Html.Partial("_DocUploadPartial")
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div role="tabpanel" class="@(ActiveTab == "Bingo Sheet" ? "tab-pane tab-panecontainer active" : "tab-pane tab-panecontainer")" id="BingoSheet">
+                    <div class="row tab-panecontainer">
+                        <fieldset class="col-md-12 border m-n">
+                            <legend>Bingo Sheet</legend>
+                            <div id="dvDocUploadPartial" class="m-t-sm m-n pad-none">
+                                @Html.Partial("_BingoSheetPartial")
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+
+    <script type="text/javascript">
+        var rowIndex = 0;
+        $(document).ready(function () {
+            //Bind Dropdown Controls
+            AjaxFillDropDown('#Out_OutLocCityID', "@Url.Action("GetCityList", "WHAssetManagement")");
+            AjaxFillDropDown('#Out_OutLocCityID', "@Url.Action("GetCityList", "WHAssetManagement")", '@Model.WHOutAssetMaster.OutLocCityID');
+
+            $('.datepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'auto',
+                    vertical: 'auto'
+                }
+            });
+            $('.datetimepicker').datetimepicker({
+                maxDate: new Date(),
+                format: 'DD-MMM-YYYY HH:mm',
+                sideBySide: true,
+                widgetPositioning: {
+                    horizontal: 'auto',
+                    vertical: 'auto'
+                }
+            });
+
+            $('input[type="radio"][name="WHOutAssetMaster.AddressType"]').change(function () {
+                if (this.value == 'Origin') {
+                    GetInOutWHDeliveryAddress('O');
+                }
+                else if (this.value == 'Destination') {
+                    GetInOutWHDeliveryAddress('D');
+                }
+            });
+
+            if (@MoveID > 0) {
+                $('#In_MoveID').prop('disabled', true).removeClass('enableselect');
+                if ($('#In_MoveID').data('select2')) {
+                    $('#In_MoveID').select2('destroy');
+                }
+            }
+
+            $('#Loc_LiftVanID').on('change', function () {
+                LiftVanChange();
+            });
+            LiftVanChange();
+
+            $('#WHAssetManagementForm').submit(function (e) {
+                if (($('#ActiveTab').val() == 'Inward') && $("#tblInAssetMast tbody tr.ActiveInMastRow").length != 1) {
+                    e.preventDefault();
+                    swal({ title: "Error!", text: "Please select 1 inward asset master row.", type: "error" });
+                    return;
+                }
+                else if (($('#ActiveTab').val() == 'Location Map') && !ValidateForm()) {
+                    e.preventDefault();
+                    return;
+                }
+                else if ($('#ActiveTab').val() == 'Location Map') {
+                    data = [];
+                    $("#Loc_AssetList").find("option").each(function () {
+                        data.push($(this).attr("value"));
+                    });
+                    $("#Loc_AssetList").val(data);
+                }
+                else if (($('#ActiveTab').val() == 'Outward') && $("#tblOutAssetMast tbody tr.ActiveOutMastRow").length != 1) {
+                    e.preventDefault();
+                    swal({ title: "Error!", text: "Please select 1 outward asset master row.", type: "error" });
+                    return;
+                }
+
+                SetHiddenFieldValue();
+            });
+            $('li').click(function () {
+                $('#ActiveTab').val($(this).text());
+            });
+        });
+        function LiftVanChange() {
+            var LiftVanID = $('#Loc_LiftVanID').val();
+            var MoveID = $('#In_MoveID').val();
+            var jsonData = JSON.stringify({ 'LiftVanID': LiftVanID, 'MoveID': MoveID });
+
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetAssetLiftVanMapping", "WHAssetManagement")",
+                data: jsonData,
+                async: false,
+                success: function (data) {
+                    $('#Loc_AssetList').empty();
+                    $.each(data.AssetList, function (i, item) {
+                        $('#Loc_AssetList').append($('<option></option>').text(item.Text).val(item.Value));//.prop('selected', true));
+                    });
+
+                    $('#Loc_DefAssetList').empty();
+                    $.each(data.DefAssetList, function (i, item) {
+                        $('#Loc_DefAssetList').append($('<option>').text(item.Text).attr('value', item.Value));
+                    });
+
+                    $("#tblLiftVanDetails tbody").empty();
+
+                    var tbody = $("#tblLiftVanDetails > tbody")[0];
+
+                    $.each(data.OtherAssetList, function (i, item) {
+                        var rowId = tbody.rows.length + 1;
+                        var Loc_tdAssetDetails = '<input type="hidden" class="In_tdInMastID" name="InMastID" id="InMastID_' + (rowId) + '" value="' + item.InMastID + '" />' +
+                            '<input type="hidden" class="In_tdAssetDetID" name="InAssetDetID" id="InAssetDetID_' + (rowId) + '" value="' + item.AssetDetID + '" />';
+                        var row;
+                        //Add row
+                        row = tbody.insertRow(-1);
+
+                        //Add cell values
+                        var cell = $(row.insertCell(-1));
+                        cell.html(Loc_tdAssetDetails);
+                        cell.addClass("Loc_tdSequence");
+
+                        cell = $(row.insertCell(-1));
+                        cell.html(item.JobID);
+                        cell.addClass("Loc_tdJobID");
+
+                        cell = $(row.insertCell(-1));
+                        cell.html(item.BarcodeID);
+                        cell.addClass("Loc_tdBarcodeID");
+
+                        cell = $(row.insertCell(-1));
+                        cell.html(item.BarcodeSeqNo);
+                        cell.addClass("Loc_tdBarcodeSeqNo");
+
+                        cell = $(row.insertCell(-1));
+                        cell.html(item.AssetRefID);
+                        cell.addClass("Loc_tdAssetRefID");
+
+                        cell = $(row.insertCell(-1));
+                        cell.html(item.AssetDescription);
+                        cell.addClass("Loc_tdAssetDescription");
+
+                        cell = $(row.insertCell(-1));
+                        cell.html(item.AssetRemarks);
+                        cell.addClass("Loc_tdAssetRemarks");
+                    });
+
+                },
+                failure: function () {
+                    alert('error occured');
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert('error occured');
+                }
+            });
+        }
+        function ValidateForm() {
+            var Loc_LiftVanID = $("#Loc_LiftVanID").val() ? parseInt($("#Loc_LiftVanID").val()) : 0;
+            var Loc_AssetListCount = $("#Loc_AssetList option").length;
+
+            if (Loc_LiftVanID <= 0) {
+                swal({ title: "Error!", text: "Please select lift van.", type: "error" });
+                return false;
+            }
+            if (Loc_AssetListCount <= 0) {
+                swal({ title: "Error!", text: "Please select atleast one asset for selected lift van.", type: "error" });
+                return false;
+            }
+            return true;
+        }
+        //InMast-Start-------------------------------------------------------------------------------------------------------------------------------
+        function AddInAssetMast() {
+            if (!ValidateInAssetMast())
+                return false;
+
+            var InMastID = 0;
+            var MoveID = $('#In_MoveID').val();
+            var rowId = 1;
+
+            var table = $("#tblInAssetMast")[0];
+            if ($("#btnAddInAssetMast").val() != 'Add Details') {
+                InMastID = $("tr", table).eq(rowIndex).find('.InM_tdInMastID').val();
+                rowId = rowIndex;
+            }
+            else {
+                rowId = $("#tblInAssetMast tbody")[0].rows.length + 1;
+            }
+
+            var GateChallanNumber = $("#In_GateChallanNumber").val().trim();
+            var GateChalanDate = $("#In_GateChalanDate").val().trim();
+            var InDateTime = $("#In_InDateTime").val().trim();
+            var NoOfPackaage = $("#In_NoOfPackaage").val().trim();
+            var VolUnitID = $("#In_VolUnitID").val() ? parseInt($("#In_VolUnitID").val()) : "";
+            var VolUnit = "";
+            if (VolUnitID != "") VolUnit = $("#In_VolUnitID option:selected").text().trim();
+            var TotalVol = $("#In_TotalVol").val().trim();
+            var Remarks = $("#In_Remarks").val().trim();
+
+            var tbody = $("#tblInAssetMast > tbody")[0];
+
+            var InM_tdAssetMast = '<input type="hidden" class="InM_tdMoveID" name="MoveID" id="MoveID_' + (rowId) + '" value="' + MoveID + '" />' +
+                '<input type="hidden" class="InM_tdInMastID" name="InMastID" id="InMastID_' + (rowId) + '" value="' + InMastID + '" />' +
+                '<input type="hidden" class="InM_tdVolUnitID" name="VolUnitID" id="VolUnitID_' + (rowId) + '" value="' + VolUnitID + '" />';
+
+            var row;
+
+            //Add row
+            if (rowIndex != 0) {
+                table.deleteRow(rowIndex);
+                row = tbody.insertRow(rowIndex - 1);
+            }
+            else {
+                row = tbody.insertRow(-1);
+            }
+
+            //Add cell values
+            var cell = $(row.insertCell(-1));
+            cell.html(InM_tdAssetMast);
+            cell.addClass("InM_tdSequence");
+
+            cell = $(row.insertCell(-1));
+            cell.html(GateChallanNumber);
+            cell.addClass("InM_tdGateChallanNumber");
+
+            cell = $(row.insertCell(-1));
+            cell.html(GateChalanDate);
+            cell.addClass("InM_tdGateChalanDate");
+
+            cell = $(row.insertCell(-1));
+            cell.html(InDateTime);
+            cell.addClass("InM_tdInDateTime");
+
+            cell = $(row.insertCell(-1));
+            cell.html(NoOfPackaage);
+            cell.addClass("InM_tdNoOfPackaage");
+
+            cell = $(row.insertCell(-1));
+            cell.html(VolUnit);
+            cell.addClass("InM_tdVolUnit");
+
+            cell = $(row.insertCell(-1));
+            cell.html(TotalVol);
+            cell.addClass("InM_tdTotalVol");
+
+            cell = $(row.insertCell(-1));
+            cell.html(Remarks);
+            cell.addClass("InM_tdRemarks");
+
+            cell = $(row.insertCell(-1));
+            var btnEdit = $("<button><i class=\"glyphicon glyphicon-pencil\"></i></button>");
+            btnEdit.attr("type", "button");
+            btnEdit.attr("onclick", "EditInAssetMast(this);");
+            btnEdit.attr("class", "btnEditInAssetMast btn btn-sm btn-primary pull-left");
+
+            var btnView = $("<button><i class=\"glyphicon glyphicon-eye-open\"></i></button>");
+            btnView.attr("type", "button");
+            btnView.attr("onclick", "ViewInAssetMast(this, " + MoveID + ", " + InMastID + ");");
+            btnView.attr("class", "btnViewInAssetMast btn btn-sm btn-primary pull-left");
+            cell.append(btnEdit).append(btnView);
+
+            //Clear or fetch latest details Details row
+            if (InMastID > 0) {
+                $("#tblInAssetMast tbody tr").eq(rowIndex - 1).find('.btnViewInAssetMast').click();
+            }
+            else {
+                $("#tblInAssetDetails tbody tr").remove();
+                $("#tblInAssetMast tbody").find('tr').each(function () { $(this).removeClass('ActiveInMastRow') });
+                row.className = 'ActiveInMastRow';
+            }
+
+            //Clear the controls
+            ClearInAssetMast();
+
+            $("#btnAddInAssetMast").val('Add Details');
+            $("#tblInAssetMast").show();
+        }
+        function ValidateInAssetMast() {
+            var retVal = true;
+            var InDateTime = $("#In_InDateTime").val().trim();
+
+            if (InDateTime == "") {
+                retVal = false;
+                swal({ title: "Error!", text: "Please enter in date time.", type: "error" });
+            }
+            return retVal;
+        }
+        function ClearInAssetMast() {
+            $("#In_GateChallanNumber").val('');
+            $("#In_GateChalanDate").val('');
+            $("#In_InDateTime").val('');
+            $("#In_NoOfPackaage").val('');
+            $("#In_VolUnitID").val('');
+            $("#In_TotalVol").val('');
+            $("#In_Remarks").val('');
+
+            //remove class if edit is clicked
+            $("#tblInAssetMast tbody tr").each(function () {
+                $(this).removeClass('bg')
+            });
+
+            rowIndex = 0;
+            $("#btnAddInAssetMast").val('Add Details');
+            $("#btnSave").prop("disabled", false);
+        }
+        function EditInAssetMast(button) {
+            //Determine the reference of the row using the button.
+            var row = $(button).closest("tr");
+
+            $("#In_GateChallanNumber").val(row.find('.InM_tdGateChallanNumber').text().trim());
+            $("#In_GateChalanDate").val(row.find('.InM_tdGateChalanDate').text().trim());
+            $("#In_InDateTime").val(row.find('.InM_tdInDateTime').text().trim());
+            $("#In_NoOfPackaage").val(row.find('.InM_tdNoOfPackaage').text().trim());
+            $("#In_VolUnitID").val(row.find('.InM_tdVolUnitID').val());
+            $("#In_TotalVol").val(row.find('.InM_tdTotalVol').text().trim());
+            $("#In_Remarks").val(row.find('.InM_tdRemarks').text().trim());
+
+            row.closest('table').find('tr').each(function () { $(this).removeClass('bg') });
+            row.addClass('bg');
+            rowIndex = row[0].rowIndex;
+            $("#btnAddInAssetMast").val('Update Details');
+            $("#btnSave").prop("disabled", true);
+        }
+        function DeleteInAssetMast(button) {
+            //Determine the reference of the row using the button
+            var row = $(button).closest("tr");
+            var rowNo = row[0].rowIndex;
+            if (confirm("Do you want to delete row " + rowNo + " ?")) {
+                //Get the reference of the table
+                var table = $("#tblInAssetMast")[0];
+                //Delete the table row using row index.
+                table.deleteRow(row[0].rowIndex);
+
+                ClearInAssetMast();
+
+                if ($("#tblInAssetMast tbody")[0].rows.length == 0) {
+                    $("#tblInAssetMast").hide();
+                }
+            }
+        }
+        function ViewInAssetMast(button, MoveID, InMastID) {
+            if (button != null) {
+                var row = $(button).closest("tr");
+                row.closest('table').find('tr').each(function () { $(this).removeClass('ActiveInMastRow') });
+                row.addClass('ActiveInMastRow');
+            }
+            else {
+                $("#tblInAssetMast tbody").find('tr').each(function () { $(this).removeClass('ActiveInMastRow') });
+            }
+
+            if (MoveID > 0) {
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    url: "@Url.Action("GetInAssetDetails", "WHAssetManagement")",
+                    data: "{MoveID:'" + MoveID + "', InMastID:'" + InMastID + "'}",
+                    async: false,
+                    success: function (data) {
+                        $("#tblInAssetDetails tbody tr").remove();
+
+                        $(data).each(function (rowId, itm) {
+                            //Create new row for each record
+                            var row = $("<tr></tr>").appendTo("#tblInAssetDetails tbody");
+
+                            var In_tdAssetDetails = '<input type="hidden" class="In_tdInMastID" name="InMastID" id="InMastID_' + (rowId) + '" value="' + InMastID + '" />' +
+                                '<input type="hidden" class="In_tdAssetDetID" name="InAssetDetID" id="InAssetDetID_' + (rowId) + '" value="' + itm.AssetDetID + '" />' +
+                                '<input type="hidden" class="In_tdVolumeUnitID" name="InVolumeUnitID" id="InVolumeUnitID_' + (rowId) + '" value="' + itm.VolumeUnitID + '" />' +
+                                '<input type="hidden" class="In_tdDimentionUnitID" name="InDimentionUnitID" id="InDimentionUnitID_' + (rowId) + '" value="' + itm.DimentionUnitID + '" />';
+
+                            $("<td></td>").html(In_tdAssetDetails).addClass('In_tdSequence').appendTo(row);
+                            $("<td></td>").text(itm.GateChallanNumber).addClass("In_tdGateChallanNumber").appendTo(row);
+                            $("<td></td>").text(itm.GateChalanDate).addClass("In_tdGateChalanDate").appendTo(row);
+                            $("<td></td>").text(itm.BarcodeID).addClass("In_tdBarcodeID").appendTo(row);
+                            $("<td></td>").text(itm.BarcodeSeqNo).addClass("In_tdBarcodeSeqNo").appendTo(row);
+                            $("<td></td>").text(itm.AssetRefID).addClass("In_tdAssetRefID").appendTo(row);
+                            $("<td></td>").text(itm.AssetDescription).addClass("In_tdAssetDescription").appendTo(row);
+                            $("<td></td>").text(itm.VolumeUnit).addClass("In_tdVolumeUnit").appendTo(row);
+                            $("<td></td>").text(itm.AssetVol).addClass("In_tdAssetVol").appendTo(row);
+                            $("<td></td>").text(itm.DimentionUnit).addClass("In_tdDimentionUnit").appendTo(row);
+                            $("<td></td>").text(itm.AssetDimL).addClass("In_tdAssetDimL").appendTo(row);
+                            $("<td></td>").text(itm.AssetDimB).addClass("In_tdAssetDimB").appendTo(row);
+                            $("<td></td>").text(itm.AssetDimH).addClass("In_tdAssetDimH").appendTo(row);
+                            $("<td></td>").text(itm.AssetRemarks).addClass("In_tdAssetRemarks").appendTo(row);
+
+                            var btnEdit = $("<button><i class=\"glyphicon glyphicon-pencil\"></i></button>");
+                            btnEdit.attr("type", "button");
+                            btnEdit.attr("onclick", "EditInAssetDetails(this);");
+                            btnEdit.attr("class", "btnEditInAssetDetails btn btn-sm btn-primary pull-left");
+
+                            var btnDelete = $("<button><i class=\"glyphicon glyphicon-trash\"></i></button>");
+                            btnDelete.attr("type", "button");
+                            btnDelete.attr("onclick", "DeleteInAssetDetails(this);");
+                            btnDelete.attr("class", "btnDeleteInAssetDetails btn btn-sm btn-danger pull-left");
+
+                            $("<td></td>").append(btnEdit).append(btnDelete).addClass('In_tdAction').appendTo(row);
+                        });
+                    },
+                    failure: function () {
+                        alert('error occured');
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert('error occured');
+                    }
+                });
+            }
+        }
+        //InMast-End-------------------------------------------------------------------------------------------------------------------------------
+        //InDet-Start-------------------------------------------------------------------------------------------------------------------------------
+        function AddInAssetDetails() {
+            if (!ValidateInAssetDetails())
+                return false;
+
+            var InMastID = $("#tblInAssetMast tbody tr.ActiveInMastRow").find('.InM_tdInMastID').val();
+            var GateChallanNumber = $("#tblInAssetMast tbody tr.ActiveInMastRow").find('.InM_tdGateChallanNumber').text().trim();
+            var GateChalanDate = $("#tblInAssetMast tbody tr.ActiveInMastRow").find('.InM_tdGateChalanDate').text().trim();
+
+            var AssetDetID = 0;
+            var rowId = 1;
+
+            var table = $("#tblInAssetDetails")[0];
+            if ($("#btnAddInAssetDetails").val() != 'Add Details') {
+                AssetDetID = $("tr", table).eq(rowIndex).find('.In_tdAssetDetID').val();
+                rowId = rowIndex;
+            }
+            else {
+                rowId = $("#tblInAssetDetails tbody")[0].rows.length + 1;
+            }
+
+            var BarcodeID = $("#In_BarcodeID").val().trim();
+            var BarcodeSeqNo = $("#In_BarcodeSeqNo").val().trim();
+            var AssetRefID = $("#In_AssetRefID").val().trim();
+            var AssetDescription = $("#In_AssetDescription").val().trim();
+            var VolumeUnitID = $("#In_VolumeUnitID").val() ? parseInt($("#In_VolumeUnitID").val()) : "";
+            var VolumeUnit = "";
+            if (VolumeUnitID != "") VolumeUnit = $("#In_VolumeUnitID option:selected").text().trim();
+            var AssetVol = $("#In_AssetVol").val().trim();
+            var DimentionUnitID = $("#In_DimentionUnitID").val() ? parseInt($("#In_DimentionUnitID").val()) : "";
+            var DimentionUnit = "";
+            if (DimentionUnitID != "") DimentionUnit = $("#In_DimentionUnitID option:selected").text().trim();
+            var AssetDimL = $("#In_AssetDimL").val().trim();
+            var AssetDimB = $("#In_AssetDimB").val().trim();
+            var AssetDimH = $("#In_AssetDimH").val().trim();
+            var AssetRemarks = $("#In_AssetRemarks").val().trim();
+
+            var tbody = $("#tblInAssetDetails > tbody")[0];
+
+            var In_tdAssetDetails = '<input type="hidden" class="In_tdInMastID" name="InMastID" id="InMastID_' + (rowId) + '" value="' + InMastID + '" />' +
+                '<input type="hidden" class="In_tdAssetDetID" name="InAssetDetID" id="InAssetDetID_' + (rowId) + '" value="' + AssetDetID + '" />' +
+                '<input type="hidden" class="In_tdVolumeUnitID" name="InVolumeUnitID" id="InVolumeUnitID_' + (rowId) + '" value="' + VolumeUnitID + '" />' +
+                '<input type="hidden" class="In_tdDimentionUnitID" name="InDimentionUnitID" id="InDimentionUnitID_' + (rowId) + '" value="' + DimentionUnitID + '" />';
+
+            var row;
+
+            //Add row
+            if (rowIndex != 0) {
+                table.deleteRow(rowIndex);
+                row = tbody.insertRow(rowIndex - 1);
+            }
+            else {
+                row = tbody.insertRow(-1);
+            }
+
+            //Add cell values
+            var cell = $(row.insertCell(-1));
+            cell.html(In_tdAssetDetails);
+            cell.addClass("In_tdSequence");
+
+            cell = $(row.insertCell(-1));
+            cell.html(GateChallanNumber);
+            cell.addClass("In_tdGateChallanNumber");
+
+            cell = $(row.insertCell(-1));
+            cell.html(GateChalanDate);
+            cell.addClass("In_tdGateChalanDate");
+
+            cell = $(row.insertCell(-1));
+            cell.html(BarcodeID);
+            cell.addClass("In_tdBarcodeID");
+
+            cell = $(row.insertCell(-1));
+            cell.html(BarcodeSeqNo);
+            cell.addClass("In_tdBarcodeSeqNo");
+
+            cell = $(row.insertCell(-1));
+            cell.html(AssetRefID);
+            cell.addClass("In_tdAssetRefID");
+
+            cell = $(row.insertCell(-1));
+            cell.html(AssetDescription);
+            cell.addClass("In_tdAssetDescription");
+
+            cell = $(row.insertCell(-1));
+            cell.html(VolumeUnit);
+            cell.addClass("In_tdVolumeUnit");
+
+            cell = $(row.insertCell(-1));
+            cell.html(AssetVol);
+            cell.addClass("In_tdAssetVol");
+
+            cell = $(row.insertCell(-1));
+            cell.html(DimentionUnit);
+            cell.addClass("In_tdDimentionUnit");
+
+            cell = $(row.insertCell(-1));
+            cell.html(AssetDimL);
+            cell.addClass("In_tdAssetDimL");
+
+            cell = $(row.insertCell(-1));
+            cell.html(AssetDimB);
+            cell.addClass("In_tdAssetDimB");
+
+            cell = $(row.insertCell(-1));
+            cell.html(AssetDimH);
+            cell.addClass("In_tdAssetDimH");
+
+            cell = $(row.insertCell(-1));
+            cell.html(AssetRemarks);
+            cell.addClass("In_tdAssetRemarks");
+
+            cell = $(row.insertCell(-1));
+            var btnEdit = $("<button><i class=\"glyphicon glyphicon-pencil\"></i></button>");
+            btnEdit.attr("type", "button");
+            btnEdit.attr("onclick", "EditInAssetDetails(this);");
+            btnEdit.attr("class", "btnEditInAssetDetails btn btn-sm btn-primary pull-left");
+
+            var btnDelete = $("<button><i class=\"glyphicon glyphicon-trash\"></i></button>");
+            btnDelete.attr("type", "button");
+            btnDelete.attr("onclick", "DeleteInAssetDetails(this);");
+            btnDelete.attr("class", "btnDeleteInAssetDetails btn btn-sm btn-danger pull-left");
+            cell.append(btnEdit).append(btnDelete);
+
+            //Clear the controls
+            ClearInAssetDetails();
+
+            $("#btnAddInAssetDetails").val('Add Details');
+            $("#tblInAssetDetails").show();
+        }
+        function ValidateInAssetDetails() {
+            var retVal = true;
+            var BarcodeSeqNo = $("#In_BarcodeSeqNo").val().trim();
+
+            if ($("#tblInAssetMast tbody tr.ActiveInMastRow").length == 0) {
+                retVal = false;
+                swal({ title: "Error!", text: "Please add inward asset master row.", type: "error" });
+            }
+            else if (BarcodeSeqNo == "") {
+                retVal = false;
+                swal({ title: "Error!", text: "Please enter box number.", type: "error" });
+            }
+            else if (BarcodeSeqNo != "") {
+                $("#tblInAssetDetails tbody tr").not('.bg').each(function () {
+                    var In_tdBarcodeSeqNo = $(this).find('.In_tdBarcodeSeqNo').text().trim();
+                    if (In_tdBarcodeSeqNo == BarcodeSeqNo) {
+                        retVal = false;
+                        swal({ title: "Error!", text: "Box number already exists.", type: "error" });
+                        return false;
+                    }
+                });
+                if (retVal) {
+                    if (!ValidateBoxNo(BarcodeSeqNo) && ($("#tblInAssetDetails tbody tr.bg").find('.In_tdBarcodeSeqNo').text() != BarcodeSeqNo)) {
+                        retVal = false;
+                        swal({ title: "Error!", text: "Box number already exists for this move.", type: "error" });
+                    }
+                }
+            }
+            return retVal;
+        }
+        function ClearInAssetDetails() {
+            $("#In_BarcodeID").val('');
+            $("#In_BarcodeSeqNo").val('');
+            $("#In_AssetRefID").val('');
+            $("#In_AssetDescription").val('');
+            $("#In_VolumeUnitID").val('');
+            $("#In_AssetVol").val('');
+            $("#In_DimentionUnitID").val('');
+            $("#In_AssetDimL").val('');
+            $("#In_AssetDimB").val('');
+            $("#In_AssetDimH").val('');
+            $("#In_AssetRemarks").val('');
+
+            //remove class if edit is clicked
+            $("#tblInAssetDetails tbody tr").each(function () {
+                $(this).removeClass('bg')
+            });
+
+            rowIndex = 0;
+            $("#btnAddInAssetDetails").val('Add Details');
+            $("#btnSave").prop("disabled", false);
+        }
+        function EditInAssetDetails(button) {
+            //Determine the reference of the row using the button.
+            var row = $(button).closest("tr");
+
+            $("#In_BarcodeID").val(row.find('.In_tdBarcodeID').text().trim());
+            $("#In_BarcodeSeqNo").val(row.find('.In_tdBarcodeSeqNo').text().trim());
+            $("#In_AssetRefID").val(row.find('.In_tdAssetRefID').text().trim());
+            $("#In_AssetDescription").val(row.find('.In_tdAssetDescription').text().trim());
+            $("#In_VolumeUnitID").val(row.find('.In_tdVolumeUnitID').val());
+            $("#In_AssetVol").val(row.find('.In_tdAssetVol').text().trim());
+            $("#In_DimentionUnitID").val(row.find('.In_tdDimentionUnitID').val());
+            $("#In_AssetDimL").val(row.find('.In_tdAssetDimL').text().trim());
+            $("#In_AssetDimB").val(row.find('.In_tdAssetDimB').text().trim());
+            $("#In_AssetDimH").val(row.find('.In_tdAssetDimH').text().trim());
+            $("#In_AssetRemarks").val(row.find('.In_tdAssetRemarks').text().trim());
+
+            row.closest('table').find('tr').each(function () { $(this).removeClass('bg') });
+            row.addClass('bg');
+            rowIndex = row[0].rowIndex;
+            $("#btnAddInAssetDetails").val('Update Details');
+            $("#btnSave").prop("disabled", true);
+        }
+        function DeleteInAssetDetails(button) {
+            //Determine the reference of the row using the button
+            var row = $(button).closest("tr");
+            var rowNo = row[0].rowIndex;
+            if (confirm("Do you want to delete row " + rowNo + " ?")) {
+                //Get the reference of the table
+                var table = $("#tblInAssetDetails")[0];
+                //Delete the table row using row index.
+                table.deleteRow(row[0].rowIndex);
+
+                ClearInAssetDetails();
+
+                if ($("#tblInAssetDetails tbody")[0].rows.length == 0) {
+                    $("#tblInAssetDetails").hide();
+                }
+            }
+        }
+        //InDet-End-------------------------------------------------------------------------------------------------------------------------------
+        //OutMast-Start-------------------------------------------------------------------------------------------------------------------------------
+        function AddOutAssetMast() {
+            if (!ValidateOutAssetMast())
+                return false;
+
+            var OutMasterID = 0;
+            var MoveID = $('#In_MoveID').val();
+            var rowId = 1;
+
+            var table = $("#tblOutAssetMast")[0];
+            if ($("#btnAddOutAssetMast").val() != 'Add Details') {
+                OutMasterID = $("tr", table).eq(rowIndex).find('.OutM_tdOutMasterID').val();
+                rowId = rowIndex;
+            }
+            else {
+                rowId = $("#tblOutAssetMast tbody")[0].rows.length + 1;
+            }
+
+            var GateOutChalanNo = $("#Out_GateOutChalanNo").val().trim();
+            var GateOutChalanDate = $("#Out_GateOutChalanDate").val().trim();
+            var OutDateTime = $("#Out_OutDateTime").val().trim();
+            var OutNoPackage = $("#Out_OutNoPackage").val().trim();
+            var OutVolumeUnitID = $("#Out_OutVolumeUnitID").val() ? parseInt($("#Out_OutVolumeUnitID").val()) : "";
+            var OutVolumeUnit = "";
+            if (OutVolumeUnitID != "") OutVolumeUnit = $("#Out_OutVolumeUnitID option:selected").text().trim();
+            var OutVolume = $("#Out_OutVolume").val().trim();
+            var OutLocName = $("#Out_OutLocName").val().trim();
+            var OutLocAdd1 = $("#Out_OutLocAdd1").val().trim();
+            var OutLocAdd2 = $("#Out_OutLocAdd2").val().trim();
+            var OutLocCityID = $("#Out_OutLocCityID").val() ? parseInt($("#Out_OutLocCityID").val()) : "";
+            var OutLocCity = "";
+            if (OutLocCityID != "") OutLocCity = $("#Out_OutLocCityID option:selected").text().trim();
+            var OutLocPinCode = $("#Out_OutLocPinCode").val().trim();
+            var OutLocPhone = $("#Out_OutLocPhone").val().trim();
+            var OutLocContactPerson = $("#Out_OutLocContactPerson").val().trim();
+            var DeliveryProofNo = $("#Out_DeliveryProofNo").val().trim();
+            var IsProofUploaded = $("#Out_IsProofUploaded").prop('checked') == true ? "Yes" : "No";
+            var Remarks = $("#Out_Remarks").val().trim();
+
+            var tbody = $("#tblOutAssetMast > tbody")[0];
+
+            var OutM_tdAssetMast = '<input type="hidden" class="OutM_tdMoveID" name="MoveID" id="MoveID_' + (rowId) + '" value="' + MoveID + '" />' +
+                '<input type="hidden" class="OutM_tdOutMasterID" name="OutMasterID" id="OutMasterID_' + (rowId) + '" value="' + OutMasterID + '" />' +
+                '<input type="hidden" class="OutM_tdOutVolumeUnitID" name="OutVolumeUnitID" id="OutVolumeUnitID_' + (rowId) + '" value="' + OutVolumeUnitID + '" />' +
+                '<input type="hidden" class="OutM_tdOutLocCityID" name="OutLocCityID" id="OutLocCityID_' + (rowId) + '" value="' + OutLocCityID + '" />';
+
+            var row;
+
+            //Add row
+            if (rowIndex != 0) {
+                table.deleteRow(rowIndex);
+                row = tbody.insertRow(rowIndex - 1);
+            }
+            else {
+                row = tbody.insertRow(-1);
+            }
+
+            //Add cell values
+            var cell = $(row.insertCell(-1));
+            cell.html(OutM_tdAssetMast);
+            cell.addClass("OutM_tdSequence");
+
+            cell = $(row.insertCell(-1));
+            cell.html(GateOutChalanNo);
+            cell.addClass("OutM_tdGateOutChalanNo");
+
+            cell = $(row.insertCell(-1));
+            cell.html(GateOutChalanDate);
+            cell.addClass("OutM_tdGateOutChalanDate");
+
+            cell = $(row.insertCell(-1));
+            cell.html(OutDateTime);
+            cell.addClass("OutM_tdOutDateTime");
+
+            cell = $(row.insertCell(-1));
+            cell.html(OutNoPackage);
+            cell.addClass("OutM_tdOutNoPackage");
+
+            cell = $(row.insertCell(-1));
+            cell.html(OutVolumeUnit);
+            cell.addClass("OutM_tdOutVolumeUnit");
+
+            cell = $(row.insertCell(-1));
+            cell.html(OutVolume);
+            cell.addClass("OutM_tdOutVolume");
+
+            cell = $(row.insertCell(-1));
+            cell.html(OutLocName);
+            cell.addClass("OutM_tdOutLocName");
+
+            cell = $(row.insertCell(-1));
+            cell.html(OutLocAdd1);
+            cell.addClass("OutM_tdOutLocAdd1");
+
+            cell = $(row.insertCell(-1));
+            cell.html(OutLocAdd2);
+            cell.addClass("OutM_tdOutLocAdd2");
+
+            cell = $(row.insertCell(-1));
+            cell.html(OutLocCity);
+            cell.addClass("OutM_tdOutLocCity");
+
+            cell = $(row.insertCell(-1));
+            cell.html(OutLocPinCode);
+            cell.addClass("OutM_tdOutLocPinCode");
+
+            cell = $(row.insertCell(-1));
+            cell.html(OutLocPhone);
+            cell.addClass("OutM_tdOutLocPhone");
+
+            cell = $(row.insertCell(-1));
+            cell.html(OutLocContactPerson);
+            cell.addClass("OutM_tdOutLocContactPerson");
+
+            cell = $(row.insertCell(-1));
+            cell.html(DeliveryProofNo);
+            cell.addClass("OutM_tdDeliveryProofNo");
+
+            cell = $(row.insertCell(-1));
+            cell.html(IsProofUploaded);
+            cell.addClass("OutM_tdIsProofUploaded");
+
+            cell = $(row.insertCell(-1));
+            cell.html(Remarks);
+            cell.addClass("OutM_tdRemarks");
+
+            cell = $(row.insertCell(-1));
+            var btnEdit = $("<button><i class=\"glyphicon glyphicon-pencil\"></i></button>");
+            btnEdit.attr("type", "button");
+            btnEdit.attr("onclick", "EditOutAssetMast(this);");
+            btnEdit.attr("class", "btnEditOutAssetMast btn btn-sm btn-primary pull-left");
+
+            var btnView = $("<button><i class=\"glyphicon glyphicon-eye-open\"></i></button>");
+            btnView.attr("type", "button");
+            btnView.attr("onclick", "ViewOutAssetMast(this, " + MoveID + ", " + OutMasterID + ");");
+            btnView.attr("class", "btnViewOutAssetMast btn btn-sm btn-primary pull-left");
+            cell.append(btnEdit).append(btnView);
+
+            //Clear or fetch latest details Details row
+            if (OutMasterID > 0) {
+                $("#tblOutAssetMast tbody tr").eq(rowIndex - 1).find('.btnViewOutAssetMast').click();
+            }
+            else {
+                $("#tblOutAssetDetails tbody tr").remove();
+                $("#tblOutAssetMast tbody").find('tr').each(function () { $(this).removeClass('ActiveOutMastRow') });
+                row.className = 'ActiveOutMastRow';
+            }
+
+            //Clear the controls
+            ClearOutAssetMast();
+
+            $("#btnAddOutAssetMast").val('Add Details');
+            $("#tblOutAssetMast").show();
+        }
+        function ValidateOutAssetMast() {
+            var retVal = true;
+            var OutDateTime = $("#Out_OutDateTime").val().trim();
+
+            if (OutDateTime == "") {
+                retVal = false;
+                swal({ title: "Error!", text: "Please enter out date time.", type: "error" });
+            }
+            return retVal;
+        }
+        function ClearOutAssetMast() {
+            $("#Out_GateOutChalanNo").val('');
+            $("#Out_GateOutChalanDate").val('');
+            $("#Out_OutDateTime").val('');
+            $("#Out_OutNoPackage").val('');
+            $("#Out_OutVolumeUnitID").val('');
+            $("#Out_OutVolume").val('');
+            $("#Out_OutLocName").val('');
+            $("#Out_OutLocAdd1").val('');
+            $("#Out_OutLocAdd2").val('');
+            $("#Out_OutLocCityID").val(null).trigger('change');
+            AjaxFillDropDown('#Out_OutLocCityID', "@Url.Action("GetCityList", "WHAssetManagement")");
+            $("#Out_OutLocPinCode").val('');
+            $("#Out_OutLocPhone").val('');
+            $("#Out_OutLocContactPerson").val('');
+            $("#Out_DeliveryProofNo").val('');
+            $("#Out_IsProofUploaded").prop('checked', false);
+            $("#Out_Remarks").val('');
+
+            //remove class if edit is clicked
+            $("#tblOutAssetMast tbody tr").each(function () {
+                $(this).removeClass('bg')
+            });
+
+            rowIndex = 0;
+            $("#btnAddOutAssetMast").val('Add Details');
+            $("#btnSave").prop("disabled", false);
+        }
+        function EditOutAssetMast(button) {
+            //Determine the reference of the row using the button.
+            var row = $(button).closest("tr");
+
+            $("#Out_GateOutChalanNo").val(row.find('.OutM_tdGateOutChalanNo').text().trim());
+            $("#Out_GateOutChalanDate").val(row.find('.OutM_tdGateOutChalanDate').text().trim());
+            $("#Out_OutDateTime").val(row.find('.OutM_tdOutDateTime').text().trim());
+            $("#Out_OutNoPackage").val(row.find('.OutM_tdOutNoPackage').text().trim());
+            $("#Out_OutVolumeUnitID").val(row.find('.OutM_tdOutVolumeUnitID').val());
+            $("#Out_OutVolume").val(row.find('.OutM_tdOutVolume').text().trim());
+            $("#Out_OutLocName").val(row.find('.OutM_tdOutLocName').text().trim());
+            $("#Out_OutLocAdd1").val(row.find('.OutM_tdOutLocAdd1').text().trim());
+            $("#Out_OutLocAdd2").val(row.find('.OutM_tdOutLocAdd2').text().trim());
+            var OutLocCityID = row.find('.OutM_tdOutLocCityID').val();
+            var OutLocCity = row.find('.OutM_tdOutLocCity').text().trim();
+            var newOption = new Option(OutLocCity, OutLocCityID, true, true);
+            $("#Out_OutLocCityID").append(newOption).trigger('change');
+            $("#Out_OutLocPinCode").val(row.find('.OutM_tdOutLocPinCode').text().trim());
+            $("#Out_OutLocPhone").val(row.find('.OutM_tdOutLocPhone').text().trim());
+            $("#Out_OutLocContactPerson").val(row.find('.OutM_tdOutLocContactPerson').text().trim());
+            $("#Out_DeliveryProofNo").val(row.find('.OutM_tdDeliveryProofNo').text().trim());
+            $("#Out_IsProofUploaded").prop('checked', row.find('.OutM_tdIsProofUploaded').text().trim() == "Yes" ? true : false);
+            $("#Out_Remarks").val(row.find('.OutM_tdRemarks').text().trim());
+
+            row.closest('table').find('tr').each(function () { $(this).removeClass('bg') });
+            row.addClass('bg');
+            rowIndex = row[0].rowIndex;
+            $("#btnAddOutAssetMast").val('Update Details');
+            $("#btnSave").prop("disabled", true);
+        }
+        function DeleteOutAssetMast(button) {
+            //Determine the reference of the row using the button
+            var row = $(button).closest("tr");
+            var rowNo = row[0].rowIndex;
+            if (confirm("Do you want to delete row " + rowNo + " ?")) {
+                //Get the reference of the table
+                var table = $("#tblInAssetMast")[0];
+                //Delete the table row using row index.
+                table.deleteRow(row[0].rowIndex);
+
+                ClearOutAssetMast();
+
+                if ($("#tblInAssetMast tbody")[0].rows.length == 0) {
+                    $("#tblInAssetMast").hide();
+                }
+            }
+        }
+        function ViewOutAssetMast(button, MoveID, OutMasterID) {
+            if (button != null) {
+                var row = $(button).closest("tr");
+                row.closest('table').find('tr').each(function () { $(this).removeClass('ActiveOutMastRow') });
+                row.addClass('ActiveOutMastRow');
+            }
+            else {
+                $("#tblOutAssetMast tbody").find('tr').each(function () { $(this).removeClass('ActiveOutMastRow') });
+            }
+
+            if (MoveID > 0) {
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    url: "@Url.Action("GetOutAssetDetails", "WHAssetManagement")",
+                    data: "{MoveID:'" + MoveID + "', OutMasterID:'" + OutMasterID + "'}",
+                    async: false,
+                    success: function (data) {
+                        $("#tblOutAssetDetails tbody tr").remove();
+
+                        $(data).each(function (rowId, itm) {
+                            //Create new row for each record
+                            var row = $("<tr></tr>").appendTo("#tblOutAssetDetails tbody");
+
+                            var Out_tdAssetDetails = '<input type="hidden" class="Out_tdOutMasterID" name="OutMasterID" id="OutMasterID_' + (rowId) + '" value="' + OutMasterID + '" />' +
+                                '<input type="hidden" class="Out_tdOutDetailID" name="OutDetailID" id="OutDetailID_' + (rowId) + '" value="' + itm.OutDetailID + '" />' +
+                                '<input type="hidden" class="Out_tdAssetDetID" name="AssetDetID" id="AssetDetID_' + (rowId) + '" value="' + itm.AssetDetID + '" />';
+
+                            $("<td></td>").html(Out_tdAssetDetails).addClass('Out_tdSequence').appendTo(row);
+                            $("<td></td>").text(itm.GateOutChalanNo).addClass("Out_tdGateOutChalanNo").appendTo(row);
+                            $("<td></td>").text(itm.GateOutChalanDate).addClass("Out_tdGateOutChalanDate").appendTo(row);
+                            $("<td></td>").text(itm.BarcodeID).addClass("Out_tdBarcodeID").appendTo(row);
+                            $("<td></td>").text(itm.BarcodeSeqNo).addClass("Out_tdBarcodeSeqNo").appendTo(row);
+                            $("<td></td>").text(itm.AssetRefID).addClass("Out_tdAssetRefID").appendTo(row);
+                            $("<td></td>").text(itm.AssetDescription).addClass("Out_tdAssetDescription").appendTo(row);
+                            $("<td></td>").text(itm.AssetRemarks).addClass("Out_tdAssetRemarks").appendTo(row);
+
+                            var btnEdit = $("<button><i class=\"glyphicon glyphicon-pencil\"></i></button>");
+                            btnEdit.attr("type", "button");
+                            btnEdit.attr("onclick", "EditOutAssetDetails(this);");
+                            btnEdit.attr("class", "btnEditOutAssetDetails btn btn-sm btn-primary pull-left");
+
+                            var btnDelete = $("<button><i class=\"glyphicon glyphicon-trash\"></i></button>");
+                            btnDelete.attr("type", "button");
+                            btnDelete.attr("onclick", "DeleteOutAssetDetails(this);");
+                            btnDelete.attr("class", "btnDeleteOutAssetDetails btn btn-sm btn-danger pull-left");
+
+                            $("<td></td>").append(btnEdit).append(btnDelete).addClass('Out_tdAction').appendTo(row);
+                        });
+                    },
+                    failure: function () {
+                        alert('error occured');
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert('error occured');
+                    }
+                });
+            }
+        }
+        //OutMast-End-------------------------------------------------------------------------------------------------------------------------------
+        //OutDet-Start-------------------------------------------------------------------------------------------------------------------------------
+        function AddAllOutAssetDetails() {
+            $("#Out_AssetDetID option").each(function () {
+                if ($("#Out_AssetDetID option").length > 1) {
+                    $("#Out_AssetDetID option:eq(1)").prop('selected', true).trigger('change');
+                    AddOutAssetDetails();
+                }
+            });
+        }
+        function AddOutAssetDetails() {
+            if (!ValidateOutAssetDetails())
+                return false;
+
+            var OutMasterID = $("#tblOutAssetMast tbody tr.ActiveOutMastRow").find('.OutM_tdOutMasterID').val();
+            var GateOutChalanNo = $("#tblOutAssetMast tbody tr.ActiveOutMastRow").find('.OutM_tdGateOutChalanNo').text().trim();
+            var GateOutChalanDate = $("#tblOutAssetMast tbody tr.ActiveOutMastRow").find('.OutM_tdGateOutChalanDate').text().trim();
+
+            var OutDetailID = 0;
+            var rowId = 1;
+
+            var table = $("#tblOutAssetDetails")[0];
+            if ($("#btnAddOutAssetDetails").val() != 'Add Details') {
+                OutDetailID = $("tr", table).eq(rowIndex).find('.Out_tdOutDetailID').val();
+                rowId = rowIndex;
+            }
+            else {
+                rowId = $("#tblOutAssetDetails tbody")[0].rows.length + 1;
+            }
+
+            var AssetDetID = $("#Out_AssetDetID").val();
+            var AssetDet = $("#Out_AssetDetID option:selected").text().trim();
+
+            var AssetDetObj = GetDetailsByAssetDetID(AssetDetID);
+
+            var BarcodeSeqNo = AssetDetObj.BarcodeSeqNo;
+            var BarcodeID = AssetDetObj.BarcodeID;
+            var AssetRefID = AssetDetObj.AssetRefID;
+            var AssetDescription = AssetDetObj.AssetDescription;
+            var AssetRemarks = $("#Out_AssetRemarks").val().trim();
+
+            var tbody = $("#tblOutAssetDetails > tbody")[0];
+
+            var Out_tdAssetDetails = '<input type="hidden" class="Out_tdOutMasterID" name="OutMasterID" id="OutMasterID_' + (rowId) + '" value="' + OutMasterID + '" />' +
+                '<input type="hidden" class="Out_tdOutDetailID" name="OutDetailID" id="OutDetailID_' + (rowId) + '" value="' + OutDetailID + '" />' +
+                '<input type="hidden" class="Out_tdAssetDetID" name="AssetDetID" id="AssetDetID_' + (rowId) + '" value="' + AssetDetID + '" />';
+
+            var row;
+
+            //Add row
+            if (rowIndex != 0) {
+                table.deleteRow(rowIndex);
+                row = tbody.insertRow(rowIndex - 1);
+            }
+            else {
+                row = tbody.insertRow(-1);
+            }
+
+            //Add cell values
+            var cell = $(row.insertCell(-1));
+            cell.html(Out_tdAssetDetails);
+            cell.addClass("Out_tdSequence");
+
+            cell = $(row.insertCell(-1));
+            cell.html(GateOutChalanNo);
+            cell.addClass("Out_tdGateOutChalanNo");
+
+            cell = $(row.insertCell(-1));
+            cell.html(GateOutChalanDate);
+            cell.addClass("Out_tdGateOutChalanDate");
+
+            cell = $(row.insertCell(-1));
+            cell.html(BarcodeID);
+            cell.addClass("Out_tdBarcodeID");
+
+            cell = $(row.insertCell(-1));
+            cell.html(BarcodeSeqNo);
+            cell.addClass("Out_tdBarcodeSeqNo");
+
+            cell = $(row.insertCell(-1));
+            cell.html(AssetRefID);
+            cell.addClass("Out_tdAssetRefID");
+
+            cell = $(row.insertCell(-1));
+            cell.html(AssetDescription);
+            cell.addClass("Out_tdAssetDescription");
+
+            cell = $(row.insertCell(-1));
+            cell.html(AssetRemarks);
+            cell.addClass("Out_tdAssetRemarks");
+
+            cell = $(row.insertCell(-1));
+            var btnEdit = $("<button><i class=\"glyphicon glyphicon-pencil\"></i></button>");
+            btnEdit.attr("type", "button");
+            btnEdit.attr("onclick", "EditOutAssetDetails(this);");
+            btnEdit.attr("class", "btnEditOutAssetDetails btn btn-sm btn-primary pull-left");
+
+            var btnDelete = $("<button><i class=\"glyphicon glyphicon-trash\"></i></button>");
+            btnDelete.attr("type", "button");
+            btnDelete.attr("onclick", "DeleteOutAssetDetails(this);");
+            btnDelete.attr("class", "btnDeleteOutAssetDetails btn btn-sm btn-danger pull-left");
+            cell.append(btnEdit).append(btnDelete);
+
+            //Clear the controls
+            ClearOutAssetDetails();
+
+            $('#Out_AssetDetID option[value="' + AssetDetID + '"]').remove();
+
+            $("#btnAddOutAssetDetails").val('Add Details');
+            $("#tblOutAssetDetails").show();
+        }
+        function ValidateOutAssetDetails() {
+            var retVal = true;
+            var BoxNo = $("#Out_AssetDetID").val();
+
+            if ($("#tblOutAssetMast tbody tr.ActiveOutMastRow").length == 0) {
+                retVal = false;
+                swal({ title: "Error!", text: "Please add outward asset master row.", type: "error" });
+            }
+            else if (BoxNo == "") {
+                retVal = false;
+                swal({ title: "Error!", text: "Please select box number.", type: "error" });
+            }
+            return retVal;
+        }
+        function ClearOutAssetDetails() {
+            if (rowIndex > 0) {
+                var AssetDetID = $("#Out_AssetDetID").val();
+                $('#Out_AssetDetID option[value="' + AssetDetID + '"]').remove();
+            }
+            $("#Out_AssetDetID").val('').trigger('change');
+            $("#Out_AssetRemarks").val('');
+
+            //remove class if edit is clicked
+            $("#tblOutAssetDetails tbody tr").each(function () {
+                $(this).removeClass('bg')
+            });
+
+            rowIndex = 0;
+            $("#btnAddOutAssetDetails").val('Add Details');
+            $("#btnSave").prop("disabled", false);
+        }
+        function EditOutAssetDetails(button) {
+            //Determine the reference of the row using the button.
+            var row = $(button).closest("tr");
+
+            var AssetDetID = row.find('.Out_tdAssetDetID').val();
+            var BarcodeSeqNo = row.find('.Out_tdBarcodeSeqNo').text().trim();
+            var BarcodeID = row.find('.Out_tdBarcodeID').text().trim();
+            var AssetRefID = row.find('.Out_tdAssetRefID').text().trim();
+            var AssetDescription = row.find('.Out_tdAssetDescription').text().trim();
+
+            var Text = BarcodeSeqNo + '-' + BarcodeID + '-' + AssetRefID + '-' + AssetDescription;
+
+            if ($('#Out_AssetDetID option[value="' + AssetDetID + '"]').length == 0)
+                $('#Out_AssetDetID').append($('<option>').text(Text).attr('value', AssetDetID));
+
+            $("#Out_AssetDetID").val(AssetDetID).trigger('change');
+            $("#Out_AssetRemarks").val(row.find('.Out_tdAssetRemarks').text().trim());
+
+            row.closest('table').find('tr').each(function () { $(this).removeClass('bg') });
+            row.addClass('bg');
+            rowIndex = row[0].rowIndex;
+            $("#btnAddOutAssetDetails").val('Update Details');
+            $("#btnSave").prop("disabled", true);
+        }
+        function DeleteOutAssetDetails(button) {
+            //Determine the reference of the row using the button
+            var row = $(button).closest("tr");
+            var rowNo = row[0].rowIndex;
+            if (confirm("Do you want to delete row " + rowNo + " ?")) {
+                //Get the reference of the table
+                var table = $("#tblOutAssetDetails")[0];
+                //Delete the table row using row index.
+                table.deleteRow(row[0].rowIndex);
+                ClearOutAssetDetails();
+                if ($("#tblOutAssetDetails tbody")[0].rows.length == 0) {
+                    $("#tblOutAssetDetails").hide();
+                }
+            }
+        }
+        //OutDet-End-------------------------------------------------------------------------------------------------------------------------------
+        function SetHiddenFieldValue() {
+            //tblInAssetMast data
+            var ActiveInMastRow = $("#tblInAssetMast tbody tr.ActiveInMastRow");
+            $("#InMastID").val($(ActiveInMastRow).find('.InM_tdInMastID').val());
+            //$("#In_GateChallanNumber").val($(ActiveInMastRow).find('.InM_tdGateChallanNumber').text());
+            //$("#In_GateChalanDate").val($(ActiveInMastRow).find('.InM_tdGateChalanDate').text());
+            $("#In_InDateTime").val($(ActiveInMastRow).find('.InM_tdInDateTime').text());
+            $("#In_NoOfPackaage").val($(ActiveInMastRow).find('.InM_tdNoOfPackaage').text());
+            $("#In_VolUnitID").val($(ActiveInMastRow).find('.InM_tdVolUnitID').val());
+            $("#In_TotalVol").val($(ActiveInMastRow).find('.InM_tdTotalVol').text());
+            $("#In_Remarks").val($(ActiveInMastRow).find('.InM_tdRemarks').text());
+
+            //tblInAssetDetails data
+            var dataInAssetDetails = [];
+            $("#tblInAssetDetails tbody tr").each(function () {
+                var allDataInAssetDetails = {
+                    'AssetDetID': $(this).find('.In_tdAssetDetID').val() ? parseInt($(this).find('.In_tdAssetDetID').val()) : 0,
+                    'BarcodeID': $(this).find('.In_tdBarcodeID').text(),
+                    'BarcodeSeqNo': $(this).find('.In_tdBarcodeSeqNo').text() ? parseFloat($(this).find('.In_tdBarcodeSeqNo').text()) : 0,
+                    'AssetRefID': $(this).find('.In_tdAssetRefID').text(),
+                    'AssetDescription': $(this).find('.In_tdAssetDescription').text(),
+                    'AssetDimL': $(this).find('.In_tdAssetDimL').text() ? parseFloat($(this).find('.In_tdAssetDimL').text()) : 0,
+                    'AssetDimB': $(this).find('.In_tdAssetDimB').text() ? parseFloat($(this).find('.In_tdAssetDimB').text()) : 0,
+                    'AssetDimH': $(this).find('.In_tdAssetDimH').text() ? parseFloat($(this).find('.In_tdAssetDimH').text()) : 0,
+                    'AssetVol': $(this).find('.In_tdAssetVol').text() ? parseFloat($(this).find('.In_tdAssetVol').text()) : 0,
+                    'DimentionUnitID': $(this).find('.In_tdDimentionUnitID').val() ? parseInt($(this).find('.In_tdDimentionUnitID').val()) : 0,
+                    'VolumeUnitID': $(this).find('.In_tdVolumeUnitID').val() ? parseInt($(this).find('.In_tdVolumeUnitID').val()) : 0,
+                    'Remarks': $(this).find('.In_tdAssetRemarks').text(),
+                    'IsActive': parseInt(1)
+                }
+                dataInAssetDetails.push(allDataInAssetDetails);
+            });
+            var strInAssetDetails = dataInAssetDetails.length > 0 ? { 'AssetDetail': dataInAssetDetails } : '';
+
+            if (strInAssetDetails)
+                $("#WHInAssetDetailsListHidden").val(JSON.stringify(strInAssetDetails));
+            else
+                $("#WHInAssetDetailsListHidden").val(null);
+
+            //tblOutAssetMast data
+            var ActiveOutMastRow = $("#tblOutAssetMast tbody tr.ActiveOutMastRow");
+            $("#OutMasterID").val($(ActiveOutMastRow).find('.OutM_tdOutMasterID').val());
+            $("#Out_GateOutChalanNo").val($(ActiveOutMastRow).find('.OutM_tdGateOutChalanNo').text());
+            $("#Out_GateOutChalanDate").val($(ActiveOutMastRow).find('.OutM_tdGateOutChalanDate').text());
+            $("#Out_OutDateTime").val($(ActiveOutMastRow).find('.OutM_tdOutDateTime').text());
+            $("#Out_OutNoPackage").val($(ActiveOutMastRow).find('.OutM_tdOutNoPackage').text());
+            $("#Out_OutVolumeUnitID").val($(ActiveOutMastRow).find('.OutM_tdOutVolumeUnitID').val());
+            $("#Out_OutVolume").val($(ActiveOutMastRow).find('.OutM_tdOutVolume').text());
+            $("#Out_OutLocName").val($(ActiveOutMastRow).find('.OutM_tdOutLocName').text());
+            $("#Out_OutLocAdd1").val($(ActiveOutMastRow).find('.OutM_tdOutLocAdd1').text());
+            $("#Out_OutLocAdd2").val($(ActiveOutMastRow).find('.OutM_tdOutLocAdd2').text());
+            $("#Out_OutLocCityID").val($(ActiveOutMastRow).find('.OutM_tdOutLocCityID').val());
+            $("#Out_OutLocPinCode").val($(ActiveOutMastRow).find('.OutM_tdOutLocPinCode').text());
+            $("#Out_OutLocPhone").val($(ActiveOutMastRow).find('.OutM_tdOutLocPhone').text());
+            $("#Out_OutLocContactPerson").val($(ActiveOutMastRow).find('.OutM_tdOutLocContactPerson').text());
+            $("#Out_DeliveryProofNo").val($(ActiveOutMastRow).find('.OutM_tdDeliveryProofNo').text());
+            $("#Out_IsProofUploaded").val($(ActiveOutMastRow).find('.OutM_tdIsProofUploaded').text() == "Yes" ? 1 : 0);
+            $("#Out_Remarks").val($(ActiveOutMastRow).find('.OutM_tdRemarks').text());
+
+            //tblOutAssetDetails data
+            var dataOutAssetDetails = [];
+            $("#tblOutAssetDetails tbody tr").each(function () {
+                var allDataOutAssetDetails = {
+                    'OutDetailID': $(this).find('.Out_tdOutDetailID').val() ? parseInt($(this).find('.Out_tdOutDetailID').val()) : 0,
+                    'AssetDetID': $(this).find('.Out_tdAssetDetID').val() ? parseInt($(this).find('.Out_tdAssetDetID').val()) : 0,
+                    'Remarks': $(this).find('.Out_tdAssetRemarks').text(),
+                    'IsActive': parseInt(1)
+                }
+                dataOutAssetDetails.push(allDataOutAssetDetails);
+            });
+            var strOutAssetDetails = dataOutAssetDetails.length > 0 ? { 'AssetDetail': dataOutAssetDetails } : '';
+
+            if (strOutAssetDetails)
+                $("#WHOutAssetDetailsListHidden").val(JSON.stringify(strOutAssetDetails));
+            else
+                $("#WHOutAssetDetailsListHidden").val(null);
+        }
+        function GetDetailsByAssetDetID(AssetDetID) {
+            var AssetDetObj = null;
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetDetailsByAssetDetID", "WHAssetManagement")",
+                data: "{AssetDetID:'" + AssetDetID + "'}",
+                async: false,
+                success: function (data) {
+                    AssetDetObj = {
+                        'BarcodeSeqNo': data.WHInAssetDetailsObj.BarcodeSeqNo,
+                        'BarcodeID': data.WHInAssetDetailsObj.BarcodeID,
+                        'AssetRefID': data.WHInAssetDetailsObj.AssetRefID,
+                        'AssetDescription': data.WHInAssetDetailsObj.AssetDescription
+                    }
+                    return AssetDetObj;
+                },
+                failure: function () {
+                    alert('error occured');
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert('error occured');
+                }
+            });
+            return AssetDetObj;
+        }
+        function SendLink() {
+            var MoveID = $("#In_MoveID").val();
+            var EmailTo = $("#txtEmailTo").val();
+            var EmailCc = $("#txtEmailCc").val();
+            var EmailBcc = $("#txtEmailBcc").val();
+
+            if (EmailTo == "") {
+                swal({ title: "Error!", text: "Please enter to email id.", type: "error" });
+                return false;
+            }
+
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("SendLink", "WHAssetManagement")",
+                data: "{MoveID:'" + MoveID + "',EmailTo:'" + EmailTo + "',EmailCc:'" + EmailCc + "',EmailBcc:'" + EmailBcc + "'}",
+                async: false,
+                success: function (result) {
+                    if (result) {
+                        swal({ title: "Success!", text: "Link sent successfully.", type: "success" });
+                    }
+                    else {
+                        swal({ title: "Error!", text: "Error occured.", type: "error" });
+                    }
+                },
+                failure: function () {
+                    alert('error occured');
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert('error occured');
+                }
+            });
+            $('#SendLinkModal').modal('hide');
+        }
+        function ValidateBoxNo(BarcodeSeqNo) {
+            var retVal = false;
+            var MoveID = $('#In_MoveID').val();
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("ValidateBoxNo", "WHAssetManagement")",
+                data: "{MoveID:'" + MoveID + "', BoxNo:'" + BarcodeSeqNo + "'}",
+                async: false,
+                success: function (data) {
+                    retVal = data;
+                },
+                failure: function () {
+                    alert('error occured');
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert('error occured');
+                }
+            });
+            return retVal;
+        }
+        function GetInOutWHDeliveryAddress(AddressType) {
+            var MoveID = $('#In_MoveID').val();
+            MoveID = 2590;
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetInOutWHDeliveryAddress", "WHAssetManagement")",
+                data: "{MoveID:'" + MoveID + "', AddressType:'" + AddressType + "'}",
+                async: false,
+                success: function (data) {
+                    $("#Out_OutLocAdd1").val(data.OutLocAdd1);
+                    $("#Out_OutLocAdd2").val(data.OutLocAdd2);
+                    var OutLocCityID = data.OutLocCityID;
+                    var OutLocCity = data.OutLocCity;
+                    var newOption = new Option(OutLocCity, OutLocCityID, true, true);
+                    $("#Out_OutLocCityID").append(newOption).trigger('change');
+                    $("#Out_OutLocPinCode").val(data.OutLocPinCode);
+                    $("#Out_OutLocPhone").val(data.OutLocPhone);
+                },
+                failure: function () {
+                    alert('error occured');
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert('error occured');
+                }
+            });
+        }
+        function SetRight(param) {
+            if (param == 'LiftVan') {
+                var value = $('#Loc_DefAssetList').val();
+                $('#Loc_DefAssetList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#Loc_AssetList').append(this);
+                    }
+                });
+            }
+        }
+        function SetAllRight(param) {
+            if (param == 'LiftVan') {
+                $('#Loc_DefAssetList option').each(function () {
+                    $('#Loc_AssetList').append(this);
+                });
+            }
+        }
+        function SetLeft(param) {
+            if (param == 'LiftVan') {
+                var value = $('#Loc_AssetList').val();
+                $('#Loc_AssetList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#Loc_DefAssetList').append(this);
+                    }
+                });
+            }
+        }
+        function SetAllLeft(param) {
+            if (param == 'LiftVan') {
+                $('#Loc_AssetList option').each(function () {
+                    $('#Loc_DefAssetList').append(this);
+                });
+            }
+        }
+        function AddInBoxRange() {
+            $("body").addClass('disableClick');
+            try {
+                var InBoxRangeFrom = $("#txtInBoxRangeFrom").val() ? parseInt($("#txtInBoxRangeFrom").val()) : 0
+                var InBoxRangeTo = $("#txtInBoxRangeTo").val() ? parseInt($("#txtInBoxRangeTo").val()) : 0
+                if (InBoxRangeFrom <= 0) {
+                    swal({ title: "Error!", text: "Please enter In Box Range From.", type: "error" });
+                    return;
+                }
+                else if (InBoxRangeTo <= 0) {
+                    swal({ title: "Error!", text: "Please enter In Box Range To.", type: "error" });
+                    return;
+                }
+                else if (InBoxRangeFrom > InBoxRangeTo) {
+                    swal({ title: "Error!", text: "In Box Range From should be less than In Box Range To.", type: "error" });
+                    return;
+                }
+
+                for (var i = InBoxRangeFrom; i <= InBoxRangeTo; i++) {
+                    $("#In_BarcodeSeqNo").val(i);
+                    AddInAssetDetails();
+                    $("#In_BarcodeSeqNo").val('');
+                }
+
+            }
+            catch (e) {
+            }
+            finally {
+                $("#txtInBoxRangeFrom").val('');
+                $("#txtInBoxRangeTo").val('');
+                $("body").removeClass('disableClick');
+            }
+        }
+        function AddOutBoxRange() {
+            $("body").addClass('disableClick');
+            try {
+                var OutBoxRangeFrom = $("#txtOutBoxRangeFrom").val() ? parseInt($("#txtOutBoxRangeFrom").val()) : 0;
+                var OutBoxRangeTo = $("#txtOutBoxRangeTo").val() ? parseInt($("#txtOutBoxRangeTo").val()) : 0;
+                if (OutBoxRangeFrom <= 0) {
+                    swal({ title: "Error!", text: "Please enter Out Box Range From.", type: "error" });
+                    return;
+                }
+                else if (OutBoxRangeTo <= 0) {
+                    swal({ title: "Error!", text: "Please enter Out Box Range To.", type: "error" });
+                    return;
+                } else if (OutBoxRangeFrom > OutBoxRangeTo) {
+                    swal({ title: "Error!", text: "Out Box Range From should be less than Out Box Range To.", type: "error" });
+                    return;
+                }
+
+                for (var i = OutBoxRangeFrom; i <= OutBoxRangeTo; i++) {
+                    var Out_AssetDetID_Length = $("#Out_AssetDetID option").length;
+                    for (var j = 0; j < Out_AssetDetID_Length; j++) {
+                        if ($("#Out_AssetDetID option").eq(j).text().split('-')[0] == i) {
+                            $("#Out_AssetDetID").prop('selectedIndex', j).trigger('change');
+                            AddOutAssetDetails();
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (e) {
+            }
+            finally {
+                $("#txtOutBoxRangeFrom").val('');
+                $("#txtOutBoxRangeTo").val('');
+                $("body").removeClass('disableClick');
+            }
+        }
+    </script>
+}

@@ -1,0 +1,284 @@
+﻿@using System.Security.Policy
+@using GridMvc.Html
+@using PagedList.Mvc;
+@using PagedList;
+@using RELOCBS.Utility;
+
+@{
+
+    ViewBag.Title = "Billing";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string _PageID = "25";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+    bool RMCBuss = (bool)ViewBag.RMCBuss;
+}
+<style>
+    .page-header {
+        margin-top: 0px;
+    }
+
+
+    #order {
+        padding: 0 0 0 0;
+        border-right: 0;
+    }
+
+    .select-style {
+        width: 100%; /*95px;*/
+        padding: 0;
+        margin: 0;
+        display: inline-block;
+        vertical-align: middle;
+        background: url("http://grumbletum.com/places/arrowdown.gif") no-repeat 100% 40%;
+    }
+
+        .select-style select {
+            font-weight: bold;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            background-color: transparent;
+            background-image: none;
+            border: none;
+            box-shadow: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+    
+</style>
+<style type="text/css">
+    @@media screen and (max-width: 300px) {
+        .button-text {
+            display: none;
+        }
+    }
+</style>
+ @*<div class="col-md-12 no-padding m-t-sm">*@
+@*<div class="pnl-gridtop clearfix">*@
+@*<div class="clearfix pnl-filter">*@
+@using (Html.BeginForm(null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="m-t-sm">
+        <div class="row">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Shipper Name</label>
+                    <div class="input-group">
+                        @Html.Editor("Shipper", new { htmlAttributes = new { @placeholder = "Shipper", @tooltip = "Shipper", @class = "form-control input-sm ", title = "Enq Id", id = "EnqId" } })
+                        @*@Html.DropDownList("EnqId", new SelectList((System.Collections.IEnumerable)ViewData["EnquiryList"], "Value", "Text", ViewData["ContainerList"]), "Select One", new { @class = "form-control", id = "EnqID", title = "EnqID" })*@
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2 m-r-n">
+                <div class="form-group">
+                    <label>Status</label>
+                    <div class="input-group">
+                        @Html.DropDownList("Status", new SelectList((System.Collections.IEnumerable)RELOCBS.Common.CommonService.InvoiceStatus, "Value", "Text"), "Select Invoice", new { htmlAttributes = new { @placeholder = "Status", @tooltip = "Status", @class = "form-control input-sm ", title = "Status", id = "Status" } })
+                        @*@Html.DropDownList("EnqId", new SelectList((System.Collections.IEnumerable)ViewData["EnquiryList"], "Value", "Text", ViewData["ContainerList"]), "Select One", new { @class = "form-control", id = "EnqID", title = "EnqID" })*@
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-sm-3 col-md-3">
+                <div class="clearfix">
+                    <div class="input-group filter-custom-margin form-control">
+                        <div class="input-group-addon" id="order" style="width : 50%">
+                            <div class="select-style">
+                                <select name="SearchType" id="SearchType">
+                                    @*<option value="" disabled>Select Search Type</option>*@
+                                    <option value="InvoiceNo">Invoice No.</option>
+                                    <option value="CreditNoteNo">CreditNote No.</option>
+                                    <option value="JobNo">Job No.</option>
+                                </select>
+                            </div>
+                        </div>
+                        @*<select name="search" id="search" class="form-control enableselect"></select>*@
+                        <input type="text" name="search" id="search" class="form-control" placeholder="Search For ..." autocomplete="off">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-sm-1">
+                <div class="clearfix">
+                    <input type="submit" id="btnSearch" name="Search" class="btn btn-default btn-sm filter-custom-margin" value="Search" />
+                </div>
+            </div>
+            <div class="form-group col-sm-1">
+                <div class="clearfix">
+                    <a class="btn btn-default btn-sm lnkExportToExcel filter-custom-margin pull-right" title="Export to Excel"><i class="fa fa-file-excel-o m-r-sm"></i><span class="hidden-md">Export to Excel</span></a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+@*</div>*@
+<div id="mgrid">
+    @Html.Partial("_AjaxPartial")
+</div>
+
+@*</div>*@
+
+<div id="mdlAddEdit" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+        </div>
+    </div>
+</div>
+@*</div>*@
+
+
+@section Scripts{
+
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+    <script type="text/javascript">
+        $(document).ready(function () {
+            
+            $('#FromDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+
+            $('#ToDate').on('focus', function () {
+                $(this).siblings('.input-group-addon').click();
+            });
+
+            $('#dtp_FromDate').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            $('#dtp_ToDate').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            
+        });
+
+        /////search form data
+        function PagedOnCompleteBinds() {
+            $(document).ready(function () {
+                $('select').select2();
+                $('.grid-header-title a').on('click', function (e) {
+                    e.preventDefault();
+                    var sturl = "@Url.Action("Index", "Billing")" + $(this).attr('href');
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+                
+                $('#mgrid .pagination li a').on('click', function (e) {
+                    debugger;
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    var sturl = $('#mgrid .sorted.grid-header-title a').attr('href');
+                    if (typeof sturl != 'undefined') {
+                        var gdir = url("?grid-dir", sturl);
+                        sturl = sturl.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0 ? 1 : 0));
+                        sturl = sturl.replace('?', '&');
+                    }
+
+                    var sturl2 = $(this).attr('href');
+                    if (sturl2 == undefined) {
+                        sturl2 = "@Url.Action("Index", "Billing")?page=" + parseInt($(this).html());
+                    }
+                    sturl = sturl2 + ((typeof sturl != 'undefined') ? sturl.replace(/page=\d+/i, "") : '');
+                    //sturl = sturl2 + sturl.replace(/page=\d+/i, "");
+                    $('form#CustomFilter').attr('action', sturl).submit();
+                });
+
+                $('form.frmRWDelete').on('submit', function (e) {
+                    e.preventDefault();
+                    $frmRWDelete = this;
+                    swal({
+                        title: "Are you sure you want to delete this record?",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Delete",
+                        cancelButtonText: "No",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $('#mgrid').mask("Loading...");
+                            $($frmRWDelete).ajaxSubmit({
+                                success: function (data) {
+                                    if (data.Success) {
+                                        toastr.success("Job deleted successfully.");
+                                    $('#mgrid .pagination li.active a').trigger('click');
+                                    } else if (!data.Success) {
+                                        swal({
+                                            text: "Job Delete Failed.",
+                                            type: "error"
+                                        });
+                                    }
+                                    $('#mgrid').unmask();
+                                },
+                                complete: function () {
+                                    $('#mgrid').unmask();
+                                }
+                            });
+                        } else {
+                            swal("", "Job Delete Cancelled.", "error");
+                        }
+                    });
+                });
+                $('.lnkExportToExcel').on('click', function () {
+                    var url = '@Url.Action("ExportToExcel", "Billing", new { })';
+                    window.location.href = url;
+                });
+            });
+        }
+
+        function PagedOnComplete(obj) {
+            $('#mgrid table').unmask();
+            PagedOnCompleteBinds();
+        }
+
+        $(document).ready(function () {
+            PagedOnCompleteBinds();
+
+            $('body').on('hidden.bs.modal', '.modal', function () {
+                $(this).removeData('bs.modal');
+            });
+
+            pageGrids.mainGrid.onRowSelect(function (e) {
+                console.log($('#pnlGridTopActions #btnEdit, #pnlGridTopActions #btnDelete').length)
+                $('#pnlGridTopActions #btnEdit, #pnlGridTopActions #btnDelete').removeAttr('disabled');
+                $('#pnlGridTopActions #btnEdit').on('click', function (ev) {
+                    ev.preventDefault();
+                    $('#mgrid tr.grid-row.grid-row-selected').find('.btnEdit').click();
+                });
+                $('#pnlGridTopActions #btnDelete').on('click', function (ev) {
+                    ev.preventDefault();
+                    $('#mgrid tr.grid-row.grid-row-selected').find('.btnDelete').click();
+                });
+            });
+
+            $('form#CustomFilter').on('submit', function (e) {
+                e.preventDefault();
+                $(this).ajaxSubmit({
+                    target: '#mgrid',
+                    success: function () {
+                        PagedOnCompleteBinds();
+                    }
+                });
+            });
+
+            //$('#btnReset').on('click', function (e) {
+            //    e.preventDefault();
+            //    $('form#CustomFilter').find("input[type=text], textarea").val("");
+            //    $('form#CustomFilter').submit();
+            //});
+        });
+    </script>
+}

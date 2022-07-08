@@ -1,0 +1,924 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model RELOCBS.Entities.JobDiaryModel
+
+@{
+
+    string _PageID = "18";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+    //var activityModel = new RELOCBS.Entities.ActivityAllocationModel();
+}
+<style>
+    .width-90{
+        width:97%;
+    }
+</style>
+<link href="~/Content/Modal_Loading.css" rel="stylesheet"/>
+
+<div class="divInst hide">
+    @for (int i = 0; i < Model.InstIds.Count; i++)
+    {
+        @Html.HiddenFor(model => Model.InstIds[i])
+    }
+</div>
+
+
+
+<div class="ibox">
+    <div class="ibox-content">
+        <div class="row">
+            <div class="col-md12">
+                @using (Html.BeginForm("CreateActivityAllocation", "JobAllocation", null, FormMethod.Post, new { enctype = "multipart/form-data", id = "CreateActivityAllocation", name = "CreateActivityAllocation" }))
+                {
+                    @Html.HiddenFor(model => model.JobType)
+                    <input type="submit" id="btnCreate" name="Create" class="btn btn-primary btn-sm filter-custom-margin pull-right" value="Add Allocation" formaction="@Url.Action("CreateActivityAllocation", "JobAllocation")" formmethod="post" />
+                }
+            </div>
+        </div>
+        <div id="mgrid">
+            @Html.Partial("_ActivityGridPartial", Model)
+        </div>
+    </div>
+
+    <div class="modal modal-wide fade" id="myModal"  role="dialog" aria-hidden="true" aria-labelledby="myModalLabel" data-keyboard="false">
+        <div class="modal-dialog modal-lg width-90" role="document">
+            <div id="frmContent" class="modal-content parent-cotent">
+
+
+            </div>
+        </div>
+    </div>
+
+    <div id="InstructionModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg width-90" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Instruction Sheet</h4>
+                </div>
+                <div class="modal-body" style="overflow-y:auto; height:480px">
+                    <div id="frmInstruction">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="ActivityModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">Add/Edit Activity</h4>
+                </div>
+                <div id="frmActivity">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div id="loading">
+    <div>
+    <i class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></i>
+    <span>Message</span>
+    </div>
+</div>
+
+@section Scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $(document).on("click", ".popover .close", function () {
+            $(this).parents(".popover").popover('hide');
+        });
+
+        $('#myModal').on('hidden.bs.modal', function () {
+
+            location.reload(true);
+        });
+
+        $('#btnAddActivity').on('click', function (event) {
+            var isvalidate = $("#AddActivity")[0].checkValidity();
+            if (isvalidate) {
+                //event.preventDefault();
+            }
+        });
+
+        GridBind();
+        ButtonSubmitBind();
+    });
+
+    //$(document).ajaxComplete(function () {
+    //    EmployeePopOver();
+    //});
+    function DatePickerClass() {
+
+        if ($('.CrewEmpFromDate').is(':disabled')) {
+            $('.CAStartDate').attr('disabled', 'disabled').removeAttr('datetimepicker');
+            $('.CAEndDate').attr('disabled', 'disabled').removeAttr('datetimepicker');
+        }
+
+        $('.datetimepicker').datetimepicker({
+            format: "DD-MMM-YYYY HH:mm",
+            sideBySide: true//,
+            //widgetPositioning: {
+            //    vertical: 'bottom'
+            //}
+
+        });
+
+        $('.timepicker').datetimepicker({
+            format: 'HH:mm',
+        });
+
+        $('.datetimepicker').each(function () {
+
+            if ($(this).val().includes("0001")) {
+                $(this).val("");
+            }
+        });
+
+        $('.enableselect').select2({
+            width: '100%',
+            dropdownParent: $("#myModal .parent-cotent")
+        });
+        $('.multipleselect').multiselect({
+            includeSelectAllOption: false,
+            enableFiltering: true,
+            enableCaseInsensitiveFiltering: true,
+            filterPlaceholder: 'Search',
+            maxHeight: 250,
+            numberDisplayed: 1,
+            buttonWidth: "100%"
+        });
+
+        $('.TblIssuedQty').bind('input', function () {
+
+            GetMaterialTotal();
+        });
+
+        GetMaterialTotal();
+        Download();
+    }
+
+    $("#btnCreate").click(function (e) {
+            e.preventDefault();
+            var form = $(this).attr("formaction");
+            var url = form;
+            var stringArray = new Array();
+            var InstArray = new Array();
+            $(".divInst").find('input[type="hidden"]').each(function () { InstArray.push($(this).val()); });
+
+            var count = 0;
+            $('#subT > tbody  > tr').each(function (index, tr) {
+
+                if ($(this).find('td').find('input[type=checkbox]').is(':checked') == true) {
+
+                    stringArray[count] = $(this).find('input[type="checkbox"]').val();
+                    count++;
+                }
+
+            });
+        var JobType = parseInt($('#JobType').val());
+            if (stringArray.length > 0) {
+                //jQuery.ajaxSettings.traditional = true;
+                $.ajax({
+                    url: url,
+                    type: "GET",
+                    data: { 'InstID': InstArray, 'ActivityID': stringArray, 'BatchID': -1, 'JobType': JobType },
+                    traditional: true,
+                    success: function (data) {
+                        
+                        $("#frmContent").html(data);
+
+                        $('#myModal').modal({
+                            backdrop: 'static'
+                        });
+                        $('#frmContent').focus();
+                        DatePickerClass();
+                        ButtonSubmitBind();
+                        EmployeePopOver();
+                        return false;
+                    }
+                });
+            }
+            else {
+                alert('Select Atleast one Activity');
+            }
+
+            return false;
+        });
+
+    function EmployeePopOver() {
+            $(".myPopover").popover({
+                title: 'Detail <a href="#" class="close" data-dismiss="alert">&times;</a>',
+                html: true,
+                trigger: 'click'
+            }).on('shown.bs.popover', function () {
+                var popover = $(this);
+                $('.myPopover').not(this).popover('hide');
+                var contentEl = popover.next(".popover").find(".popover-content");
+                // Show spinner while waiting for data to be fetched
+                contentEl.html("<i class='fa fa-spinner fa-pulse fa-2x fa-fw'></i>");
+                var myParameter = popover.data('api-parameter');
+                $.get(myParameter)
+                    .done(function (data) {
+                        var result = data;
+                        if (result == '') {
+                            result = "No info found.";
+                        }
+                        contentEl.html(result);
+                    }).fail(function (data) {
+                        result = "No info found.";
+                        contentEl.html(result);
+                    });
+
+            });
+        }
+
+    function ModelClick(sender) {
+            var button = $(sender);
+            var url = button.attr("href");
+
+            $("#frmContent").load(url, function() {
+
+                $('#myModal').modal({
+                    backdrop: 'static'
+                });
+
+                DatePickerClass();
+                EmployeePopOver();
+                ButtonSubmitBind();
+                debugger;
+                $('#VehicleTypeDropdown').trigger('change');
+                return false;
+            });
+            
+            return false;
+        }
+
+    function GetMaterialTotal() {
+
+            
+
+            var TotalAmount = 0;
+
+            $('#tblMaterial tbody tr').each(function (index, tr) {
+                
+                TotalAmount = TotalAmount + (!isNaN(parseInt($(this).find('.TblIssuedQty').val())) ? parseInt($(this).find('.TblIssuedQty').val()) : 0);
+            });
+
+            $('#MaterialTotal').val(TotalAmount);
+
+        }
+    
+    function Download() {
+
+        $('.DocDownload').click(function (e) {
+            
+            e.preventDefault();
+            var url = $(this).attr('data-url');
+            var antiToken = $('input[name="__RequestVerificationToken"]').val();
+            var DocID = $(this).closest('td').find('.DocID').val();
+            var BatchID = $('.BatchID').val();
+
+            var form = $('#frmDownload');
+            if (form != null) {
+                form.remove();
+            }
+            var newForm = $('<form>', {
+                'id': 'frmDownload',
+                'action': url,
+                'target': '_blank',
+                'method': 'POST'
+            }).append($('<input>', {
+                'name': 'BatchID',
+                'value': BatchID,
+                'type': 'hidden'
+            })).append(jQuery('<input>', {
+                'name': '__RequestVerificationToken',
+                'value': antiToken,
+                'type': 'hidden'
+            })).append(jQuery('<input>', {
+                'name': 'DocID',
+                'value': DocID,
+                'type': 'hidden'
+            }));
+
+            newForm.appendTo('body').submit();
+        });
+    }
+
+    function dateRangeOverlaps(a_start, a_end, b_start, b_end) {
+        if (a_start <= b_start && b_start <= a_end) return true; // b starts in a
+        if (a_start <= b_end && b_end <= a_end) return true; // b ends in a
+        if (b_start < a_start && a_end < b_end) return true; // a in b
+        return false;
+    }
+
+    function ButtonSubmitBind() {
+
+               var ldg = $('#loading');
+               /////Model popup Activity Allocation
+               //$("form#CreateActivityAllocation").validate().settings.ignore = "";
+                var form = $("#myModal form");
+                form.removeData('validator');
+                form.removeData('unobtrusiveValidation');
+                $.validator.unobtrusive.parse(form);
+
+                $('.btnSubmit').on('click', function (e) {
+
+                    $('#submit').val($(this).val());
+                    debugger;
+                    
+                    if ($('#docUpload_file').length) {
+                        
+                        if ( $(this).val() != "Upload") {
+
+                            $('#DocTypeDropdown').rules('remove', 'required');
+                            $('#docUpload_file').rules('remove', 'required');
+                            $('#DocNameDropdown').rules('remove', 'required');
+                        }
+                        else {
+
+                            $('#DocTypeDropdown').rules('add', { required: true });
+                            $('#docUpload_file').rules('add', { required: true });
+                            $('#DocNameDropdown').rules('add', { required: true });
+                        }
+                    }
+                    debugger;
+                    if ($(this).val() == "Send to Supervisor") {
+
+                        let checked_checkboxes = $(".IsSupervisor:checked");
+
+                        if (checked_checkboxes.length == 0) {
+                            alert('IsSupervisor Required');
+                            e.preventDefault();
+
+                        }
+                        if (checked_checkboxes.length == 1 && !confirm('Are you sure you want allote the supervisor?')) {
+
+                            e.preventDefault();
+                        }
+                    }
+
+                });
+
+              $('#myModal form').on('submit', function (e) {
+                e.preventDefault();
+
+                if (!$(this).valid()) { return; }
+
+                if ($('#submit').val().toUpperCase() == "CANCELED" && ($('#CancelRemark').val() == null || $('#CancelRemark').val() == "")) {
+
+                    alert('Cancel Remark is required');
+                    $(".btnSubmit").removeAttr("disabled");
+                    return false;
+                }
+
+                
+                  $('#myModal .parent-cotent').mask("Loading...");
+                //ldg.find('> div > span').text('Please wait....').end().show();
+
+                $(".btnSubmit").attr("disabled", "disabled");
+                //$("#btnUpload").attr("disabled", true);
+                  GetAllData();
+                  let AjaxLoading = false;
+                $(this).ajaxSubmit({
+                    target: '#myModal .parent-cotent',
+                    //async: false,
+                    cache: false,
+                    contentType: false,
+                    enctype: 'multipart/form-data',
+                    processData: false,
+                    //timeout: 600000,
+                    success: function (data) {
+                        if (!AjaxLoading) {
+                            AjaxLoading = true;
+                            OnModalSuccess(data);
+                            $(".btnSubmit").removeAttr("disabled");
+                            $('#myModal .parent-cotent').unmask();
+                            //$('#frmEmp').unmask();
+                            //ldg.hide();
+                        }
+                    },
+                    error: function (e) {
+
+                        toastr.error("something went wrong.unable to save");
+
+                        $(".btnSubmit").removeAttr("disabled");
+                        $('#myModal .parent-cotent').unmask();
+                        //$("#btnUpload").removeAttr("disabled");
+                        //ldg.hide();
+                        //$(".btnSubmit").button('reset');
+                        //$('#frmEmp').unmask();
+                        //DatePickerClass();
+                        //EmployeePopOver();
+                    }
+                });
+            });
+            /////end - Model popup Activity Allocation
+
+
+
+            loadHiredVehicleBinding();
+
+        }
+
+    function GetAllData() {
+            
+            var cdata = [];
+            /////Crew member
+            $('#tlbCrew tbody tr').each(function () {
+                var CWMID = $(this).find('.CWMID').val();
+                var CrewEmpList = $(this).find('.CrewEmpList').val();
+                var CrewEmp = $(this).find('.CrewEmp').val();
+                var CrewEmpFromDate = $(this).find('.CrewEmpFromDate').val();
+                var CrewEmpToDate = $(this).find('.CrewEmpToDate').val();
+                var IsSupervisor = $(this).find('.IsSupervisor:checked').val();
+                var alldata = {
+
+                    'CWMID': CWMID,
+                    'EmpName': CrewEmpList,
+                    'EmpID': parseInt(CrewEmp),
+                    'EffectiveFrom': (CrewEmpFromDate),
+                    'EffectiveTo': (CrewEmpToDate),
+                    'IsSupervisor': IsSupervisor
+                }
+                cdata.push(alldata);
+            });
+
+            var pair = { 'members': cdata };
+            $("#HVCrewMembers").val(JSON.stringify(pair));
+
+            cdata = [];
+            /////Services
+            $('#tblAddService tbody tr').each(function () {
+                var SD_ID = $(this).find('.SD_ID').val();
+                var ServiceType = $(this).find('.ServiceType').val();
+                var Description = $(this).find('.ADDescription').val();
+                var ServiceID = $(this).find('.ServiceID').val();
+                //var ActivityID = $(this).find('.ActivityID').val();
+                //var SD_ID = $(this).find('.SD_ID').val();
+                var AdFromDate = $(this).find('.AdFromDate').val();
+                var AdToDate = $(this).find('.AdToDate').val();
+                var AdCost = $(this).find('.AdCost').val();
+                var alldata = {
+                    'SD_ID': SD_ID,
+                    'ServiceName': ServiceType,
+                    'ServiceID': parseInt(ServiceID),
+                    //'ActivityID': parseInt(ActivityID),
+                    //'SD_ID': parseInt(SD_ID),
+                    'FromDate': (AdFromDate),
+                    'ToDate': (AdToDate),
+                    'Cost': parseFloat(AdCost),
+                    'Description': Description
+                    //'InActive': false
+                }
+                cdata.push(alldata);
+            });
+
+            pair = { 'services': cdata };
+            $("#HVServices").val(JSON.stringify(pair));
+
+            
+            cdata = [];
+            /////job Vehicle List
+            $('#tblVehicle tbody tr').each(function () {
+                var V_ID = $(this).find('.V_ID').val();
+                var BatchID = $(this).find('.BatchID').val();
+                var PurposeList = $(this).find('.PurposeList').val();
+                var VPurpose = $(this).find('.VPurpose').val();
+                var VehicleTypeList = $(this).find('.VehicleTypeList').val();
+                var VehicleType = $(this).find('.VehicleType').val();
+                var VehicleList = $(this).find('.VehicleList').val();
+                var Vehicle = $(this).find('.Vehicle').val();
+                var DriverTypeList = $(this).find('.DriverTypeList').val();
+                var DriverType = $(this).find('.DriverType').val();
+                var DriverList = $(this).find('.DriverList').val();
+                var VDriver = $(this).find('.VDriver').val();
+                var VehicleFromDate = $(this).find('.VehicleFromDate').val();
+                var VehicleToDate = $(this).find('.VehicleToDate').val();
+                var VehicleRemark = $(this).find('.V_Remark').val();
+                var VehicleCost = $(this).find('.V_Cost').val();
+
+                let VehicleMovementID = $(this).find(".MovementID").val();
+                let VehicleSupplierID = $(this).find(".SupplierID").val();
+                let VehicleDimensionID = $(this).find(".DimensionID").val();
+                let VehicleReasonID = $(this).find(".VReasonID").val();
+
+                let VehicleMovement = $(this).find(".MovementList").val();
+                let VehicleSupplier = $(this).find(".SupplierList").val();
+                let VehicleDimension = $(this).find(".DimensionList").val();
+                let VehicleReason = $(this).find(".VReasonList").val();
+                let FromLocation = $(this).find(".V_FromLocation").val();
+                let ToLocation = $(this).find(".V_ToLocation").val();
+                let VolumeCFT = $(this).find(".V_VolumeCFT").val();
+
+                var alldata = {
+                    'V_ID': V_ID,
+                    'Purpose': PurposeList,
+                    'BatchID': parseInt(BatchID),
+                    'PurposeID': parseInt(VPurpose),
+                    'VehicleType': VehicleTypeList,
+                    'VehicleTypeID': VehicleType,
+                    'VehicleNo': VehicleList,
+                    'VehicleID': parseInt(Vehicle),
+                    'DriverType': DriverTypeList,
+                    'DriverTypeID': DriverType,
+                    'Driver': DriverList,
+                    'DriverID': VDriver,
+                    'FromDate': VehicleFromDate,
+                    'ToDate': VehicleToDate,
+                    'V_Remark': VehicleRemark,
+                    'V_Cost': VehicleCost,
+                    'MovementID': VehicleMovementID,
+                    'MovementName': VehicleMovement,
+                    'SupplierID': VehicleSupplierID,
+                    'SupplierName': VehicleSupplier,
+                    'DimensionID': VehicleDimensionID,
+                    'DimensionName': VehicleDimension,
+                    'ReasonID': VehicleReasonID,
+                    'ReasonName': VehicleReason,
+                    'FromLocation':FromLocation,
+                    'ToLocation':ToLocation,
+                    'VolumeCFT':VolumeCFT
+                }
+                cdata.push(alldata);
+            });
+
+            pair = { 'jobVehicleList': cdata };
+            $("#HVVehicles").val(JSON.stringify(pair));
+
+            cdata = [];
+            /////materialUsed
+            $('#tblMaterial tbody tr').each(function () {
+                var M_ID = $(this).find('.M_ID').val();
+                var TblMaterail = $(this).find('.TblMaterail').val();
+                var TblMaterailID = $(this).find('.TblMaterailId').val();
+                var TblIssuedQty = $(this).find('.TblIssuedQty').val();
+                var TblRate = $(this).find('.TblRate').val();
+
+                var alldata = {
+                    'M_ID': M_ID,
+                    'Materail': TblMaterail,
+                    'MaterailId': parseInt(TblMaterailID),
+                    'IssuedQty': parseInt(TblIssuedQty),
+                    'Rate': parseFloat(TblRate)//,
+                    //'InActive': false
+                }
+                cdata.push(alldata);
+            });
+
+            pair = { 'materialUsed': cdata };
+            $("#HVMaterialUsed").val(JSON.stringify(pair));
+
+            cdata = [];
+            /////docLists
+            $('#tblDocList tbody tr').each(function () {
+                var DocID = $(this).find('.DocID').val();
+                var DocTypeID = $(this).find('.DocTypeID').val();
+                var BatchID = $(this).find('.BatchID').val();
+                var DocumentName = $(this).find('.DocumentName').val();
+
+                var alldata = {
+                    'DocID': DocID,
+                    'DocTypeID': DocTypeID,
+                    'BatchID': parseInt(BatchID),
+                    'DocID': parseInt(DocID),
+                    'DocumentName': DocumentName////,
+                    ////'InActive': false
+                }
+                cdata.push(alldata);
+            });
+
+            pair = { 'docLists': cdata };
+            $("#HVDocList").val(JSON.stringify(pair));
+
+        }
+
+    function OnModalSuccess(data) {
+        
+        var htmlData = "";
+        if (data.Result != null) {
+            $('#myModal .parent-cotent').html(data.Result);
+            if (data.Success) {
+                toastr.success(data.Message);
+            }
+            else {
+                toastr.error(data.Message);
+            }
+        }
+        else {
+            
+            $('#frmContent').html(data);
+            //$('#myModal').modal('hide');
+            //location.reload(true);
+        }
+
+        DatePickerClass();
+        EmployeePopOver();
+        GetMaterialTotal();
+        ButtonSubmitBind();
+    }
+
+    function GridBind() {
+
+            var size = $("#mgrid #gridT > thead > tr >th").size(); // get total column
+            $("#mgrid #gridT > thead > tr >th").last().remove(); // remove last column
+            $("#mgrid #gridT > thead > tr").prepend("<th></th>"); // add one column at first for collapsible column
+            $("#mgrid #gridT > tbody > tr").each(function (i, el) {
+                $(this).prepend(
+                    $("<td></td>")
+                        .addClass("expands")
+                        .addClass("hoverEff")
+                        .attr('title', "click for show/hide")
+                        .attr('style', "width:100px;")
+                );
+
+                //Now get sub table from last column and add this to the next new added row
+                var table = $("table", this).parent().html();
+                //add new row with this subtable
+                $(this).after("<tr><td></td><td style='padding:5px; margin:0px;' colspan='" + (size - 1) + "'>" + table + "</td></tr>");
+                $("table", this).parent().remove();
+                // ADD CLICK EVENT FOR MAKE COLLAPSIBLE
+                $(".hoverEff", this).on('click', function () {
+                    $(this).parent().closest("tr").next().slideToggle(100);
+                    $(this).toggleClass("expands collapses");
+                });
+            });
+
+            //by default make all subgrid in collapse mode
+            $("#mgrid #gridT > tbody > tr td.expands").each(function (i, el) {
+                $(this).toggleClass("expands collapses");
+                $(this).parent().closest("tr").next().slideToggle(100);
+            });
+
+
+            $('#mgrid #gridT a').on("click", function (e) {
+                e.preventDefault();
+            })
+
+            //debugger;
+            //$("#subT TH:last-child").eq(0).hide();
+            //$("#subT TH:nth-last-child(2)").eq(0).hide();
+
+            $('#subT').each(function (index, value) {
+
+                $(this).find('TH:last-child').eq(0).hide();
+                $(this).find('TH:nth-last-child(2)').eq(0).hide();
+            });
+
+            //$("td.btnEdit").html(function () {
+
+            //    return "<a class='btn btn-primary btn-sm Edit' href='javascript:void(0)' onclick='Grid_OnEdit(this)'><i class='glyphicon glyphicon-pencil'></i></a>";
+            //});
+
+            //$("td.btnDelete").html(function () {
+            //    return "<a class='btn btn-primary btn-sm Delete' href='javascript:void(0)' onclick='Grid_OnDelete(this)'><i class='glyphicon glyphicon-trash'></i></a>";
+            //});
+
+            $('form.frmRWDelete').on('submit', function (e) {
+                e.preventDefault();
+                $frmRWDelete = this;
+                swal({
+                    title: "Are you sure?",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Delete",
+                    cancelButtonText: "No",
+                    closeOnConfirm: true,
+                    closeOnCancel: true
+                },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $('#mgrid').mask("Loading...");
+                            $($frmRWDelete).ajaxSubmit({
+                                success: function (data) {
+                                    
+                                    if (data.Success != null && data.Success == false) {
+                                        swal({
+                                            title: "",
+                                            text: data.Message,
+                                            type: "error"
+                                        });
+                                    }
+                                    else if (data) {
+                                        //$('#mgrid .pagination li.active a').trigger('click');
+
+                                        $("#mgrid").html(data);
+                                        GridBind();
+                                        toastr.success("mapping deleted successfully");
+                                    }
+
+                                    $('#mgrid').unmask();
+                                },
+                                complete: function () {
+                                    $('#mgrid').unmask();
+                                }
+                            });
+                        } else {
+                            swal("", "mapping delete cancelled.", "error");
+                        }
+                    });
+            });
+
+            OpenGrid();
+        }
+
+    function Grid_OnEdit(sender) {
+
+            var url = $(sender).attr('href');
+            if (ur != null && url != "") {
+
+                window.open(url, '_blank');
+            }
+        }
+
+    function OpenGrid() {
+
+            var table = document.getElementById("gridT");
+            var tbody = table.tBodies[0];
+
+            if (tbody.rows.length > 0) {
+                
+                $('.hoverEff').trigger('click');
+                //$("img[src*='expand.jpg']").trigger("click");
+            }
+        }
+
+    function ActivityModelClick(sender) {
+
+        var button = $(sender);
+        var url = button.attr("href");
+
+        //$.ajax({
+        //    url: url,
+        //    type: "GET",
+        //    success: function (data) {
+
+        //        $('#frmActivity').html(data);
+        //        $('#ActivityModal').modal({
+        //            backdrop: 'static'
+        //        });//modal('show');
+        //        DatePickerClass();
+        //        return false;
+        //    }
+        //});
+
+        $("#frmActivity").load(url, function () {
+
+            $('#ActivityModal').modal({
+                backdrop: 'static'
+            });
+            $('#frmActivity').focus();
+            DatePickerClass();
+            return false;
+        });
+        return false;
+
+        return false;
+    }
+
+    function ShowInstruction(sender) {
+
+        var button = $(sender);
+        var url = button.attr("href");
+
+        $("#frmInstruction").load(url, function () {
+
+            $('#InstructionModal').modal({
+                backdrop: 'static'
+            });
+            $('#frmInstruction').focus();
+            return false;
+
+        });
+        return false;
+    }
+
+    function AllocationDeleteClick(sender) {
+
+            var button = $(sender);
+            var url = button.attr("href");
+
+            $.ajax({
+                url: url,
+                type: "GET",
+                success: function (data) {
+
+                    $('#frmContent').html(data);
+                    $('#myModal').modal({
+                        backdrop: 'static'
+                    });//modal('show');
+                    $('#frmContent').focus();
+                    DatePickerClass();
+                    ButtonSubmitBind();
+                    return false;
+                }
+            });
+
+    }
+
+
+    const loadHiredVehicleBinding = function () {
+
+        const HiredVehicleApproval = function (event) {
+
+
+            const V_ID = event.target.dataset.id;
+            if (event.currentTarget.classList.contains('btnApproval')) {
+
+                $('#hireVehileApproval_V_ID').val(V_ID);
+            }
+            else {
+
+                const remark = event.target.closest('tr').querySelector('.V_Remark').value;
+                const cost = event.target.closest('tr').querySelector('.V_Cost').value;
+
+                if (Number.isNaN(Number.parseInt(V_ID))) {
+                    event.preventDefault();
+                    return;
+                }
+                if (remark == '' || Number.isNaN(Number.parseFloat(cost))) {
+                    event.preventDefault();
+                    alert('Remark and Cost required');
+                    return;
+                }
+                $('#hireVehileSendForApprove_V_ID').val(V_ID);
+                $('#hireVehileSendForApprove_Remark').val(remark);
+                $('#hireVehileSendForApprove_Cost').val(cost);
+
+                $('#submit').val($('#btnSendForApproval').attr('value'));
+                $('#btnSendForApproval').submit();
+            }
+
+
+
+        }
+
+        const ApprovalClose = function (e) {
+            $('#myModal2').modal('hide');
+            e.preventDefault();
+        }
+
+        const ApproveFunction = function (e) {
+
+
+            const V_ID = $('#hireVehileApproval_V_ID').val();
+            const remark = $('#hireVehileApproval_Remark').val();
+            if (Number.isNaN(Number.parseInt(V_ID))) {
+                event.preventDefault();
+                return;
+            }
+
+            if (!$('#rbHVApprove').prop('checked') && !$('#rbHVReject').prop('checked')) {
+                event.preventDefault();
+                alert('Approval Status required');
+                return;
+            }
+            if (remark == '') {
+                event.preventDefault();
+                alert('Remark required');
+                return;
+            }
+            $('#submit').val($('.btnApprove').attr('value'));
+            //$('#myModal2').modal('hide');
+
+        }
+
+        document.querySelectorAll('.btnSentApproval').forEach(el => el.addEventListener('click', HiredVehicleApproval));
+        document.querySelectorAll('.btnApproval').forEach(el => el.addEventListener('click', HiredVehicleApproval));
+
+        document.querySelectorAll('.btnCloseApproval').forEach(el => el.addEventListener('click', ApprovalClose));
+        document.querySelectorAll('#btnApprovalSave').forEach(el => el.addEventListener('click', ApproveFunction));
+
+    }
+    
+</script>
+
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+}

@@ -1,0 +1,1559 @@
+﻿@using RELOCBS.Common;
+@using RELOCBS.Entities;
+@model RELOCBS.Entities.CreditLimitEntity
+@{
+    ViewBag.Title = "Credit Approval Form";
+
+    bool IsTabIndecChanges = false;
+    var UserSession = RELOCBS.Utility.UserSession.GetUserSession();
+    int BaseCurrID = UserSession!=null ? UserSession.BaseCurrID : 2;
+    Layout = UserSession == null ? "~/Views/Shared/_LayoutNonMenu.cshtml" : "~/Views/Shared/_Layout.cshtml";
+}
+@Styles.Render("~/Content/bootstrap-selectcss")
+<style type="text/css">
+    
+    /*.list-group {
+        max-height: 450px;
+        margin-bottom: 10px;
+        overflow: scroll;
+        -webkit-overflow-scrolling: touch;
+    }*/
+
+    .list-group-item {
+        word-break: break-all;
+    }
+
+    .bg {
+        border-left: 5px solid red;
+    }
+</style>
+
+<div class="modal modal-wide fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="partial">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="ibox-content">
+
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div class="tabs-container" id="tabCreditApproval">
+                <ul class="nav nav-tabs" role="tablist">
+                    @foreach (var item in Model.TabList)
+                    {
+                        if (item.TabIndex == 0)
+                        {
+                            if (Model.TabIndex == 0 && !IsTabIndecChanges)
+                            {
+                                Model.TabIndex = item.TabIndex;
+                                IsTabIndecChanges = true;
+                            }
+                            <li role="presentation" class="@(Model.TabIndex == 0 ? " active" : "" )"><a href="#Entity" aria-controls="Entity" class="Tablist" role="tab" data-toggle="tab" aria-expanded="true">Business Entity</a></li>
+                        }
+                        if (Model.CreditLimitEntityID > 0)
+                        {
+
+                            
+                            if (item.TabIndex == 1)
+                            {
+                                if (Model.TabIndex == 0 && !IsTabIndecChanges)
+                                {
+                                    Model.TabIndex = item.TabIndex;
+                                    IsTabIndecChanges = true;
+                                }
+                                <li role="presentation" class="@(Model.TabIndex == 1 ? " active" : "" )"><a href="#ClientMap" aria-controls="ClientMap" class="Tablist" role="tab" data-toggle="tab" aria-expanded="true">Client Mapping</a></li>
+                            }
+
+                            @*if (item.TabIndex == 3)
+                                    {
+                                        if (Model.TabIndex == 0 && !IsTabIndecChanges)
+                                        {
+                                            Model.TabIndex = item.TabIndex;
+                                            IsTabIndecChanges = true;
+                                        }
+                                        <li role="presentation" class="@(Model.TabIndex == 3 ? " active" : "" )"><a href="#FreightInfo" aria-controls="FreightInfo" class="Tablist" role="tab" data-toggle="tab" aria-expanded="true">Transit Detail</a></li>
+                            }*@
+
+                        }
+                    }
+
+                </ul>
+                
+
+                <div class="tab-content">
+                    @*Entity tab*@
+                    <div role="tabpanel" class="@(Model.TabIndex == 0 ? " tab-pane active" : "tab-pane" )" id="Entity">
+
+                        @{
+                            string mailApprovalAction = Model.FromMail ? "RequestApprovalCAF" : "Create";
+
+                            MvcForm sumibtForm;
+                            
+                            if (ViewBag.Code != null)
+                            {
+                                sumibtForm = Html.BeginForm(mailApprovalAction, "CreditApproval", new { index = 0, EntityID = @Model.CreditLimitEntityID, qCode = ViewBag.Code }, FormMethod.Post, new { enctype = "multipart/form-data", @id = "formCreditApproval" });
+                            }
+                            else
+                            {
+                                sumibtForm = Html.BeginForm(mailApprovalAction, "CreditApproval", new { index = 0, EntityID = @Model.CreditLimitEntityID }, FormMethod.Post, new { enctype = "multipart/form-data", @id = "formCreditApproval" });
+                            }
+
+                         }
+
+                        @using (Html.BeginForm(sumibtForm))
+                        {
+                            @Html.AntiForgeryToken()
+                            @Html.ValidationSummary(true)
+                            @Html.HiddenFor(a => a.CreditLimitEntityID)
+                            @Html.HiddenFor(a => a.SendApprovalToEmpID)
+                            @Html.HiddenFor(a => a.IsApprover)
+                            @Html.HiddenFor(a => a.TabIndex)
+                            @Html.HiddenFor(a => a.FromMail)
+                            
+                            <div class="row clearfix">
+                                   @if (Model.IsApprover && Model.StatusID == 2)
+                                   {
+                                       <fieldset class="col-md-12 border m-sm">
+                                           <legend>Approval Detail</legend>
+                                           <div class="row">
+                                               <div class="form-group col-sm-5 col-md-5">
+                                                   <label>Approval Remark</label>
+                                                   @Html.TextAreaFor(model => model.ApproveRemark, 10, 40, new { @class = "form-control input-sm", placeholder = "Approval Remark", title = "Approval Remark" })
+                                               </div>
+                                               <div class="col-sm-2 col-md-2">
+                                                   <div class="clearfix">
+                                                       <input type="submit" id="btnApprove" name="Save" class="btn btn-primary m-t-sm pull-left m-r-sm btn-sm filter-custom-margin" value="Approve" />
+                                                   </div>
+                                               </div>
+                                           </div>
+                                       </fieldset>
+                                   }
+                                @if (!string.IsNullOrWhiteSpace(Model.ApproveByName))
+                                {
+                                    <fieldset class="col-md-12 border m-sm">
+                                        <legend>Approval Detail</legend>
+                                        <div class="row">
+                                            <div class="form-group col-sm-4 col-md-4">
+                                                <label>Approval Remark</label>
+                                                @Html.TextAreaFor(model => model.ApproveRemark, 10, 40, new { @class = "form-control input-sm", placeholder = "Approval Remark", title = "Approval Remark", @readonly = "readonly" })
+                                            </div>
+                                            <div class="form-group col-sm-3 col-md-3">
+                                                <label>Approved By</label>
+                                                <span class="font-bold form-control">@Html.Raw(Model.ApproveByName) </span>
+                                            </div>
+                                            <div class="form-group col-sm-2 col-md-2">
+                                                <label>Approved Date</label>
+                                                <span class="font-bold form-control">@Html.Raw(Convert.ToDateTime(Model.ApproveDate).ToString("dd-MMM-yyyy"))</span>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                }
+                                <div class="row m-n">
+                                    @if (!string.IsNullOrWhiteSpace(Model.CreatedByName))
+                                    {
+                                        <div class="col-sm-3 col-md-3">
+                                            <label>Last Created By : @Html.Raw(Model.CreatedByName)</label>
+                                        </div>
+                                        <div class="col-sm-3 col-md-3">
+                                            <label>Last Created Date : @Html.Raw(Model.CreatedDate.ToString("dd-MMM-yyyy"))</label>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="col-sm-6 col-md-6"></div>
+                                    }
+                                        <div class="col-sm-2 col-md-2">
+                                            @if(UserSession!=null && UserSession.LoginID > 0)
+                                            {
+                                                ////DMS Button
+                                                <a href="@Url.Action("Create", "DMS", new {  id = @Model.CreditLimitEntityID, Type = "CreditApprovalForm" })" class="btn btn-primary btn-sm pull-right m-r-xs" data-toggle="modal" data-target="#mdlDMS" data-cache="false" title="DMS"><i class="glyphicon glyphicon-folder-open m-r-xs"></i>DMS</a>
+                                            }
+                                        </div>
+                                        <div class="col-sm-3 col-md-3">
+                                            @{
+                                                string disabled = string.Empty;
+                                                if ((Model.StatusID >= 2 && Model.StatusID <= 4) || (!Model.IsApprover && Model.StatusID == 5))
+                                                {
+                                                    disabled = "disabled";
+                                                }
+                                                string btnType = Model.StatusID == 1 || Model.StatusID==2 ? "button" : "submit";
+                                                string spinner = Model.StatusID != 1 ? "Showspinner" : "";
+                                            }
+                                            @if (Model.StatusID >= 1)
+                                            {
+                                                <input type="@btnType" id="btnSendApproval" name="Save" class="btn btn-primary pull-left m-l-sm btn-sm m-n @spinner" value="@Model.Status" @disabled />
+                                            }
+                                            @if ((Model.StatusID == 3 || Model.StatusID == 4) && Model.IsApprover == false)
+                                            {
+                                                <input type="button" id="btnSendForRemoveApproval" name="Save" class="btn btn-primary pull-left m-r-sm btn-sm" value="Send for remove approval" />
+                                            }
+
+                                            @if (Model.StatusID <= 1)
+                                            {
+                                                <input type="submit" id="btnSaveJob" name="Save" class="btn btn-primary pull-right m-r-sm btn-sm m-n" value="Save" />
+                                            }
+
+                                            @if (Model.CreditLimitEntityID > 0)
+                                            {
+                                                
+                                               <a href="@Url.Action("GetCFAPrint", "CreditApproval", new {  Id = Model.CreditLimitEntityID })" class="btn btn-sm btn-default m-l-sm pull-left" title="Print" target="_blank">
+                                                   <i class="fa fa-print"></i>
+                                               </a>
+                                                
+                                            }
+                                        </div>
+                                </div>
+
+                                <fieldset class="col-md-12 border  m-n">
+                                    <div class="m-t-sm pad-none">
+                                        <div class="row">
+                                            <div class="form-group col-sm-4 col-md-4">
+                                                <label>Corporate </label>
+                                                @Html.DropDownListFor(a => a.CorporateID, new SelectList((System.Collections.IEnumerable)ViewData["CreditAgentList"], "Value", "Text", ViewData["CreditAgentList"]), "Select One", new { @class = "form-control input-sm clearfix enableselect", title = "Corporate" })
+                                                @Html.ValidationMessageFor(a => a.CorporateID, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group col-sm-3 col-md-3">
+                                                <label>Address</label>
+                                                @Html.TextAreaFor(model => model.Address, 10, 40, new { @class = "form-control input-sm", placeholder = "Address", title = "Address", @readonly = "readonly" })
+                                                @Html.ValidationMessageFor(a => a.Address, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group col-sm-3 col-md-3">
+                                                <label>City</label>
+                                                @Html.DropDownListFor(a => a.CityId, new SelectList((System.Collections.IEnumerable)ViewData["CityList"], "Value", "Text", ViewData["CityList"]), "Select One", new { @class = "form-control input-sm clearfix ", title = "City", @disabled = "disabled" })
+                                                @Html.ValidationMessageFor(a => a.CityId, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group col-sm-2 col-md-2">
+                                                <label>GSTIN No</label>
+                                                @Html.TextBoxFor(a => a.GSTIN_No, new { @class = "form-control input-sm ", placeholder = "GSTIN No", title = "GSTIN_No", @readonly = "readonly" })
+                                                @Html.ValidationMessageFor(a => a.GSTIN_No, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="form-group col-sm-1 col-md-1">
+                                                <label>TurnOver(Lacs)</label>
+                                                @Html.TextBoxFor(a => a.Turnover_Amt, new { @class = "form-control input-sm", placeholder = "Turn Over In INR", title = "Turn Over(Lacs)", onkeypress = "return OnlyDouble(this, event);", oncopy = "return false", onpaste = "return false" })
+                                                @Html.ValidationMessageFor(a => a.Turnover_Amt, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group col-sm-3 col-md-3">
+                                                <label>Contact Name</label>
+                                                @Html.TextBoxFor(a => a.Cust_Contact_Name, new { @class = "form-control input-sm", placeholder = "Customer Contact Name", title = "Customer Contact Name" })
+                                                @Html.ValidationMessageFor(a => a.Cust_Contact_Name, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group col-sm-2 col-md-2">
+                                                <label>Contact Designation</label>
+                                                @Html.TextBoxFor(a => a.Cust_Contact_Designation, new { @class = "form-control input-sm", placeholder = "Customer Contact Designation", title = "Customer Contact Designation" })
+                                                @Html.ValidationMessageFor(a => a.Cust_Contact_Designation, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group col-sm-2 col-md-2">
+                                                <label>Contact Number</label>
+                                                @Html.TextBoxFor(a => a.Cust_Contact_Number, new { @class = "form-control input-sm", placeholder = "Customer Contact Number", title = "Customer Contact Number" })
+                                                @Html.ValidationMessageFor(a => a.Cust_Contact_Number, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group col-sm-2 col-md-2">
+                                                <label>Contact Email</label>
+                                                @Html.TextBoxFor(a => a.Cust_Contact_Email, new { @class = "form-control input-sm", placeholder = "Customer Contact Email", title = "Customer Contact Email" })
+                                                @Html.ValidationMessageFor(a => a.Cust_Contact_Email, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group col-sm-2 col-md-2">
+                                                <label>Validity Date</label>
+                                                @Html.TextBoxFor(model => Model.EffectiveTo, new { @class = "form-control input-sm clearfix  datepicker" })
+                                                @Html.ValidationMessageFor(a => a.EffectiveTo, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                           
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+
+                                <fieldset class="col-md-12 border  m-n">
+                                    <legend data-toggle="collapse" data-target="#CreditDiv">
+                                        <i class="more-less glyphicon glyphicon-plus"></i>
+                                        Business Development Feedback
+                                    </legend>
+                                    <div class="m-t-sm panel-collapse collapse CollapsingFieldSet" id="CreditDiv">
+
+                                        @if (!Model.FromMail)
+                                        {
+
+                                        <div class="row">
+                                            @Html.Hidden("EditRowIndex", -1)
+                                            <div class="form-group col-sm-1 col-md-1">
+                                                <label>Project</label>
+                                                @Html.DropDownList("Project", new SelectList((System.Collections.IEnumerable)ViewData["ProjectList"], "Value", "Text", ViewData["ProjectList"]), "Select One", new { @class = "form-control input-sm clearfix", title = "Project" })
+                                            </div>
+                                            <div class="form-group col-sm-2 col-md-2">
+                                                <label>ServiceLine</label>
+                                                @Html.DropDownList("ServiceLine", new SelectList((System.Collections.IEnumerable)Enumerable.Empty<SelectListItem>(), "Value", "Text"), "Select One", new { @class = "form-control input-sm clearfix", title = "ServiceLine" })
+                                            </div>
+                                            <div class="form-group col-sm-2 col-md-2">
+                                                <label>Credit Approval Limit</label>
+                                                @Html.TextBox("Credit_Limit", null, new { @class = "form-control input-sm", placeholder = "Credit Limit", title = "Credit Limit", onkeypress = "return OnlyDouble(this, event);", oncopy = "return false", onpaste = "return false" })
+                                            </div>
+                                            <div class="form-group col-sm-1 col-md-1">
+                                                <label>Curr.</label>
+                                                @Html.DropDownList("Currency", new SelectList((System.Collections.IEnumerable)ViewData["RateCurrency"], "Value", "Text", BaseCurrID), "--Select One--", new { @class = "form-control input-sm clearfix" })
+                                            </div>
+                                            <div class="form-group col-sm-1 col-md-1">
+                                                <label>Advance %</label>
+                                                @Html.TextBox("advPercent", null, new { @class = "form-control input-sm", placeholder = "Adv to be collected  %", title = "Adv to be collected  %", onkeypress = "return OnlyDouble(this, event);", oncopy = "return false", onpaste = "return false" })
+
+                                            </div>
+                                            <div class="col-sm-2 col-md-2 form-group">
+                                                <label>Credit Days</label>
+                                                @Html.TextBox("CreditDays", null, new { @class = "form-control input-sm clearfix", onkeypress = "return OnlyInteger(this, event);", @maxlength = "3", oncopy = "return false", onpaste = "return false" })
+                                            </div>
+                                            <div class="col-sm-3 col-md-3 form-group">
+                                                <label>Condition</label>
+                                                @Html.DropDownList("PeriodBasis", new SelectList((System.Collections.IEnumerable)ViewData["PeriodBasisList"], "Value", "Text"), "--Select One--", new { @class = "form-control input-sm clearfix enableselect" })
+                                            </div>
+                                            <div class="form-group col-sm-3 col-md-3">
+                                                <label>Billing Instructions Remark</label>
+                                                @Html.TextArea("Billing_Remark", null, 5, 10, new { @class = "form-control input-sm", placeholder = "Billing Instructions Remark", title = "Billing Instructions Remark" })
+                                            </div>
+                                            @if (Model.StatusID <= 1 || (Model.IsApprover && Model.StatusID == 2))
+                                            {
+                                                <div class="col-sm-1 col-md-1 form-group">
+                                                    <div class="clearfix">
+                                                        <input type="button" id="btnAddCredit" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="AddCredit()">
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-sm-1 col-md-1 form-group">
+                                                    <div class="clearfix">
+                                                        <input type="button" id="btnCancelUpdate" value="Cancel" class="btn btn-primary btn-sm filter-custom-margin hide" onclick="CancelCreditUpdate()">
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+
+                                        }
+                                        <div class="row">
+                                            @Html.HiddenFor(model => model.HFCredits)
+                                            <div class="col-md-12">
+                                                <table id="tblCredits" class="table table-striped table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Project</th>
+                                                            <th>ServiceLine</th>
+                                                            <th>Approval Limit</th>
+                                                            <th>Currency</th>
+                                                            <th>Advance %</th>
+                                                            <th>Credit Days</th>
+                                                            <th>Condition</th>
+                                                            <th>Billing Remark</th>
+                                                            <th></th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody style="max-height:150px">
+                                                        @for (var i = 0; i < Model.buss_Dev.Count; i++)
+                                                        {
+                                                            Model.buss_Dev[i].rowIndex = i;
+                                                        <tr>
+                                                            <td>
+                                                                @Html.EditorFor(a => Model.buss_Dev[i].Project, new { htmlAttributes = new { @placeholder = "Project", @tooltip = "Project", @class = "form-control input-sm Credit_Project", title = "Project", @readonly = "readonly" } })
+                                                                @Html.HiddenFor(x => Model.buss_Dev[i].ProjectID, new { @class = "Credit_ProjectID" })
+                                                                @Html.HiddenFor(x => Model.buss_Dev[i].rowIndex, new { @class = "Credit_rowIndex" })
+                                                            </td>
+                                                            <td>
+                                                                @Html.EditorFor(a => Model.buss_Dev[i].ServiceLine, new { htmlAttributes = new { @placeholder = "ServiceLine", @tooltip = "ServiceLine", @class = "form-control input-sm Credit_ServiceLine", title = "ServiceLine", @readonly = "readonly" } })
+                                                                @Html.HiddenFor(x => Model.buss_Dev[i].ServiceLineID, new { @class = "Credit_ServiceLineID" })
+                                                            </td>
+                                                            <td>
+
+                                                                @{ Model.buss_Dev[i].Credit_Amount_Display = string.Format("{0:n0}", Model.buss_Dev[i].Credit_Amount); }
+
+                                                                @Html.EditorFor(a => Model.buss_Dev[i].Credit_Amount_Display, new { htmlAttributes = new { @placeholder = "Credit Limit Amount", @tooltip = "Credit Limit Amount", @class = "form-control input-sm Credit_Amount_Display", title = "Credit Limit Amount", onkeypress = "return OnlyDouble(this, event);", @readonly = "readonly" } })
+                                                                @Html.HiddenFor(x => Model.buss_Dev[i].Credit_Amount, new { @class = "Credit_Amount" })
+                                                                @Html.ValidationMessageFor(a => Model.buss_Dev[i].Credit_Amount, "", new { @class = "text-danger" })
+                                                            </td>
+                                                            <td>
+                                                                @Html.EditorFor(a => Model.buss_Dev[i].CurrencyName, new { htmlAttributes = new { @placeholder = "Currency", @tooltip = "Currency", @class = "form-control input-sm Credit_Curr", title = "Credit Curr.", @readonly = "readonly" } })
+                                                                @Html.HiddenFor(x => Model.buss_Dev[i].CurrID, new { @class = "Credit_CurrID" })
+                                                            </td>
+                                                            <td>
+                                                                @Html.EditorFor(a => Model.buss_Dev[i].Adv_Percent, new { htmlAttributes = new { @placeholder = "Adv Percent", @tooltip = "Adv Percent", @class = "form-control input-sm Credit_Adv_Percent", title = "Adv Percent", @readonly = "readonly", onkeypress = "return OnlyDouble(this, event);" } })
+                                                                @Html.ValidationMessageFor(a => Model.buss_Dev[i].Adv_Percent, "", new { @class = "text-danger" })
+                                                            <td>
+                                                                @Html.EditorFor(a => Model.buss_Dev[i].CreditDays, new { htmlAttributes = new { @placeholder = "CreditDays", @tooltip = "CreditDays", @class = "form-control input-sm Credit_Days", title = "CreditDays", @readonly = "readonly", onkeypress = "return OnlyInteger(this, event);", @maxlength = "3" } })
+                                                                @Html.ValidationMessageFor(a => Model.buss_Dev[i].CreditDays, "", new { @class = "text-danger" })
+                                                            </td>
+                                                            <td>
+                                                                @Html.EditorFor(a => Model.buss_Dev[i].Credit_period_basis, new { htmlAttributes = new { @placeholder = "Credit period basis", @tooltip = "Credit period basis", @class = "form-control input-sm Credit_period_basis", title = Model.buss_Dev[i].Credit_period_basis, @readonly = "readonly" } })
+                                                                @Html.HiddenFor(x => Model.buss_Dev[i].Credit_period_basisID, new { @class = "Credit_period_basisID" })
+                                                            </td>
+                                                            <td>
+                                                                @Html.TextAreaFor(a => Model.buss_Dev[i].BillingInstructions_Remark, 2, 20, new { @placeholder = "Billing Instructions Remark", @tooltip = "BillingInstructions Remark", @class = "form-control input-sm Billing_Remarks", title = Model.buss_Dev[i].BillingInstructions_Remark, @readonly = "readonly" })
+                                                            </td>
+                                                            <td>
+                                                                @if (Model.StatusID <= 1 || (Model.IsApprover && Model.StatusID == 2))
+                                                                {
+                                                                <button type="button" value="Edit" class="btnEdit btn btn-sm btn-primary pull-left" onclick="EditCredit(this)"><i class="glyphicon glyphicon-pencil"></i></button>
+                                                                }
+                                                            </td>
+                                                            <td>
+                                                                @if (Model.StatusID <= 1 || (Model.IsApprover && Model.StatusID == 2))
+                                                                {
+                                                                    <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash m-n" onclick="RemoveCredit(this)"></button>
+                                                                }
+                                                            </td>
+                                                        </tr>
+
+                                                        }
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td colspan="2"><b>Total</b></td>
+                                                            <td>
+                                                                @{ Model.TotalCreditLimitDisplay = string.Format("{0:n0}", Model.TotalCreditLimit); }
+                                                                @Html.TextBoxFor(model => model.TotalCreditLimitDisplay, new { @class = "form-control input-sm", @title = "Total", @placeholder = "Total", @readonly = "readonly" })
+                                                                @Html.HiddenFor(model => model.TotalCreditLimit, new { @class = "Total" })
+                                                            </td>
+                                                            <td colspan="3"></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                </fieldset>
+                            </div>
+                            @*Send Approval Modal*@
+                            <div class="modal modal-wide fade" id="mdlSendtoApproval" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row">
+                                                <div class="col-sm-6">
+
+                                                    @{ 
+                                                        string ButtonLabel = "Send for Approval";
+
+                                                        if(Model.StatusID==3 || Model.StatusID == 4)
+                                                        {
+                                                            ButtonLabel = "Send for Remove Approval";
+                                                        }
+                                                    }
+
+                                                    <label>@{string.Format("Select User for {0} Approval", ButtonLabel);}</label>
+                                                    @Html.DropDownList("SendtoApprovalList", new SelectList((System.Collections.IEnumerable)ViewData["ApprovalUserList"], "Value", "Text"), "Select One", new { @class = "form-control enableselect" })
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <input type="submit" name="Save" value="@ButtonLabel" class="btn btn-sm btn-primary filter-custom-margin" id="btnSendToCSApprove" form="formCreditApproval" />
+                                                </div>
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            &nbsp;&nbsp;
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @*End Modal*@
+
+                                                        }
+                    </div>
+                    @if (Model.CreditLimitEntityID > 0)
+                    {
+                     @*Business developement feedback tab*@
+                     @*<div role="tabpanel" class="@(Model.TabIndex == 1 ? " tab-pane active" : "tab-pane" )" id="BussFeedback">
+                        @if (Model.buss_Dev.IsApprover && (Model.buss_Dev.FromAmount <= Model.buss_Dev.Credit_Amount && Model.buss_Dev.ToAmount >= Model.buss_Dev.Credit_Amount))
+                        {
+                            if (string.IsNullOrWhiteSpace(Model.buss_Dev.ApproveByName))
+                            {
+
+                                using (Html.BeginForm("Approve", "CreditApproval", new { index = 1, CreditLimitEntityID = @Model.CreditLimitEntityID }, FormMethod.Post, new { @class = "ApproveForm", id = "ApproveForm", enctype = "multipart/form-data" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.ValidationSummary(true)
+                                    @Html.HiddenFor(model => model.CreditLimitEntityID)
+                                    @Html.HiddenFor(a => a.buss_Dev.CreditLimitEntityID)
+                                    @Html.HiddenFor(a => a.buss_Dev.Buss_Dev_FeedbackID)
+                                    @Html.HiddenFor(a => a.TabIndex)
+
+                                    <fieldset class="col-md-12 border m-sm">
+                                        <legend>Approval Detail</legend>
+                                        <div class="row">
+                                            <div class="form-group col-sm-5 col-md-5">
+                                                <label>Approval Remark</label>
+                                                @Html.TextAreaFor(model => model.buss_Dev.ApproveRemark, 10, 40, new { @class = "form-control input-sm", placeholder = "Approval Remark", title = "Approval Remark" })
+                                            </div>
+                                            <div class="col-sm-2 col-md-2">
+                                                <div class="clearfix">
+                                                    <input type="submit" id="btnApprove" name="Approve" class="btn btn-primary m-t-sm pull-left m-r-sm btn-sm filter-custom-margin" value="Approve" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                }
+
+                            }
+                        }
+                        @if (!string.IsNullOrWhiteSpace(Model.buss_Dev.ApproveByName))
+                        {
+                            <fieldset class="col-md-12 border m-sm">
+                                <legend>Approval Detail</legend>
+                                <div class="row">
+                                    <div class="form-group col-sm-4 col-md-4">
+                                        <label>Approval Remark</label>
+                                        @Html.TextAreaFor(model => model.buss_Dev.ApproveRemark, 10, 40, new { @class = "form-control input-sm", placeholder = "Approval Remark", title = "Approval Remark", @readonly = "readonly" })
+                                    </div>
+                                    <div class="form-group col-sm-3 col-md-3">
+                                        <label>Approved By</label>
+                                        <span class="font-bold form-control">@Html.Raw(Model.buss_Dev.ApproveByName) </span>
+                                    </div>
+                                    <div class="form-group col-sm-2 col-md-2">
+                                        <label>Approved Date</label>
+                                        <span class="font-bold form-control">@Html.Raw(Convert.ToDateTime(Model.buss_Dev.ApproveDate).ToString("dd-MMM-yyyy"))</span>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        }
+
+                        
+                        Upload file 
+                        @if (Model.buss_Dev.Buss_Dev_FeedbackID > 0)
+                        {
+                            if (!Model.buss_Dev.IsApprover)
+                            {
+                                using (Html.BeginForm("UploadFile", "CreditApproval", new { index = 1, CreditLimitEntityID = @Model.CreditLimitEntityID }, FormMethod.Post, new { enctype = "multipart/form-data" }))
+                                {
+                                    @Html.HiddenFor(a => a.CustApprovalUpload.Buss_Dev_FeedbackID)
+                                    @Html.AntiForgeryToken()
+                                    @Html.ValidationSummary(true)
+                                    @Html.HiddenFor(a => a.TabIndex)
+                                    <div class="row">
+                                        <div class="form-group col-sm-3 col-md-3">
+                                            <label>Customer Approval Type</label>
+                                            @Html.DropDownListFor(a => a.CustApprovalUpload.ApprovalType, new SelectList((System.Collections.IEnumerable)ViewData["CustApproveTypeList"], "Value", "Text", ViewData["CustApproveTypeList"]), "Select One", new { @class = "form-control ", title = "Approval Type" })
+                                            @Html.ValidationMessageFor(a => a.CustApprovalUpload.ApprovalType, "", new { @class = "text-danger" })
+                                        </div>
+                                        <div class="form-group col-sm-3 col-md-3">
+                                            <label>Description</label>
+                                            @Html.TextAreaFor(model => model.CustApprovalUpload.DocDescription, 10, 40, new { @class = "form-control input-sm", placeholder = "Description", title = "Description" })
+                                            @Html.ValidationMessageFor(a => a.CustApprovalUpload.DocDescription, "", new { @class = "text-danger" })
+                                        </div>
+                                        <div class="col-sm-4 col-md-4">
+                                            <div class="form-group">
+                                                @Html.LabelFor(model => model.CustApprovalUpload.ApprovalFile, htmlAttributes: new { @class = "control-label" })
+                                                @Html.TextBoxFor(a => a.CustApprovalUpload.ApprovalFile, new { type = "file", @class = "form-control input-sm", placeholder = "OFS Document", title = "Document" })
+                                                @Html.ValidationMessageFor(a => a.CustApprovalUpload.ApprovalFile, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-1 col-md-1">
+                                            <div class="clearfix">
+                                                <input type="submit" id="btnUpload" name="Upload" class="btn btn-primary m-t-sm pull-right m-r-sm btn-sm filter-custom-margin" value="Upload" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+
+
+                            }
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table id="tblUploads" class="table table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Approval Type</th>
+                                                <th>File</th>
+                                                <th>Description</th>
+                                                <th></th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody style="max-height:150px">
+                                            @for (var i = 0; i < Model.Approvalfiles.Count; i++)
+                                            {
+
+                                                <tr>
+                                                    <td>
+                                                        @Html.EditorFor(a => Model.Approvalfiles[i].ApprovalType, new { htmlAttributes = new { @placeholder = "Approval Type", @tooltip = "Approval Type", @class = "form-control input-sm ApprovalType", title = "Approval Type", @readonly = "readonly" } })
+                                                        @Html.HiddenFor(x => Model.Approvalfiles[i].Buss_Dev_FeedbackID, new { @class = "Buss_Dev_FeedbackID" })
+                                                        @Html.HiddenFor(x => Model.Approvalfiles[i].FileID, new { @class = "FileID" })
+                                                    </td>
+                                                    <td>
+                                                        <span class="font-bold">@Html.Raw(Model.Approvalfiles[i].FileName)</span>
+                                                        @Html.HiddenFor(x => Model.Approvalfiles[i].FileName, new { @class = "FileName" })
+                                                    </td>
+                                                    <td>
+                                                        <span class="font-noraml">@Html.Raw(Model.Approvalfiles[i].DocDescription)</span>
+                                                        @Html.HiddenFor(x => Model.Approvalfiles[i].DocDescription, new { @class = "DocDescription" })
+                                                    </td>
+                                                    <td>
+                                                        @using (Html.BeginForm("ViewFile", "CreditApproval", new { index = 1, EntityID = @Model.CreditLimitEntityID }, FormMethod.Post, new { id = "FileDownloadForm", enctype = "multipart/form-data", target = "_blank" }))
+                                                        {
+                                                            @Html.AntiForgeryToken()
+                                                            @Html.ValidationSummary(true)
+                                                            @Html.Hidden("EntityID", Model.CreditLimitEntityID)
+                                                            @Html.Hidden("FileID", Model.Approvalfiles[i].FileID)
+                                                            <button type="submit" class="btnDownload btn btn-xs btn-primary glyphicon glyphicon-download m-n"></button>
+                                                        }
+
+                                                    </td>
+                                                    <td>
+                                                        @using (Html.BeginForm("DeleteFile", "CreditApproval", new { index = 1, EntityID = @Model.CreditLimitEntityID }, FormMethod.Post, new { id = "FileDeleteForm", @class = "frmRWDelete", enctype = "multipart/form-data" }))
+                                                        {
+                                                            @Html.AntiForgeryToken()
+                                                            @Html.ValidationSummary(true)
+                                                            @Html.Hidden("EntityID", Model.CreditLimitEntityID)
+                                                            @Html.Hidden("FileID", Model.Approvalfiles[i].FileID)
+                                                            <button type="submit" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash m-n"></button>
+                                                        }
+                                                    </td>
+                                                </tr>
+
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        }
+                        Upload file 
+
+                    </div>*@
+
+                    <div role="tabpanel" class="@(Model.TabIndex == 1 ? " tab-pane active" : "tab-pane" )" id="ClientMap">
+                        @using (Html.BeginForm("Create", "CreditApproval", new { index = 1, EntityID = @Model.CreditLimitEntityID }, FormMethod.Post, new { enctype = "multipart/form-data",id="ClientMapForm",@class= "ClientMapForm" }))
+                        {
+
+                            @Html.HiddenFor(model => model.CreditLimitEntityID)
+                            @Html.HiddenFor(model => model.ClientMap.CreditLimitEntityID)
+
+                            @Html.AntiForgeryToken()
+                            @Html.ValidationSummary(true)
+                            @Html.HiddenFor(a => a.TabIndex)
+                            <fieldset class="col-md-12 border m-sm">
+                                <div class="row">
+                                    <div class="form-group col-sm-5 col-md-5">
+                                        <label>Remark</label>
+                                        @Html.TextAreaFor(model => model.ClientMap.Remark, 10, 40, new { @class = "form-control input-sm", placeholder = "Remark", title = "Remark" })
+                                    </div>
+                                    @if(Model.StatusID<=1 || (Model.IsApprover && (Model.StatusID == 2 || Model.StatusID ==3)))
+                                    { 
+                                    <div class="col-sm-7 col-md-7">
+                                        <div class="clearfix">
+                                            <input type="submit" id="btnClientMap" name="Save" class="btn btn-primary m-t-sm pull-right m-r-sm btn-sm filter-custom-margin Showspinner" value="Save Client Map" />
+                                        </div>
+                                    </div>
+                                    }
+                                </div>
+                                <fieldset class="col-md-12 border m-sm">
+                                    <div class="row">
+                                        <div class="col-sm-5">
+                                            <input type="text" id="filterMultipleSelection" placeholder="Search List" class = "form-control input-sm" />
+                                        </div>
+                                    </div>
+
+                                    <div class="row m-t-sm">
+                                        <div class="col-sm-5 pad-none subject-info-box-1">
+                                            @*<div class="card" style="width: 18rem;">*@
+                                            @Html.ListBoxFor(model => model.ClientMap.UnMappedClientList, Model.ClientMap.UnmapClientNameList, new { @class = "width-100 list-group", @style = "height:400px;overflow:scroll;" })
+                                            @*</div>*@
+                                        </div>
+                                        <div class="col-sm-1 pad-none m-n text-center">
+                                            <input type="button" value=">" class="btn-sm btn-default" style="width:70%;" onclick="SetRight('buss')" />
+                                            <input type="button" value=">>" class="btn-sm btn-default" style="width:70%;" onclick="SetAllRight('buss')" />
+                                            <input type="button" value="<" class="btn-sm btn-default" style="width:70%;" onclick="SetLeft('buss')" />
+                                            <input type="button" value="<<" class="btn-sm btn-default" style="width:70%;" onclick="SetAllLeft('buss')" />
+                                        </div>
+                                        <div class="col-sm-5 pad-none subject-info-box-1">
+                                            @*<div class="card" style="width: 18rem;">*@
+                                            @Html.ListBoxFor(model => model.ClientMap.MappedClientList, Model.ClientMap.MappedClientNameList, new { @class = "width-100 list-group", @style = "height:400px;overflow:scroll;" })
+                                            @*@Html.ListBoxFor(model => model.CountryList, (IEnumerable<SelectListItem>)ViewData["CountryList"])*@
+                                            @*</div>*@
+                                        </div>
+                                    </div>
+                                </fieldset>
+                             </fieldset>
+                        }
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--DMS Model-->
+<div id="mdlDMS" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script type="text/javascript">
+        
+        var GenerateJsonForPeriod = () => {
+
+            let data = [];
+            $('#tblCredits tbody tr').each(function () {
+                
+                let Projectid = $(this).find('.Credit_ProjectID').val();
+                let Project = $(this).find('.Credit_Project').val();
+                let ServiceLine = $(this).find('.Credit_ServiceLine').val();
+                let ServiceLineid = $(this).find('.Credit_ServiceLineID').val();
+                let CurrencyName = $(this).find('.Credit_Curr').val();
+                let CurrID = $(this).find('.Credit_CurrID').val();
+                let Billing_Remarks = $(this).find('.Billing_Remarks').val();
+                let Credit_Amount = $(this).find('.Credit_Amount').val();
+                let Credit_Amount_Display = $(this).find('.Credit_Amount_Display').val();
+                let Credit_period_basis = $(this).find('.Credit_period_basis').val();
+                let Credit_period_basisID = $(this).find('.Credit_period_basisID').val();
+                let Credit_days = $(this).find('.Credit_Days').val();
+                let Adv_Percent = $(this).find('.Credit_Adv_Percent').val();
+                let rowIndex = $(this).find('.Credit_rowIndex').val();
+
+                let alldata = {
+                    'CreditLimitEntityID': $('#CreditLimitEntityID').val(),
+                    'Project': Project,
+                    'ProjectID': Projectid,
+                    'ServiceLine': ServiceLine,
+                    'ServiceLineID': ServiceLineid,
+                    'Credit_Amount': parseFloat(Credit_Amount),
+                    'Credit_Amount_Display': Credit_Amount_Display,
+                    'CurrID': parseInt(CurrID),
+                    'CurrencyName': CurrencyName,
+                    'BillingInstructions_Remark': Billing_Remarks,
+                    'IsActive': true,
+                    'Credit_period_basis': Credit_period_basis,
+                    'Credit_period_basisID': !isNaN(parseInt(Credit_period_basisID)) ? parseInt(Credit_period_basisID) : 0,
+                    'CreditDays': !isNaN(parseInt(Credit_days)) ? parseInt(Credit_days) : 0,
+                    'Adv_Percent': !isNaN(parseFloat(Adv_Percent)) ? parseFloat(Adv_Percent) : 0,
+                    'rowIndex': rowIndex
+                }
+                
+                data.push(alldata);
+            });
+
+
+            pair = { 'buss_Devs': data };
+            $("#HFCredits").val(JSON.stringify(pair));
+
+            CalTotalCreditLimit();
+        }
+
+        $(document).ready(function () {
+
+            DatePickerClass();
+            GenerateJsonForPeriod();
+            
+
+            $('#CorporateID').on('change', function () {
+
+                if ($(this).val() != null && parseInt($(this).val()) > 0) {
+
+                    GetAgetDetails($(this).val());
+                }
+
+            });
+
+            $('#Project').on('change', function () {
+
+                if ($(this).val() != null && parseInt($(this).val()) > 0) {
+
+                    GetServiceLines($(this));
+                }
+
+            });
+
+            $('#CreditPeriodDiv,#CreditDiv').collapse('show');
+
+            $('.CollapsingFieldSet').on('hidden.bs.collapse', toggleIcon);
+
+            $('.CollapsingFieldSet').on('shown.bs.collapse', toggleIcon);
+
+            function toggleIcon(e) {
+                $(e.target).closest('fieldset').toggleClass('border-top border-bottom');
+                $(e.target)
+                    .prev('legend')
+                    .find(".more-less")
+                    .toggleClass('glyphicon-plus glyphicon-minus');
+
+            }
+            
+            $("#btnSaveJob, #btnApprove").bind('click', function (e) {
+
+                if ($("#formCreditApproval").valid()) {
+
+                    if ($('#tblCredits tbody tr').length <= 0) {
+
+                        alert('Atleast One Credit Approval Limit is required');
+                        e.preventDefault();
+                        return false;
+                    }
+                    else {
+
+                        if (@Model.CreditLimitEntityID > 0 && $('#ClientMap_MappedClientList option').length <= 0) {
+
+                            if (confirm('There is no Client Mapped to this Entity. Do you wish to continue?')) {
+
+                                $('#overlay').fadeIn();
+                            }
+                            else {
+
+                                e.preventDefault();
+                                return false;
+                            }
+                        }
+                        else {
+
+                            $('#overlay').fadeIn();
+                        }
+                        
+                    }
+
+                    GenerateJsonForPeriod();
+                }
+                else {
+                    e.preventDefault();
+                    return false;
+                }
+
+                
+
+            });
+            
+            $("#btnUpload").on('click', function (e) {
+
+                if ($('#CustApprovalUpload_ApprovalType').val() == null || $('#CustApprovalUpload_ApprovalType').val() == "" || $('#CustApprovalUpload_ApprovalFile')[0].files.length === 0) {
+                    alert('Approval Type & File required');
+                    e.preventDefault();
+                }
+                else {
+                    $('#overlay').fadeIn();
+                }
+            });
+            
+            $('form.frmRWDelete').on('submit', function (e) {
+                e.preventDefault();
+                $frmRWDelete = this;
+                swal({
+                    title: "Are you sure?",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Delete",
+                    cancelButtonText: "No",
+                    closeOnConfirm: true,
+                    closeOnCancel: true
+                },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            
+                            $frmRWDelete.submit();
+                            //$($frmRWDelete).submit();
+                            $('#overlay').fadeIn();
+
+                        } else {
+                            swal("", "Document Delete Cancelled.", "error");
+                        }
+                    });
+            });
+            
+            $('form.ApproveForm').on('submit', function (e) {
+                e.preventDefault();
+                $frmRWDelete = this;
+                swal({
+                    title: "Are you sure?",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Approve",
+                    cancelButtonText: "Cancel",
+                    closeOnConfirm: true,
+                    closeOnCancel: true
+                },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            
+                            $frmRWDelete.submit();
+                            //$($frmRWDelete).submit();
+                            $('#overlay').fadeIn();
+
+                        } else {
+                            swal("", "Approve operation Cancelled.", "error");
+                        }
+                    });
+            });
+
+            $('#ClientMap_UnMappedClientList option:selected').removeAttr('selected');
+            $('#ClientMap_MappedClientList option:selected').removeAttr('selected');
+
+            $('#ClientMap_UnMappedClientList option').addClass(function () {
+                return "list-group-item";
+            });
+            
+            $('#ClientMap_MappedClientList option').addClass(function () {
+                return "list-group-item";
+            });
+
+            $('#ClientMap_UnMappedClientList option').each(function () {
+
+                $(this).attr('title', $(this).text());
+                $(this).attr('data-html', true);
+
+            });
+
+            $('#ClientMap_MappedClientList option').each(function () {
+
+                $(this).attr('title', $(this).text());
+                $(this).attr('data-html', true);
+
+            });
+
+        });
+
+
+        $('#filterMultipleSelection').on('input', function () {
+            
+            var select = document.getElementById("ClientMap_UnMappedClientList");
+            //var keyword = this.value;
+            //for (var i = 0; i < select.length; i++) {
+            //    var txt = select.options[i].text;
+            //    if (txt.substring(0, keyword.length).toLowerCase() !== keyword.toLowerCase() && keyword.trim() !== "") {
+            //        $(select.options[i]).attr('disabled', 'disabled').hide();
+            //    } else {
+            //        $(select.options[i]).removeAttr('disabled').show();
+            //    }
+            //}
+            var val = this.value.toLowerCase();
+            $('#ClientMap_UnMappedClientList > option').hide().
+                map((e, i) => select.options[e].text.toLowerCase().indexOf(val) > -1 ? i : undefined
+                )
+                .filter(x => x)
+                .show();
+            
+        });
+
+
+        function DatePickerClass() {
+
+            $('.datetimepicker').datetimepicker({
+                format: "DD-MMM-YYYY HH:mm",
+                sideBySide: true,
+                widgetPositioning: {
+                    vertical: 'bottom'
+                }
+
+            });
+            $('.datepicker').datetimepicker({
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    vertical: 'bottom'
+                }
+
+            });
+
+            $('.timepicker').datetimepicker({
+                format: 'HH:mm',
+            });
+
+            $('.datetimepicker').each(function () {
+
+                if ($(this).val().includes("0001")) {
+                    $(this).val("");
+                }
+            });
+
+            $('.datepicker').each(function () {
+
+                if ($(this).val().includes("0001")) {
+                    $(this).val("");
+                }
+            });
+            
+            $('.enableselect').select2();
+            
+        }
+
+        function GetServiceLines(Project,ServiceLineID=null) {
+            
+            let Allitems = false; //Project.attr('id').indexOf('Period') != -1 ? false : true;
+
+            $.get("@Url.Action("ComboCreditServiceline", "CreditApproval")", { Project: Project.val(), Allitems: Allitems},
+                function (data) {
+
+                    if (data.length > 0) {
+
+
+                        $("#ServiceLine").prop('disabled', 'disabled');
+                        $("#ServiceLine").val(null);
+                        $("#ServiceLine").empty();
+                        $("#ServiceLine").append($('<option>').text("--Select One--").attr('value', ""));
+                        $.each(data, function (number, municipe) {
+
+                            $("#ServiceLine").append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+                        });
+
+                        if (ServiceLineID) {
+
+                            $("#ServiceLine").val(ServiceLineID).attr('selected', 'selected');
+                        }
+
+                        $("#ServiceLine").prop('disabled', false);
+                    }
+
+                });
+        }
+
+
+        function GetAgetDetails(AgentID) {
+
+            $.get("@Url.Action("GetAgentInfo", "CreditApproval")", { AgentID: AgentID },
+                function (data) {
+
+                        
+                        if (data != null) {
+
+                            $('#Address').val(data.Address);
+                            $('#CityId').val(data.CityID);
+                            $('#GSTIN_No').val(data.GST);
+                            $('#Cust_Contact_Name').val(data.ContactPerson);
+                            $('#Cust_Contact_Number').val(data.ContactPhone);
+                            $('#Cust_Contact_Email').val(data.EmailID);
+                        }
+                });
+        }
+
+
+        function Remove(sender) {
+
+            //Determine the reference of the Row using the Button.
+            var row = $(sender).closest("TR");
+            var name = $("TD", row).find('.Credit_period_basis').val().trim();
+            if (confirm("Do you want to delete: " + name.trim())) {
+                //Get the reference of the Table.
+                var table = $("#tblActivities")[0];
+
+                //Delete the Table row using it's Index.
+                table.deleteRow(row[0].rowIndex);
+                //row.find('.InActive').val("1");
+                //row.toggle();
+                //$(sender).closest("TR").remove();
+                return false;
+            }
+
+            return false;
+        }
+
+        function checkIfExists(Project, ServiceLine,CreditBasis) {
+
+            var result = false;
+
+            $("#tblActivities > TBODY > tr").each(function () {
+                
+                if (parseInt($('.Credit_period_basisID').val()) === CreditBasis && $('.Period_ProjectID').val() == Project && $('.Period_ServiceLineID').val() == ServiceLine) {
+                    result = true;
+                    return false;
+                }
+
+            });
+
+            return result;
+
+        }
+
+        function RemoveCredit(sender) {
+
+            //Determine the reference of the Row using the Button.
+            var row = $(sender).closest("TR");
+            if (confirm("Do you want to delete? ")) {
+                //Get the reference of the Table.
+                var table = $("#tblCredits")[0];
+                //Delete the Table row using it's Index.
+                table.deleteRow(row[0].rowIndex);
+
+                CalTotalCreditLimit();
+                return false;
+            }
+            return false;
+        }
+
+        function checkIfCreditExists(Project,ServiceLine,CreditLimit) {
+            
+            var result = false;
+            $("#tblCredits > TBODY > tr").each(function () {
+
+                let ServiceLineID = $('.Credit_ServiceLineID').val();
+                
+                if ($('.Credit_ProjectID').val() === Project && (ServiceLineID == ServiceLine || ServiceLineID=="-1")) {
+                    result = true;
+                    return false;
+                }
+            });
+
+            return result;
+        }
+
+        function ClearCredit() {
+
+            $('#EditRowIndex').val(-1);
+            $('#Project').val("");
+            $('#ServiceLine').val("");;
+            $('#Credit_Limit').val("");
+            $('#Billing_Remark').val("");
+            $('#advPercent').val("");
+            $('#CreditDays').val("");
+            $("#PeriodBasis").val("").trigger('change');
+
+            $('#btnAddCredit').prop('value', 'Add');
+            if (!$('#btnCancelUpdate').hasClass('hide')) {
+                $('#btnCancelUpdate').addClass('hide');
+            }
+            $('input[type=submit]').removeAttr("disabled");
+            $('#tblCredits > TBODY > tr').each(function () { $(this).removeClass('bg') });
+        }
+
+        function CancelCreditUpdate() {
+            ClearCredit();
+        }
+
+        function EditCredit(button)
+        {
+            
+            var row = $(button).closest("TR");
+            $('#EditRowIndex').val(row.find('.Credit_rowIndex').val());
+            $('#Project').val(row.find('.Credit_ProjectID').val());
+            //debugger;
+            GetServiceLines(row.find('.Credit_ProjectID'), row.find('.Credit_ServiceLineID').val());
+            //$('#ServiceLine').val().attr("selected", "selected");
+            $('#Currency').val(row.find('.Credit_CurrID').val()).attr("selected", "selected");
+            $('#Billing_Remark').val(row.find('.Billing_Remarks').val());
+            $('#Credit_Limit').val(row.find('.Credit_Amount').val());
+            $("#PeriodBasis").val(row.find('.Credit_period_basisID').val()).trigger('change');
+            $('#CreditDays').val(row.find('.Credit_Days').val());
+            $('#advPercent').val(row.find('.Credit_Adv_Percent').val());
+            
+            row.closest('table').find('tr').each(function () { $(this).removeClass('bg') });
+            row.addClass('bg');
+            rowIndex = row[0].rowIndex;
+            $('#btnAddCredit').prop('value', 'Update');
+            if ($('#btnCancelUpdate').hasClass('hide')) {
+                $('#btnCancelUpdate').removeClass('hide');
+            }
+            $('input[type=submit]').attr("disabled", "disabled");
+        };
+
+        function AddCredit() {
+
+            var EditRowIndex = $('#EditRowIndex').val();
+            var Project = $('#Project option:selected');
+            var ProjectID = $('#Project option:selected').val();
+            var ServiceLine = $('#ServiceLine option:selected');
+            var ServiceLineID = $('#ServiceLine option:selected').val();
+            var CreditLimit = $('#Credit_Limit').val();
+            var Remark = $('#Billing_Remark').val();
+            var Curr = $("#Currency option:selected");
+            var PeriodBasis = $("#PeriodBasis option:selected");
+            var AdvPercent = $('#advPercent').val();
+            var Days = $('#CreditDays').val();
+
+
+
+            if (parseInt(ServiceLine.val()) >= -1 && parseInt(Project.val()) > 0 && parseFloat(CreditLimit) > 0 && parseInt(Curr.val()) > 0) {
+                    
+                    if (parseInt(EditRowIndex) >= 0) {
+
+                        debugger;
+                        var tbl = $("#tblCredits > TBODY");
+                        var rows = $('tr', tbl);
+                        var editRow = rows.eq(parseInt(EditRowIndex));
+                        //var editRow = $("#tblCredits > TBODY")[0].rows[EditRowIndex];
+                        editRow.find('.Credit_ProjectID').val(ProjectID);
+                        editRow.find('.Credit_Project').val(Project.text());
+                        editRow.find('.Credit_ServiceLineID').val(ServiceLineID);
+                        editRow.find('.Credit_ServiceLine').val(ServiceLine.text());
+                        editRow.find('.Credit_CurrID').val(Curr.val());
+                        editRow.find('.Credit_Curr').val(Curr.text());
+                        editRow.find('.Billing_Remarks').val(Remark);
+                        editRow.find('.Credit_Amount').val(CreditLimit);
+                        editRow.find('.Credit_Amount_Display').val(parseFloat(CreditLimit).toLocaleString('en-IN'));
+                        editRow.find('.Credit_period_basisID').val(PeriodBasis.val());
+                        editRow.find('.Credit_period_basis').val(PeriodBasis.text());
+                        editRow.find('.Credit_Days').val(Days);
+                        editRow.find('.Credit_Adv_Percent').val(AdvPercent);
+                    }
+                    else {
+
+                        debugger;
+                        if (!checkIfCreditExists(Project.val(), ServiceLine.val(), parseFloat(CreditLimit))) {
+                            var tBody = $("#tblCredits > TBODY")[0];
+                            var rowCount = $('#tblCredits > TBODY > tr').length;
+                            var row = tBody.insertRow(-1);
+                            row.className = "package-row";
+                            var cell = $(row.insertCell(-1));
+                            let td = '<input class="form-control input-sm Credit_Project text-box single-line valid" id="buss_Dev_' + rowCount + '__Project" name="buss_Dev[' + rowCount + '].Project" placeholder="Project" readonly="readonly" title="Project" tooltip="Project" type="text" value="' + Project.text() + '" autocomplete="off">' +
+                                '<input class="Credit_ProjectID" data-val="false" data-val-number="The field ProjectID must be a number." data-val-required="The ProjectID field is required." id="buss_Dev_' + rowCount + '__ProjectID" name="buss_Dev[' + rowCount + '].ProjectID" type="hidden" value="' + ProjectID + '" autocomplete="off">'
+                                + '<input class="Credit_rowIndex" data-val="false" data-val-number="The field rowIndex must be a number." data-val-required="The rowIndex field is required." id="buss_Dev_' + rowCount + '__rowIndex" name="buss_Dev[' + rowCount + '].rowIndex" type="hidden" value="' + rowCount + '" autocomplete="off">';
+
+                            cell.append(td);
+
+                            cell = $(row.insertCell(-1));
+                            td = '<input class="form-control input-sm Credit_ServiceLine text-box single-line valid" id="buss_Dev_' + rowCount + '__ServiceLine" name="buss_Dev[' + rowCount + '].ServiceLine" placeholder="ServiceLine" readonly="readonly" title="ServiceLine" tooltip="ServiceLine" type="text" value="' + ServiceLine.text() + '" autocomplete="off">' +
+                                '<input class="Credit_ServiceLineID" data-val="false" data-val-number="The field ServiceLineID must be a number." data-val-required="The ServiceLineID field is required." id="buss_Dev_' + rowCount + '__ServiceLineID" name="buss_Dev[' + rowCount + '].ServiceLineID" type="hidden" value="' + ServiceLineID + '" autocomplete="off">';
+
+                            cell.append(td);
+
+                            cell = $(row.insertCell(-1));
+                            td = '<input class="form-control input-sm Credit_Amount_Display text-box single-line"  id="buss_Dev_' + rowCount + '__Credit_Amount_Display" name="buss_Dev[' + rowCount + '].Credit_Amount_Display" onkeypress="return OnlyDouble(this, event);" placeholder="Credit Limit" title="Credit Limit" tooltip="Credit Limit" type="text" value="' + parseFloat(CreditLimit).toLocaleString('en-IN') + '" autocomplete="off" readonly >'
+                                + '<span class="field-validation-valid text-danger" data-valmsg-for="buss_Dev[' + rowCount + '].Credit_days" data-valmsg-replace="true"></span>'
+                                + '<input class="Credit_Amount" data-val="false" data-val-number="The field Credit_Amount must be a number." data-val-required="The Credit_Amount field is required." id = "buss_Dev_' + rowCount + '__Credit_Amount" name = "buss_Dev[' + rowCount + '].Credit_Amount" type = "hidden" value = "' + CreditLimit + '" autocomplete = "off" >';
+
+                            cell.append(td);
+
+
+                            cell = $(row.insertCell(-1));
+                            td = '<input class="form-control input-sm Credit_Curr text-box single-line valid" id="buss_Dev_' + rowCount + '__CurrencyName" name="buss_Dev[' + rowCount + '].CurrencyName" placeholder="Currency" readonly="readonly" title="Currency" tooltip="Currency" type="text" value="' + Curr.text() + '" autocomplete="off">' +
+                                '<input class="Credit_CurrID" data-val="false" data-val-number="The field CurrID must be a number." data-val-required="The CurrID field is required." id="buss_Dev_' + rowCount + '__CurrID" name="buss_Dev[' + rowCount + '].CurrID" type="hidden" value="' + Curr.val() + '" autocomplete="off">';
+
+                            cell.append(td);
+
+
+                            cell = $(row.insertCell(-1));
+                            td = '<input class="form-control input-sm Credit_Adv_Percent text-box single-line valid" id="buss_Dev_' + rowCount + '__Adv_Percent" name="buss_Dev[' + rowCount + '].Adv_Percent" placeholder="Adv.Percent" readonly="readonly" title="Adv.Percent" tooltip="Adv.Percent" type="text" value="' + AdvPercent + '" autocomplete="off">';
+                            cell.append(td);
+
+                            cell = $(row.insertCell(-1));
+                            td = '<input class="form-control input-sm Credit_Days text-box single-line valid" id="buss_Dev_' + rowCount + '__CreditDays" name="buss_Dev[' + rowCount + '].CreditDays" placeholder="CreditDays" readonly="readonly" title="CreditDays" tooltip="CreditDays" type="text" value="' + Days + '" autocomplete="off">';
+                            cell.append(td);
+
+                            cell = $(row.insertCell(-1));
+                            td = '<input class="form-control input-sm Credit_period_basis text-box single-line valid" id="buss_Dev_' + rowCount + '__Credit_period_basis" name="buss_Dev[' + rowCount + '].Credit_period_basis" placeholder="Credit period basis" readonly="readonly" title="Credit period basis" tooltip="Credit period basis" type="text" value="' + PeriodBasis.text() + '" autocomplete="off">'
+                                + '<input class="Credit_period_basisID" data-val="false" data-val-number="The field Credit_period_basisID must be a number." data-val-required="The Credit_period_basisID field is required." id="buss_Dev_' + rowCount + '__Credit_period_basisID" name="buss_Dev[' + rowCount + '].Credit_period_basisID" type="hidden" value="' + PeriodBasis.val() + '" autocomplete="off">';
+
+                            cell.append(td);
+
+                            cell = $(row.insertCell(-1));
+                            td = '<textarea cols="20" placeholder="Billing Instructions Remark" tooltip="BillingInstructions Remark" class="form-control input-sm Billing_Remarks" title="Billing Remark" id="buss_Dev_' + rowCount + '__BillingInstructions_Remark" name="buss_Dev[' + rowCount + '].BillingInstructions_Remark" rows="3" spellcheck="false" class="valid" readonly>' + Remark + '</textarea>';
+                            //td = '<input class="form-control input-sm Billing_Remark text-box single-line"   id="buss_Dev_' + rowCount + '__BillingInstructions_Remark" name="buss_Dev[' + rowCount + '].BillingInstructions_Remark" placeholder="BillingInstructions Remark"  title="BillingInstructions Remark" tooltip="BillingInstructions Remark" type="text" value="' + Remark + '" autocomplete="off">';
+                            cell.append(td);
+
+                            cell = $(row.insertCell(-1));
+                            var btnEdit = $("<button><i class=\"glyphicon glyphicon-pencil\"></i></button>");
+                            btnEdit.attr("type", "button");
+                            btnEdit.attr("onclick", "EditCredit(this);");
+                            btnEdit.attr("class", "btnEdit btn btn-sm btn-primary pull-left");
+                            //btnEdit.val("Edit");
+                            cell.append(btnEdit);
+
+                            var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 m-n" onclick="RemoveCredit(this)" />'
+                            cell = $(row.insertCell(-1));
+                            cell.append(tdremove);
+
+                        }
+                        else {
+
+                            alert('Credit Limit already exists in list');
+                            return false;
+
+                        }
+                }
+                DatePickerClass();
+                ClearCredit();
+
+            }
+            else {
+                alert('Project,ServiceLine,Credit Limit,Currency required');
+                return false;
+            }
+
+            CalTotalCreditLimit();
+
+            return false;
+
+        }
+
+        function Add() {
+
+            var PeriodBasis = $("#PeriodBasis option:selected");
+            var Days = $('#CreditDays').val();
+            var Project = $('#PeriodProject option:selected');
+            var ServiceLine = $('#PeriodServiceLine option:selected');
+
+            if (parseInt(ServiceLine.val())>0 && parseInt(Project.val())>0 && parseInt(PeriodBasis.val()) > 0 && parseInt(Days) > 0) {
+
+                if (!checkIfExists(Project.val(), ServiceLine.val(),parseInt(PeriodBasis.val()))) {
+
+                    var tBody = $("#tblActivities > TBODY")[0];
+                    var rowCount = $('#tblActivities > TBODY > tr').length;
+                    var row = tBody.insertRow(-1);
+                    row.className = "package-row";
+                    var cell = $(row.insertCell(-1));
+                    let td = '<input class="form-control input-sm Period_Project text-box single-line valid" id="creditPeriods_' + rowCount + '__Project" name="creditPeriods[' + rowCount + '].Project" placeholder="Project" readonly="readonly" title="Project" tooltip="Project" type="text" value="' + Project.text() + '" autocomplete="off">' +
+                        '<input class="Period_ProjectID" data-val="false" data-val-number="The field ProjectID must be a number." data-val-required="The ProjectID field is required." id="buss_Dev_periods_' + rowCount + '__ProjectID" name="creditPeriods[' + rowCount + '].ProjectID" type="hidden" value="' + Project.val() + '" autocomplete="off">';
+
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm Period_ServiceLine text-box single-line valid" id="creditPeriods_' + rowCount + '__ServiceLine" name="creditPeriods[' + rowCount + '].ServiceLine" placeholder="ServiceLine" readonly="readonly" title="ServiceLine" tooltip="ServiceLine" type="text" value="' + ServiceLine.text() + '" autocomplete="off">' +
+                        '<input class="Period_ServiceLineID" data-val="false" data-val-number="The field ServiceLineID must be a number." data-val-required="The ServiceLineID field is required." id="buss_Dev_periods_' + rowCount + '__ServiceLineID" name="creditPeriods[' + rowCount + '].ServiceLineID" type="hidden" value="' + ServiceLine.val() + '" autocomplete="off">';
+                    
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+                    td = '<input class="form-control input-sm Credit_period_basis text-box single-line valid" id="creditPeriods_' + rowCount + '__Credit_period_basis" name="creditPeriods[' + rowCount + '].Credit_period_basis" placeholder="Credit period basis" readonly="readonly" title="Credit period basis" tooltip="Credit period basis" type="text" value="' + PeriodBasis.text() + '" autocomplete="off">'
+                        + '<input class="Credit_period_basisID" data-val="false" data-val-number="The field Credit_period_basisID must be a number." data-val-required="The Credit_period_basisID field is required." id="creditPeriods_' + rowCount + '__Credit_period_basisID" name="creditPeriods[' + rowCount + '].Credit_period_basisID" type="hidden" value="' + PeriodBasis.val() + '" autocomplete="off">'                        
+                        + '<input class="InActive" data-val="true" data-val-required="The IsActive field is required." id="creditPeriods_' + rowCount + '__IsActive" name="creditPeriods[' + rowCount + '].IsActive" type="hidden" value="True" autocomplete="off">'
+                    cell.append(td);
+
+                    cell = $(row.insertCell(-1));
+
+                    td = '<input class="form-control input-sm Credit_days text-box single-line" data-val="true" data-val-number="The field Credit_days must be a number." data-val-required="The Credit_days field is required." id="creditPeriods_' + rowCount + '__Credit_days" name="creditPeriods[' + rowCount + '].Credit_days" onkeypress="return OnlyInteger(this, event);" placeholder="Days" readonly="readonly" title="Credit days" tooltip="Days" type="number" value="' + Days + '" autocomplete="off">'
+                        + '<span class="field-validation-valid text-danger" data-valmsg-for="creditPeriods[' + rowCount + '].Credit_days" data-valmsg-replace="true"></span>'
+                    cell.append(td);
+
+                    var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 m-n" onclick="Remove(this)" />'
+                    cell = $(row.insertCell(-1));
+                    cell.append(tdremove);
+
+                    DatePickerClass();
+                    Clear();
+                }
+                else {
+
+                    alert('Credit Period Basis already exists in list');
+                    return false;
+
+                }
+
+            }
+            else {
+                alert('Project,ServiceLine,Credit Period Basis & Days required');
+                return false;
+            }
+
+            return false;
+
+        }
+
+        function Clear() {
+
+            $("#PeriodBasis option:selected").prop("selected", false);
+            $('#CreditDays').val('');
+        }
+
+
+        function SetRight(param) {
+            
+            if (param == 'buss') {
+                var value = $('#ClientMap_UnMappedClientList').val();
+                $('#ClientMap_UnMappedClientList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#ClientMap_MappedClientList').append(this);
+                    }
+                });
+            }
+
+
+        }
+
+        function SetLeft(param) {
+            
+
+            if (param == 'buss') {
+                var value = $('#ClientMap_MappedClientList').val();
+                $('#ClientMap_MappedClientList option').each(function () {
+                    if (value.indexOf($(this).val()) > -1) {
+                        $('#ClientMap_UnMappedClientList').append(this);
+                    }
+                });
+            }
+
+            
+        }
+
+        function SetAllRight(param) {
+            
+            if (param == 'buss') {
+                
+                $('#ClientMap_UnMappedClientList option').each(function () {
+                    if ($(this).css('display') != 'none') {
+                        $(this).prop("selected", true);
+                    }
+                });
+                var value = $('#ClientMap_UnMappedClientList').val();
+
+                $('#ClientMap_UnMappedClientList option').each(function () {
+                    
+                    if ($(this).css('display') != 'none') {
+
+                        if (value.indexOf($(this).val()) > -1) {
+
+                            $('#ClientMap_MappedClientList').append(this);
+                        }
+                        
+                    }
+
+                });
+                //$('.rmc').removeClass('hide');
+            }
+
+            
+        }
+
+        function SetAllLeft(param) {
+            
+
+            if (param == 'buss') {
+                var value = $('#ClientMap_MappedClientList').val();
+                $('#ClientMap_MappedClientList option').each(function () {
+                    $('#ClientMap_UnMappedClientList').append(this);
+                });
+                //$('.rmc').addClass('hide');
+                //value = $('#RMCList').val();
+                //$('#RMCList option').each(function () {
+                //    $('#DefRMCList').append(this);
+                //});
+            }
+
+            
+        }
+
+        $('#btnSendApproval,#btnSendForRemoveApproval').on('click', function () {
+
+            debugger
+            if ($(this).attr('type') == "button") {
+
+                var CreditTotal = 0;
+                    $('.Credit_Amount').each(function () {
+
+                        CreditTotal += Number($(this).val());
+
+                });
+                $.get('@Url.Action("GetSentToApprover", "CreditApproval")', { Total: CreditTotal })
+                    .done(function (dataArray) {
+                        debugger
+                        if (dataArray.length > 0) {
+
+                            //let dataArray = [{ id: '', text: '' }];
+
+                            $('#SendtoApprovalList').select2({ data: dataArray });
+
+                            var count = $('#SendtoApprovalList option').length;
+
+                            if (count > 0) {
+
+                                if (count > 1) {
+                                    $('#mdlSendtoApproval').modal();
+                                }
+                                else {
+                                    //////debugger;
+                                    $('#SendApprovalToEmpID').val($('#SendtoApprovalList').val());
+                                    $('#btnSendToCSApprove').click();
+                                }
+
+                            }
+
+                        }
+
+                        
+                    });
+                
+            }
+        });
+
+        $('#SendtoApprovalList').on('change', function () {
+            $('#SendApprovalToEmpID').val($('#SendtoApprovalList').val());
+        });
+
+        $('#btnSendToCSApprove').on('click', function (e) {
+            var ApprovalSelect = $('#SendApprovalToEmpID').val();
+            if ($("#formCreditApproval").valid()) {
+
+                        if ($('#tblCredits tbody tr').length <= 0) {
+
+                            alert('Atleast One Credit Approval Limit is required');
+                            e.preventDefault();
+                            return false;
+                        }
+                        else if (ApprovalSelect <= 0) {
+                            e.preventDefault();
+                            alert("Please select Approval User.");
+                            return false;
+                        }
+                        else {
+
+                            if (@Model.CreditLimitEntityID > 0 && $('#ClientMap_MappedClientList option').length <= 0) {
+
+                                if (confirm('There is no Client Mapped to this Entity. Do you wish to continue?')) {
+
+                                    $('#overlay').fadeIn();
+                                }
+                                else {
+
+                                    e.preventDefault();
+                                    return false;
+                                }
+                            }
+                            else {
+
+                                $('#overlay').fadeIn();
+                            }
+
+                        }
+
+                        GenerateJsonForPeriod();
+            }
+            else {
+                e.preventDefault();
+                return false;
+            }
+
+
+            
+        });
+
+        function CalTotalCreditLimit() {
+
+            var TotalAmt = 0;
+            $("#tblCredits > TBODY > tr").each(function () {
+                var Amount = $(this).find(".Credit_Amount").val() ? $(this).find(".Credit_Amount").val() : 0;
+                TotalAmt = TotalAmt + (Number.isNaN(parseFloat(Amount)) ? 0 : parseFloat(Amount));
+            });
+
+            
+            $("#TotalCreditLimitDisplay").val(parseFloat(TotalAmt).toLocaleString('en-IN'));
+            $("#TotalCreditLimit").val(parseFloat(TotalAmt));
+        }
+
+        $('#btnClientMap').on('click', function () {
+
+            $('#ClientMap_MappedClientList option').each(function () {
+                $(this).prop("selected", true);
+            });
+
+        });
+
+    </script>
+    @Styles.Render("~/Content/bootstrap-multiselectcss")
+    <link type="text/css" href="~/Content/bootstrap-datetimepicker.min.css" />
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap-select")
+    @Scripts.Render("~/bundles/bootstrap-multiselect")
+
+}

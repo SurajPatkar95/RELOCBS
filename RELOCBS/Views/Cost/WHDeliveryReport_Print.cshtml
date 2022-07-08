@@ -1,0 +1,860 @@
+﻿@model RELOCBS.Entities.CostViewModel
+
+@{
+    string Title = "Delivery Report";
+
+    ViewBag.Title = Title;
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@Title</title>
+    @Styles.Render("~/Content/css")
+
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style type="text/css">
+        #tblWHServiceCost tbody td {
+            border: solid;
+            border-width: thin;
+            border-color: lightgray;
+        }
+
+        .ttop {
+            vertical-align: top !important;
+        }
+
+        body {
+        }
+
+        .floatLeft {
+            float: left;
+        }
+
+        .tcenter {
+            text-align: center !important;
+        }
+
+        .tleft {
+            text-align: left !important;
+        }
+
+        .boxWraper {
+            border: 1px solid #7b7b7b;
+            display: block;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+            .boxWraper .padding tr td {
+                padding: 3px 6px;
+            }
+
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        tr.border_bottom td {
+            border-bottom: 1pt solid black;
+        }
+
+        .tableData {
+            border: 0 !important;
+            line-height: 16px;
+        }
+
+            .tableData tr td {
+                background: #fff;
+                height: 100%;
+                vertical-align: middle;
+                border: 1px solid #e3e7ee;
+            }
+
+        .boxWraper tr th {
+            border: 1px solid #e3e7ee;
+            text-align: center;
+            padding: 3px 6px;
+        }
+
+        .marginLR {
+            margin: 0 auto;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        table {
+            background-color: transparent;
+        }
+
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            color: #808080;
+            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: subpixel-antialiased;
+            background: #fff;
+        }
+
+        .cw100 {
+            width: 100px !important;
+        }
+
+        .cw110 {
+            width: 110px !important;
+        }
+
+        .cw80 {
+            width: 80px !important;
+        }
+
+        .cw120 {
+            width: 120px !important;
+        }
+
+        .cw130 {
+            width: 130px !important;
+        }
+
+        .cw140 {
+            width: 140px !important;
+        }
+
+        .cw160 {
+            width: 160px !important;
+        }
+
+        .tbold {
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            font-weight: 600;
+        }
+
+        .tright {
+            text-align: right !important;
+        }
+
+        label {
+            margin-bottom: 0;
+            color: black;
+        }
+
+        .tcollapse {
+            border-collapse: collapse;
+        }
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+        .taW {
+            width: 100% !important;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: normal;
+            font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+        }
+
+        .numbertd {
+            text-align: right;
+        }
+
+        table, img, svg {
+            break-inside: avoid;
+        }
+
+        .Column-80 {
+            float: left;
+            width: 80%;
+        }
+
+        .Column-20 {
+            float: left;
+            width: 20%;
+        }
+
+        /* Clear floats after the columns */
+        .Rows:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+    </style>
+    <style type="text/css">
+        @@media print {
+            .grid-header {
+                background: #eee;
+                font-size: 13px;
+            }
+
+            body {
+                font-family: Serif;
+            }
+
+            h2 {
+                font-size: 20px;
+                text-transform: uppercase;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            h4 {
+                font-size: 13px;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            img {
+                display: inline;
+            }
+
+            .Column-80 {
+                float: left;
+                width: 80%;
+            }
+
+            .Column-20 {
+                float: left;
+                width: 20%;
+            }
+            /* Clear floats after the columns */
+            .Rows:after {
+                content: "";
+                display: table;
+                clear: both;
+            }
+        }
+    </style>
+</head>
+<body>
+</body>
+</html>
+
+<div class="col-lg-11 col-sm-11 col-md-11 WHDeliveryReport graph-img graph-7" id="WHDeliveryReport">
+    <table class="marginLR" style="width:20cm;">
+        <tbody>
+            <tr>
+                <td>
+                    <table class="taW">
+                        <tbody>
+                            <tr>
+                                <td style="border-bottom:1px solid #7b7b7b;">
+                                    <table class="taW">
+                                        <tbody>
+                                            <tr>
+                                                <td class="Billheading">
+                                                    <div>
+                                                        <div class="floatLeft" style="margin-top:34px;">
+                                                            <input type="hidden" id="hWisId" data-ng-model="hWisIdm" value="5866" autocomplete="off" class="ng-pristine ng-untouched ng-valid ng-not-empty">
+                                                        </div>
+                                                        <div class="tcenter hidden-print">
+                                                            <img src="~/Content/images/logo-icon.png" style="width:100px;height:100px;" />
+                                                        </div>
+                                                        <div class="tcenter">
+                                                            <h2>Writer Relocations</h2>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr class="headermargin">
+                                <td style="height:5px;"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="col-md-12">
+                                                        <br />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="tright">
+                                                            <label class="tbold">
+                                                                @if (Model.SurveyID != null)
+                                                                {
+                                                                    @(((DateTime)DateTime.Now).ToString("dd-MMM-yyyy"))
+                                                                }
+                                                            </label>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="col-md-12">
+                                                        <br />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="tleft">
+                                                            <label class="tbold">Towers Rotana</label>
+                                                        </div>
+                                                        <div class="tleft">
+                                                            <label class="tbold">Sheikh Zayed Road</label>
+                                                        </div>
+                                                        <div class="tleft">
+                                                            <label class="tbold">Dubai</label>
+                                                        </div>
+                                                        <div class="tleft">
+                                                            <label class="tbold">United Arab Emirates</label>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="col-md-12">
+                                                        <br />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="tleft">
+                                                            <span>Thank you for inviting us to quote our charges for the University Furnishing Project in Dubai. Based on the project requirement and scope of services, please find below our quotation below:</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="col-md-12">
+                                                        <br />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="boxWraper">
+                                                            <table class="taW tcollapse padding" id="tblWHServiceCost">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Sr. No.</th>
+                                                                        <th>Description</th>
+                                                                        <th>Cost Per Unit</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @if (Model.WHServiceCostList != null)
+                                                                    {
+                                                                        for (int i = 0; i < Model.WHServiceCostList.Count; i++)
+                                                                        {
+                                                                            string strCostPerUnit = Model.WHServiceCostList[i].BaseCurr + " " + Convert.ToString(Model.WHServiceCostList[i].RateCurrValue) + "/Hour/Person (Minimum of " + Convert.ToString(Model.WHServiceCostList[i].WorkHrs) + " hrs per day)";
+                                                                            <tr>
+                                                                                <td class="tcenter">@(i + 1)</td>
+                                                                                <td>@Model.WHServiceCostList[i].EmpType</td>
+                                                                                <td>@strCostPerUnit</td>
+                                                                            </tr>
+                                                                        }
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr class="Billheading">
+                                                    <td>
+                                                        <div class="boxWraper">
+                                                            <table class="taW tcollapse padding">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <div>
+                                                                                <span class="ng-binding" style="color:red;">Starting 1st January 2019, 5 % VAT will be applicable on under TAX category as per Government Authorities guideline. Hence 5% VAT applicable on top of our service invoice.</span>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div class="col-md-12">
+                                                                                <h3>
+                                                                                    <span>Charges Included</span>
+                                                                                </h3>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div class="boxWraper">
+                                                                                <table class="taW tcollapse padding">
+                                                                                    <tbody>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Receiving shipment at our facility.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Inspect the external condition upon receipt in our facility.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Safe Unloading, Inventory count, and secure placement at our facility.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Temperature controlled warehouse.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Inventory Management and Documentation.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Segregation, safe loading onto our vehicle, preparation for site delivery.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Transportation from the warehouse facility to site Located in Academic city- Dubai.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Unloading and segregation of items to the allocated rooms at site.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Unpacking and assembly of furniture items.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Placement of items and Removal of debris.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Work carried out during normal business hours from Sunday to Thursdays from 8 am to 5 pm.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    </tbody>
+                                                                                </table>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div class="tleft">
+                                                                                <h3>
+                                                                                    <span>Charges Excluded</span>
+                                                                                </h3>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div class="boxWraper">
+                                                                                <table class="taW tcollapse padding">
+                                                                                    <tbody>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Import documentation, Customs clearance, Transportation from Port to Warehouse Facility.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Port storage or demurrage charges.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Customs duty, Taxes and any Valued Added Tax -VAT.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Unpacking and full inspection at warehouse if required.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Working beyond normal working hours / holidays / weekends.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Heavy handling, stair carry, long carry, hoisting of items.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">No extraordinary assembly or installation.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Local Insurance.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">&#x27A2</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Handyman services related to Hard wired electrical fixtures, systems, wall or floor coverings, window treatments or hardware,  fixed seating, health club equipment, salon, or spa equipment, retail fixtures, panel systems, millwork, fixed kitchen or laundry equipment, ice machines, office equipment, electronics (not including basic placement, mounting, etc), area rugs or pads (not including loose area rugs), fire extinguishers, chemicals, bath or closet hardware, door graphics or signage, live plants, lockers, shelving, hook-up and programming of televisions and electronics, fireplaces, the installation or handling of extraordinary art, or transportation equipment. Pricing does not include modification of surfaces or goods.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    </tbody>
+                                                                                </table>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div class="tleft">
+                                                                                <h3>
+                                                                                    <span>Terms & Conditions</span>
+                                                                                </h3>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div class="boxWraper">
+                                                                                <table class="taW tcollapse padding">
+                                                                                    <tbody>
+
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">1.</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Kindly provide required parking facility and in and out access for easy co-ordination. Permission may be granted to work for late hours.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">2.</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Reasonable advance information as mutually agreed in order to make necessary pre-plan arrangements.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">3.</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Quotation is given based on scope of work and details provided by customer and the terms & conditions of Writer; any change will result in addition at cost.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">4.</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Site accessible permission to our subcontractor’s equipments; any permission/passes (Road transport authority and police) to the site shall be arranged by Client.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">5.</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">The Charges are based on one continuous uninterrupted operation.  The charges are also based on maximum 9 hrs of operation in one day and any additional hours incurred due to permission, accessibility etc. would be charged additional on hourly basis.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">6.</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Any cost associated with force Majeure (such as war/weather/strike etc) and government regulation is not included at the time of offer.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">7.</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Customer would provide necessary supervisor (single person) for easy job co-ordination. Writer will provide site supervisors for both ends.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">8.</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Kindly provide detailed floor plan/station details of new premises in advance.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">9.</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">The placing of furniture at new premises is one time only.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">10.</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Detailed work planning chart/schedule will be provided on confirmation of job.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">11.</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Insurance of our / subcontractors equipments and manpower is included in our offer, but insurance of the cargo is not included in our scope of work/rate and same has to be arranged by you with an express and unconditional waiver of subrogation towards our subcontractors and us.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td class="col-md-1 tright">12.</td>
+                                                                                            <td class="col-md-11">
+                                                                                                <div>
+                                                                                                    <span class="ng-binding">Minimum of 30 working days prior notice should be given to make necessary equipment/Manpower arrangements for smoother operations.</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+
+                                                                                    </tbody>
+                                                                                </table>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <br />
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <label class="tbold">Validity : </label><span class="ng-binding">This quotation is valid for 360 days and if the shipment occurs within this period.</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <label class="tbold">Payment terms and conditions :</label>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <label class="tbold">Corporate Paid : </label><span class="ng-binding">30 days from the date of invoice - If your company shares a credit arrangement with Writer Relocations, an LPO/Confirmation will be required prior to packing / loading commencement with payment to be executed within the agreed specific terms and conditions between both entities. In all cases, a signed Acceptance of Quotation is needed prior to commencement the job.</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <label class="tbold">General : </label><span class="ng-binding">All work is carried out in accordance with our standard terms and conditions, copy of which will be provided upon request.</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <div class="tleft">
+                                                                                <span>We assure you that if the order is entrusted to us, we will strive to provide unparalleled service to you on your upcoming project. If you have any questions, please do not hesitate to call me at the office +9714-8849864 or on my mobile +971-52-9065497.</span>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <br />
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <br />
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <span class="ng-binding">Kind Regards</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <br />
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <label class="tbold">Rijas Backer</label>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <label class="tbold">Business Development Manager</label>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <br />
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <span class="ng-binding">I accept the terms and conditions of this quotation and request you to commence to Start on _________________________</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <br />
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <br />
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <label class="tbold tcenter cw160">________________</label>
+                                                                            <label class="cw160"></label>
+                                                                            <label class="cw160"></label>
+                                                                            <label class="tbold tcenter cw160">________________</label>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <label class="tbold tcenter cw160">Signature</label>
+                                                                            <label class="cw160"></label>
+                                                                            <label class="cw160"></label>
+                                                                            <label class="tbold tcenter cw160">Date</label>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <br />
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <br />
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-12">
+                                                                            <label class="tbold">Company Stamp (if company sponsored move)</label>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="col-sm-1" style="border-radius: 50%;">
+    <button onclick="printPage('WHDeliveryReport', null)" style="border-radius: 5%;" class="btn btn-primary btn-sm pull-right m-r-lg m-t-lg" title="Print">Print</button>
+    @*<button onclick="printPage('WHDeliveryReport',null)" style="border-radius: 5%;" class="btn btn-primary btn-sm pull-right m-r-lg m-t-sm" title="Print">Email</button>*@
+</div>
+<script type="text/javascript">
+    function printPage(elementId, headerclass) {
+        var divToPrint = document.getElementById('WHDeliveryReport');
+
+        var newWin = window.open('', 'Print-Window');
+
+        newWin.document.open();
+        var style = '';
+        style = '<style type="text/css">#tblWHServiceCost tbody td {border: solid;border-width: thin;border-color: lightgray;} .ttop {vertical-align: top !important;} .text-right { text-align: right; }' +
+            'body {} .floatLeft {float: left;} .tcenter {text-align: center !important;} .tleft {text - align: left!important;} .boxWraper {border: 1px solid #7b7b7b;display: block;overflow: hidden;margin-bottom: 5px;} .boxWraper.padding tr td {padding: 3px 6px;}' +
+            '.grid-header {background: #eee;font-size: 13px;} tr.border_bottom td {border-bottom: 1pt solid black;} .tableData {border: 0!important;line-height: 16px;} .tableData tr td {background: #fff;height: 100%;vertical-align: middle;border: 1px solid #e3e7ee;}' +
+            '.boxWraper tr th {border: 1px solid #e3e7ee; text-align: center;padding: 3px 6px;} .marginLR {margin: 0 auto;} table { border-collapse: collapse;} table {background-color: transparent;}' +
+            'body {padding: 0;margin: 0;font-size: 12px;' +
+            'font-family: Lato, \'Open Sans\', verdana, arialo, "Helvetica Neue", sans-serif;color: #808080;' +
+            ' -webkit-font-smoothing: antialiased;-webkit-font-smoothing: subpixel-antialiased;' +
+            'background: #fff;} .cw100 {width: 100px!important;}.cw110 {width: 110px!important;} .cw80 {width: 80px!important;}.cw120 {width: 120px!important;} .cw140 {width: 140px!important;}' +
+            '.cw160 {width: 160px!important;}.cw130 {width: 130px!important;}' +
+            '.tbold {font-family: Lato, \'Open Sans\', verdana, arialo, "Helvetica Neue", sans-serif;font - weight: 600;}' +
+            '.tright {text - align: right!important;} label {margin-bottom: 0;color: black;} .tcollapse { border-collapse: collapse;} .boxWraper.padding tr td {padding: 3px 6px;}' +
+            '.taW {width: 100% !important;}h4 {font-size: 14px;margin: 6px 0;font-weight: normal;font-family: Lato, verdana, arial, "Helvetica Neue", Helvetica, sans-serif;}' +
+            '.numbertd {text-align: right;} table, img, svg {break-inside: avoid;} .tright {text-align: right!important;}' +
+            headerclass +
+            '</style>';
+        style = style + '<style>@@media print {.grid - header {background: #eee;font-size: 13px;}body {font-family: Serif;} h2 {font-size: 20px;text-transform: uppercase;text-decoration: underline;margin: 6px 0;font-family: Serif;} h4 {font-size: 13px;text-decoration: underline;margin: 6px 0;font-family: Serif;} img {display: inline;}}</style>';
+
+        newWin.document.write('<html><head>' + style +
+            '</head><body onload="window.print()">' + divToPrint.innerHTML + '</body></html>');
+
+        newWin.document.close();
+
+        setTimeout(function () { newWin.close(); }, 10);
+    }
+</script>

@@ -1,0 +1,132 @@
+﻿@using RELOCBS.Common;
+@using RELOCBS.Utility;
+
+@{
+    ViewBag.Title = "Debit Note";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string _PageID = "67";
+    string param = "DebitNoteId=ParamValue0&DNCreditNoteId=ParamValue1";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="m-t-sm">
+        <div class="row">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>From Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_FromDate">
+                        @Html.Editor("FromDate", new { htmlAttributes = new { @placeholder = "From Date", @tooltip = "From Date", @class = "form-control input-sm datetimepicker onkeydtp", title = "From Date", id = "FromDate" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>To Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.Editor("ToDate", new { htmlAttributes = new { @placeholder = "To Date", @tooltip = "To Date", @class = "form-control input-sm datetimepicker onkeydtp", title = "To Date", id = "ToDate" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4 col-md-4">
+                <div class="form-group filter-custom-margin">
+                    <select name="SearchType" id="SearchType">
+                        <option value="DebitNoteNo" selected="selected">Debit Note No.</option>
+                        <option value="CreditNoteNo">Credit Note No.</option>
+                    </select>
+                </div>
+                @Html.Editor("SearchValue", new { htmlAttributes = new { @placeholder = "Search Value", @tooltip = "Search Value", @class = "form-control input-sm filter-custom-margin", title = "Search Value", id = "SearchValue" } })
+            </div>
+            <div class="form-group col-md-1">
+                <div class="clearfix">
+                    <input type="submit" id="btnSearch" name="Search" class="btn btn-default btn-sm filter-custom-margin" value="Search" />
+                </div>
+            </div>
+            <div class="form-group col-md-1">
+                <div class="clearfix">
+                    <a id="btnCreate" name="Create" class="btn btn-primary m-t-sm m-b-sm m-r-sm btn-sm filter-custom-margin pull-left" value="New Dr. Note" formnovalidate="formnovalidate" href="@Url.Action("Create", "DebitNote", new { Key = CommonService.GenerateQueryString(param, new string[] {"0","0"}), DrOrCrNote = "D" })" title="Create">Create</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div id="mgrid">
+    @Html.Partial("_GridPartial")
+</div>
+
+<div id="mdlAddEdit" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#FromDate').datetimepicker({
+                defaultDate: new Date().setMonth(new Date().getMonth() - 1),
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+            $('#ToDate').datetimepicker({
+                defaultDate: new Date(),
+                format: "DD-MMM-YYYY",
+                widgetPositioning: {
+                    horizontal: 'right',
+                    vertical: 'bottom'
+                }
+            });
+
+            OnCompleteBindPage();
+            $('form#CustomFilter').on('submit', function (e) {
+                e.preventDefault();
+                $(this).ajaxSubmit({
+                    target: '#mgrid',
+                    success: function () {
+                        OnCompleteBindPage();
+                    }
+                });
+            });
+        });
+        function OnCompleteBindPage() {
+            $('.grid-header-title a').on('click', function (e) {
+                e.preventDefault();
+                var url1 = "@Url.Action("Index", "DebitNote")" + $(this).attr('href');
+                $('form#CustomFilter').attr('action', url1).submit();
+            });
+            $('#mgrid .pagination li a').on('click', function (e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                var url1 = $('#mgrid .sorted.grid-header-title a').attr('href');
+                if (typeof url1 != 'undefined') {
+                    var gdir = url("?grid-dir", url1);
+                    var gcol = url("?grid-column", url1);
+                    url1 = url1.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0) ? 1 : 0);
+                    url1 = url1.replace('?', '&');
+                }
+
+                var url2 = $(this).attr('href');
+                if (url2 == undefined) {
+                    url2 = "@Url.Action("Index", "DebitNote")?page=" + parseInt($(this).html());
+                }
+                url1 = url2 + url1.replace(/page=\d+/i, "");
+                $('form#CustomFilter').attr('action', url1).submit();
+            });
+        }
+    </script>
+}

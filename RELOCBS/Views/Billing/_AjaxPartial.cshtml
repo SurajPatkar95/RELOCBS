@@ -1,0 +1,123 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model StaticPagedList<RELOCBS.Entities.Billing>
+@{
+    string _PageID = "25";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+columns.Add(o => o.BillID)
+.Titled("Inv ID")
+.Css("col-md-1 BillID")
+.SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+
+columns.Add(o => o.InvoiceNo)
+.Titled("Inv  No.")
+.Css("col-md-1");
+//.SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+
+columns.Add(o => o.JobNo)
+.Titled("Job No.")
+.Css("col-md-1");
+
+columns.Add(o => o.Mode)
+.Titled("Mode")
+.Css("col-md-1");
+columns.Add(o => o.Shipper)
+.Titled("Shipper")
+.Css("col-md-2");
+columns.Add(o => o.Client)
+.Titled("Client")
+.Css("col-md-1");
+
+columns.Add(o => o.InvoiceStatus)
+.Titled("Invoice Status")
+.Css("col-md-2");
+
+
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("Actions")
+.RenderValueAs(d =>
+    @<span>
+    @if (hasAddAccess)
+    {
+
+        string BillEditLink = d.StrgInvID != null && d.StrgInvID > 0 ? Url.Action("Create", "Billing", new { key = d.BillID, PageIndex = 3, type = "AI", StrgKey = d.StrgInvID }) : Url.Action("Create", "Billing", new { key = d.BillID, PageIndex = 3, type = "AI" });
+        string CreditNoteLink = d.StrgInvID != null && d.StrgInvID > 0 ? Url.Action("Create", "Billing", new { key = d.BillID, PageIndex = 3, type = "NC", StrgKey = d.StrgInvID }) : Url.Action("Create", "Billing", new { key = d.BillID, PageIndex = 3, type = "NC" });
+
+                    <a href="@BillEditLink" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" title="Edit Invoice"></a>
+                    if (d.IsShowCreditNote)
+                    {
+                         <button id="btnCreditNote" class="btnCreditNote btnEdit btn btn-xs btn-default pull-left" title="Create Credit Note" onclick="ShowCR(@d.BillID)">Show Cr.</button>
+                    }
+                    if (d.IsCreateCreditNote)
+                    {
+                        <a href="@CreditNoteLink" class="btnNewCreditNote btn btn-xs btn-default pull-left" title="New Credit Note">Add Cr.</a>
+                    }
+
+
+    }
+    @if (d.IsShowDelete)
+    {
+        <a href="@Url.Action("CancelInvoice", "Billing", new { key = d.BillID })" class="btnEdit btn btn-xs btn-danger glyphicon glyphicon-trash pull-left" title="Cancel Invoice"></a>
+    }
+
+</span>
+    );
+})
+
+    
+     <div class="row m-t-xs">
+         <div class="page-header">
+             <h2>Credit Note</h2>@*<a class="NewCN">New Credit Note</a>*@
+         </div>
+         <div id="CNmgrid">
+             @Html.Partial("_AjaxCreditNotePartial", (List<RELOCBS.Entities.Billing>)ViewBag.CreditNoteGrid)
+         </div>
+     </div>
+@*<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>*@
+
+     <script>
+    //$('.btnCreditNote').on('click', function ()
+         function ShowCR(BillID)
+            {
+                debugger;
+             //InvID = BillID //$(this).closest('tr').find('td.BillID').html();
+                @*cnurl = '@Url.Action("Create", "Billing", new { key = "-1", PageIndex = 3, type = "NC" })';*@
+                //cnurl = cnurl.replace("-1", InvID);
+                //cnurl = cnurl.replace(/&amp;/g, "&");
+                //$('.NewCN').attr('href', cnurl);
+             var route = '@Url.Action("GetCreditNote", new { InvoiceID = "-1" })';
+             route = route.replace("-1", BillID);
+
+                $('#CNmgrid').load(route, function () { });
+                //$.ajax({
+                //    type: "GET",
+                //    url: route,
+                //    error: function (data) {
+                //        CNmgrid.load
+                //    },
+                //    success: function (data) {
+                //    },
+                //});
+            };
+     </script>

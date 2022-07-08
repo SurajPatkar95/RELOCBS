@@ -1,0 +1,575 @@
+﻿@model RELOCBS.Entities.Billing_Collection
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>BNC</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style type="text/css">
+
+        .box {
+            height: 20px;
+            width: 20px;
+            border: 1px solid black;
+            text-align:center;
+        }
+
+        .ft2 {
+            font-size: 50px;
+        }
+
+        div.solid {
+            border-style: solid;
+            margin-left: 180px;
+            margin-right: 180px;
+        }
+
+        .solid {
+            border:1px solid black;
+        }
+
+        .ft1 {
+            font-size: 40px;
+        }
+
+        .ft0 {
+            font-size: 25px;
+        }
+
+        .ttop {
+            vertical-align: top !important;
+        }
+
+        body {
+        }
+
+        .floatLeft {
+            float: left;
+        }
+
+        .tcenter {
+            text-align: center !important;
+        }
+
+        .boxWraper {
+            border: 1px solid #7b7b7b;
+            display: block;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+            .boxWraper .padding tr td {
+                padding: 3px 6px;
+            }
+
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        tr.border_bottom td {
+            border-bottom: 1pt solid black;
+        }
+
+        .tableData {
+            border: 0 !important;
+            line-height: 16px;
+        }
+
+
+            .tableData tr td {
+                background: #fff;
+                height: 100%;
+                vertical-align: middle;
+                border: 1px solid #e3e7ee;
+            }
+
+        .boxWraper tr th {
+            border: 1px solid #e3e7ee;
+            text-align: center;
+            padding: 3px 6px;
+        }
+
+
+        .marginLR {
+            margin: 0 auto;
+        }
+
+        table {
+            width: 100%;
+            table-layout: auto;
+            background-color: transparent;
+        }
+
+        .fixed {
+            table-layout: fixed;
+        }
+
+        .text-solid {
+            font-weight: bold;
+        }
+
+        .border-solid th,
+        .border-solid td {
+            padding: 5px;
+            border: solid 2px;
+        }
+
+        u {
+            font-weight: bold;
+        }
+
+        .text-upper {
+            text-transform: uppercase;
+        }
+
+        .pad-n {
+            padding: 0;
+            margin: 0;
+        }
+
+        th,
+        td {
+            padding: 5px;
+        }
+
+        /*table {
+            border-collapse: separate;
+            border-spacing: 2px;
+        }*/
+
+        table,
+        td,
+        th {
+            border-collapse: collapse;
+        }
+
+        /*table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+        }*/
+
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 14px;
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            color: #808080;
+            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: subpixel-antialiased;
+            background: #fff;
+        }
+
+        .cw100 {
+            width: 100px !important;
+        }
+
+        .cw150 {
+            width: 150px !important;
+        }
+
+        .cw200 {
+            width: 200px !important;
+        }
+
+        .cw110 {
+            width: 110px !important;
+        }
+
+        .cw80 {
+            width: 80px !important;
+        }
+
+        .cw50 {
+            width: 50px !important;
+        }
+
+        .cw40 {
+            width: 40px !important;
+        }
+
+        .cw30 {
+            width: 30px !important;
+        }
+
+        .cw60 {
+            width: 60px !important;
+        }
+
+        .cw120 {
+            width: 120px !important;
+        }
+
+        .cw140 {
+            width: 140px !important;
+        }
+
+        .cw130 {
+            width: 140px !important;
+        }
+
+        .tbold {
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            font-weight: 600;
+        }
+
+        .tright {
+            text-align: right !important;
+        }
+
+        label {
+            margin-bottom: 0;
+        }
+
+        .tcollapse {
+            border-collapse: collapse;
+        }
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+        .taW {
+            width: 100% !important;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: normal;
+            font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+        }
+    </style>
+    <style type="text/css">
+        @@media print {
+            .grid-header {
+                background: #eee;
+                font-size: 13px;
+            }
+
+            body {
+                font-family: Serif;
+            }
+
+            h2 {
+                font-size: 20px;
+                text-transform: uppercase;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            h4 {
+                font-size: 13px;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            .PrintPage {
+                display:none;
+            }
+        }
+    </style>
+
+</head>
+<body>
+    <div class="col-lg-10 col-sm-10 col-md-10 BillFormat" style=" flex-align:center" id="BillFormat">
+        <table class="marginLR" style="width:20cm;">
+            <tbody>
+                <tr>
+                    <td>
+                        <table class="taW">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <h2 class="tcenter"><u>Billing & Collections Instruction Sheet</u></h2>
+                                        <table class="m-t-sm solid">
+                                            <tr>
+                                                <th>Revenue Branch</th>
+                                                <td>@Model.RevenueBr</td>
+                                                <th>Shipment No</th>
+                                                <td>@Html.Raw(Model.EnqNo + "/" + Model.EnqSeqID)</td>
+                                                <th>Entry Date</th>
+                                                <td>@Html.Raw(Model.Entrydate.ToString("dd/MM/yyyy"))</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Service Line </th>
+                                                <td colspan="2">@Html.Raw(Model.ServiceLine)</td>
+                                                <th>Bill To</th>
+                                                <td colspan="2">@Html.Raw(Model.BillingOn)</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Prepared By</th>
+                                                <td colspan="2">@Html.Raw(Model.PreparedBy)</td>
+                                                <th>Credit Approved</th>
+                                                <td colspan="2">@Html.Raw(Model.CreditApproved == 1 ? "Yes" :"No")</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Client Entity</th>
+                                                <td colspan="3">@Html.Raw(Model.Billing_ContactPerson)</td>
+                                                <th>Client type</th>
+                                                <td>@Html.Raw(Model.Client_type)</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Shipper Name </th>
+                                                <td colspan="3">@Html.Raw(Model.Shipper.ShipperFName + " " + Model.Shipper.ShipperLName)</td>
+                                                <th>Shipper Category</th>
+                                                <td>@Html.Raw(Model.Shipper.ShipCategory)</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Shipper Designation </th>
+                                                <td colspan="5">@Html.Raw(Model.Shipper.Designation)</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Billing Contact Name </th>
+                                                <td colspan="5">@Html.Raw(Model.Attention)</td>
+                                            </tr>
+                                            <tr>
+                                                <th> Billing Address </th>
+                                                <td colspan="5">@Html.Raw(Model.Billing_Address)</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="4"><b>Email:</b> @Html.Raw(Model.Billing_Email)</td>
+                                                <td colspan="2"><b>Tel:</b> @Html.Raw(Model.Billing_Tel)</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Remarks</th>
+                                                <td colspan="5">@Html.Raw(Model.Remarks)</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="6">
+                                                    <table class="solid m-t-sm">
+                                                        <tr>
+                                                            <td><b>Payment Terms :</b></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="m-l-lg">
+                                                                    <table>
+                                                                        <tr>
+                                                                            <td>
+                                                                                @if (Model.Advance)
+                                                                                {<div class='box red'><b>Y</b></div>}
+                                                                                else
+                                                                                { <div class='box red'>&nbsp;</div>}
+                                                                            </td>
+                                                                            <td>
+                                                                                Advance  &nbsp;&nbsp;&nbsp;&nbsp;( Advance amount): @Html.Raw(Model.Amount)
+                                                                            </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>
+                                                                                @if (!String.IsNullOrWhiteSpace(Model.PaymentPreDelivery))
+                                                                                {
+
+                                                                                    string PaymentPreDeliveryStatus = Model.PaymentPreDelivery.ToUpper() == "BALANCE" ? "B" : "F";
+                                                                                    <div class='box red'><b>@Html.Raw(PaymentPreDeliveryStatus)</b></div>
+
+                                                                                }
+                                                                                else
+                                                                                { <div class='box red'>&nbsp;</div>}
+                                                                            </td>
+                                                                            <td>
+                                                                                Full/Balance Payment prior to delivery
+                                                                            </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>
+                                                                                @if (!String.IsNullOrWhiteSpace(Model.PaymentPostDelivery))
+                                                                                {
+                                                                                    string PaymentPostDeliveryStatus = Model.PaymentPostDelivery.ToUpper() == "BALANCE" ? "B" : "F";
+                                                                                    <div class='box red'><b>@Html.Raw(PaymentPostDeliveryStatus)</b></div>
+                                                                                }
+                                                                                else
+                                                                                { <div class='box red'>&nbsp;</div>}
+                                                                            </td>
+                                                                            <td>
+                                                                                Full/Balance Payment delivery  &nbsp;&nbsp;&nbsp;&nbsp; No. of Days : <u><b>@Html.Raw(Model.NoDays)</b></u>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="6">
+                                                    <table class="solid m-t-sm">
+                                                        <tr>
+                                                            <td><b>Bill supportings :</b></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="m-l-lg">
+                                                                    <table>
+                                                                        <tr>
+                                                                            <td class="cw30">
+                                                                                @if (Model.PurchaseOrder)
+                                                                                {<div class='box red'><b>Y</b></div>}
+                                                                                else
+                                                                                { <div class='box red'>&nbsp;</div>}
+                                                                            </td>
+                                                                            <td>
+                                                                                Purchase Order
+                                                                            </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td class="cw30">
+                                                                                @if (Model.AthorizeQuote)
+                                                                                {<div class='box red'><b>Y</b></div>}
+                                                                                else
+                                                                                { <div class='box red'>&nbsp;</div>}
+                                                                            </td>
+                                                                            <td>
+                                                                                Authorisation/Approved Quote
+                                                                            </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td class="cw30">
+                                                                                @if (Model.Others)
+                                                                                {<div class='box red'><b>Y</b></div>}
+                                                                                else
+                                                                                { <div class='box red'>&nbsp;</div>}
+                                                                            </td>
+                                                                            <td>
+                                                                                <table>
+                                                                                    <tr>
+                                                                                        <td class="cw100">
+                                                                                            Others
+                                                                                        </td>
+                                                                                        <td class="solid cw250">
+                                                                                            @if (!string.IsNullOrWhiteSpace(Model.Specify))
+                                                                                            {
+                                                                                                @Html.Raw(Model.Specify)
+                                                                                            }
+                                                                                            else
+                                                                                            { @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <table>
+                                                                    <tr>
+                                                                        <td>
+                                                                            Account Manager Name: @Html.Raw(Model.AccountMgr)
+                                                                        </td>
+                                                                        <td>
+                                                                            Signature:&nbsp; &nbsp;&nbsp;&nbsp;
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="6">
+                                                    <table class="solid m-t-sm">
+                                                        <tr>
+                                                            <td><b>Payment details :</b></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="m-l-lg">
+                                                                    <table>
+                                                                        <tr>
+                                                                            <td>Advance amt:</td>
+                                                                            <td class="cw80"></td>
+                                                                            <td>
+                                                                                Chq no.
+                                                                            </td>
+                                                                            <td class="cw150"></td>
+                                                                            <td>
+                                                                                Date :
+                                                                            </td>
+                                                                            <td class="cw50"></td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>Balance amt:</td>
+                                                                            <td class="cw80"></td>
+                                                                            <td>
+                                                                                Chq no.
+                                                                            </td>
+                                                                            <td class="cw150"></td>
+                                                                            <td>
+                                                                                Date :
+                                                                            </td>
+                                                                            <td class="cw50"></td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                        </tr>
+                                                                    </table>
+
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <table>
+                                                                    <tr>
+                                                                        <td>
+                                                                            Service Manager Name:
+                                                                        </td>
+                                                                        <td>
+                                                                            Signature:&nbsp; &nbsp;&nbsp;&nbsp;
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+    </div>
+    <div class="col-sm-1" style="border-radius: 50%;">
+        <button onclick="pageprint()" style="border-radius: 5%;" class="btn btn-primary btn-sm pull-right m-r-lg m-t-lg PrintPage" title="Print">Print</button>
+    </div>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jquery-ui")
+    @Scripts.Render("~/bundles/custom")
+    <script type="text/javascript">
+        
+        function pageprint() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
+

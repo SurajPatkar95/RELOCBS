@@ -1,0 +1,164 @@
+﻿@using RELOCBS.Common;
+
+@{
+    ViewBag.Title = "WH InOut Asset Report";
+    Layout = "~/Views/Shared/_LayoutNonLogin.cshtml";
+
+    string _PageID = "87";
+
+    Int64? MoveID = ViewBag.MoveID;
+}
+
+@using (Html.BeginForm("WHInOutAssetReport", "WHAssetManagement", new { Key = CommonService.GetCrypt("MoveID=" + MoveID, 1) }, FormMethod.Post, new { @name = "WHInOutAssetReportForm", @id = "WHInOutAssetReportForm", enctype = "multipart/form-data", @class = "form-inline" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(false)
+
+    @Html.Hidden("MoveID", MoveID, new { htmlAttributes = new { id = "MoveID" } })
+
+    <div class="col-md-12 col-sm-12 well well-sm">
+        <div class="row">
+            <div class="form-group col-md-3 col-sm-3 filter-custom-margin">
+                <div class="clearfix">
+                    <label>Ref Job ID</label>
+                    @Html.TextBox("RefJobID", null, new { @class = "form-control input-sm", id = "RefJobID", @title = "Ref Job ID", @placeholder = "Ref Job ID" })
+                </div>
+            </div>
+            <div class="form-group col-md-2 col-sm-2 filter-custom-margin">
+                <div class="clearfix">
+                    <input type="submit" id="btnSearch" name="Search" class="btn btn-default btn-sm" value="Search" />
+                </div>
+            </div>
+            <div class="form-group col-sm-1 col-md-1 filter-custom-margin pull-right">
+                <div class="clearfix">
+                    <input type="button" id="btnExportToExcel" name="Export" class="btn btn-primary m-t-sm pull-right m-r-sm btn-sm m-n" value="Export To Excel" />
+                </div>
+            </div>
+            @*<div class="form-group col-sm-1 col-md-1 filter-custom-margin pull-right">
+                    <div class="clearfix">
+                        <input type="button" id="btnExportToPDF" name="Export" class="btn btn-primary m-t-sm pull-right m-r-sm btn-sm m-n" value="Export To PDF" onclick="printPage();" />
+                    </div>
+                </div>*@
+        </div>
+    </div>
+}
+
+<div id="mgrid">
+    @Html.Partial("_AjaxPartialReport")
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            OnCompleteBindPage();
+            $('form#WHInOutAssetReportForm').on('submit', function (e) {
+                e.preventDefault();
+                $(this).ajaxSubmit({
+                    target: '#mgrid',
+                    success: function () {
+                        OnCompleteBindPage();
+                    }
+                });
+            });
+        });
+        function OnCompleteBindPage() {
+            $('.grid-header-title a').on('click', function (e) {
+                e.preventDefault();
+                var url1 = "@Url.Action("WHInOutAssetReport", "WHAssetManagement")" + $(this).attr('href');
+                $('form#WHInOutAssetReportForm').attr('action', url1).submit();
+            });
+            $('#mgrid .pagination li a').on('click', function (e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                var url1 = $('#mgrid .sorted.grid-header-title a').attr('href');
+                if (typeof url1 != 'undefined') {
+                    var gdir = url("?grid-dir", url1);
+                    var gcol = url("?grid-column", url1);
+                    url1 = url1.replace(/grid-dir=\d+/i, 'grid-dir=' + (parseInt(gdir) == 0) ? 1 : 0);
+                    url1 = url1.replace('?', '&');
+                }
+
+                var url2 = $(this).attr('href');
+                if (url2 == undefined) {
+                    url2 = "@Url.Action("WHInOutAssetReport", "WHAssetManagement")?page=" + parseInt($(this).html()) + "&Key=" + "@CommonService.GetCrypt("MoveID=" + MoveID, 1)";
+                }
+                url1 = url2 + url1.replace(/page=\d+/i, "");
+                $('form#WHInOutAssetReportForm').attr('action', url1).submit();
+            });
+        }
+        $("#btnExportToExcel").on("click", function (e) {
+            var MoveID = $("#MoveID").val();
+            var RefJobID = $("#RefJobID").val();
+            var url = '@Url.Action("ExportToExcel", new { MoveID = "-1", RefJobID="-2" })';
+            url = url.replace("-1", MoveID);
+            url = url.replace("-2", RefJobID);
+            url = url.replace(/&amp;/g, "&");
+
+            var tab_text = "<table border='2px'><tr >";
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: url,
+                async: 'false',
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    tab_text = tab_text + data.htmlstring;
+                    tab_text = tab_text.replace(/<tr>/g, "");
+                    tab_text = tab_text + "</table>";
+                    tab_text = tab_text.replace(/<A[^>]*>|<\/A>/g, ""); // remove if u want links in your table
+                    tab_text = tab_text.replace(/<img[^>]*>/gi, ""); // remove if u want images in your table
+                    tab_text = tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // remove input params
+
+                    var ua = window.navigator.userAgent;
+                    var msie = ua.indexOf("MSIE ");
+
+                    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) // If Internet Explorer
+                    {
+                        txtArea1.document.open("txt/html", "replace");
+                        txtArea1.document.write(tab_text);
+                        txtArea1.document.close();
+                        txtArea1.focus();
+                        sa = txtArea1.document.execCommand("SaveAs", true, "WHInOutAssetReport.xls");
+                    }
+                    else // other browser not tested on IE 11
+                        sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+
+                    return (sa);
+                },
+                error: function (reponse) {
+                    alert("error : " + reponse);
+                }
+            });
+        });
+        $("#btnExportToPDF").on("click", function (e) {
+            var divToPrint = document.getElementById('mgrid');
+            var newWin = window.open('', 'Print-Window');
+
+            newWin.document.open();
+            var style = '';
+            style = '<style type="text/css">#tblInvoiceItems tbody td {border: solid;border-width: thin;border-color: lightgray;} .ttop {vertical-align: top !important;} .text-right { text-align: right; }' +
+                'body {} .floatLeft {float: left;} .tcenter {text-align: center !important;} .boxWraper {border: 1px solid #7b7b7b;display: block;overflow: hidden;margin-bottom: 5px;} .boxWraper.padding tr td {padding: 3px 6px;}' +
+                '.grid-header {background: #eee;font-size: 13px;} tr.border_bottom td {border-bottom: 1pt solid black;} .tableData {border: 0!important;line-height: 16px;} .tableData tr td {background: #fff;height: 100%;vertical-align: middle;border: 1px solid #e3e7ee;}' +
+                '.boxWraper tr th {border: 1px solid #e3e7ee; text-align: center;padding: 3px 6px;} .marginLR {margin: 0 auto;} table { border-collapse: collapse;} table {background-color: transparent;}' +
+                'body {padding: 0;margin: 0;font-size: 12px;' +
+                'font-family: Lato, \'Open Sans\', verdana, arialo, "Helvetica Neue", sans-serif;color: #808080;' +
+                ' -webkit-font-smoothing: antialiased;-webkit-font-smoothing: subpixel-antialiased;' +
+                'background: #fff;} .cw100 {width: 100px!important;}.cw110 {width: 110px!important;} .cw80 {width: 80px!important;}.cw120 {width: 120px!important;} .cw140 {width: 140px!important;}' +
+                '.cw160 {width: 160px!important;}.cw130 {width: 130px!important;}' +
+                '.tbold {font-family: Lato, \'Open Sans\', verdana, arialo, "Helvetica Neue", sans-serif;font - weight: 600;}' +
+                '.tright {text - align: right!important;} label {margin-bottom: 0;color: black;} .tcollapse { border-collapse: collapse;} .boxWraper.padding tr td {padding: 3px 6px;}' +
+                '.taW {width: 100% !important;}h4 {font-size: 14px;margin: 6px 0;font-weight: normal;font-family: Lato, verdana, arial, "Helvetica Neue", Helvetica, sans-serif;}' +
+                '.numbertd {text-align: right;} table, img, svg {break-inside: avoid;} .tright {text-align: right!important;}' +
+                '.Billheading{display:none;}' +
+                '</style>';
+            style = style + '<style>@@media print {.grid - header {background: #eee;font-size: 13px;}body {font-family: Serif;} h2 {font-size: 20px;text-transform: uppercase;text-decoration: underline;margin: 6px 0;font-family: Serif;} h4 {font-size: 13px;text-decoration: underline;margin: 6px 0;font-family: Serif;} img {display: inline;}}</style>';
+
+            newWin.document.write('<html><head>' + style +
+                '</head><body onload="window.print()">' + divToPrint.innerHTML + '</body></html>');
+
+            newWin.document.close();
+
+            setTimeout(function () { newWin.close(); }, 10);
+        });
+    </script>
+}

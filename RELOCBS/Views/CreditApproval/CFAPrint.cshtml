@@ -1,0 +1,57 @@
+﻿@model RELOCBS.Entities.CFAPrint
+
+@using RELOCBS.Utility;
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>CFA Print</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    
+</head>
+<body>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 ">
+            <input type="button" id="btn_pdf" class="btn btn-primary m-r-lg fa-download pull-right hidden-print" value="Print" onclick="printDiv('content','Credit Approval Form')">
+        </div>
+    </div>
+    <div id="content">
+        @Html.Partial("_PrintPartial", Model);
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jquery-ui")
+    @Scripts.Render("~/bundles/custom")
+    <script>
+        function printDiv(divId, title) {
+
+            let element = document.getElementById(divId);
+            let mywindow = window.open('', 'PRINT', 'height=650,width=900,top=100,left=150');
+            mywindow.document.write(`<html><head><title>${title}</title>`);
+            mywindow.document.write('</head><body >');
+            mywindow.document.write(element.innerHTML);
+            mywindow.document.write('</body></html>');
+
+            mywindow.document.close(); // necessary for IE >= 10
+            mywindow.focus(); // necessary for IE >= 10*/
+
+            mywindow.print();
+            mywindow.close();
+
+            return true;
+        }
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+﻿table.tableScrollbar {
+    table-layout: fixed;
+    border-collapse: collapse;
+    align-content: center;
+}
+
+    .tableScrollbar ::-webkit-scrollbar {
+        width: 7px;
+    }
+
+    .tableScrollbar ::-webkit-scrollbar-thumb {
+        background: grey;
+        border-radius: 5px;
+    }
+
+    .tableScrollbar ::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+        border-radius: 10px;
+        background-color: #F5F5F5;
+    }
+
+    /* Handle on hover */
+    .tableScrollbar ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+
+/*fixed table header */
+table.fixed_header {
+    table-layout: fixed;
+    border-collapse: collapse;
+    align-content: center;
+}
+
+    table.fixed_header  thead {
+        display: table-row;
+        width: 99%;
+    }
+
+table.fixed_header tbody {
+    display: block;
+    width: 100%;
+    overflow: scroll;
+    height: 200px;
+}
+
+.fixed_header-300  tbody {
+    height: 300px;
+}
+
+.fixed_header-400  tbody {
+    height: 400px;
+}
+
+.fixed_header-450  tbody {
+    height: 450px;
+}
+
+.fixed_header-500  tbody {
+    height: 500px;
+}
+
+table.fixed_header thead tr {
+    display: block;
+    overflow-y: scroll;
+}
+
+table.fixed_header thead {
+    color: black;
+    background: #fff;
+}
+
+    table.fixed_header thead th,
+    table.fixed_header tbody td,
+    table.fixed_header tfoot td {
+        padding: 5px;
+        text-align: center;
+        white-space: normal !important;
+        word-wrap: break-word;
+        width: 300px;
+        align-content: center;
+    }
+
+table.fixed_header tfoot {
+    display: table-row;
+    width: 99%;
+}
+
+table.fixed_header tfoot tr {
+    display: block;
+    overflow-y: scroll;
+}
+
+.fixed_header  tfoot {
+    color: black;
+    background: #fff;
+}
+
+
+/*fixed table header */

@@ -1,0 +1,124 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using RELOCBS.Common;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model StaticPagedList<RELOCBS.Entities.ClaimGrid>
+
+@{
+    string param = "MoveID=ParamValue0&ClaimID=ParamValue1";
+    string _PageID = "27";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+    bool hasViewAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.VIEW);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+columns.Add(o => o.Claim_ID)
+.Titled("Claim No.")
+.Css("col-md-1")
+.SetWidth(2)
+.SortInitialDirection(GridMvc.Sorting.GridSortDirection.Descending);
+
+columns.Add(o => o.JobNo)
+.Css("col-md-2")
+.Titled("Job No.")
+.SetWidth(10);
+
+columns.Add(o => o.JobDate)
+.Css("col-md-1")
+.Titled("JobDate")
+.SetWidth(10).Format("{0:dd-MMM-yyyy}");
+
+columns.Add(o => o.Claim_Date)
+.Css("col-md-2")
+.Titled("Ins Date").Format("{0:dd-MMM-yyyy}")
+.SetWidth(10);
+
+columns.Add(o => o.ShipperName)
+.Css("col-md-3")
+.Titled("Shipper Name")
+.SetWidth(10);
+
+columns.Add(o => o.ClaimAmt)
+.Css("col-md-3")
+.Titled("ClaimAmt")
+.SetWidth(10);
+//columns.Add(o => o.PackCompletionDate)
+//.Css("col-md-2")
+//.Titled("PackCompletionDate")
+//.SetWidth(10);
+
+columns.Add(o => o.Status)
+.Css("col-md-2")
+.Titled("Status")
+.SetWidth(10);
+
+//columns.Add(o => o.CreatedDate).Format("{0:dd-MMM-yyyy HH:mm}")
+//.Css("col-md-3")
+//.Titled("Created Date")
+//.SetWidth(10);
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("Actions")
+.RenderValueAs(d =>
+@<span>
+    @if(hasEditAccess)
+    {
+        <a href = "@Url.Action("Create", "Claim",new { Key = CommonService.GenerateQueryString(param, new string[] {d.MoveID.ToString(),(!string.IsNullOrWhiteSpace(Convert.ToString(d.Claim_ID)) ? Convert.ToString(d.Claim_ID) : " - 1")})})" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" target="_blank" title="Edit Claim"></a>
+    }
+
+    @if (hasViewAccess)
+    {
+        <a href="@Url.Action("GetClaimPrint", "Claim",new { Key = CommonService.GenerateQueryString("MoveID=ParamValue0&ClaimID=ParamValue1&Type=ParamValue2", new string[] {d.MoveID.ToString(),!string.IsNullOrWhiteSpace(Convert.ToString(d.Claim_ID)) ? Convert.ToString(d.Claim_ID) : "-1","2"})})" class="btnView btn btn-xs btn-primary glyphicon glyphicon-print pull-left" target="_blank" title="Claim Approval Format"></a>
+    }
+
+</span>
+);
+
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-4").Titled("")
+.RenderValueAs(d =>
+@<span>
+    @if (hasViewAccess)
+     {
+       <a href="@Url.Action("GetEClaimPrint", "Claim",new { Key = CommonService.GenerateQueryString("MoveID=ParamValue0&ClaimID=ParamValue1", new string[] {d.MoveID.ToString(),!string.IsNullOrWhiteSpace(Convert.ToString(d.Claim_ID)) ? Convert.ToString(d.Claim_ID) : "-1"})})" class="btnView btn btn-xs btn-info glyphicon glyphicon-print pull-left" target="_blank" title="View E-Claim Format"></a>
+     }
+
+
+    @*@if (hasDeleteAccess)
+        {
+            <div class="pull-left">
+                <form method = "post" action="@Url.Action("Delete/" + d.PJR_DJR_ID, "JobReport")" class="frmRWDelete" title="Delete Report">
+                    @Html.AntiForgeryToken()
+                    <input type = "hidden" name="PJR_DJR_ID" value="@d.PJR_DJR_ID" />
+                    <button type = "submit" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5"></button>
+                </form>
+            </div>
+         }*@
+
+
+</span>
+);
+
+        }).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "mgrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>
+

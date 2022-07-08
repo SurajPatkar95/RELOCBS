@@ -6,7 +6,7 @@
 @using GridMvc.Html
 @{
 
-    string _PageID = "7";
+    string _PageID = "11";
     bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
     bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
     bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
@@ -14,26 +14,34 @@
 @Html.Grid(Model).Named("mainGrid").Columns(columns =>
 {
 
-columns.Add(o => o.CompanyName)
-    .Titled("Company")
+columns.Add(o => o.ShortCompanyName)
+    .Titled("Short Name")
     .Css("col-md-3")
     .SetWidth(2)
     .SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+columns.Add(o => o.CompanyName)
+.Titled("Company")
+.Css("col-md-3")
+.SetWidth(2)
+.SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
 
 columns.Add(o => o.CityName)
-.Titled("City Name").Css("col-md-3")
+.Titled("City").Css("col-md-3")
 .SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
 
 columns.Add(o => o.Address1)
     .Css("col-md-3")
-    .Titled("Address Name")
+    .Titled("Address1")
     .SetWidth(10);
-
+columns.Add(o => o.ZIPNO)
+    .Css("col-md-3")
+    .Titled("ZipCode")
+    .SetWidth(10);
 columns.Add(o => o.IsActive)
-    .Titled("Active").Css("col-md-1")
-    .Encoded(false)
-    .Sanitized(false)
-    .RenderValueAs(d =>
+.Titled("Active").Css("col-md-1")
+.Encoded(false)
+.Sanitized(false)
+.RenderValueAs(d =>
     @<span>
         @if (d.IsActive == true)
         {

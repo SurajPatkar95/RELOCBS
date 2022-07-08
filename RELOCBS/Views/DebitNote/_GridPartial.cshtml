@@ -1,0 +1,79 @@
+﻿@model StaticPagedList<RELOCBS.Entities.DebitNote>
+
+@using RELOCBS.Utility;
+@using RELOCBS.Common;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@{
+    string _PageID = "67";
+    string param = "DebitNoteId=ParamValue0&DNCreditNoteId=ParamValue1";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+columns.Add(m => m.DebitNoteId).Titled("Debit Note Id").SetWidth("10%").SortInitialDirection(GridMvc.Sorting.GridSortDirection.Descending);
+
+columns.Add(m => m.DebitNoteNo).Titled("Debit Note No").SetWidth("12%");
+
+columns.Add(m => m.Debtor.DebtorName).Titled("Debtor Name").SetWidth("18%");
+
+columns.Add(m => m.DebitNoteDate).Titled("Debit Note Date").SetWidth("10%").Format("{0:dd-MMM-yyyy hh:mm tt}");
+
+columns.Add(m => m.RevenueBr).Titled("Rev. Branch").SetWidth("10%");
+
+columns.Add(m => m.DNType).Titled("Debit Note Type").SetWidth("10%");
+
+columns.Add(m => m.DebitNoteStatus).Titled("Debit Note Status").SetWidth("10%");
+
+columns.Add().Titled("Actions").Css("col-md-2").SetWidth("20%").Encoded(false).Sanitized(false).Sortable(true).RenderValueAs(m =>
+@<span>
+    @if (hasAddAccess)
+    {
+        <a href="@Url.Action("Create", "DebitNote", new { Key = CommonService.GenerateQueryString(param, new string[] { m.DebitNoteId.ToString(), m.DNCreditNoteId.ToString() }), DrOrCrNote = "D" })" class="btnAddDebitNote btn btn-xs btn-primary glyphicon glyphicon-pencil" data-target="#mdlAddEdit" data-cache="false" title="Edit Dr. Note"></a>
+        if (hasDeleteAccess && m.DebitNoteStatus != "Finalized" && m.DebitNoteStatus != "Exported")
+        {
+            <a href="@Url.Action("Delete", "DebitNote", new { Key = CommonService.GenerateQueryString(param, new string[] { m.DebitNoteId.ToString(), m.DNCreditNoteId.ToString() }), DrOrCrNote = "D" })" class="btnDeleteDebitNote btn btn-xs btn-danger glyphicon glyphicon-trash" data-target="#mdlAddEdit" data-cache="false" title="Delete Dr. Note"></a>
+        }
+        if (m.IsCreateCreditNote)
+        {
+            <a href="@Url.Action("Create", "DebitNote", new { Key = CommonService.GenerateQueryString(param, new string[] { m.DebitNoteId.ToString(), m.DNCreditNoteId.ToString() }), DrOrCrNote = "C" })" class="btnAddCreditNote btn btn-xs btn-default" title="Add Cr. Note">Add Cr.</a>
+        }
+        if (m.IsShowCreditNote)
+        {
+            <button id="btnCreditNote" class="btnShowCreditNote btn btn-xs btn-default" title="Show Cr. Note" onclick="ShowCreditNote(@m.DebitNoteId)">Show Cr.</button>
+        }
+    }
+</span>);
+}).Sortable()
+
+<div class="clearfix pnl-pagination">
+    <div class="pull-right">
+        @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new PagedListRenderOptions() { MaximumPageNumbersToDisplay = 4, DisplayPageCountAndCurrentLocation = true }, new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "dvDebitNoteGrid", OnComplete = "PagedOnComplete" }))
+        @if (Model.Count() == 0)
+        {
+            <div class="pagination-container hidden"><ul class="pagination"><li class="active"><a>1</a></li></ul></div>
+        }
+    </div>
+</div>
+
+<div class="row m-t-xs">
+    <div class="page-header text-center">
+        <h2>Credit Note</h2>
+    </div>
+    <div id="CNmgrid">
+        @Html.Partial("_GridPartialCreditNote", (List<RELOCBS.Entities.DebitNote>)ViewBag.CreditNoteList)
+    </div>
+</div>
+
+<script>
+    function ShowCreditNote(DebitNoteId) {
+        var url = '@Url.Action("GetCreditNoteList", new { DebitNoteId = "-1" })';
+        url = url.replace("-1", DebitNoteId);
+        $('#CNmgrid').load(url);
+    };
+</script>

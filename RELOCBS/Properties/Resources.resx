@@ -117,6 +117,76 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="BTR_Dest_Format" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BTR_Dest_Format.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BTR_Origin_Format" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BTR_Origin_Format.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CityCostFormat" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CityCostFormat.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CurrencyConversionFormat" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CurrencyConversionFormat.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="DestinationCostUploadFormat" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\destinationcostuploadformat.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Destination_BGRS_AIR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Destination_BGRS_AIR.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Destination_BGRS_BTR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Destination_BGRS_BTR.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Destination_BGRS_SEA" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Destination_BGRS_SEA.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="FreightCostUploadFormat" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\freightcostuploadformat.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Freight_BGRS_AIR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Freight_BGRS_AIR.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Freight_BGRS_BTR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Freight_BGRS_BTR.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Freight_BGRS_SEA" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Freight_BGRS_SEA.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="GDPR_DataSubject_Consent_Form" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\GDPR_DataSubject_Consent_Form.pdf;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="GDPR_Privacy_Policy_V1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\GDPR_Privacy_Policy_V1.pdf;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="OriginCostUploadFormat" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CostUploadExelFormat.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Origin_BGRS_AIR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Origin_BGRS_AIR.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Origin_BGRS_BTR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Origin_BGRS_BTR.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Origin_BGRS_SEA" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Origin_BGRS_SEA.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ROADCostUploadFormat" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ROADCostUploadFormat.xlsx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="String" xml:space="preserve">
+    <value>D:\Nikhil\RELOCBS</value>
+  </data>
+  <data name="TransferToFA" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TransferToFA.xls;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="TransferToFAReloSmart" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TransferToFAReloSmart.xls;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="TransferToFAReloTrack" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TransferToFAReloTrack.xls;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="UnExpectedErrorAtBL" xml:space="preserve">
     <value>UnExpected error occured At BL</value>
   </data>

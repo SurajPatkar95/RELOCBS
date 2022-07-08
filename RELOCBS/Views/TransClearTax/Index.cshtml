@@ -1,0 +1,484 @@
+﻿@model RELOCBS.Entities.TransClearTax
+@using System.Security.Policy
+@using GridMvc.Html
+@using PagedList.Mvc;
+@using PagedList;
+@using RELOCBS.Utility;
+@{
+    //ViewBag.Title = "Index";
+    ViewBag.Title = "Transfer To Clear Tax";
+}
+<style>
+    .Invoicetable {
+        table-layout: fixed;
+        border-collapse: collapse;
+        align-content: center;
+    }
+
+        .Invoicetable thead {
+            display: table-row;
+            width: 100%;
+        }
+
+        .Invoicetable tbody {
+            display: block;
+            width: 100%;
+            overflow-y: scroll;
+            height: 400px;
+        }
+
+        .Invoicetable thead tr {
+            display: block;
+            overflow-y: scroll;
+        }
+
+        .Invoicetable thead {
+            color: black;
+            background: #fff;
+        }
+
+        .Invoicetable th, .Invoicetable tbody td {
+            padding: 5px;
+            text-align: left;
+            width: 500px;
+        }
+
+    table.fixed_header tbody {
+        height: 400px;
+    }
+
+    .texboxborder {
+        border-bottom: solid;
+    }
+</style>
+<div class="modal modal-wide fade" id="APIModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    Result
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </h3>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 APIResult" style="padding-bottom:10px">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal modal-wide fade" id="GSTLogicModalLong" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>GST Logic</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <strong>Service Provided : </strong><span class="ServiceProvided"></span>
+                        </div>
+                    </div>
+                    <div class="col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <strong>Service Provider In India : </strong><span class="ServiceProviderInIndia"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <strong>Service Receiver In India(Bill To) : </strong><span class="ServiceReceiverInIndia"></span>
+                        </div>
+                    </div>
+                    <div class="col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <strong>Service Receiver Registion Status(Bill To GSTIN) : </strong><span class="ServiceReceiverRegistionStatus"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <strong>Origin In India : </strong><span class="OriginInIndia"></span>
+                        </div>
+                    </div>
+                    <div class="col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <strong>Dest In India : </strong><span class="DestInIndia"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <strong>Mode Is Road : </strong><span class="IsRoadMode"></span>
+                        </div>
+                    </div>
+                    <div class="col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <strong>Rev Curr Is INR : </strong><span class="IsRevCurrINR"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <strong>Service Provider State ID(Rev. Br.) : </strong><span class="ServiceProviderStateID"></span>
+                        </div>
+                    </div>
+                    <div class="col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <strong>Is POS In India : </strong><span class="IsPOSInIndia"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <strong>POS Rule : </strong><span class="POSRule"></span>
+                        </div>
+                    </div>
+                    <div class="col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <strong>POS State Id : </strong><span class="POSStateID"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <strong>GST TYPE : </strong><span class="GSTTYPE"></span>
+                        </div>
+                    </div>
+                    <div class="col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <strong>GST Percent : </strong><span class="GSTPercent"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="ibox-content">
+    @using (Html.BeginForm("Index", "TransClearTax", null, FormMethod.Post, new { enctype = "multipart/form-data", id = "ModalCancelJob" }))
+    {
+        <div class="row">
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>IRN Generated</label>
+                    @Html.RadioButtonFor(m => m.FileTransfer, true, new { @class = " FileTransYes" }) Yes &nbsp;
+                    @Html.RadioButtonFor(m => m.FileTransfer, false, new { @class = "FileTransNo" }) No
+                    @Html.HiddenFor(m => m.FileTransfer)
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Application</label>
+                    @Html.DropDownListFor(m => m.AppID, new SelectList((System.Collections.IEnumerable)ViewData["ApplicationList"], "Value", "Text"), "--Select Application--", new { @class = "form-control input-sm clearfix" })
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>From Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_FromDate">
+                        @Html.EditorFor(m => m.FromDate, new { htmlAttributes = new { @placeholder = "From Date", @tooltip = "From Date", @class = "form-control input-sm", title = "From Date", id = "FromDate" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>To Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.EditorFor(m => m.ToDate, new { htmlAttributes = new { @placeholder = "To Date", @tooltip = "To Date", @class = "form-control input-sm", title = "To Date", id = "ToDate" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <div class="form-group">
+                    <label>Inv No.</label>
+                    @Html.EditorFor(m => m.InvNo, new { htmlAttributes = new { @placeholder = "Inv No", @tooltip = "Inv No", @class = "form-control input-sm", title = "Inv No", id = "InvNo" } })
+                </div>
+            </div>
+            <div class="form-group col-sm-1 col-md-1">
+                <div class="clearfix">
+                    <input type="submit" id="btnSearch" name="Search" class="btn btn-default btn-sm m-r-sm pull-right" value="Get Invoice" />
+                </div>
+            </div>
+        </div>
+    }
+    <div class="row DivInvoice">
+        <div class="col-sm-12 m-b-lg">
+            <div class="table-responsive" id="pnl-rates">
+                <table class="table table-striped fixed_header MoveCosttable" id="Invoicetable">
+                    <thead class="ibox-title">
+                        <tr>
+                            <th style="width:200px">Invoice No</th>
+                            <th style="width:200px">Invoice Date</th>
+                            <th style="width:200px">Invoice Type</th>
+                            <th style="width:200px">POS</th>
+                            <th style="width:200px">Rule Status</th>
+                            <th style="width:100px">GST Type</th>
+                            <th style="width:500px"></th>
+                        </tr>
+                    </thead>
+                    <thead>
+                        <tr>
+                            <th style="width:200px">@Html.Editor("InvoiceSearch", new { @class = "form-control input-sm" })</th>
+                            <th style="width:200px">@Html.Editor("InvoiceDtSearch", new { @class = "form-control input-sm" })</th>
+                            @*<th style="width:200px">@Html.Editor("InvType", new { @class = "form-control input-sm" })</th>
+                                <th style="width:200px">@Html.Editor("InvoiceSearch", new { @class = "form-control input-sm" })</th>
+                                <th style="width:200px">@Html.Editor("InvoiceSearch", new { @class = "form-control input-sm" })</th>*@
+                            <th style="width:200px"></th>
+                            <th style="width:200px"></th>
+                            <th style="width:200px"></th>
+                            <th style="width:100px"></th>
+                            <th style="width:500px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (RELOCBS.Entities.InvoiceList row in Model.InvoiceList)
+                        {
+                            <tr>
+                                <td class="InvNo" style="width:200px">@row.InvNo</td>
+                                <td class="InvDate" style="width:200px">@row.InvDate</td>
+                                <td class="InvType" style="width:200px">@row.InvType</td>
+                                <td class="POS" style="width:200px">@row.POS</td>
+                                <td class="POSStatus" style="width:200px">@row.POSStatus</td>
+                                <td class="GSTType" style="width:100px">@row.GSTType</td>
+
+                                <td style="width:500px">
+                                    @if (Model.AppID == 2)
+                                    {
+                                        <input type="button" id="btnPrintInvoice" name="PrintInvoice" class="btn btn-default btn-sm m-r-sm pull-right" value="Print Invoice" onclick="OpenInvoicePrint(this)" />
+                                    }
+
+                                    <input type="button" id="btnSaveQrCode" name="SaveQrCode" class="btn btn-default btn-sm m-r-sm pull-right" value="Save QrCode" onclick="SaveQrCode(this)" />
+                                    <input type="button" id="btnDownload" name="Download" class="btn btn-default btn-sm m-r-sm pull-right btnDownload" value="Download" onclick="EinvoiceDownload(this)" />
+                                    <input type="button" id="btnPOSRule" name="POS Rule" class="btn btn-default btn-sm m-r-sm pull-right btnPOSRule" value="POS Rule" onclick="GetPOSRule(this)" />
+                                    @if (!Model.FileTransfer && row.ShowEinvoice)
+                                    {
+                                        <input type="button" id="btnSendtoCleartax" name="SendtoCleartax" class="btn btn-default btn-sm m-r-sm pull-right" value="EInvoice" onclick="SendtoCleartax(this)" />
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+@section Scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqunobtrusive")
+    <script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $('#FromDate').on('focus', function () {
+            $(this).siblings('.input-group-addon').click();
+        });
+
+        $('#ToDate').on('focus', function () {
+            $(this).siblings('.input-group-addon').click();
+        });
+
+        $('#dtp_FromDate').datetimepicker({
+            format: "DD-MMM-YYYY",
+            widgetPositioning: {
+                horizontal: 'right',
+                vertical: 'bottom'
+            }
+        });
+
+        $('#dtp_ToDate').datetimepicker({
+            format: "DD-MMM-YYYY",
+            widgetPositioning: {
+                horizontal: 'right',
+                vertical: 'bottom'
+            }
+        });
+
+
+        });
+
+        function EinvoiceDownload(e) {
+            var InvNo = $(e).closest('tr').find('.InvNo').html();
+            var AppID = $('#AppID').val();
+            var url = '@Url.Action("DownloadToExcel", new { InvNo = "-1", AppID = "-2" })';
+            url = url.replace("-1", InvNo);
+            url = url.replace("-2", AppID);
+            url = url.replace(/&amp;/g, "&");
+            //window.location.href = url;
+            var tab_text = "<table border='2px'><tr >";
+            $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    url: url,
+                    async: 'false',
+                    dataType: 'json',
+                    type: "GET",
+                success: function (data) {
+                    tab_text = tab_text + data.htmlstring;
+                    tab_text = tab_text.replace(/<tr>/g, "");
+                    //tab_text = tab_text.replace(/_([^]*)$/, '$1'); //a_bc
+
+                    tab_text = tab_text + "</table>";
+                    tab_text = tab_text.replace(/<A[^>]*>|<\/A>/g, "");//remove if u want links in your table
+                    tab_text = tab_text.replace(/<img[^>]*>/gi, ""); // remove if u want images in your table
+                    tab_text = tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+
+                    var ua = window.navigator.userAgent;
+                    var msie = ua.indexOf("MSIE ");
+
+                    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer
+                    {
+                        txtArea1.document.open("txt/html", "replace");
+                        txtArea1.document.write(tab_text);
+                        txtArea1.document.close();
+                        txtArea1.focus();
+                        sa = txtArea1.document.execCommand("SaveAs", true, "Download.xls");
+                    }
+                    else                 //other browser not tested on IE 11
+                        sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+
+                    return (sa);
+                    },
+                    error: function (reponse) {
+                        alert("error : " + reponse);
+                    }
+                });
+
+            var textRange; var j = 0;
+            //tab = document.getElementById('tblCostSheet'); // id of table
+
+            //for (j = 0; j < tab.rows.length; j++) {
+
+            //    tab_text = tab_text + tab.rows[j].innerHTML + "</tr><tr>";
+            //    //tab_text=tab_text+"</tr>";
+            //}
+
+
+        }
+
+        $('#InvoiceSearch').on('blur', function () {
+            var table = $(this).closest('.DivInvoice');
+            var searchtext = $(this).val();
+            table.find("#Invoicetable > TBODY > tr").each(function () {
+                var InvNo = $(this).find('.InvNo').html();
+                if (searchtext == null) {
+                    $(this).removeClass('hide');
+                }
+                else if (!InvNo.includes(searchtext)) {
+                    $(this).addClass('hide');
+                }
+                else {
+                    $(this).removeClass('hide');
+                }
+            });
+        });
+
+        $('#InvoiceDtSearch').on('blur', function () {
+            var table = $(this).closest('.DivInvoice');
+            var searchtext = $(this).val();
+            table.find("#Invoicetable > TBODY > tr").each(function () {
+                var InvNo = $(this).find('.InvDate').html();
+                if (searchtext == null) {
+                    $(this).removeClass('hide');
+                }
+                else if (!InvNo.includes(searchtext)) {
+                    $(this).addClass('hide');
+                }
+                else {
+                    $(this).removeClass('hide');
+                }
+            });
+        });
+
+        function SendtoCleartax (e)
+        {
+            var InvNo = $(e).closest('tr').find('.InvNo').html();
+            var AppID = $('#AppID').val();
+            $.get("@Url.Action("GenerateEInvoice")", { InvNo: InvNo, AppID:AppID }, function (data) {
+
+                $('.APIResult').html(data.result);
+                $('#APIModal').modal();
+            });
+        }
+        function SaveQrCode(e)
+        {
+            var InvNo = $(e).closest('tr').find('.InvNo').html();
+            var AppID = $('#AppID').val();
+            $.get("@Url.Action("SaveImage")", { InvNo: InvNo, AppID: AppID }, function (data)
+            {
+                if (data.error.length >0) {
+                    alert(data.error);
+                }
+            });
+
+        }
+
+        function GetPOSRule(e)
+        {
+            var InvNo = $(e).closest('tr').find('.InvNo').html();
+            var AppID = $('#AppID').val();
+            $.get("@Url.Action("GetPOSRule")", { InvNo: InvNo, AppID: AppID }, function (data)
+            {
+                if (data.error.length > 0) {
+                    alert(data.error);
+                }
+                else {
+                    var GSTLogicModalLong = $('#GSTLogicModalLong');
+
+                    GSTLogicModalLong.find('.ServiceProvided').html(data.GSTLogic.ServiceProvided);
+                    GSTLogicModalLong.find('.ServiceProviderInIndia').html(data.GSTLogic.ServiceProviderInIndia);
+                    GSTLogicModalLong.find('.ServiceReceiverInIndia').html(data.GSTLogic.ServiceReceiverInIndia);
+                    GSTLogicModalLong.find('.ServiceReceiverRegistionStatus').html(data.GSTLogic.ServiceReceiverRegistionStatus);
+                    GSTLogicModalLong.find('.OriginInIndia').html(data.GSTLogic.OriginInIndia);
+                    GSTLogicModalLong.find('.DestInIndia').html(data.GSTLogic.DestInIndia);
+                    GSTLogicModalLong.find('.IsRoadMode').html(data.GSTLogic.IsRoadMode);
+                    GSTLogicModalLong.find('.IsRevCurrINR').html(data.GSTLogic.IsRevCurrINR);
+                    GSTLogicModalLong.find('.ServiceProviderStateID').html(data.GSTLogic.ServiceProviderStateID);
+                    GSTLogicModalLong.find('.IsPOSInIndia').html(data.GSTLogic.IsPOS_InIndia);
+                    GSTLogicModalLong.find('.POSRule').html(data.GSTLogic.POS_Rule);
+                    GSTLogicModalLong.find('.POSStateID').html(data.GSTLogic.POS_StateID);
+                    GSTLogicModalLong.find('.GSTTYPE').html(data.GSTLogic.GSTTYPE);
+                    GSTLogicModalLong.find('.GSTPercent').html(data.GSTLogic.GST_Percent);
+                    //GSTLogicModalLong.find('.OrgStgPOSRule').html(data.GSTLogic.OrgStgPOSRule);
+                    //GSTLogicModalLong.find('.OrgStgIsPOSInIndia').html(data.GSTLogic.OrgStgIsPOSInIndia);
+                    //GSTLogicModalLong.find('.OrgStgPOSStateID').html(data.GSTLogic.OrgStgPOSStateID);
+                    //GSTLogicModalLong.find('.DestStgPOSRule').html(data.GSTLogic.DestStgPOSRule);
+                    //GSTLogicModalLong.find('.DestStgIsPOSInIndia').html(data.GSTLogic.DestStgIsPOSInIndia);
+                    //GSTLogicModalLong.find('.DestStgPOSStateID').html(data.GSTLogic.DestStgPOSStateID);
+                    $('#GSTLogicModalLong').modal();
+                }
+            });
+        }
+
+        function OpenInvoicePrint(e) {
+            var key = $(e).closest('tr').find('.InvNo').html();
+            var param = "key=" + key;
+            var url = "@Url.Action("BillFormatPrint_OthApp", "TransClearTax")" + "?" + param;
+            return !window.open(url);
+        }
+    </script>
+}

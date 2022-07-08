@@ -1,0 +1,104 @@
+﻿@using RELOCBS.Utility;
+@{
+
+    string _PageID = "66";
+    string AddTitle = "New Account";
+    
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+
+}
+
+<style>
+    #order {
+        padding: 0 0 0 0;
+        border-right: 0;
+    }
+
+    .select-style {
+        width: 100%; /*95px;*/
+        padding: 0;
+        margin: 0;
+        display: inline-block;
+        vertical-align: middle;
+        background: url("http://grumbletum.com/places/arrowdown.gif") no-repeat 100% 40%;
+    }
+
+        .select-style select {
+            font-weight: bold;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            background-color: transparent;
+            background-image: none;
+            border: none;
+            box-shadow: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+    .grid-mvc {
+        overflow: auto;
+    }
+</style>
+
+
+@using (Html.BeginForm(null, null, null, FormMethod.Post, new { @name = "CustomFilter", @id = "CustomFilter", @class = "form-inline" }))
+{
+
+
+    @Html.AntiForgeryToken()
+    
+    <div class="col-sm-6 col-md-6">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>From Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_FromDate">
+                        @Html.Editor("FromDate", new { htmlAttributes = new { @placeholder = "From Date", @tooltip = "From Date", @class = "form-control input-sm datetimepicker onkeydtp", title = "From Date", id = "FromDate" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>To Date</label>
+                    <div class="input-group input-group-sm date" id="dtp_ToDate">
+                        @Html.Editor("ToDate", new { htmlAttributes = new { @placeholder = "To Date", @tooltip = "To Date", @class = "form-control input-sm datetimepicker onkeydtp", title = "To Date", id = "ToDate" } })
+                        <span class="input-group-addon" style="display: none">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="form-group col-sm-3 col-md-3">
+        <div class="clearfix">
+            <div class="input-group filter-custom-margin form-control">
+                <div class="input-group-addon" id="order" style="width : 50%">
+                    <div class="select-style">
+                        <select name="SearchType" id="SearchType">
+                            <option value="C" selected>Corporate</option>
+                            <option value="A">Agent</option>
+                            <option value="R">RMC</option>
+                        </select>
+                    </div>
+                </div>
+                @*<select name="search" id="search" class="form-control enableselect"></select>*@
+                <input type="text" name="search" id="search" class="form-control" placeholder="Search For ..." autocomplete="off">
+            </div>
+        </div>
+    </div>
+    <div class="form-group col-md-1">
+        <div class="clearfix">
+            <input type="submit" class="btn btn-default btn-sm filter-custom-margin" value="Search" />
+        </div>
+    </div>
+    
+}

@@ -12,12 +12,15 @@ using System.Web.Mvc;
 using RELOCBS.AjaxHelper;
 using RELOCBS.Extensions;
 using System.Net;
+using RELOCBS.Common;
+using RELOCBS.CustomAttributes;
 
 namespace RELOCBS.Controllers
 {
+    [AuthorizeUser]
     public class CompanyController : BaseController
     {
-        private string _PageID = "7";
+        private string _PageID = "11";
 
         private CommonSubs _cSubs;
         public CommonSubs CSubs
@@ -62,7 +65,7 @@ namespace RELOCBS.Controllers
             {
                 return new HttpStatusCodeResult(403);
             }
-            ViewBag.PageTitle = "Company Master";
+            session.Set<string>("PageSession", "Company Master");
             //ViewData["CityList"] = comboBL.GetCityDropdown();
             var pageIndex = (page ?? 1);
             int pageSize = settings.GetSettingByKey<int>("pagination_pagesize");
@@ -87,11 +90,11 @@ namespace RELOCBS.Controllers
             //{
             //    CityID = Convert.ToInt32(Request.Form["CityID"]);
             //}
-            var items = companyBL.GetCompanyList(pageIndex, pageSize, OrderBy, Order, null, null, CityID, null, SearchKey, UserSession.GetUserSession().LoginID, out totalCount);
+            var items = companyBL.GetCompanyList(pageIndex, pageSize, OrderBy, Order,  null, CityID, null, SearchKey, UserSession.GetUserSession().LoginID, out totalCount);
             if (totalCount == 0 && pageIndex > 1)
             {
                 pageIndex = 1;
-                items = companyBL.GetCompanyList(pageIndex, pageSize, OrderBy, Order,null ,null, CityID, null, SearchKey, UserSession.GetUserSession().LoginID, out totalCount);
+                items = companyBL.GetCompanyList(pageIndex, pageSize, OrderBy, Order,null, CityID, null, SearchKey, UserSession.GetUserSession().LoginID, out totalCount);
             }
 
             var itemsAsIPagedList = new StaticPagedList<Company>(items, pageIndex, pageSize, totalCount);
@@ -113,8 +116,8 @@ namespace RELOCBS.Controllers
             int ContinentID = -1;
             ViewData["City"] = comboBL.GetCityDropdown(ContinentID:ContinentID,CountryID:-1);
             ViewData["Country"] = comboBL.GETCountryDropdown(ContinentID: ContinentID);
-            CityViewModel model = new CityViewModel();
-            model.isActive = true;
+            CompanyViewModel model = new CompanyViewModel();
+            model.IsActive = true;
             return Request.IsAjaxRequest()
                 ? (ActionResult)PartialView("Create", model)
                 : View(model);
@@ -159,7 +162,7 @@ namespace RELOCBS.Controllers
         // GET: Company/Edit/5
         public ActionResult Edit(int id)
         {
-            if (id == null)
+            if (id<=0)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
@@ -229,6 +232,37 @@ namespace RELOCBS.Controllers
             {
                 return View();
             }
+        }
+
+        
+        public JsonResult GetAutoPopulateList()
+        {
+            var lst = comboBL.GetCompanyDropdown().Select(i => new { i.Value, i.Text }).ToList();
+            return Json(lst, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult ExportToExcel()
+        {
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            try
+            {
+
+                string SearchKey = string.Empty;
+                if (Request.Form["SearchKey"] != null && Request.Form["SearchKey"].Trim() != "")
+                {
+                    param.Add("@SP_SearchString", Request.Form["SearchKey"]);
+                }
+
+                param.Add("@SP_LoginID", Convert.ToString(UserSession.GetUserSession().LoginID));
+
+                CommonService.GenerateExcel(this.Response, "Company", "[Comm].[GETCompanyForGrid_ExpToExl]", param);
+
+            }
+            catch (Exception ex)
+            {
+                this.AddToastMessage("RELOCBS", "UnExpected Error occured", ToastType.Error);
+            }
+            return View();
         }
     }
 }

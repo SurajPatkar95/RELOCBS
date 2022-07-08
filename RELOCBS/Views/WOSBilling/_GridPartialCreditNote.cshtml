@@ -1,0 +1,38 @@
+﻿@model List<RELOCBS.Entities.WOSBilling>
+
+@using RELOCBS.Utility;
+@using RELOCBS.Common;
+@using GridMvc.Html
+
+@{
+    string _PageID = "81";
+    string param = "BillID=ParamValue0&CreditNoteID=ParamValue1&WOSMoveID=ParamValue2&MoveID=ParamValue3";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+
+    var CreditNoteList = (List<RELOCBS.Entities.DebitNote>)ViewBag.CreditNoteList;
+}
+
+@Html.Grid(Model).Named("CNmainGrid").Columns(columns =>
+{
+columns.Add(m => m.CreditNoteID).Titled("Credit Note Id").SetWidth("10%").SortInitialDirection(GridMvc.Sorting.GridSortDirection.Descending);
+
+columns.Add(m => m.CreditNoteNo).Titled("Credit Note No").SetWidth("15%");
+
+columns.Add(m => m.InvoiceNo).Titled("Inv No").SetWidth("15%");
+
+columns.Add(m => m.CreditNoteDate).Titled("Credit Note Date").SetWidth("18%").Format("{0:dd-MMM-yyyy}");
+
+columns.Add(m => m.BillType).Titled("Credit Note Type").SetWidth("15%");
+
+columns.Add(m => m.InvoiceStatus).Titled("Credit Note Status").SetWidth("15%");
+
+columns.Add().Titled("Actions").Css("col-md-2").SetWidth("12%").Encoded(false).Sanitized(false).Sortable(true).RenderValueAs(m =>
+@<span>
+    @if (hasAddAccess)
+    {
+        <a href="@Url.Action("Create", "WOSBilling", new { Key = CommonService.GenerateQueryString(param, new string[] { m.BillID.ToString(), m.CreditNoteID.ToString(), m.WOSMoveID.ToString(), m.MoveID.ToString() }), InvOrCreditNote = "C" })" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil" title="Edit Cr. Note"></a>
+    }
+</span>);
+}).Sortable()

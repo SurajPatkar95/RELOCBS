@@ -1,0 +1,201 @@
+﻿@model RELOCBS.Entities.ActivityAllocationModel
+@using RELOCBS.Extensions;
+
+<div class="m-t-sm m-l-sm m-r-sm">
+    <div class="row">
+        <div class="col-sm-3 col-md-3 form-group">
+            <label>Service Type</label>
+            @Html.DropDownList("ADServiceType", new SelectList((System.Collections.IEnumerable)ViewData["ADServiceTypeList"], "Value", "Text"), "--Select Service Type--", new { @class = "form-control input-sm clearfix enableselect" })
+        </div>
+        <div class="col-sm-2 col-md-2 form-group">
+            <label>Description</label>
+            @Html.TextBox("ADSDescription", null, new { @class = "form-control input-sm clearfix ADSDescription" })
+        </div>
+        <div class="col-sm-2 col-md-2 form-group">
+            <label>From Date</label>
+            @Html.TextBox("ADFromDate", null, new { @class = "form-control input-sm clearfix ADSFromDate datetimepicker " })
+        </div>
+        <div class="col-sm-2 col-md-2 form-group">
+            <label>To Date</label>
+            @Html.TextBox("ADToDate", null, new { @class = "form-control input-sm clearfix ADSToDate datetimepicker" })
+        </div>
+        <div class="col-sm-2 col-md-2 form-group">
+            <label>Cost</label>
+            @Html.TextBox("ADSCost", null, new { @class = "form-control input-sm clearfix ADSCost", @onkeypress = "return OnlyDouble(this, event);" })
+        </div>
+        <div class="col-sm-1 col-md-1 form-group">
+            <div class="clearfix">
+                <input type="button" id="btnAdd" value="Add" class="btn btn-primary btn-sm filter-custom-margin" onclick="AddService()">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <table id="tblAddService" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Service Type</th>
+                        <th>Description</th> 
+                        <th>From Date</th>
+                        <th>To Date</th>
+                        <th>Cost</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody style="max-height:150px">
+                    @for (var i = 0; i < Model.services.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                @Html.EditorFor(a => Model.services[i].ServiceName, new { htmlAttributes = new { @placeholder = "Service Type", @tooltip = "Service Type", @class = "form-control input-sm ServiceType", title = "Service Type", @readonly = "readonly" } })
+                                @Html.HiddenFor(x => Model.services[i].ServiceID, new { @class = "ServiceID" })
+                                @*@Html.HiddenFor(x => Model.services[i].ActivityID, new { @class = "ActivityID" })*@
+                                @Html.HiddenFor(x => Model.services[i].SD_ID, new { @class = "SD_ID" })
+                                @Html.HiddenFor(model => Model.services[i].PJR_Status, new { @class = "S_PJR_Status" })
+                            </td>
+                            <td>
+                                @Html.EditorFor(a => Model.services[i].Description, new { htmlAttributes = new { @placeholder = "Description", @tooltip = "Description", @class = "form-control input-sm ADDescription", title = "Description" } }).DisableIf(() => Model.services[i].PJR_Status == 1)
+                            </td>
+                            <td>
+                                @Html.EditorFor(a => Model.services[i].FromDate, new { htmlAttributes = new { @placeholder = "From Date", @tooltip = "From Date", @class = "form-control input-sm datetimepicker AdFromDate onkeydtp", title = "From Date" } }).DisableIf(() => Model.services[i].PJR_Status == 1)
+                            </td>
+                            <td>
+                                @Html.EditorFor(a => Model.services[i].ToDate, new { htmlAttributes = new { @placeholder = "To Date", @tooltip = "To Date", @class = "form-control input-sm datetimepicker AdToDate onkeydtp", title = "To Date" } }).DisableIf(() => Model.services[i].PJR_Status == 1)
+                            </td>
+                            <td>
+                                @Html.EditorFor(x => Model.services[i].Cost, new { htmlAttributes = new { @class = "form-control input-sm clearfix AdCost" , @onkeypress = "return OnlyDouble(this, event);" } }).DisableIf(() => Model.services[i].PJR_Status == 1)
+                            </td>
+                            <td>
+                                @if (Model.services[i].PJR_Status == 0)
+                                {
+                                    <button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveService(this)" />
+                                }
+                            </td>
+                        </tr>
+
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    function ClearService() {
+
+        $("#ActivityType").val('').trigger('change');
+        $("#AFromDate").val('');
+        $("#AToDate").val('');
+        $("#AFromLoc").val('');
+        $("#AToLoc").val('');
+        $('#ARepTime').val('');
+        $('#ARemark').val('');
+    }
+
+    function RemoveService(sender) {
+
+        //Determine the reference of the Row using the Button.
+        var row = $(sender).closest("TR");
+        //var name = $("TD", row).find('.ServiceType').val().trim();
+        if (confirm("Do you want to delete? ")) {
+            //Get the reference of the Table.
+            var table = $("#tblAddService")[0];
+
+            //Delete the Table row using it's Index.
+            table.deleteRow(row[0].rowIndex);
+
+        }
+
+        return false;
+    }
+
+    function checkServiceExists(Service,Description) {
+
+        var result = false;
+
+        $("#tblAddService > TBODY > tr").each(function () {
+
+            var ServiceId = $(this).find('.ServiceID');
+            var Desc = $(this).find('.ADDescription');
+
+            if (parseInt(ServiceId.val()) === Service && Desc == Description) {
+                result = true;
+                return false;
+            }
+
+        });
+
+        return result;
+
+    }
+
+
+    function AddService() {
+
+        var Service = $("#ADServiceType option:selected");
+        var Description = $("#ADSDescription").val();
+        var Cost = $("#ADSCost").val();
+        var FromDate = $("#ADFromDate").val();
+        var ToDate = $("#ADToDate").val();
+        
+        if (parseInt(Service.val()) > 0 && FromDate != null && FromDate != "" && ToDate != null && ToDate != "") {
+
+            if (!checkServiceExists(parseInt(Service.val()), Description)) {
+
+                var tBody = $("#tblAddService > TBODY")[0];
+                var rowCount = $('#tblAddService > TBODY > tr').length;
+                var row = tBody.insertRow(-1);
+                row.className = "package-row";
+                var cell = $(row.insertCell(-1));
+                var td = '<input readonly="readonly" class="form-control input-sm clearfix ServiceType" id="services_' + rowCount + '__ServiceName" name="services[' + rowCount + '].ServiceName" type="text" value="' + Service.text() + '">'
+                    + '<input data-val="true" class="ServiceID" data-val-number="The field ServiceID must be a number." data-val-required="The ServiceID field is required." id="services_' + rowCount + '__ServiceID" name="services[' + rowCount + '].ServiceID" type="hidden" value="' + parseInt(Service.val()) + '" autocomplete="off">';
+                cell.append(td);
+
+
+                cell = $(row.insertCell(-1));
+
+                td = '<input class="form-control input-sm clearfix ADDescription" id="services_' + rowCount + '__Description" name="services[' + rowCount + '].Description" type="text" value="' + Description + '">'
+                cell.append(td);
+
+
+                cell = $(row.insertCell(-1));
+
+                td = '<input class="form-control input-sm clearfix AdFromDate datetimepicker" data-val="true" data-val-date="The field FromDate must be a date." id="services_' + rowCount + '__FromDate" onkeydown = "event.preventDefault()" name="services[' + rowCount + '].FromDate" type="text" value="' + FromDate + '">'
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+                td = '<input class="form-control input-sm clearfix AdToDate datetimepicker onkeydtp" data-val="true" data-val-date="The field ToDate must be a date." id="services_' + rowCount + '__ToDate" name="services[' + rowCount + '].ToDate" type="text" value="' + ToDate + '">'
+                cell.append(td);
+
+                cell = $(row.insertCell(-1));
+
+                td = '<input class="form-control input-sm clearfix AdCost" id="services_' + rowCount + '__Cost" name="services[' + rowCount + '].Cost" type="text" value="' + Cost + '"  onkeypress="return OnlyDouble(this, event);">'
+                cell.append(td);
+
+
+                var tdremove = '<button type="button" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 pull-left" onclick="RemoveService(this)" />'
+                cell = $(row.insertCell(-1));
+                cell.append(tdremove);
+
+                DatePickerClass();
+                ClearService();
+            }
+            else {
+
+                alert('Service Type already exists in list');
+                return false;
+
+            }
+
+        }
+        else {
+            alert('Service Type,From Date,To Date is required');
+            return false;
+        }
+
+        return false;
+
+    }
+
+</script>

@@ -1,0 +1,75 @@
+﻿@using RELOCBS.Utility;
+@using RELOCBS.App_Code;
+@using PagedList;
+@using PagedList.Mvc;
+@using GridMvc.Html
+
+@model IPagedList<RELOCBS.Entities.StorageSubBillGrid>
+
+@{
+
+    string _PageID = "33";
+    bool hasAddAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.ADD);
+    bool hasEditAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.EDIT);
+    bool hasDeleteAccess = UserSession.HasPermission(_PageID, EnumUtility.PageAction.DELETE);
+}
+
+<h3>Invoices</h3>
+@Html.Grid(Model).Named("mainGrid").Columns(columns =>
+{
+
+columns.Add(o => o.ProcessID)
+    .Titled("Process ID")
+    .Css("col-md-3")
+    .SetWidth(2)
+    .SortInitialDirection(GridMvc.Sorting.GridSortDirection.Ascending);
+
+columns.Add(o => o.StorageID)
+.Titled("Storage ID").Css("col-md-3");
+
+columns.Add(o => o.BillID)
+.Titled("Invoice ID").Css("col-md-3");
+
+columns.Add(o => o.InvNo)
+.Titled("Invoice No.").Css("col-md-3");
+
+columns.Add(o => o.InvFromDate)
+.Titled("Storage FromDate").Css("col-md-3").Format("{0:dd-MMM-yyyy}");
+
+columns.Add(o => o.InvToDate)
+.Titled("Storage ToDate").Css("col-md-3").Format("{0:dd-MMM-yyyy}");
+
+columns.Add(o => o.Status)
+.Titled("Status").Css("col-md-3");
+
+columns.Add()
+.Encoded(false)
+.Sanitized(false)
+.Sortable(true)
+.Css("col-md-2").Titled("Actions")
+.RenderValueAs(d =>
+    @<div>
+    @if (hasEditAccess)
+                {
+        <a href="@Url.Action("Create", "StorageBilling",new { MoveID = d.MoveID, StorageID = d.StorageID,BillID=d.ProcessID,Type="AI" })" class="btnEdit btn btn-xs btn-default glyphicon glyphicon-pencil pull-left" title="Edit"></a>
+                }
+
+    @*@if (hasDeleteAccess && (!string.IsNullOrWhiteSpace(d.MainInvStatus) && d.MainInvStatus.Equals("draft",StringComparison.OrdinalIgnoreCase) || (d.MainInvStatus.Equals("send to sd", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(d.MainInvNo))))
+        {*@
+    @if (hasDeleteAccess && d.IsShowDlt)
+    {
+    <div class="pull-left">
+        <form method="post" action="@Url.Action("Delete/" + d.ProcessID, "StorageBilling")" class="frmRWDelete" title="Delete">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="BillID" value="@d.ProcessID" />
+            <button type="submit" class="btnDelete btn btn-xs btn-danger glyphicon glyphicon-trash marl-5 m-n m-l-md"></button>
+        </form>
+    </div>
+    @*}*@
+
+    }
+</div>
+    );
+}).Sortable(enable:false)
+
+

@@ -1,0 +1,270 @@
+﻿@using RELOCBS.Utility;
+
+@model RELOCBS.Entities.ActivityAllocationModel
+
+@*@using (Html.BeginForm("CreateActivity", "JobAllocation", null, FormMethod.Post, new { enctype = "multipart/form-data", id = "CreateUpload", name = "CreateUpload" }))
+{*@
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-2 form-group">
+                <label>Document Type</label>
+                @Html.DropDownListFor(model => model.docUpload.DocTypeID, new SelectList((System.Collections.IEnumerable)ViewData["DocTypeList"], "Value", "Text"), "--Select Doc.Type--", new { id = "DocTypeDropdown", @class = "form-control input-sm clearfix enableselect", @onchange = "javascript:DocType_OnChange(this.value);" })
+                @Html.HiddenFor(model => model.docUpload.DocTypeID)
+                @Html.HiddenFor(model => model.docUpload.DocFromType)
+                @Html.HiddenFor(model => model.docUpload.ID)
+                @Html.ValidationMessageFor(model => model.docUpload.DocTypeID, "", new { @class = "text-danger" })
+            </div>
+            <div class="col-sm-3 form-group">
+                <label>Document Name</label>
+                @Html.DropDownListFor(model => model.docUpload.DocNameID, new SelectList((System.Collections.IEnumerable)ViewData["DocNameList"], "Value", "Text"), "--Select Doc.Name--", new { id = "DocNameDropdown", @class = "form-control input-sm clearfix enableselect" })
+                @Html.ValidationMessageFor(model => model.docUpload.DocNameID, "", new { @class = "text-danger" })
+            </div>
+            <div class="col-sm-3 form-group">
+                <label>Description</label>
+                @Html.EditorFor(model => model.docUpload.DocDescription, new { htmlAttributes = new { @class = "form-control input-sm clearfix" } })
+                @Html.ValidationMessageFor(model => model.docUpload.DocDescription, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="col-sm-3 form-group">
+                <label>File Upload</label>
+                @Html.TextBoxFor(model => model.docUpload.file, new { type = "file", @class = "inputfile inputfile-4 form-control", accept = ".xls,.xlsx,.doc,.docx,.jpg,.jpeg,.png,.pdf,.ppt,.pptx,.csv", @multiple = "multiple" })
+                @Html.ValidationMessageFor(model => model.docUpload.file, "", new { @class = "text-danger" })
+            </div>
+            <div class="col-sm-1 form-group">
+                <div class="clearfix">
+                    <input type="submit" name="submit" value="Upload" class="btn btn-primary btn-sm filter-custom-margin btnSubmit">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="table-responsive">
+                <table id="tblDocList" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Document Type</th>
+                            <th>Document Name</th>
+                            <th>Description</th>
+                            <th>File Name</th>
+                            <th>Uploaded By</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.docUpload.docLists.Count; i++)
+                        {
+                            <tr>
+                                <td>
+                                    @Html.DisplayFor(model => Model.docUpload.docLists[i].DocType)
+                                    @Html.Hidden("id", Model.docUpload.docLists[i].FileID, new { @class = "FileID" })
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(model => Model.docUpload.docLists[i].DocName)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(model => Model.docUpload.docLists[i].DocDescription)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(model => Model.docUpload.docLists[i].FileName)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(model => Model.docUpload.docLists[i].UploadBy)
+                                </td>
+                                <td>
+                                    <button type="button" name="submit" class="btn btn-primary btn-sm" data-href="@Url.Action("JobDocDownload", "MoveManage",new { id=Model.docUpload.docLists[i].FileID})"  value="DownloadDoc" title="Download Doc" onclick="DownloadDoc(this)" ><i class="fa fa-download" aria-hidden="true"></i></button>
+                                </td>
+                                <td>
+                                    <button type="button"  name="submit" data-href="@Url.Action("ViewDocument", "DMS",new { id=Model.docUpload.docLists[i].FileID})"  class="btnViewDoc btn btn-xs btn-danger marl-5 pull-left" value="ViewDoc" title="View Doc"  onclick="ViewDocument(this)"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                                </td>
+                                <td>
+                                    @if (UserSession.GetUserSession().LoginType == "SA" || UserSession.GetUserSession().LoginType == "AA" || UserSession.GetUserSession().LoginID == Model.docUpload.docLists[i].UploadById)
+                                    { 
+                                        <button type="button" name="submit" data-href="@Url.Action("DeleteDoc", "JobAllocation")" class="btnDeleteDoc btn btn-xs btn-danger marl-5 pull-left" value="DeleteDoc" title="Delete Doc" onclick="DeleteDocument(this)"><i class="glyphicon glyphicon-trash" aria-hidden="true"></i></button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+@*}*@
+
+<script type="text/javascript">
+    function DeleteDocument(sender) {
+        
+        var url = $(sender).attr('data-href');
+        var FileID = $(sender).closest('tr').find('.FileID').val();
+
+        var antikey = $('input[name="__RequestVerificationToken"]').val();
+
+        var form = $('#frmDocDelete');
+        if (form != null && form.length > 0) {
+            form.remove();
+        }
+        var newForm = $('<form>', {
+            'id': 'frmDocDelete',
+            'action': url,
+            //'target': '_blank',
+            'method': 'POST'
+        }).append($('<input>', {
+            'name': 'id',
+            'value': FileID,
+            'type': 'hidden'
+        })).append(jQuery('<input>', {
+            'name': '__RequestVerificationToken',
+            'value': antikey,
+            'type': 'hidden'
+        }));
+
+        newForm.appendTo('.DocDeleteForm');
+        
+        swal({
+            title: "",
+            text: "Are you sure you want to delete?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes",
+            cancelButtonText: "No",
+            closeOnConfirm: true,
+            closeOnCancel: false
+            },
+            function (isConfirm) {
+            if (isConfirm) {
+
+
+                $('#tblDocList').mask("Loading...");
+                $('#frmDocDelete').ajaxSubmit({
+                    success: function (data) {
+                        if (data.Success) {
+                            
+                            var row = $(sender).closest("TR");
+                            var table = $("#tblDocList")[0];
+                            table.deleteRow(row[0].rowIndex);
+                            toastr.success("Document deleted successfully.");
+
+                        } else if (!data.Success) {
+                            swal({
+                                text: "Document Delete Failed.",
+                                type: "error"
+                            });
+                        }
+                        $('#tblDocList').unmask();
+                    },
+                    complete: function () {
+                        newForm.remove();
+                        $('#tblDocList').unmask();
+                    }
+                });
+
+                //swal.close();
+
+            }
+            else {
+                    swal("Cancelled", "Delete Cancelled.", "error");
+            }
+
+
+            });
+
+        
+        return false;
+    }
+
+    function DownloadDoc(sender) {
+
+        var url = $(sender).attr('data-href');
+        var FileID = $(sender).closest('tr').find('.FileID').val();
+
+        var antikey = $('input[name="__RequestVerificationToken"]').val();
+
+        var form = $('#frmDocDownload');
+        if (form != null && form.length > 0) {
+            form.remove();
+        }
+        var newForm = $('<form>', {
+            'id': 'frmDocDownload',
+            'action': url,
+            'target': '_blank',
+            'method': 'POST'
+        }).append($('<input>', {
+            'name': 'id',
+            'value': FileID,
+            'type': 'hidden'
+        })).append(jQuery('<input>', {
+            'name': '__RequestVerificationToken',
+            'value': antikey,
+            'type': 'hidden'
+        }));
+
+        newForm.appendTo('.DocDownloadDoc').submit();
+
+        return false;
+
+    }
+
+    function DocType_OnChange(_DocType) {
+        $("#DocNameDropdown").text('');
+        $("#DocNameDropdown").val('');
+        $("#DocNameDropdown").empty();
+        $("#DocNameDropdown").append($('<option>').text("--Select Docuement Name--").attr('value', ''));
+        if (_DocType != null && _DocType != "") {
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: "@Url.Action("GetDocName", "Combo")?DocType=" + _DocType,
+                async: 'false',
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    $.each(data, function (number, municipe) {
+
+                        $("#DocNameDropdown").append($('<option>').text(municipe.Text).attr('value', municipe.Value));
+
+                    });
+                },
+                error: function (reponse) {
+                    alert("error : " + reponse);
+                }
+            });
+        }
+
+        }
+
+
+    function ViewDocument(sender) {
+
+        var url = $(sender).attr('data-href');
+        var FileID = $(sender).closest('tr').find('.FileID').val();
+
+        var antikey = $('input[name="__RequestVerificationToken"]').val();
+
+        var form = $('#frmDocView');
+        if (form != null && form.length > 0) {
+            form.remove();
+        }
+        var newForm = $('<form>', {
+            'id': 'frmDocView',
+            'action': url,
+            'target': '_blank',
+            'method': 'POST'
+        }).append($('<input>', {
+            'name': 'id',
+            'value': FileID,
+            'type': 'hidden'
+        })).append(jQuery('<input>', {
+            'name': '__RequestVerificationToken',
+            'value': antikey,
+            'type': 'hidden'
+        }));
+
+        newForm.appendTo('.DocViewDoc').submit();
+
+        return false;
+
+    }
+
+</script>

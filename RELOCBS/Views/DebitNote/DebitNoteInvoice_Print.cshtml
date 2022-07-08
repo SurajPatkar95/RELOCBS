@@ -1,0 +1,664 @@
+﻿@model RELOCBS.Entities.DebitNote
+
+@{
+    string _PageID = "67";
+    string param = "DebitNoteId=ParamValue0&DNCreditNoteId=ParamValue1";
+    string DrOrCrNote = Model.DrOrCrNote;
+    string DrOrCrNoteTextFull = DrOrCrNote == "D" ? "Tax Invoice" : "Credit Note";
+    string TaxType = Model.TaxType ?? "";
+
+    string QRSignedValue = "";
+    string BankQR = "";
+    string HeadingCss = "";
+
+    if (Model.QRSignedValue != null)
+    {
+        QRSignedValue = String.Format("data:image/Bmp;base64,{0}", Convert.ToBase64String(Model.QRSignedValue));
+        HeadingCss = "float:right";
+    }
+
+    if (Model.BankQRCode != null)
+    {
+        BankQR = String.Format("data:image/Bmp;base64,{0}", Convert.ToBase64String(Model.BankQRCode));
+    }
+
+    ViewBag.Title = DrOrCrNoteTextFull;
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@DrOrCrNoteTextFull</title>
+    @Styles.Render("~/Content/css")
+
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/custom")
+
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style type="text/css">
+        #tblInvoiceItems tbody td {
+            border: solid;
+            border-width: thin;
+            border-color: lightgray;
+        }
+
+        .ttop {
+            vertical-align: top !important;
+        }
+
+        body {
+        }
+
+        .floatLeft {
+            float: left;
+        }
+
+        .tcenter {
+            text-align: center !important;
+        }
+
+        .boxWraper {
+            border: 1px solid #7b7b7b;
+            display: block;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+            .boxWraper .padding tr td {
+                padding: 3px 6px;
+            }
+
+        .grid-header {
+            background: #eee;
+            font-size: 13px;
+        }
+
+        tr.border_bottom td {
+            border-bottom: 1pt solid black;
+        }
+
+        .tableData {
+            border: 0 !important;
+            line-height: 16px;
+        }
+
+            .tableData tr td {
+                background: #fff;
+                height: 100%;
+                vertical-align: middle;
+                border: 1px solid #e3e7ee;
+            }
+
+        .boxWraper tr th {
+            border: 1px solid #e3e7ee;
+            text-align: center;
+            padding: 3px 6px;
+        }
+
+        .marginLR {
+            margin: 0 auto;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        table {
+            background-color: transparent;
+        }
+
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            color: #808080;
+            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: subpixel-antialiased;
+            background: #fff;
+        }
+
+        .cw100 {
+            width: 100px !important;
+        }
+
+        .cw110 {
+            width: 110px !important;
+        }
+
+        .cw80 {
+            width: 80px !important;
+        }
+
+        .cw120 {
+            width: 120px !important;
+        }
+
+        .cw130 {
+            width: 130px !important;
+        }
+
+        .cw140 {
+            width: 140px !important;
+        }
+
+        .cw160 {
+            width: 160px !important;
+        }
+
+        .tbold {
+            font-family: Lato,'Open Sans',verdana,arialo,"Helvetica Neue", sans-serif;
+            font-weight: 600;
+        }
+
+        .tright {
+            text-align: right !important;
+        }
+
+        label {
+            margin-bottom: 0;
+            color: black;
+        }
+
+        .tcollapse {
+            border-collapse: collapse;
+        }
+
+        .boxWraper .padding tr td {
+            padding: 3px 6px;
+        }
+
+        .taW {
+            width: 100% !important;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: normal;
+            font-family: Lato,verdana,arial,"Helvetica Neue", Helvetica, sans-serif;
+        }
+
+        .numbertd {
+            text-align: right;
+        }
+
+        table, img, svg {
+            break-inside: avoid;
+        }
+
+        .Column-80 {
+            float: left;
+            width: 80%;
+        }
+
+        .Column-20 {
+            float: left;
+            width: 20%;
+        }
+
+        /* Clear floats after the columns */
+        .Rows:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+    </style>
+    <style type="text/css">
+        @@media print {
+            .grid-header {
+                background: #eee;
+                font-size: 13px;
+            }
+
+            body {
+                font-family: Serif;
+            }
+
+            h2 {
+                font-size: 20px;
+                text-transform: uppercase;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            h4 {
+                font-size: 13px;
+                text-decoration: underline;
+                margin: 6px 0;
+                font-family: Serif;
+            }
+
+            img {
+                display: inline;
+            }
+
+            .Column-80 {
+                float: left;
+                width: 80%;
+            }
+
+            .Column-20 {
+                float: left;
+                width: 20%;
+            }
+            /* Clear floats after the columns */
+            .Rows:after {
+                content: "";
+                display: table;
+                clear: both;
+            }
+        }
+    </style>
+</head>
+<body>
+</body>
+</html>
+
+<div class="col-lg-10 col-sm-10 col-md-10 DebitNoteInvoice graph-img graph-7" style=" flex-align:center" id="DebitNoteInvoice">
+    <table class="marginLR" style="width:20cm;">
+        <tbody>
+            <tr>
+                <td>
+                    <table class="taW">
+                        <tbody>
+                            <tr>
+                                <td style="border-bottom:1px solid #7b7b7b;">
+                                    <table class="taW">
+                                        <tbody>
+                                            <tr>
+                                                @if (Model.QRSignedValue != null)
+                                                {
+                                                    <td width="250"></td>
+                                                }
+
+                                                <td class="Billheading">
+                                                    <div style="@HeadingCss">
+                                                        <div class="floatLeft" style="margin-top:34px;">
+                                                            <input type="hidden" id="hWisId" data-ng-model="hWisIdm" value="5866" autocomplete="off" class="ng-pristine ng-untouched ng-valid ng-not-empty">
+                                                        </div>
+                                                        <div class="tcenter hidden-print">
+                                                            <img src="~/Content/images/logo-icon.png" width="100px" height="100px" />
+                                                        </div>
+                                                        <div class="tcenter">
+                                                            <h2>Writer Relocations</h2>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    @if (!string.IsNullOrEmpty(QRSignedValue))
+                                                    {
+                                                        <div class="tright">
+                                                            <img src="@QRSignedValue" width="225px" height="225px" />
+                                                        </div>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr class="headermargin">
+                                <td style="height:5px;"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="boxWraper">
+                                        <table class="taW tcollapse padding">
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <div class="tcenter">
+                                                            <h3>@(DrOrCrNote == "D" ? "Tax Invoice" : "Credit Note")</h3>
+                                                        </div>
+                                                        <div class="text-right">Original For Recipient</div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="boxWraper">
+                                                            <table class="taW tcollapse padding">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td colspan="2">
+                                                                            <label class="cw120 tbold">Bill To</label> : <span class="ng-binding">@Html.Raw(Model.Debtor.DebtorName)</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td colspan="2">
+                                                                            <label class="cw120 tbold">Bill To Address</label> : <span class="ng-binding">@Html.Raw(Model.Debtor.Address1) @Html.Raw(Model.Debtor.Address2), @Html.Raw(Model.Debtor.City), @Html.Raw(Model.Debtor.PINCode)</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <label class="cw120 tbold">Bill To GST No.</label> : <span class="ng-binding">@Html.Raw(Model.Debtor.GSTNo)</span>
+                                                                        </td>
+                                                                        <td>
+                                                                            <label class="cw120 tbold">State</label> : <span class="ng-binding">@Html.Raw(Model.Debtor.State)</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <label class="cw120 tbold">PAN No.</label> : <span class="ng-binding">@Html.Raw(Model.Debtor.PANNo)</span>
+                                                                        </td>
+                                                                        <td>
+                                                                            <label class="cw120 tbold">State Code</label> : <span class="ng-binding">@Html.Raw(Model.Debtor.StateCode)</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td colspan="1">
+                                                                            <label class="cw120 tbold">@DrOrCrNoteTextFull No.</label> : <span class="ng-binding">@Html.Raw(DrOrCrNote == "D" ? Model.DebitNoteNo : Model.CreditNoteNo)</span>
+                                                                        </td>
+                                                                        <td>
+                                                                            <label class="cw120 tbold">Place of Supply</label> : <span class="ng-binding">@Html.Raw(Model.Debtor.POSState)</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <label class="cw120 tbold">@DrOrCrNoteTextFull Date</label> : <span class="ng-binding">
+                                                                                @if (DrOrCrNote == "D")
+                                                                                {
+                                                                                    if (Model.DebitNoteDate != null)
+                                                                                    {
+                                                                                        @(((DateTime)Model.DebitNoteDate).ToString("dd-MMM-yyyy"))
+                                                                                    }
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    if (Model.CreditNoteDate != null)
+                                                                                    {
+                                                                                        @(((DateTime)Model.CreditNoteDate).ToString("dd-MMM-yyyy"))
+                                                                                    }
+                                                                                }
+                                                                            </span>
+                                                                        </td>
+                                                                        <td colspan="1"></td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td colspan="2">
+                                                                            <label class="cw120 tbold">IRN No.</label> : <span class="ng-binding">@Html.Raw(Model.IRNNo)</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="boxWraper">
+                                                            <table class="taW tcollapse padding" id="tblInvoiceItems">
+                                                                <tr>
+                                                                    <th>Sr. No.</th>
+                                                                    <th>Particulars</th>
+                                                                    <th>Job No</th>
+                                                                    <th>HSN/SAC Code</th>
+                                                                    <th>Curr.</th>
+                                                                    <th>Quantity</th>
+                                                                    <th>Rate</th>
+                                                                    <th>Unit</th>
+                                                                    <th class="tdAmount">Amount</th>
+                                                                    @if (TaxType == "CGST")
+                                                                    {
+                                                                        <th>CGST %</th>
+                                                                        <th>SGST %</th>
+                                                                        <th class="tdCGSTAmount" style="display:@(TaxType == "CGST" ? "" : "none")">CGST Amt</th>
+                                                                        <th class="tdSGSTAmount" style="display:@(TaxType == "CGST" ? "" : "none")">SGST Amt</th>
+                                                                    }
+                                                                    else if (TaxType == "IGST")
+                                                                    {
+                                                                        <th>IGST %</th>
+                                                                        <th class="tdIGSTAmount" style="display:@(TaxType == "IGST" ? "" : "none")">IGST Amt</th>
+                                                                    }
+                                                                    else if (TaxType == "VAT")
+                                                                    {
+                                                                        <th>VAT %</th>
+                                                                        <th class="tdVATAmount" style="display:@(TaxType == "VAT" ? "" : "none")">VAT Amt</th>
+                                                                    }
+                                                                    <th>Total Amt</th>
+                                                                </tr>
+                                                                @if (Model.DebitNoteDetailsList != null)
+                                                                {
+                                                                    for (int i = 0; i < Model.DebitNoteDetailsList.Count; i++)
+                                                                    {
+                                                                        Model.DebitNoteDetailsList[i].DebitAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].DebitAmount));
+                                                                        Model.DebitNoteDetailsList[i].CreditAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].CreditAmount));
+                                                                        Model.DebitNoteDetailsList[i].TaxPercent = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].TaxPercent));
+                                                                        Model.DebitNoteDetailsList[i].CGSTAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].CGSTAmount));
+                                                                        Model.DebitNoteDetailsList[i].SGSTAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].SGSTAmount));
+                                                                        Model.DebitNoteDetailsList[i].IGSTAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].IGSTAmount));
+                                                                        Model.DebitNoteDetailsList[i].VATAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].VATAmount));
+                                                                        Model.DebitNoteDetailsList[i].TotalAmount = Convert.ToDecimal(String.Format("{0:0.00}", Model.DebitNoteDetailsList[i].TotalAmount));
+                                                                        <tr>
+                                                                            <td class="tcenter">@(i + 1)</td>
+                                                                            <td>@Model.DebitNoteDetailsList[i].Description</td>
+                                                                            <td>@Model.DebitNoteDetailsList[i].JobNo</td>
+                                                                            <td>@Model.DebitNoteDetailsList[i].SacCode</td>
+                                                                            <td class="tcenter">@Model.DebitNoteDetailsList[i].Currency</td>
+                                                                            <td class="tcenter">@Model.DebitNoteDetailsList[i].Quantity</td>
+                                                                            <td class="tcenter">@Model.DebitNoteDetailsList[i].Rate</td>
+                                                                            <td class="tcenter">@Model.DebitNoteDetailsList[i].Unit</td>
+                                                                            <td class="numbertd tdAmount">  @(DrOrCrNote == "D" ? Model.DebitNoteDetailsList[i].DebitAmount : Model.DebitNoteDetailsList[i].CreditAmount)</td>
+                                                                            @if (TaxType == "CGST")
+                                                                            {
+                                                                                <td class="numbertd">@(Model.DebitNoteDetailsList[i].TaxPercent / 2)</td>
+                                                                                <td class="numbertd">@(Model.DebitNoteDetailsList[i].TaxPercent / 2)</td>
+                                                                                <td class="numbertd tdCGSTAmount">@Model.DebitNoteDetailsList[i].CGSTAmount</td>
+                                                                                <td class="numbertd tdSGSTAmount">@Model.DebitNoteDetailsList[i].SGSTAmount</td>
+                                                                            }
+                                                                            else if (TaxType == "IGST")
+                                                                            {
+                                                                                <td class="numbertd">@Model.DebitNoteDetailsList[i].TaxPercent</td>
+                                                                                <td class="numbertd tdIGSTAmount">@Model.DebitNoteDetailsList[i].IGSTAmount</td>
+                                                                            }
+                                                                            else if (TaxType == "VAT")
+                                                                            {
+                                                                                <td class="numbertd">@Model.DebitNoteDetailsList[i].TaxPercent</td>
+                                                                                <td class="numbertd tdVATAmount">@Model.DebitNoteDetailsList[i].VATAmount</td>
+                                                                            }
+                                                                            <td class="numbertd">@Model.DebitNoteDetailsList[i].TotalAmount</td>
+                                                                        </tr>
+                                                                    }
+                                                                }
+                                                                <tr>
+                                                                    <th colspan="4">Total Charges</th>
+                                                                    <th colspan="4"></th>
+                                                                    <th class="numbertd">@(DrOrCrNote == "D" ? Convert.ToDecimal(string.Format("{0:0.00}", Model.DebitNoteDetailsList.Sum(x => x.DebitAmount))) : Convert.ToDecimal(string.Format("{0:0.00}", Model.DebitNoteDetailsList.Sum(x => x.CreditAmount))))</th>
+                                                                    @if (TaxType == "CGST")
+                                                                    {
+                                                                        <th colspan="2"></th>
+                                                                        <th class="numbertd tdCGSTAmount">@Convert.ToDecimal(string.Format("{0:0.00}", Model.DebitNoteDetailsList.Sum(x => x.CGSTAmount)))</th>
+                                                                        <th class="numbertd tdSGSTAmount">@Convert.ToDecimal(string.Format("{0:0.00}", Model.DebitNoteDetailsList.Sum(x => x.SGSTAmount)))</th>
+                                                                    }
+                                                                    else if (TaxType == "IGST")
+                                                                    {
+                                                                        <th colspan="1"></th>
+                                                                        <th class="numbertd tdIGSTAmount">@Convert.ToDecimal(string.Format("{0:0.00}", Model.DebitNoteDetailsList.Sum(x => x.IGSTAmount)))</th>
+                                                                    }
+                                                                    else if (TaxType == "VAT")
+                                                                    {
+                                                                        <th colspan="1"></th>
+                                                                        <th class="numbertd tdVATAmount">@Convert.ToDecimal(string.Format("{0:0.00}", Model.DebitNoteDetailsList.Sum(x => x.VATAmount)))</th>
+                                                                    }
+                                                                    <th class="numbertd">@Convert.ToDecimal(string.Format("{0:0.00}", Model.DebitNoteDetailsList.Sum(x => x.TotalAmount)))</th>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th colspan="4">Amount in Words</th>
+                                                                    @{
+                                                                        int ColCount = 8;
+                                                                        if (TaxType == "CGST")
+                                                                        {
+                                                                            ColCount += 2;
+                                                                        }
+                                                                    }
+                                                                    <th colspan="@ColCount">@RELOCBS.Common.CommonService.AmountINWords(Convert.ToDouble(Model.DebitNoteDetailsList.Sum(x => x.TotalAmount)))</th>
+                                                                </tr>
+                                                            </table>
+                                                        </div>
+                                                        <div>
+                                                            <table class="taW">
+                                                                <tr>
+                                                                    <td class="col-md-12" colspan="2">
+                                                                        <br />
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="col-md-6"></td>
+                                                                    <td class="col-md-6">
+                                                                        <div>
+                                                                            <label class="tbold">@Html.Raw(Model.ApprovedBy)</label>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="col-md-6"></td>
+                                                                    <td class="col-md-6">
+                                                                        <div>
+                                                                            <label class="tbold">VERIFIED BY</label>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="col-md-12" colspan="2">
+                                                                        <br />
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="col-md-6"></td>
+                                                                    <td class="col-md-6">
+                                                                        <div>
+                                                                            <label class="tbold">For Writer Business Services Private Limited</label>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="col-md-12" colspan="2">
+                                                                        <br /><br />
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="col-md-6"></td>
+                                                                    <td class="col-md-6">
+                                                                        <div>
+                                                                            <label class="tbold">Authorised Signatory</label>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr class="Billheading">
+                                                    <td>
+                                                        <div class="boxWraper">
+                                                            <table class="taW tcollapse padding">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td class="col-md-1"></td>
+                                                                        <td class="col-md-11">
+                                                                            <div>
+                                                                                <label class="tbold">PAN No. :</label><span class="ng-binding">@Html.Raw(Model.AddressDetails.PANNoOur)</span>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-1"></td>
+                                                                        <td class="col-md-11">
+                                                                            <div>
+                                                                                <label class="tbold">GST No. :</label><span class="ng-binding">@Html.Raw(Model.AddressDetails.GSTNoOur)</span>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="col-md-1"></td>
+                                                                        <td class="col-md-11">
+                                                                            <span class="tbold">@Html.Raw(Model.AddressDetails.Line1)</span>
+                                                                            @if (!string.IsNullOrEmpty(Model.AddressDetails.Line2))
+                                                                            {
+                                                                                <br /><span class="tbold">@Html.Raw(Model.AddressDetails.Line2)</span>
+                                                                            }
+                                                                            @if (!string.IsNullOrEmpty(Model.AddressDetails.Line3))
+                                                                            {
+                                                                                <br /><span class="tbold">@Html.Raw(Model.AddressDetails.Line3)</span>
+                                                                            }
+                                                                            @if (!string.IsNullOrEmpty(Model.AddressDetails.Line4))
+                                                                            {
+                                                                                <br /><span class="tbold">@Html.Raw(Model.AddressDetails.Line4)</span>
+                                                                            }
+                                                                            @if (!string.IsNullOrEmpty(Model.AddressDetails.Line5))
+                                                                            {
+                                                                                <br /><span class="tbold">@Html.Raw(Model.AddressDetails.Line5)</span>
+                                                                            }
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tcenter">
+                                                        <div>
+                                                            @Model.AddressDetails.BottomLine1<br />
+                                                            @Model.AddressDetails.BottomLine2<br />
+                                                            @Model.AddressDetails.BottomLine3<br />
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    @if (!string.IsNullOrEmpty(QRSignedValue))
+                    {
+                        <div>
+                            <img src="@QRSignedValue" width="200px" height="200px" />
+                        </div>
+                    }
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="col-sm-1" style="border-radius: 50%;">
+    <button onclick="printPage('DebitNoteInvoice','.Billheading{display:none;}')" style="border-radius: 5%;" class="btn btn-primary btn-sm pull-right m-r-lg m-t-lg" title="Print">Print Format </button>
+    <button onclick="printPage('DebitNoteInvoice',null)" style="border-radius: 5%;" class="btn btn-primary btn-sm pull-right m-r-lg m-t-sm" title="Print">Email Format</button>
+</div>
+<script type="text/javascript">
+    function printPage(elementId, headerclass) {
+        var divToPrint = document.getElementById('DebitNoteInvoice');
+
+        var newWin = window.open('', 'Print-Window');
+
+        newWin.document.open();
+        var style = '';
+        style = '<style type="text/css">#tblInvoiceItems tbody td {border: solid;border-width: thin;border-color: lightgray;} .ttop {vertical-align: top !important;} .text-right { text-align: right; }' +
+            'body {} .floatLeft {float: left;} .tcenter {text-align: center !important;} .boxWraper {border: 1px solid #7b7b7b;display: block;overflow: hidden;margin-bottom: 5px;} .boxWraper.padding tr td {padding: 3px 6px;}' +
+            '.grid-header {background: #eee;font-size: 13px;} tr.border_bottom td {border-bottom: 1pt solid black;} .tableData {border: 0!important;line-height: 16px;} .tableData tr td {background: #fff;height: 100%;vertical-align: middle;border: 1px solid #e3e7ee;}' +
+            '.boxWraper tr th {border: 1px solid #e3e7ee; text-align: center;padding: 3px 6px;} .marginLR {margin: 0 auto;} table { border-collapse: collapse;} table {background-color: transparent;}' +
+            'body {padding: 0;margin: 0;font-size: 12px;' +
+            'font-family: Lato, \'Open Sans\', verdana, arialo, "Helvetica Neue", sans-serif;color: #808080;' +
+            ' -webkit-font-smoothing: antialiased;-webkit-font-smoothing: subpixel-antialiased;' +
+            'background: #fff;} .cw100 {width: 100px!important;}.cw110 {width: 110px!important;} .cw80 {width: 80px!important;}.cw120 {width: 120px!important;} .cw140 {width: 140px!important;}' +
+            '.cw160 {width: 160px!important;}.cw130 {width: 130px!important;}' +
+            '.tbold {font-family: Lato, \'Open Sans\', verdana, arialo, "Helvetica Neue", sans-serif;font - weight: 600;}' +
+            '.tright {text - align: right!important;} label {margin-bottom: 0;color: black;} .tcollapse { border-collapse: collapse;} .boxWraper.padding tr td {padding: 3px 6px;}' +
+            '.taW {width: 100% !important;}h4 {font-size: 14px;margin: 6px 0;font-weight: normal;font-family: Lato, verdana, arial, "Helvetica Neue", Helvetica, sans-serif;}' +
+            '.numbertd {text-align: right;} table, img, svg {break-inside: avoid;} .tright {text-align: right!important;}' +
+            headerclass +
+            '</style > ';
+        style = style + '<style>@@media print {.grid - header {background: #eee;font-size: 13px;}body {font-family: Serif;} h2 {font-size: 20px;text-transform: uppercase;text-decoration: underline;margin: 6px 0;font-family: Serif;} h4 {font-size: 13px;text-decoration: underline;margin: 6px 0;font-family: Serif;} img {display: inline;}}</style>';
+
+        newWin.document.write('<html><head>' + style +
+            '</head><body onload="window.print()">' + divToPrint.innerHTML + '</body></html>');
+
+        newWin.document.close();
+
+        setTimeout(function () { newWin.close(); }, 10);
+    }
+</script>

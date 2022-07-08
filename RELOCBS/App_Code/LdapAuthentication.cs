@@ -29,8 +29,8 @@ namespace RELOCBS.App_Code
             _ErrorMessage = "";
             Boolean retresult = false;
             String domainAndUsername = domain + @"\" + username;
-            DirectoryEntry entry = new DirectoryEntry(_path, domainAndUsername, pwd);
-
+            //DirectoryEntry entry = new DirectoryEntry(_path, domainAndUsername, pwd);
+            DirectoryEntry entry = new DirectoryEntry(_path, username, pwd);
             try
             {	//Bind to the native AdsObject to force authentication.			
                 Object obj = entry.NativeObject;

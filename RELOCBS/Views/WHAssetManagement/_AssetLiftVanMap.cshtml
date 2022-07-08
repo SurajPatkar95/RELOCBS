@@ -1,0 +1,62 @@
+﻿@model  RELOCBS.Entities.WHAssetMaster
+
+<div class="clearfix col-md-12 col-sm-12 well well-sm">
+    <div class="row">
+        <div class="col-sm-offset-1 col-md-offset-1">
+            <div class="col-sm-5 col-md-5 pad-none">
+                <label>Available Boxes</label>
+            </div>
+            <div class="col-sm-1 col-md-1 pad-none text-center">
+            </div>
+            <div class="col-sm-5 pad-none">
+                <label>Selected Boxes For Current LiftVan</label>
+            </div>
+        </div>
+        <div class="col-sm-offset-1 col-md-offset-1">
+            <div class="col-sm-5 col-md-5 pad-none">
+                @Html.ListBox("Loc_DefAssetList", (IEnumerable<SelectListItem>)ViewData["DefAssetList"], new { @class = "width-100", @id = "Loc_DefAssetList", @style = "height:150px;padding-left:10px;" })
+            </div>
+            <div class="col-sm-1 col-md-1 pad-none text-center">
+                <input type="button" value=">" class="btn-sm btn-default" style="width:70%;" onclick="SetRight('LiftVan')" />
+                <input type="button" value=">>" class="btn-sm btn-default" style="width:70%;" onclick="SetAllRight('LiftVan')" />
+                <input type="button" value="<" class="btn-sm btn-default" style="width:70%;" onclick="SetLeft('LiftVan')" />
+                <input type="button" value="<<" class="btn-sm btn-default" style="width:70%;" onclick="SetAllLeft('LiftVan')" />
+            </div>
+            <div class="col-sm-5 col-md-5 pad-none">
+                @Html.ListBoxFor(m => m.WHLocationMap.AssetList, (IEnumerable<SelectListItem>)ViewData["AssetList"], new { @class = "width-100", @id = "Loc_AssetList", @style = "height:150px;padding-left:10px;" })
+            </div>
+        </div>
+    </div>
+</div>
+<div class="clearfix col-md-12 col-sm-12 well well-sm" style="overflow-x: auto;">
+    <table class="table table-bordered table-responsive table-hover" id="tblLiftVanDetails" style="width: 100%;">
+        <thead class="ibox-title">
+            <tr>
+                <th class="Loc_tdSequence">Sr. No.</th>
+                <th class="Loc_tdJobID">Job ID</th>
+                <th class="Loc_tdBarcodeID">Barcode ID</th>
+                <th class="Loc_tdBarcodeSeqNo">Box No</th>
+                <th class="Loc_tdAssetRefID">Asset Ref ID</th>
+                <th class="Loc_tdAssetDescription">Asset Desc</th>
+                <th class="Loc_tdAssetRemarks">Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.WHLocationMap.OtherLiftVanDetailsList.Count; i++)
+            {
+                <tr>
+                    <td class="Loc_tdSequence">
+                        @Html.HiddenFor(m => m.WHLocationMap.OtherLiftVanDetailsList[i].InMastID, new { @class = "Loc_tdMastID" })
+                        @Html.HiddenFor(m => m.WHLocationMap.OtherLiftVanDetailsList[i].AssetDetID, new { @class = "Loc_tdAssetDetID" })
+                    </td>
+                    <td class="Loc_tdJobID">@Model.WHLocationMap.OtherLiftVanDetailsList[i].JobID</td>
+                    <td class="Loc_tdBarcodeID">@Model.WHLocationMap.OtherLiftVanDetailsList[i].BarcodeID</td>
+                    <td class="Loc_tdBarcodeSeqNo">@Model.WHLocationMap.OtherLiftVanDetailsList[i].BarcodeSeqNo</td>
+                    <td class="Loc_tdAssetRefID">@Model.WHLocationMap.OtherLiftVanDetailsList[i].AssetRefID</td>
+                    <td class="Loc_tdAssetDescription">@Model.WHLocationMap.OtherLiftVanDetailsList[i].AssetDescription</td>
+                    <td class="Loc_tdAssetRemarks">@Model.WHLocationMap.OtherLiftVanDetailsList[i].AssetRemarks</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
